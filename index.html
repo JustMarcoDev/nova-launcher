@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nova Launcher</title>
+<style>
+:root{--bg:#0c0c10;--p:#14141a;--l:#23232d;--tx:#eceef5;--m:#7d8196;--ac:#4f8cff}
+*{box-sizing:border-box;margin:0}html,body{height:100%}
+body{background:var(--bg);color:var(--tx);font:13px/1.4 system-ui,"Segoe UI",sans-serif;overflow:hidden;display:flex;flex-direction:column}
+#cv{position:fixed;inset:0;z-index:0}
+.tb{position:relative;z-index:2;height:34px;display:flex;align-items:center;justify-content:flex-end;-webkit-app-region:drag;padding-right:6px}
+.tb button{-webkit-app-region:no-drag;all:unset;cursor:pointer;width:36px;text-align:center;color:var(--m);line-height:28px}
+.tb button:hover{color:#fff;background:var(--l)}
+.app{position:relative;z-index:1;flex:1;display:flex;min-height:0}
+nav{width:68px;display:flex;flex-direction:column;align-items:center;gap:8px;padding:10px 0;background:rgba(20,20,26,.85);border-right:1px solid var(--l)}
+nav .lg{font-weight:900;color:var(--ac);margin-bottom:14px;font-size:20px}
+nav button{all:unset;cursor:pointer;width:44px;height:44px;display:grid;place-items:center;border-radius:12px;font-size:19px;opacity:.55}
+nav button:hover{opacity:1;background:var(--l)}nav button.on{opacity:1;background:var(--l);box-shadow:inset 3px 0 var(--ac)}
+main{flex:1;min-width:0;display:flex;flex-direction:column}
+.pg{display:none;flex:1;overflow:auto;padding:26px 34px}.pg.on{display:block}
+#home.on{display:flex;flex-direction:column;justify-content:flex-end}
+.big{font-size:54px;font-weight:800;letter-spacing:-.02em}.sub{color:var(--m);margin-top:4px}
+.bar{display:flex;align-items:center;gap:12px;padding:14px 34px;background:rgba(20,20,26,.9);border-top:1px solid var(--l)}
+.pill{all:unset;cursor:pointer;padding:9px 14px;border-radius:10px;background:var(--l)}.pill:hover{filter:brightness(1.2)}
+.play{all:unset;cursor:pointer;margin-left:auto;padding:13px 44px;border-radius:12px;background:var(--ac);font-weight:800;letter-spacing:.12em;color:#fff}
+.play:hover{filter:brightness(1.12)}.play:disabled{opacity:.5;cursor:wait}
+.pr{flex:1;max-width:260px}.pr .t{color:var(--m);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pr i{display:block;height:4px;background:var(--l);border-radius:4px;margin-top:5px;overflow:hidden}.pr b{display:block;height:100%;width:0;background:var(--ac)}
+h2{font-size:20px;margin-bottom:16px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.chip{all:unset;cursor:pointer;padding:6px 13px;border-radius:99px;background:var(--p);border:1px solid var(--l);color:var(--m)}
+.chip.on{background:var(--ac);border-color:var(--ac);color:#fff}.chip.dis{opacity:.3;pointer-events:none}
+.ls{display:flex;flex-direction:column;gap:6px}
+.it{display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:10px;background:var(--p);border:1px solid var(--l);cursor:pointer}
+.it:hover{border-color:var(--ac)}.it.on{border-color:var(--ac);background:#161c2c}.it .n{flex:1;font-weight:600}.it .s{color:var(--m);font-size:12px}
+input,select{background:var(--p);color:var(--tx);border:1px solid var(--l);border-radius:9px;padding:9px 11px;font:inherit}
+.f{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:13px 0;border-bottom:1px solid var(--l);max-width:620px}
+.f span{color:var(--m);font-size:12px;display:block}.f input[type=text],.f input[type=number]{width:200px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.mod{display:flex;gap:10px;padding:12px;border-radius:12px;background:var(--p);border:1px solid var(--l)}
+.mod img,.mod .ph{width:46px;height:46px;border-radius:10px;background:var(--l);flex:none}
+.mod p{color:var(--m);font-size:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mod button{all:unset;cursor:pointer;color:var(--ac);font-weight:700;margin-top:4px}
+#log{position:fixed;right:12px;bottom:80px;width:340px;max-height:30vh;overflow:auto;font:11px monospace;color:var(--m);display:none;background:var(--p);padding:8px;border-radius:8px;z-index:5;white-space:pre-wrap}
+</style></head><body>
+<canvas id="cv"></canvas>
+<div class="tb"><button onclick="A&&A.win('min')">—</button><button onclick="A&&A.win('max')">▢</button><button onclick="A&&A.win('x')">✕</button></div>
+<div class="app">
+<nav><div class="lg">N</div>
+<button class="on" data-p="home" title="Inicio">🏠</button><button data-p="vers" title="Versiones">🧊</button><button data-p="inst" title="Instancias">📦</button>
+<button data-p="mods" title="Mods">🧩</button><button data-p="set" title="Ajustes">⚙️</button></nav>
+<main>
+<div id="home" class="pg on"><div class="big" id="hv">1.21.1</div><div class="sub" id="hl">Vanilla</div></div>
+<div id="vers" class="pg"><h2>Versiones</h2><button class="pill" id="mk" style="margin-bottom:14px">+ Crear instancia con esta versión</button><div class="chips" id="ld"></div><div class="chips" id="tf"></div><div class="ls" id="vl"></div></div>
+<div id="inst" class="pg"><h2>Instancias</h2><div class="ls" id="il"></div></div><div id="mods" class="pg"><h2>Mods</h2><div style="display:flex;gap:8px;margin-bottom:6px"><input id="q" placeholder="Buscar mods en Modrinth…" style="flex:1"></div>
+<div class="chips" id="mc"></div><div class="sub" id="mi" style="margin-bottom:12px"></div><div class="grid" id="mg"></div></div>
+<div id="set" class="pg"><h2>Ajustes</h2>
+<div class="f"><div>Nombre de usuario<span>Modo offline</span></div><input type="text" id="s_username"></div>
+<div class="f"><div>Memoria RAM (GB)<span id="rv"></span></div><input type="range" id="s_ram" min="1" max="32"></div>
+<div class="f"><div>Cuenta<span id="acc"></span></div><button class="pill" id="ms"></button></div><div class="f"><div>Ruta de Java<span>Vacío = Java automático</span></div><input type="text" id="s_javaPath"></div><div class="f"><div>Clave API de CurseForge<span>Opcional, para buscar en CurseForge</span></div><input type="text" id="s_cfKey"></div>
+<div class="f"><div>Resolución<span>Ancho × Alto</span></div><div><input type="number" id="s_width" style="width:90px"> × <input type="number" id="s_height" style="width:90px"></div></div>
+<div class="f"><div>Pantalla completa</div><input type="checkbox" id="s_fullscreen"></div>
+<div class="f"><div>Argumentos JVM<span>Ej: -XX:+UseG1GC</span></div><input type="text" id="s_jvmArgs"></div>
+<div class="f"><div>Ocultar launcher al jugar</div><input type="checkbox" id="s_closeOnLaunch"></div>
+<div class="f"><div>Carpeta del juego</div><button class="pill" onclick="A&&A.folder()">Abrir</button></div></div>
+<div class="bar"><button class="pill" id="bv">1.21.1</button><button class="pill" id="bl">Vanilla</button>
+<div class="pr"><div class="t" id="st"></div><i><b id="pb"></b></i></div><button class="play" id="go">JUGAR</button></div>
+</main></div><div id="log"></div>
+<script>
+const A=window.api||null,$=id=>document.getElementById(id);
+const DEMO=[["1.21.1","release"],["1.20.1","release"],["1.16.5","release"],["1.12.2","release"],["1.8.9","release"],["b1.7.3","old_beta"],["a1.2.6","old_alpha"]].map(([id,type])=>({id,type}));
+const ord=v=>v.replace(/^[ab]/,"").split(".").map(Number),gte=(v,m)=>{const a=ord(v),b=ord(m);for(let i=0;i<3;i++){const x=a[i]||0,y=b[i]||0;if(x!==y)return x>y}return true};
+const LD={Vanilla:()=>true,Fabric:v=>/^\d/.test(v)&&gte(v,"1.14"),Forge:v=>/^\d/.test(v)&&gte(v,"1.12"),NeoForge:v=>/^\d/.test(v)&&gte(v,"1.20.2")};
+const TN={release:"Release",snapshot:"Snapshot",old_beta:"Beta",old_alpha:"Alpha"};
+let V=DEMO,sel={mc:"1.21.1",ld:"Vanilla",type:"release"},I=[],cur=null,tf="release",cfg={username:"Jugador",ram:4,javaPath:"java",width:1280,height:720,fullscreen:false,jvmArgs:"",closeOnLaunch:false};
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>show(b.dataset.p));
+function show(p){document.querySelectorAll(".pg,nav button").forEach(e=>e.classList.remove("on"));$(p).classList.add("on");document.querySelector(`nav [data-p=${p}]`).classList.add("on")}
+$("bv").onclick=()=>show("vers");$("bl").onclick=()=>show("vers");
+function head(){const c=cur||sel;$("hv").textContent=cur?cur.name:"Sin instancia";$("hl").textContent=c.ld+" "+c.mc;$("bv").textContent=c.mc;$("bl").textContent=c.ld}
+function rv(){$("ld").innerHTML=Object.keys(LD).map(k=>`<button class="chip ${k===sel.ld?"on":""} ${LD[k](sel.mc)?"":"dis"}" data-k="${k}">${k}</button>`).join("");
+$("tf").innerHTML=Object.entries(TN).map(([k,n])=>`<button class="chip ${k===tf?"on":""}" data-t="${k}">${n}</button>`).join("");
+$("vl").innerHTML=V.filter(v=>v.type===tf).slice(0,300).map(v=>`<div class="it ${v.id===sel.mc?"on":""}" data-v="${v.id}" data-ty="${v.type}"><span class="n">${v.id}</span><span class="s">${Object.keys(LD).filter(k=>LD[k](v.id)).join(" · ")}</span></div>`).join("");
+$("ld").querySelectorAll("button").forEach(b=>b.onclick=()=>{sel.ld=b.dataset.k;head();rv()});
+$("tf").querySelectorAll("button").forEach(b=>b.onclick=()=>{tf=b.dataset.t;rv()});
+$("vl").querySelectorAll(".it").forEach(e=>e.onclick=()=>{sel.mc=e.dataset.v;sel.type=e.dataset.ty;if(!LD[sel.ld](sel.mc))sel.ld="Vanilla";head();rv()})}
+// Ajustes
+["username","javaPath","width","height","jvmArgs","cfKey"].forEach(k=>$("s_"+k).onchange=e=>sv({[k]:e.target.type==="number"?+e.target.value:e.target.value}));
+["fullscreen","closeOnLaunch"].forEach(k=>$("s_"+k).onchange=e=>sv({[k]:e.target.checked}));
+$("s_ram").oninput=e=>{$("rv").textContent=e.target.value+" GB"};$("s_ram").onchange=e=>sv({ram:+e.target.value});
+async function sv(c){cfg={...cfg,...c};if(A)cfg=await A.set(c)}
+function fillCfg(){for(const k in cfg){const e=$("s_"+k);if(!e)continue;e.type==="checkbox"?e.checked=cfg[k]:e.value=cfg[k]}$("rv").textContent=cfg.ram+" GB"}
+// Mods
+let mt,src="modrinth",kind="mod";const T=()=>cur||sel,H=(u,h)=>A.http({url:u,headers:h}),CL={Fabric:4,Forge:1,NeoForge:6};
+$("q").oninput=()=>{clearTimeout(mt);mt=setTimeout(mods,350)};
+function mchips(){$("mc").innerHTML=[["modrinth","Modrinth"],["cf","CurseForge"],["mod","Mods"],["modpack","Modpacks"]].map(([k,n])=>`<button class="chip ${k===src||k===kind?"on":""}" data-k="${k}">${n}</button>`).join("");
+$("mc").querySelectorAll("button").forEach(b=>b.onclick=()=>{const k=b.dataset.k;if(k==="modrinth"||k==="cf")src=k;else kind=k;if(src==="cf")kind="mod";mchips();mods()})}
+async function mods(){if(!A){$("mi").textContent="La búsqueda funciona en la app de escritorio.";return}
+const t=T(),q=encodeURIComponent($("q").value);$("mi").textContent=`Para ${t.ld} ${t.mc}`;
+try{let hits;
+if(src==="modrinth"){const f=[["project_type:"+kind],["versions:"+t.mc]];if(kind==="mod"&&t.ld!=="Vanilla")f.push(["categories:"+t.ld.toLowerCase()]);
+hits=(await H(`https://api.modrinth.com/v2/search?limit=24&query=${q}&facets=${encodeURIComponent(JSON.stringify(f))}`)).hits.map(h=>({id:h.project_id,t:h.title,d:h.description,i:h.icon_url}))}
+else{if(!cfg.cfKey){$("mi").textContent="Pon tu clave de CurseForge en Ajustes";return}
+hits=(await H(`https://api.curseforge.com/v1/mods/search?gameId=432&classId=6&pageSize=24&searchFilter=${q}&gameVersion=${t.mc}${CL[t.ld]?"&modLoaderType="+CL[t.ld]:""}`,{"x-api-key":cfg.cfKey})).data.map(h=>({id:h.id,t:h.name,d:h.summary,i:h.logo&&h.logo.thumbnailUrl}))}
+$("mg").innerHTML=hits.map(h=>`<div class="mod"><img src="${h.i||""}" onerror="this.className='ph'"><div><b>${h.t}</b><p>${h.d}</p><button data-id="${h.id}">Instalar</button></div></div>`).join("");
+$("mg").querySelectorAll("button").forEach(b=>b.onclick=()=>inst(b))}catch(e){$("mi").textContent="Error de conexión: "+e.message}}
+async function inst(b){b.textContent="Instalando…";const t=T();try{
+if(kind==="modpack"){await A.pack(b.dataset.id);await loadI();b.textContent="Instancia creada ✓";return}
+let u,n;
+if(src==="modrinth"){const v=await H(`https://api.modrinth.com/v2/project/${b.dataset.id}/version?loaders=${encodeURIComponent(JSON.stringify([t.ld.toLowerCase()]))}&game_versions=${encodeURIComponent(JSON.stringify([t.mc]))}`);const f=v[0].files.find(x=>x.primary)||v[0].files[0];u=f.url;n=f.filename}
+else{const r=(await H(`https://api.curseforge.com/v1/mods/${b.dataset.id}/files?gameVersion=${t.mc}${CL[t.ld]?"&modLoaderType="+CL[t.ld]:""}`,{"x-api-key":cfg.cfKey})).data[0];u=r.downloadUrl;n=r.fileName;if(!u)throw 0}
+await A.mod({url:u,name:n,inst:cur&&cur.id});b.textContent="Instalado ✓"}catch{b.textContent="Error"}}
+document.querySelector('[data-p=mods]').addEventListener("click",mods);
+// Instancias
+async function loadI(){I=A?await A.insts():[{id:"d1",name:"Fabric 1.20.1",mc:"1.20.1",ld:"Fabric"},{id:"d2",name:"Vanilla 1.8.9",mc:"1.8.9",ld:"Vanilla"}];if(!cur||!I.find(i=>i.id===cur.id))cur=I[0]||null;ri();head()}
+function ri(){$("il").innerHTML=I.length?I.map(i=>`<div class="it ${cur&&cur.id===i.id?"on":""}" data-i="${i.id}"><span class="n">${i.name}</span><span class="s">${i.ld} ${i.mc}</span><button class="chip" data-d="${i.id}">Borrar</button></div>`).join(""):'<div class="sub">Crea tu primera instancia en Versiones.</div>';
+$("il").querySelectorAll(".it").forEach(e=>e.onclick=()=>{cur=I.find(i=>i.id===e.dataset.i);ri();head()});
+$("il").querySelectorAll("[data-d]").forEach(b=>b.onclick=async ev=>{ev.stopPropagation();if(A&&confirm("¿Borrar la instancia con sus mundos y mods?")){await A.delInst(b.dataset.d);loadI()}})}
+$("mk").onclick=async()=>{if(!A){$("st").textContent="Demo: usa la app de escritorio";return}cur=await A.saveInst({name:`${sel.ld} ${sel.mc}`,mc:sel.mc,ld:sel.ld,type:sel.type});await loadI();show("inst")};
+// Cuenta
+function acc(){$("acc").textContent=cfg.ms?"Microsoft: "+cfg.ms.name:"Offline ("+cfg.username+")";$("ms").textContent=cfg.ms?"Cerrar sesión":"Iniciar sesión con Microsoft"}
+$("ms").onclick=async()=>{if(!A)return;if(cfg.ms)cfg=await A.set({ms:null});else{await A.login();cfg=await A.cfg()}acc()};
+// Jugar
+$("go").onclick=async()=>{if(!A){$("st").textContent="Demo: instala la app de escritorio para jugar";return}
+if(!cur){$("st").textContent="Crea una instancia en Versiones";return}
+$("go").disabled=true;await A.play({id:cur.id});$("go").disabled=false};
+if(A){A.on("status",t=>$("st").textContent=t);A.on("progress",p=>{$("pb").style.width=p&&p.total?Math.round(p.task/p.total*100)+"%":"0"});
+A.on("log",t=>{const l=$("log");l.style.display="block";l.textContent+=t;l.scrollTop=1e9})}
+(async()=>{if(A){cfg=await A.cfg();try{V=await A.versions()}catch{}}fillCfg();rv();mchips();acc();loadI()})();
+// Fondo
+const cv=$("cv"),x=cv.getContext("2d");let S=[];const rs=()=>{cv.width=innerWidth;cv.height=innerHeight;S=Array.from({length:90},()=>({x:Math.random()*cv.width,y:Math.random()*cv.height,r:Math.random()+.2,v:Math.random()*.12+.03}))};addEventListener("resize",rs);rs();
+(function f(){x.fillStyle="#0c0c10";x.fillRect(0,0,cv.width,cv.height);const g=x.createRadialGradient(cv.width*.8,cv.height*.3,0,cv.width*.8,cv.height*.3,cv.width*.6);g.addColorStop(0,"rgba(79,140,255,.13)");g.addColorStop(1,"transparent");x.fillStyle=g;x.fillRect(0,0,cv.width,cv.height);
+x.fillStyle="#fff";S.forEach(s=>{s.y+=s.v;if(s.y>cv.height)s.y=0;x.globalAlpha=.15+s.r/3;x.beginPath();x.arc(s.x,s.y,s.r,0,7);x.fill()});x.globalAlpha=1;requestAnimationFrame(f)})();
+</script></body></html>

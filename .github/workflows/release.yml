@@ -1,0 +1,22 @@
+name: Crear version
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Configurar repositorio de actualizaciones
+        shell: bash
+        run: |
+          node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('package.json'));const [o,r]=process.env.GITHUB_REPOSITORY.split('/');p.build.publish={provider:'github',owner:o,repo:r,releaseType:'release'};fs.writeFileSync('package.json',JSON.stringify(p,null,2))"
+      - run: npm install
+      - run: npm run dist -- --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_IDENTITY_AUTO_DISCOVERY: false

@@ -1,0 +1,41 @@
+{
+  "name": "nova-launcher",
+  "version": "0.2.0",
+  "description": "Nova Launcher para Minecraft",
+  "author": "Nova",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win"
+  },
+  "dependencies": {
+    "electron-updater": "^6.3.0",
+    "minecraft-launcher-core": "^3.18.1",
+    "msmc": "^5.0.2"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "com.nova.launcher",
+    "productName": "Nova Launcher",
+    "win": {
+      "target": "nsis",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "language": "3082"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "TU_USUARIO_GITHUB",
+      "repo": "nova-launcher",
+      "releaseType": "release"
+    }
+  }
+}
