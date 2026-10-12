@@ -3,3 +3,5 @@ Opcion 1 (recomendada): subir a GitHub y descargar el .exe ya compilado (ver gui
 Opcion 2: doble clic en Crear-Instalador.bat (instala Node.js y genera el instalador en dist/).
 Opcion 3: doble clic en Abrir-Launcher.bat (abre el launcher sin instalar).
 Para publicar una actualizacion: sube el numero de "version" en package.json y ejecuta de nuevo la accion "Crear version" en GitHub.
+
+Opcional: si pones un video en bucle en assets/blackhole.mp4, se usara como fondo en lugar de la animacion generada.

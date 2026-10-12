@@ -69,8 +69,39 @@ h2{font-size:22px;margin-bottom:16px}
 .f span{color:var(--m);font-size:12px;display:block}.f input[type=text],.f input[type=number]{width:210px}
 .sw{width:26px;height:26px;border-radius:50%;cursor:pointer;border:2px solid transparent}.sw.on{border-color:#fff}
 #log{position:fixed;right:12px;bottom:12px;width:340px;max-height:26vh;overflow:auto;font:11px monospace;color:var(--m);display:none;background:var(--p);padding:8px;border-radius:8px;z-index:9;white-space:pre-wrap}
+
+.lgm{width:22px!important;height:22px!important;color:inherit!important}
+#intro{position:fixed;inset:0;z-index:100;pointer-events:none;background:radial-gradient(circle at 50% 45%,#10131c,#040508 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;animation:iout .9s 2.6s cubic-bezier(.6,0,.2,1) forwards}
+#intro svg{width:150px;height:150px;animation:lgin 1.6s cubic-bezier(.16,1,.3,1) both,pulse 2.4s 1.6s ease-in-out infinite;filter:drop-shadow(0 0 28px color-mix(in srgb,var(--ac) 55%,transparent))}
+#intro .wm{font-size:30px;font-weight:800;letter-spacing:.34em;padding-left:.34em;animation:wmin 1.4s .5s cubic-bezier(.16,1,.3,1) both}
+#intro .wm small{display:block;font-size:11px;font-weight:600;letter-spacing:.7em;color:var(--m);text-align:center;margin-top:6px}
+@keyframes lgin{from{opacity:0;transform:scale(.4) rotate(-90deg)}}
+@keyframes wmin{from{opacity:0;letter-spacing:.9em}}
+@keyframes pulse{50%{transform:scale(1.06)}}
+@keyframes iout{to{opacity:0;visibility:hidden;transform:scale(1.08)}}
+.tb,.app{animation:appin 1.1s 2.5s cubic-bezier(.16,1,.3,1) backwards}
+@keyframes appin{from{opacity:0;transform:translateY(14px)}}
+.pg.on{animation:in2 .55s cubic-bezier(.16,1,.3,1)}
+@keyframes in2{from{opacity:0;transform:translateY(16px) scale(.985);filter:blur(5px)}}
+.rise>*{animation:rise .65s cubic-bezier(.16,1,.3,1) backwards;animation-delay:calc(var(--base,0s) + var(--i,0)*60ms + .1s)}
+@keyframes rise{from{opacity:0;transform:translateY(18px) scale(.97)}}
+.hero{background:none;border:0;height:380px;align-items:flex-end;padding-bottom:46px;margin-bottom:6px}
+.hst{bottom:10px}
+.launch{transition:transform .4s cubic-bezier(.16,1,.3,1),filter .3s;animation:glow 3.4s ease-in-out infinite}
+.launch:hover{transform:translateY(-3px) scale(1.03)}.launch:active{transform:scale(.98)}
+.launch::after{content:"";position:absolute;inset:0;border-radius:14px;pointer-events:none;background:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.38) 50%,transparent 65%);background-size:250% 100%;animation:shine 4.5s ease-in-out infinite}
+@keyframes glow{50%{box-shadow:0 0 0 1px rgba(255,255,255,.18) inset,0 10px 64px color-mix(in srgb,var(--ac) 65%,transparent)}}
+@keyframes shine{0%,55%{background-position:150% 0}100%{background-position:-50% 0}}
+.pop{display:block;visibility:hidden;opacity:0;transform:translateX(-50%) translateY(-10px) scale(.96);transition:.28s cubic-bezier(.16,1,.3,1)}
+.pop.on{visibility:visible;opacity:1;transform:translateX(-50%) scale(1)}
+.hst i b{transition:width .6s cubic-bezier(.16,1,.3,1)}
+.chip,.btn,.row,.nc,.card{transition:all .25s cubic-bezier(.16,1,.3,1)}
+.card,.mod,.ins{background-color:rgba(15,18,25,.58);backdrop-filter:blur(14px) saturate(1.2)}
+nav,.tb{backdrop-filter:blur(14px)}
 </style></head><body>
 <svg width="0" height="0" style="position:absolute"><defs>
+<linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".45" style="stop-color:var(--ac,#2ee06f)"/><stop offset="1" stop-color="#7a5cff"/></linearGradient>
+<symbol id="logo" viewBox="0 0 120 120"><g transform="rotate(-18 60 60)"><ellipse cx="60" cy="60" rx="54" ry="14" fill="none" stroke="url(#lg)" stroke-width="5" opacity=".85"/></g><circle cx="60" cy="60" r="28" fill="#000" stroke="url(#lg)" stroke-width="2.6"/><path d="M30 52A33 33 0 0 1 90 52" fill="none" stroke="#fff" stroke-width="1.6" opacity=".7"/><g transform="rotate(-18 60 60)"><path d="M6 60A54 14 0 0 0 114 60" fill="none" stroke="url(#lg)" stroke-width="5.5" stroke-linecap="round"/></g><path d="M98 12l2.4 6.6 6.6 2.4-6.6 2.4-2.4 6.6-2.4-6.6-6.6-2.4 6.6-2.4z" fill="#fff"/></symbol>
 <symbol id="i-rocket" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c3 2 5 6 5 10l-2 3H9l-2-3c0-4 2-8 5-10z"/><circle cx="12" cy="9" r="1.6"/><path d="M9 15l-3 3 3 1M15 15l3 3-3 1M12 17v4"/></symbol>
 <symbol id="i-game" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="11" rx="5"/><path d="M7 10v5M4.5 12.5h5"/><circle cx="16" cy="11.2" r="1"/><circle cx="18.5" cy="13.8" r="1"/></symbol>
 <symbol id="i-puzzle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h4v2a1.5 1.5 0 003 0V3h4a1 1 0 011 1v4h-2a1.5 1.5 0 000 3h2v9a1 1 0 01-1 1H5a1 1 0 01-1-1v-5h2a1.5 1.5 0 000-3H4V4a1 1 0 011-1z"/></symbol>
@@ -78,24 +109,23 @@ h2{font-size:22px;margin-bottom:16px}
 <symbol id="i-gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9L7 7M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></symbol>
 <symbol id="i-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></symbol>
 </defs></svg>
+<video id="bgv" src="assets/blackhole.mp4" muted loop autoplay playsinline style="display:none;position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:0" onloadeddata="this.style.display='block';document.getElementById('cv').style.display='none'" onerror="this.remove()"></video>
 <canvas id="cv"></canvas>
-<div class="tb"><svg class="ic"><use href="#i-rocket"/></svg><b>Nova Launcher</b><span class="cr">›</span><span class="cr" id="pt">Launchpad</span><div class="sp"></div>
+<div id="intro"><svg viewBox="0 0 120 120"><use href="#logo"/></svg><div class="wm">NOVA<small>LAUNCHER</small></div></div>
+<div class="tb"><svg class="ic lgm"><use href="#logo"/></svg><b>Nova Launcher</b><span class="cr">›</span><span class="cr" id="pt">Launchpad</span><div class="sp"></div>
 <div class="pl"><img id="av" alt=""><b id="un"></b></div><div class="run" id="rn"><i></i><span>0 instancias en ejecución</span></div>
 <button class="wb" onclick="A&&A.win('min')">—</button><button class="wb" onclick="A&&A.win('max')">▢</button><button class="wb" onclick="A&&A.win('x')">✕</button></div>
 <div class="app">
 <nav><button class="on" data-p="home" title="Inicio"><svg class="ic"><use href="#i-rocket"/></svg></button><button data-p="vers" title="Versiones"><svg class="ic"><use href="#i-game"/></svg></button><button data-p="mods" title="Mods"><svg class="ic"><use href="#i-puzzle"/></svg></button><button data-p="inst" title="Instancias"><svg class="ic"><use href="#i-box"/></svg></button><div class="sp"></div><button data-p="set" title="Ajustes"><svg class="ic"><use href="#i-gear"/></svg></button></nav>
 <main>
 <div id="home" class="pg on"><div class="wel">Bienvenido de nuevo, Astronauta <b id="hn"></b></div>
-<div class="grid2"><div>
 <div class="hero">
-<svg class="astro" viewBox="0 0 16 20"><path fill="#cfd6e6" d="M4 0h8v1H4zM3 1h10v8H3zM4 9h8v1H4z"/><path fill="#1a2033" d="M5 2h6v6H5z"/><path fill="#e8c79c" d="M6 4h4v3H6z"/><path fill="#222" d="M6 5h1v1H6zM9 5h1v1H9z"/><path fill="#aeb8d0" d="M4 10h8v6H4zM2 10h2v5H2zM12 10h2v5h-2z"/><path fill="var(--ac)" d="M6 11h4v2H6z"/><path fill="#8794b4" d="M5 16h2v3H5zM9 16h2v3H9z"/><path fill="#e5e9f3" d="M2 10h2v1H2zM12 10h2v1h-2z"/></svg>
-<svg class="rocket" viewBox="0 0 12 16"><path fill="#e04a4a" d="M5 0h2v2H5zM2 9h2v3H2zM8 9h2v3H8z"/><path fill="#e9edf6" d="M4 2h4v8H4z"/><path fill="#5ec0ff" d="M5 4h2v2H5z"/><path fill="#ff9f2e" d="M5 10h2v3H5z"/><path fill="#ffd93d" d="M5.5 13h1v2h-1z"/></svg>
 <div class="launch"><button class="lb" id="go"><b>LANZAR JUEGO</b><span id="gs"></span></button><button class="cp" id="cp"><svg class="ic"><use href="#i-down"/></svg></button>
 <div class="pop" id="pop"><label>Cargador</label><div class="chips" id="ld"></div><label>Tipo de versión</label><div class="chips" id="tf"></div><label>Versión</label><select id="ver"></select></div></div>
 <div class="hst"><span id="st"></span><i><b id="pb"></b></i></div></div>
-<h3>Últimas novedades <small id="nsrc"></small></h3><div class="news" id="nw"></div></div>
+<div class="grid2"><div><h3>Últimas novedades <small id="nsrc"></small></h3><div class="news" id="nw"></div></div>
 <div><div class="card"><h4>Tus instancias</h4><div id="qi"></div></div>
-<div class="card"><h4>Estado</h4><div class="kv">Cuenta<b id="k1"></b></div><div class="kv">Memoria<b id="k2"></b></div><div class="kv">Java<b id="k3"></b></div><div class="kv">Versión del launcher<b id="k4">0.2.2</b></div></div></div></div></div>
+<div class="card"><h4>Estado</h4><div class="kv">Cuenta<b id="k1"></b></div><div class="kv">Memoria<b id="k2"></b></div><div class="kv">Java<b id="k3"></b></div><div class="kv">Versión del launcher<b id="k4">0.2.3</b></div></div></div></div></div>
 
 <div id="vers" class="pg"><h2>Versiones</h2><div class="chips" id="tf2" style="margin-bottom:12px"></div><input id="vq" placeholder="Buscar versión…" style="max-width:340px;margin-bottom:14px"><div id="vl"></div></div>
 <div id="inst" class="pg"><h2>Instancias</h2><p style="color:var(--m);margin-bottom:14px">Se crean solas al jugar una versión. Cada una tiene sus propios mundos y mods.</p><div class="grid" id="il"></div></div>
@@ -183,14 +213,33 @@ const i=await ensure();await A.mod({url:u,name:n,inst:i&&i.id});b.textContent="I
 // Novedades
 async function news(){let it=[];try{if(A){const r=await A.http({url:"https://launchercontent.mojang.com/v2/javaPatchNotes.json"}),B="https://launchercontent.mojang.com";
 it=(r.entries||[]).sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,4).map(e=>({t:(e.type==="release"?"Minecraft ":"Snapshot ")+e.version,d:e.shortText||"",i:e.image&&e.image.url?(/^http/.test(e.image.url)?e.image.url:B+(e.image.url[0]==="/"?"":"/")+e.image.url):""}));if(it.length)$("nsrc").textContent="Mojang"}}catch{}
-if(!it.length)it=[{t:"Nova Launcher 0.2.2",d:"Nuevo diseño, instancias automáticas e iconos propios."},{t:"Java automático",d:"Cada versión usa el Java correcto sin que hagas nada."},{t:"Mods y modpacks",d:"Modrinth y CurseForge en un solo sitio."},{t:"Actualizaciones",d:"El launcher se actualiza solo desde GitHub."}];
+if(!it.length)it=[{t:"Nova Launcher 0.2.3",d:"Agujero negro animado, intro y animaciones más suaves."},{t:"Java automático",d:"Cada versión usa el Java correcto sin que hagas nada."},{t:"Mods y modpacks",d:"Modrinth y CurseForge en un solo sitio."},{t:"Actualizaciones",d:"El launcher se actualiza solo desde GitHub."}];
 $("nw").innerHTML=it.map((n,i)=>`<div class="nc g${i%4}" style="${n.i?`background-image:linear-gradient(transparent 25%,#000d),url('${n.i}')`:""}"><div><b>${n.t}</b><p>${n.d}</p></div></div>`).join("")}
 // Eventos
 if(A){A.on("status",t=>$("st").textContent=t);A.on("progress",p=>{$("pb").style.width=p&&p.total?Math.round(p.task/p.total*100)+"%":"0"});
 A.on("running",n=>{const r=$("rn");r.classList.toggle("on",!!n);r.querySelector("span").textContent=n?"1 instancia en ejecución":"0 instancias en ejecución"});
 A.on("log",t=>{const l=$("log");l.style.display="block";l.textContent+=t;l.scrollTop=1e9})}
+const ob=new MutationObserver(m=>m.forEach(r=>[...r.target.children].forEach((c,i)=>c.style.setProperty("--i",Math.min(i,14)))));
+["nw","qi","il","mg","vl"].forEach(id=>{$(id).classList.add("rise");ob.observe($(id),{childList:true})});
+document.documentElement.style.setProperty("--base","2.5s");setTimeout(()=>{document.documentElement.style.setProperty("--base","0s");const i=$("intro");i&&i.remove()},3700);
 (async()=>{if(A){cfg=await A.cfg();try{V=await A.versions()}catch{}if(cfg.last)sel=cfg.last;tf=sel.type||"release"}fillCfg();mchips();acc();rv();await loadI();head();news()})();
-// Fondo de estrellas
-const cv=$("cv"),x=cv.getContext("2d");let S=[];const rs=()=>{cv.width=innerWidth;cv.height=innerHeight;S=Array.from({length:110},()=>({x:Math.random()*cv.width,y:Math.random()*cv.height,r:Math.random()*1.2+.2,v:Math.random()*.1+.02}))};addEventListener("resize",rs);rs();
-(function f(){x.fillStyle="#080a0f";x.fillRect(0,0,cv.width,cv.height);x.fillStyle="#fff";S.forEach(s=>{s.y+=s.v;if(s.y>cv.height)s.y=0;x.globalAlpha=.12+s.r/3.5;x.beginPath();x.arc(s.x,s.y,s.r,0,7);x.fill()});x.globalAlpha=1;requestAnimationFrame(f)})();
+// Agujero negro (animación en bucle)
+const cv=$("cv"),x=cv.getContext("2d"),rnd=Math.random;let W,HT,ST=[],cx=0,cy=0,R=50,al=1,T=0;
+const D=Array.from({length:1500},()=>({r:1.35+Math.pow(rnd(),1.6)*5,a:rnd()*6.283,z:rnd()-.5,s:rnd()*.8+.6})),HL=Array.from({length:560},()=>({r:1.03+Math.pow(rnd(),2)*.8,a:rnd()*6.283,s:rnd()*.8+.5}));
+const rs=()=>{W=cv.width=innerWidth;HT=cv.height=innerHeight;ST=Array.from({length:140},()=>({x:rnd()*W,y:rnd()*HT,r:rnd()*1.1+.2,p:rnd()*6.3}))};addEventListener("resize",rs);rs();
+const TL=-.1,ct=Math.cos(TL),st=Math.sin(TL);
+(function frame(){T+=.016;
+const hm=$("home").classList.contains("on"),hr=document.querySelector(".hero").getBoundingClientRect();let tx,ty,tr,ta;
+if(hm&&hr.height){tx=hr.left+hr.width/2;ty=hr.top+hr.height*.44;tr=Math.min(hr.height*.14,58);ta=1}else{tx=W*.72;ty=HT*.52;tr=Math.min(HT*.09,48);ta=.38}
+if(!cx){cx=tx;cy=ty;R=tr}cx+=(tx-cx)*.06;cy+=(ty-cy)*.06;R+=(tr-R)*.06;al+=(ta-al)*.05;
+x.globalCompositeOperation="source-over";x.globalAlpha=1;x.fillStyle="#06070b";x.fillRect(0,0,W,HT);
+x.fillStyle="#fff";ST.forEach(s=>{x.globalAlpha=(.2+.22*Math.sin(T*1.1+s.p))*(.5+.5*al);x.fillRect(s.x,s.y,s.r,s.r)});
+x.globalCompositeOperation="lighter";
+const g=x.createRadialGradient(cx,cy,R*.9,cx,cy,R*7);g.addColorStop(0,`rgba(255,140,40,${.2*al})`);g.addColorStop(1,"rgba(255,120,30,0)");x.globalAlpha=1;x.fillStyle=g;x.fillRect(0,0,W,HT);
+HL.forEach(p=>{p.a+=p.s*.004;const rr=p.r*R,c=Math.cos(p.a),s=Math.sin(p.a),t=(p.r-1.03)/.8;x.globalAlpha=Math.max(0,(.95-t*.9)*(.5+.5*Math.abs(s))*(.8+.2*c))*al;x.fillStyle=`hsl(${42-t*18},100%,${90-t*35}%)`;x.fillRect(cx+c*rr,cy+s*rr,1.8,1.8)});
+const disk=front=>D.forEach(p=>{p.a+=p.s*.02/Math.pow(p.r,1.4);const c=Math.cos(p.a),s=Math.sin(p.a);if(front!==(s>0))return;const rr=p.r*R,ux=c*rr,uy=s*rr*.17+p.z*rr*.035,t=(p.r-1.35)/5;x.globalAlpha=Math.max(0,(1-t)*(.55+.45*c)*.95)*al;x.fillStyle=`hsl(${44-t*28},100%,${88-t*42}%)`;const z=1+(1-t)*1.6;x.fillRect(cx+ux*ct-uy*st,cy+ux*st+uy*ct,z,z)});
+disk(false);
+x.globalCompositeOperation="source-over";x.globalAlpha=1;x.fillStyle="#000";x.beginPath();x.arc(cx,cy,R,0,6.283);x.fill();
+x.globalCompositeOperation="lighter";x.strokeStyle=`rgba(255,215,150,${.85*al})`;x.lineWidth=1.6;x.beginPath();x.arc(cx,cy,R*1.02,0,6.283);x.stroke();
+disk(true);requestAnimationFrame(frame)})();
 </script></body></html>
