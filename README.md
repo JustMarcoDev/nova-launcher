@@ -18,13 +18,44 @@ Alternativas: `Crear-Instalador.bat` (genera el instalador en tu PC) o `Abrir-La
 4. En **Actions**, ejecuta de nuevo **Crear version**.
 5. Los launchers instalados la descargan solos y se instala al cerrarlos. También puedes pulsar **Ajustes → Acerca de → Buscar actualizaciones**.
 
+## Actualizar desde el propio launcher (desde la 0.2.5)
+
+Cuando publiques una versión nueva en GitHub, el launcher la detecta solo:
+
+1. Aparece un aviso en la portada y un botón **Actualizar** en la barra superior.
+2. Pulsa **Descargar** (o se descarga sola si tienes activado «Descargar actualizaciones automáticamente» en Ajustes).
+3. Cuando termine, pulsa **Reiniciar e instalar**. Tus mundos, mods, instancias y ajustes se conservan.
+
+También puedes comprobarlo a mano en **Ajustes → Acerca de → Buscar actualizaciones**.
+
+## Redes sociales del creador
+
+La pestaña **Redes** está vacía de momento. Para activar una red, abre `index.html`, busca `const SOC=[` y pon el enlace en `u:""` (por ejemplo `u:"https://www.youtube.com/@tucanal"`).
+
 ## ¿Qué es el historial de actualizaciones?
 
 Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión del launcher, para saber de un vistazo qué se ha **añadido**, qué se ha **mejorado** y qué se ha **quitado**. Cada vez que se publique una versión nueva hay que añadir una entrada al principio de la lista de abajo. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**.
 
 ## Historial de actualizaciones
 
-### 0.2.4 — Versión actual (incluye todas las correcciones)
+### 0.2.5 — Actualizar desde el propio launcher, portada nueva y redes
+
+**Añadido**
+- Actualización desde el launcher: aviso en la portada y en la barra superior, botón «Descargar», barra de progreso y botón «Reiniciar e instalar»
+- Tus mundos, mods, instancias y ajustes se conservan al actualizar (viven fuera de la carpeta de instalación)
+- Ajuste «Descargar actualizaciones automáticamente» (si lo apagas, tú decides cuándo descargar)
+- Sección «Redes» con las redes sociales del creador (por ahora vacías, listas para añadir los enlaces)
+
+**Mejorado**
+- Botón de lanzar rediseñado: icono de play, texto más claro y flecha de versiones como segmento propio con animación
+- Portada compacta: las novedades se ven sin tener que bajar
+- Acerca de: muestra el estado de la actualización en directo
+- Texto de los ajustes de actualización más claro
+
+**Quitado**
+- Nada en esta versión
+
+### 0.2.4 — Ajustes, versiones y agujero negro (incluye todas las correcciones)
 
 **Añadido**
 - Ajustes por apartados: Cuenta, Juego, Apariencia, Fondo, Interfaz, Accesibilidad, Rendimiento y Acerca de

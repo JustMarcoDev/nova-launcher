@@ -24,23 +24,14 @@ app.whenReady().then(() => {
     show: false, webPreferences: { preload: path.join(__dirname, 'preload.js'), spellcheck: false } });
   win.once('ready-to-show', () => win.show());
   win.loadFile('index.html');
-  if (app.isPackaged) {
-    try {
-      const { autoUpdater } = require('electron-updater'); updater = autoUpdater;
-      autoUpdater.on('update-available', () => send('status', 'Descargando actualización…'));
-      autoUpdater.on('update-downloaded', () => send('status', 'Actualización lista: se instalará al cerrar el launcher'));
-      autoUpdater.on('error', () => {});
-      if (load().autoUpdate !== false) autoUpdater.checkForUpdatesAndNotify();
-      setInterval(() => { if (load().autoUpdate !== false) autoUpdater.checkForUpdates().catch(() => {}); }, 3600000);
-    } catch {}
-  }
+  if (app.isPackaged) initUpdater();
 });
 app.on('window-all-closed', () => app.quit());
 
 ipcMain.handle('cfg:get', () => load());
 ipcMain.handle('sys', () => ({ total: Math.max(1, Math.round(os.totalmem() / 1073741824)) }));
 ipcMain.handle('zoom', (e, f) => { win.webContents.setZoomFactor(Math.min(1.6, Math.max(0.7, +f || 1))); });
-ipcMain.handle('cfg:set', (e, c) => { wr(cfgFile, { ...load(), ...c }); return load(); });
+ipcMain.handle('cfg:set', (e, c) => { wr(cfgFile, { ...load(), ...c }); if (updater && 'autoDownload' in c) updater.autoDownload = c.autoDownload !== false; return load(); });
 ipcMain.handle('folder', () => { fs.mkdirSync(root, { recursive: true }); return shell.openPath(root); });
 ipcMain.on('win', (e, a) => a === 'min' ? win.minimize() : a === 'max' ? (win.isMaximized() ? win.unmaximize() : win.maximize()) : win.close());
 const vcache = path.join(root, 'versions_cache.json');
@@ -54,11 +45,19 @@ ipcMain.handle('versions', async () => {
   throw err;
 });
 ipcMain.handle('ver', () => app.getVersion());
-ipcMain.handle('upd', async () => {
-  if (!app.isPackaged || !updater) return 'Solo en la app instalada';
-  try { const r = await updater.checkForUpdates(); const v = r && r.updateInfo && r.updateInfo.version; return v && v !== app.getVersion() ? 'Descargando ' + v + '…' : 'Estás al día ✓'; }
-  catch { return 'No se pudo comprobar'; }
+ipcMain.handle('upd:get', () => upd);
+ipcMain.handle('upd:check', async () => {
+  if (!app.isPackaged || !updater) return { s: 'dev' };
+  if (upd.s === 'downloading' || upd.s === 'ready') return upd;
+  try { await updater.checkForUpdates(); } catch (e) { if (upd.s === 'checking') setUpd({ s: 'error', msg: String(e && e.message || e).slice(0, 80) }); }
+  return upd;
 });
+ipcMain.handle('upd:download', async () => {
+  if (updater && upd.s === 'available') { setUpd({ s: 'downloading', v: upd.v, p: 0 }); updater.downloadUpdate().catch(e => setUpd({ s: 'error', msg: String(e && e.message || e).slice(0, 80) })); }
+  return upd;
+});
+ipcMain.handle('upd:install', () => { if (updater && upd.s === 'ready') updater.quitAndInstall(true, true); });
+ipcMain.handle('open', (e, u) => { if (/^https?:\/\//i.test(String(u))) shell.openExternal(String(u)); });
 ipcMain.handle('http', (e, { url, headers }) => get(url, 'json', headers || {}));
 ipcMain.handle('inst:list', () => li());
 ipcMain.handle('inst:save', (e, o) => addInst(o));
@@ -159,3 +158,22 @@ ipcMain.handle('play', async (e, { id }) => {
     return { ok: true };
   } catch (err) { send('status', 'Error: ' + err.message); send('progress', null); return { ok: false }; }
 });
+
+// ===== Actualizaciones desde el launcher =====
+let upd = { s: 'idle' };
+const setUpd = o => { upd = o; send('upd:state', upd); };
+function initUpdater() {
+  try {
+    const { autoUpdater } = require('electron-updater'); updater = autoUpdater;
+    autoUpdater.autoDownload = load().autoDownload !== false;
+    autoUpdater.autoInstallOnAppQuit = true;
+    autoUpdater.on('checking-for-update', () => { if (upd.s !== 'downloading' && upd.s !== 'ready') setUpd({ s: 'checking' }); });
+    autoUpdater.on('update-available', i => setUpd(autoUpdater.autoDownload ? { s: 'downloading', v: i.version, p: 0 } : { s: 'available', v: i.version }));
+    autoUpdater.on('update-not-available', () => { if (upd.s !== 'ready') setUpd({ s: 'none' }); });
+    autoUpdater.on('download-progress', p => setUpd({ s: 'downloading', v: upd.v, p: p.percent, bps: p.bytesPerSecond }));
+    autoUpdater.on('update-downloaded', i => setUpd({ s: 'ready', v: i.version }));
+    autoUpdater.on('error', e => { if (upd.s !== 'ready') setUpd({ s: 'error', msg: String(e && e.message || e).slice(0, 80) }); });
+    const chk = () => { if (load().autoUpdate !== false && upd.s !== 'downloading' && upd.s !== 'ready') autoUpdater.checkForUpdates().catch(() => {}); };
+    setTimeout(chk, 4000); setInterval(chk, 3600000);
+  } catch {}
+}
