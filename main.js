@@ -130,10 +130,10 @@ ipcMain.handle('play', async (e, { id }) => {
     if (ins.ld === 'Forge' || ins.ld === 'NeoForge') o.version.custom = await forge(ins.ld, ins.mc, java);
     const l = new Client();
     l.on('progress', p => send('progress', p)); l.on('data', d => send('log', String(d)));
-    l.on('close', () => { send('status', 'Minecraft cerrado'); send('progress', null); win.show(); });
+    l.on('close', () => { send('running', 0); send('status', 'Minecraft cerrado'); send('progress', null); win.show(); });
     send('status', 'Descargando archivos del juego…');
     if (!(await l.launch(o))) throw new Error('No se pudo iniciar Minecraft');
-    send('status', 'Minecraft en ejecución'); if (cfg.closeOnLaunch) win.hide();
+    send('running', 1); send('status', 'Minecraft en ejecución'); if (cfg.closeOnLaunch) win.hide();
     return { ok: true };
   } catch (err) { send('status', 'Error: ' + err.message); send('progress', null); return { ok: false }; }
 });
