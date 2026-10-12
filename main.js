@@ -1,5 +1,5 @@
 const { app, BrowserWindow, ipcMain, shell } = require('electron');
-const path = require('path'), fs = require('fs'), { execFile } = require('child_process');
+const path = require('path'), fs = require('fs'), os = require('os'), { execFile } = require('child_process');
 const { Client, Authenticator } = require('minecraft-launcher-core');
 const { Auth } = require('msmc');
 const root = path.join(app.getPath('appData'), '.nova');
@@ -10,33 +10,55 @@ const wr = (f, d) => { fs.mkdirSync(root, { recursive: true }); fs.writeFileSync
 const load = () => ({ ...DEF, ...rd(cfgFile, {}) }), li = () => rd(insFile, []);
 const addInst = o => { const i = { id: Date.now().toString(36), ...o }; wr(insFile, [...li(), i]); return i; };
 const MAN = 'https://launchermeta.mojang.com/mc/game/version_manifest_v2.json';
-let win;
+let win, updater = null;
+const single = app.requestSingleInstanceLock();
+if (!single) app.quit();
+else app.on('second-instance', () => { if (win) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); } });
 const send = (c, d) => win && win.webContents.send(c, d);
 const get = async (u, t = 'json', h = {}) => { const r = await fetch(u, { headers: h }); if (!r.ok) throw new Error('HTTP ' + r.status); return r[t](); };
 const run = (cmd, args, opt = {}) => new Promise((res, rej) => execFile(cmd, args, { maxBuffer: 1e8, ...opt }, e => e ? rej(e) : res()));
 
 app.whenReady().then(() => {
+  if (!single) return;
   win = new BrowserWindow({ width: 1100, height: 680, minWidth: 900, minHeight: 560, frame: false, backgroundColor: '#0c0c10',
-    webPreferences: { preload: path.join(__dirname, 'preload.js') } });
+    show: false, webPreferences: { preload: path.join(__dirname, 'preload.js'), spellcheck: false } });
+  win.once('ready-to-show', () => win.show());
   win.loadFile('index.html');
   if (app.isPackaged) {
     try {
-      const { autoUpdater } = require('electron-updater');
+      const { autoUpdater } = require('electron-updater'); updater = autoUpdater;
       autoUpdater.on('update-available', () => send('status', 'Descargando actualización…'));
       autoUpdater.on('update-downloaded', () => send('status', 'Actualización lista: se instalará al cerrar el launcher'));
       autoUpdater.on('error', () => {});
-      autoUpdater.checkForUpdatesAndNotify();
-      setInterval(() => autoUpdater.checkForUpdates().catch(() => {}), 3600000);
+      if (load().autoUpdate !== false) autoUpdater.checkForUpdatesAndNotify();
+      setInterval(() => { if (load().autoUpdate !== false) autoUpdater.checkForUpdates().catch(() => {}); }, 3600000);
     } catch {}
   }
 });
 app.on('window-all-closed', () => app.quit());
 
 ipcMain.handle('cfg:get', () => load());
+ipcMain.handle('sys', () => ({ total: Math.max(1, Math.round(os.totalmem() / 1073741824)) }));
+ipcMain.handle('zoom', (e, f) => { win.webContents.setZoomFactor(Math.min(1.6, Math.max(0.7, +f || 1))); });
 ipcMain.handle('cfg:set', (e, c) => { wr(cfgFile, { ...load(), ...c }); return load(); });
 ipcMain.handle('folder', () => { fs.mkdirSync(root, { recursive: true }); return shell.openPath(root); });
 ipcMain.on('win', (e, a) => a === 'min' ? win.minimize() : a === 'max' ? (win.isMaximized() ? win.unmaximize() : win.maximize()) : win.close());
-ipcMain.handle('versions', async () => (await get(MAN)).versions.map(v => ({ id: v.id, type: v.type })));
+const vcache = path.join(root, 'versions_cache.json');
+ipcMain.handle('versions', async () => {
+  let err;
+  for (let i = 0; i < 3; i++) {
+    try { const v = (await get(MAN)).versions.map(x => ({ id: x.id, type: x.type })); wr(vcache, v); return { v, src: 'mojang' }; }
+    catch (x) { err = x; await new Promise(r => setTimeout(r, 700)); }
+  }
+  const c = rd(vcache, null); if (c && c.length) return { v: c, src: 'cache' };
+  throw err;
+});
+ipcMain.handle('ver', () => app.getVersion());
+ipcMain.handle('upd', async () => {
+  if (!app.isPackaged || !updater) return 'Solo en la app instalada';
+  try { const r = await updater.checkForUpdates(); const v = r && r.updateInfo && r.updateInfo.version; return v && v !== app.getVersion() ? 'Descargando ' + v + '…' : 'Estás al día ✓'; }
+  catch { return 'No se pudo comprobar'; }
+});
 ipcMain.handle('http', (e, { url, headers }) => get(url, 'json', headers || {}));
 ipcMain.handle('inst:list', () => li());
 ipcMain.handle('inst:save', (e, o) => addInst(o));
@@ -89,10 +111,10 @@ async function fabric(mc) {
   if (!fs.existsSync(f)) { fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, await get(`https://meta.fabricmc.net/v2/versions/loader/${mc}/${lv}/profile/json`, 'text')); }
   return id;
 }
-const nfPrefix = mc => { const p = mc.split('.'); return `${p[1]}.${p[2] || 0}.`; };
+const nfC = mc => { const p = mc.split('.'); return p[0] === '1' ? [`${p[1]}.${p[2] || 0}.`] : [`${p[0]}.${p[1]}.${p[2] || 0}.`, `${p[0]}.${p[1]}.`]; };
 async function forge(ld, mc, java) {
   const vdir = path.join(root, 'versions');
-  const find = () => fs.existsSync(vdir) ? fs.readdirSync(vdir).find(d => ld === 'Forge' ? d.startsWith(mc + '-forge') : d.startsWith('neoforge-' + nfPrefix(mc))) : null;
+  const find = () => fs.existsSync(vdir) ? fs.readdirSync(vdir).find(d => ld === 'Forge' ? d.startsWith(mc + '-forge') : nfC(mc).some(c => d.startsWith('neoforge-' + c))) : null;
   let id = find(); if (id) return id;
   send('status', `Descargando instalador de ${ld}…`); let url;
   if (ld === 'Forge') {
@@ -100,7 +122,7 @@ async function forge(ld, mc, java) {
     if (!v) throw new Error('Forge no disponible para ' + mc);
     url = `https://maven.minecraftforge.net/net/minecraftforge/forge/${mc}-${v}/forge-${mc}-${v}-installer.jar`;
   } else {
-    const all = (await get('https://maven.neoforged.net/api/maven/versions/releases/net/neoforged/neoforge')).versions.filter(x => x.startsWith(nfPrefix(mc)));
+    const all = (await get('https://maven.neoforged.net/api/maven/versions/releases/net/neoforged/neoforge')).versions.filter(x => nfC(mc).some(c => x.startsWith(c)));
     if (!all.length) throw new Error('NeoForge no disponible para ' + mc);
     const v = all.filter(x => !/beta/.test(x)).pop() || all.pop();
     url = `https://maven.neoforged.net/releases/net/neoforged/neoforge/${v}/neoforge-${v}-installer.jar`;
@@ -130,7 +152,7 @@ ipcMain.handle('play', async (e, { id }) => {
     if (ins.ld === 'Forge' || ins.ld === 'NeoForge') o.version.custom = await forge(ins.ld, ins.mc, java);
     const l = new Client();
     l.on('progress', p => send('progress', p)); l.on('data', d => send('log', String(d)));
-    l.on('close', () => { send('running', 0); send('status', 'Minecraft cerrado'); send('progress', null); win.show(); });
+    l.on('close', () => { send('running', 0); send('status', 'Minecraft cerrado'); send('progress', null); if (cfg.reopen !== false) win.show(); });
     send('status', 'Descargando archivos del juego…');
     if (!(await l.launch(o))) throw new Error('No se pudo iniciar Minecraft');
     send('running', 1); send('status', 'Minecraft en ejecución'); if (cfg.closeOnLaunch) win.hide();
