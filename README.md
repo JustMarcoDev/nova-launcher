@@ -32,11 +32,38 @@ También puedes comprobarlo a mano en **Ajustes → Acerca de → Buscar actuali
 
 La pestaña **Redes** está vacía de momento. Para activar una red, abre `index.html`, busca `const SOC=[` y pon el enlace en `u:""` (por ejemplo `u:"https://www.youtube.com/@tucanal"`).
 
+## Discord: mostrar a qué juegas (desde la 0.2.6)
+
+Cuando abres el launcher, tu perfil de Discord muestra **«Jugando a Minecraft 1.21.1»**. Para que funcione hace falta una «aplicación» de Discord (es gratis y solo se hace una vez):
+
+1. Entra en https://discord.com/developers/applications con tu cuenta y pulsa **New Application**.
+2. Ponle el nombre **Nova Launcher** (ese nombre es el que verán tus amigos como «Jugando a…»).
+3. En la pestaña **General Information** copia el **Application ID**.
+4. En el launcher: **Ajustes → Cuenta → ID de aplicación de Discord** y pégalo. Se conecta al momento (Discord tiene que estar abierto en el PC).
+5. Opcional, para que salga el logo: en Discord Developers → **Rich Presence → Art Assets**, sube una imagen con el nombre `logo`.
+
+Para que lo vean todos los que instalen el launcher, copia ese número en `main.js`, en la línea `const DISCORD_CLIENT_ID = '';`, y publica una versión nueva.
+
 ## ¿Qué es el historial de actualizaciones?
 
 Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión del launcher, para saber de un vistazo qué se ha **añadido**, qué se ha **mejorado** y qué se ha **quitado**. Cada vez que se publique una versión nueva hay que añadir una entrada al principio de la lista de abajo. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**.
 
 ## Historial de actualizaciones
+
+### 0.2.6 — Discord, logos oficiales y botón de lanzar nuevo
+
+**Añadido**
+- Integración con Discord: tu perfil muestra «Jugando a Minecraft 1.21.1» (con la versión, el cargador y el tiempo) y «En el launcher» cuando estás en el launcher
+- Ajustes de Discord: activar o desactivar, ID de aplicación y estado de la conexión en directo
+- El instalador crea el acceso directo en el escritorio (también al actualizar desde el launcher)
+
+**Mejorado**
+- Botón de lanzar rediseñado: cristal oscuro con borde del color de acento, icono de play con brillo y flecha de versiones mejor integrada
+- Redes: logos oficiales (YouTube, Twitch, TikTok, Instagram, X, Discord y GitHub) con animación de entrada, flotado suave y efecto al pasar el ratón; siguen en «Próximamente»
+- Ajustes de apariencia: las opciones con muchas casillas (como el tema de fondo) pasan a una segunda línea y ya no se comprimen
+
+**Quitado**
+- Nada en esta versión
 
 ### 0.2.5 — Actualizar desde el propio launcher, portada nueva y redes
 

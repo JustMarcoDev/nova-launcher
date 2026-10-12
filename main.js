@@ -25,13 +25,14 @@ app.whenReady().then(() => {
   win.once('ready-to-show', () => win.show());
   win.loadFile('index.html');
   if (app.isPackaged) initUpdater();
+  discordInit();
 });
 app.on('window-all-closed', () => app.quit());
 
 ipcMain.handle('cfg:get', () => load());
 ipcMain.handle('sys', () => ({ total: Math.max(1, Math.round(os.totalmem() / 1073741824)) }));
 ipcMain.handle('zoom', (e, f) => { win.webContents.setZoomFactor(Math.min(1.6, Math.max(0.7, +f || 1))); });
-ipcMain.handle('cfg:set', (e, c) => { wr(cfgFile, { ...load(), ...c }); if (updater && 'autoDownload' in c) updater.autoDownload = c.autoDownload !== false; return load(); });
+ipcMain.handle('cfg:set', (e, c) => { wr(cfgFile, { ...load(), ...c }); if (updater && 'autoDownload' in c) updater.autoDownload = c.autoDownload !== false; if ('discord' in c || 'discordId' in c) discordInit(); return load(); });
 ipcMain.handle('folder', () => { fs.mkdirSync(root, { recursive: true }); return shell.openPath(root); });
 ipcMain.on('win', (e, a) => a === 'min' ? win.minimize() : a === 'max' ? (win.isMaximized() ? win.unmaximize() : win.maximize()) : win.close());
 const vcache = path.join(root, 'versions_cache.json');
@@ -46,6 +47,7 @@ ipcMain.handle('versions', async () => {
 });
 ipcMain.handle('ver', () => app.getVersion());
 ipcMain.handle('upd:get', () => upd);
+ipcMain.handle('discord:get', () => dsc);
 ipcMain.handle('upd:check', async () => {
   if (!app.isPackaged || !updater) return { s: 'dev' };
   if (upd.s === 'downloading' || upd.s === 'ready') return upd;
@@ -151,10 +153,10 @@ ipcMain.handle('play', async (e, { id }) => {
     if (ins.ld === 'Forge' || ins.ld === 'NeoForge') o.version.custom = await forge(ins.ld, ins.mc, java);
     const l = new Client();
     l.on('progress', p => send('progress', p)); l.on('data', d => send('log', String(d)));
-    l.on('close', () => { send('running', 0); send('status', 'Minecraft cerrado'); send('progress', null); if (cfg.reopen !== false) win.show(); });
+    l.on('close', () => { discordSet(null); send('running', 0); send('status', 'Minecraft cerrado'); send('progress', null); if (cfg.reopen !== false) win.show(); });
     send('status', 'Descargando archivos del juego…');
     if (!(await l.launch(o))) throw new Error('No se pudo iniciar Minecraft');
-    send('running', 1); send('status', 'Minecraft en ejecución'); if (cfg.closeOnLaunch) win.hide();
+    send('running', 1); discordSet({ details: 'Jugando a Minecraft ' + ins.mc, state: (ins.ld || 'Vanilla') + ' · Nova Launcher', startTimestamp: Date.now() }); send('status', 'Minecraft en ejecución'); if (cfg.closeOnLaunch) win.hide();
     return { ok: true };
   } catch (err) { send('status', 'Error: ' + err.message); send('progress', null); return { ok: false }; }
 });
@@ -177,3 +179,32 @@ function initUpdater() {
     setTimeout(chk, 4000); setInterval(chk, 3600000);
   } catch {}
 }
+
+// ===== Discord Rich Presence =====
+// Para que lo vean todos los usuarios, pon aquí tu «Application ID» de Discord (ver README). También se puede poner desde Ajustes.
+const DISCORD_CLIENT_ID = '';
+let rpc = null, rpcOk = false, rpcAct = null, dsc = { s: 'off' };
+const tStart = Date.now();
+const setDsc = o => { dsc = o; send('discord:state', dsc); };
+function discordStop() { const c = rpc; rpc = null; rpcOk = false; if (c) { try { c.clearActivity().catch(() => {}); c.destroy().catch(() => {}); } catch {} } }
+function discordSet(a) {
+  if (a !== undefined) rpcAct = a;
+  if (!rpc || !rpcOk) return;
+  const x = rpcAct || { details: 'En el launcher', state: 'Eligiendo versión', startTimestamp: tStart };
+  rpc.setActivity({ ...x, largeImageKey: 'logo', largeImageText: 'Nova Launcher', instance: false }).catch(() => {});
+}
+function discordInit() {
+  discordStop();
+  const c = load();
+  if (c.discord === false) return setDsc({ s: 'off' });
+  const id = String(c.discordId || DISCORD_CLIENT_ID || '').trim();
+  if (!/^\d{15,25}$/.test(id)) return setDsc({ s: 'noid' });
+  let RPC; try { RPC = require('discord-rpc'); } catch { return setDsc({ s: 'error', msg: 'Módulo de Discord no disponible' }); }
+  setDsc({ s: 'connecting' });
+  const cl = new RPC.Client({ transport: 'ipc' }); rpc = cl;
+  const retry = msg => { if (rpc !== cl) return; rpcOk = false; setDsc({ s: 'error', msg }); setTimeout(() => { if (rpc === cl) discordInit(); }, 30000); };
+  cl.on('ready', () => { rpcOk = true; setDsc({ s: 'on', user: cl.user && cl.user.username }); discordSet(); });
+  cl.on('disconnected', () => retry('Discord se cerró'));
+  cl.login({ clientId: id }).catch(() => retry('Abre Discord en el PC'));
+}
+app.on('before-quit', discordStop);
