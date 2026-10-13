@@ -49,11 +49,35 @@ Con Discord y el launcher abiertos a la vez, el perfil muestra **Nova Launcher**
 
 Mientras tanto, para probarlo en tu PC sin publicar, pega el número en **Ajustes → Cuenta → ID de aplicación de Discord**.
 
+## Sistema de amigos (en preparación)
+
+Está pensado para una versión futura. Todavía no hay código: el plan, las opciones de servidor, la privacidad y las decisiones que faltan están en `docs/AMIGOS.md`.
+
+## Aviso legal
+
+Nova Launcher es un proyecto independiente de **Astrion Studio**. © 2026 Astrion Studio. No está afiliado, aprobado ni patrocinado por Mojang Studios ni por Microsoft. Minecraft es una marca registrada de Mojang Studios.
+
 ## ¿Qué es el historial de actualizaciones?
 
 Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión del launcher, para saber de un vistazo qué se ha **añadido**, qué se ha **mejorado** y qué se ha **quitado**. Cada vez que se publique una versión nueva hay que añadir una entrada al principio de la lista de abajo. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**.
 
 ## Historial de actualizaciones
+
+### 0.2.9 — Más espacio en la portada, pantalla completa, mods y Astrion Studio
+
+**Añadido**
+- Pantalla de carga con «Un proyecto dirigido por Astrion Studio», el copyright y el aviso de que Nova Launcher no tiene relación con Mojang ni con Microsoft (también en Ajustes → Acerca de)
+- Escalado automático según la resolución: en pantallas grandes (hasta 1920x1080 o más) el launcher se agranda proporcionalmente para que nada se vea pequeño ni estirado
+- Documento de diseño del futuro sistema de Amigos (solo preparación, todavía sin código)
+
+**Mejorado**
+- Portada con más espacio: el agujero negro es más grande y está más separado del botón de lanzar
+- Pantalla completa: texto más nítido y proporcionado, y el launcher se recalcula al maximizar, restaurar o cambiar a pantalla completa
+- Nuevo icono de Mods: una pieza de puzle
+- Página de Mods: las tarjetas ya no se solapan, todas tienen la misma altura, las etiquetas de cargador (Fabric, Forge…) pasan a una línea propia y se muestra la versión estable más reciente en vez de un snapshot
+
+**Quitado**
+- Nada en esta versión
 
 ### 0.2.8 — Arreglos de la portada, actualización automática y más accesibilidad
 

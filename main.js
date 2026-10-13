@@ -24,6 +24,7 @@ app.whenReady().then(() => {
   win = new BrowserWindow({ width: 1100, height: 680, minWidth: 900, minHeight: 560, frame: false, backgroundColor: '#0c0c10',
     show: false, webPreferences: { preload: path.join(__dirname, 'preload.js'), spellcheck: false } });
   win.once('ready-to-show', () => win.show());
+  ['maximize', 'unmaximize', 'enter-full-screen', 'leave-full-screen', 'restore', 'resized'].forEach(ev => win.on(ev, () => { setTimeout(() => { try { win.webContents.invalidate(); } catch {} send('relayout'); }, 120); }));
   win.loadFile('index.html');
   if (app.isPackaged) initUpdater();
   discordInit(); ensureShortcut(); win.on('focus', () => { if (Date.now() - lastChk > 600000) chkNow(); });
