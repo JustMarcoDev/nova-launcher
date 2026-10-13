@@ -9,6 +9,7 @@ const rd = (f, d) => { try { return JSON.parse(fs.readFileSync(f)); } catch { re
 const wr = (f, d) => { fs.mkdirSync(root, { recursive: true }); fs.writeFileSync(f, JSON.stringify(d, null, 1)); };
 const load = () => ({ ...DEF, ...rd(cfgFile, {}) }), li = () => rd(insFile, []);
 const addInst = o => { const i = { id: Date.now().toString(36), ...o }; wr(insFile, [...li(), i]); return i; };
+if (rd(cfgFile, {}).hwaccel === false) app.disableHardwareAcceleration();
 const MAN = 'https://launchermeta.mojang.com/mc/game/version_manifest_v2.json';
 let win, updater = null;
 const single = app.requestSingleInstanceLock();
@@ -48,6 +49,12 @@ ipcMain.handle('versions', async () => {
 ipcMain.handle('ver', () => app.getVersion());
 ipcMain.handle('upd:get', () => upd);
 ipcMain.handle('discord:get', () => dsc);
+ipcMain.handle('cache:clear', async () => { try { await win.webContents.session.clearCache(); fs.rmSync(path.join(root, 'versions_cache.json'), { force: true }); } catch {} return true; });
+ipcMain.handle('disk:usage', async () => {
+  let total = 0, n = 0; const walk = async d => { let es; try { es = await fs.promises.readdir(d, { withFileTypes: true }); } catch { return; }
+    for (const e of es) { if (++n > 300000) return; const p = path.join(d, e.name); if (e.isDirectory()) await walk(p); else { try { total += (await fs.promises.stat(p)).size; } catch {} } } };
+  await walk(root); return total;
+});
 ipcMain.handle('shortcut:create', () => ensureShortcut(true));
 ipcMain.handle('upd:check', async () => {
   if (!app.isPackaged || !updater) return { s: 'dev' };

@@ -18,13 +18,17 @@ Alternativas: `Crear-Instalador.bat` (genera el instalador en tu PC) o `Abrir-La
 4. En **Actions**, ejecuta de nuevo **Crear version**.
 5. Los launchers instalados la descargan solos y se instala al cerrarlos. También puedes pulsar **Ajustes → Acerca de → Buscar actualizaciones**.
 
+## Sobre los números de versión
+
+Las versiones de Windows y de GitHub solo admiten tres números (`0.2.8`), no cuatro (`0.2.7.1`). Por eso este arreglo es la **0.2.8** y la gran actualización pasa a ser la **0.3.0**.
+
 ## Actualizar desde el propio launcher (desde la 0.2.5)
 
 Cuando publiques una versión nueva en GitHub, el launcher la detecta solo:
 
 1. Aparece un aviso en la portada y un botón **Actualizar** en la barra superior.
 2. Pulsa **Descargar** (o se descarga sola si tienes activado «Descargar actualizaciones automáticamente» en Ajustes).
-3. Cuando termine, pulsa **Reiniciar e instalar**. Tus mundos, mods, instancias y ajustes se conservan.
+3. Cuando termine, el launcher avisa con una cuenta atrás de 10 segundos y se reinicia solo (puedes pulsar **Cancelar**). Tus mundos, mods, instancias y ajustes se conservan.
 
 También puedes comprobarlo a mano en **Ajustes → Acerca de → Buscar actualizaciones**.
 
@@ -50,6 +54,23 @@ Mientras tanto, para probarlo en tu PC sin publicar, pega el número en **Ajuste
 Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión del launcher, para saber de un vistazo qué se ha **añadido**, qué se ha **mejorado** y qué se ha **quitado**. Cada vez que se publique una versión nueva hay que añadir una entrada al principio de la lista de abajo. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**.
 
 ## Historial de actualizaciones
+
+### 0.2.8 — Arreglos de la portada, actualización automática y más accesibilidad
+
+**Añadido**
+- Actualización 100% automática: al terminar la descarga el launcher avisa con una cuenta atrás de 10 segundos y se reinicia solo (con botones «Instalar ya» y «Cancelar»); si estás jugando, espera a que cierres Minecraft
+- Ajustes de actualización: instalar automáticamente y mostrar o no la ventana de aviso
+- Accesibilidad: filtros para daltonismo (protanopia, deuteranopia, tritanopia) y escala de grises, modo dislexia, etiquetas de texto en la barra lateral, botones y casillas más grandes, paneles sólidos, espaciado entre palabras y atajos de teclado
+- Lectores de pantalla: nombres accesibles en la barra lateral y estado del launcher anunciado en voz alta
+- Rendimiento: perfiles de un clic (Máxima calidad, Equilibrado y Ahorro), aceleración por hardware opcional, número de versiones mostradas, botón para limpiar la caché y cálculo del espacio usado
+- Aviso en las novedades de la próxima gran actualización (0.3.0)
+
+**Mejorado**
+- Portada con más espacio: el agujero negro y el botón de lanzar respiran más
+- El menú del botón de lanzar queda siempre por encima, se ve entero y se abre hacia arriba si abajo no cabe; se cierra solo con un clic fuera o con Esc
+
+**Quitado**
+- Nada en esta versión
 
 ### 0.2.7 — Discord para todos, mods y modpacks, aviso de actualización
 
