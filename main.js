@@ -15,7 +15,7 @@ const single = app.requestSingleInstanceLock();
 if (!single) app.quit();
 else app.on('second-instance', () => { if (win) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); } });
 const send = (c, d) => win && win.webContents.send(c, d);
-const get = async (u, t = 'json', h = {}) => { const r = await fetch(u, { headers: h }); if (!r.ok) throw new Error('HTTP ' + r.status); return r[t](); };
+const get = async (u, t = 'json', h = {}) => { const r = await fetch(u, { headers: { 'User-Agent': 'NovaLauncher/' + app.getVersion() + ' (github.com/JustMarcoDev/nova-launcher)', ...h } }); if (!r.ok) throw new Error('HTTP ' + r.status); return r[t](); };
 const run = (cmd, args, opt = {}) => new Promise((res, rej) => execFile(cmd, args, { maxBuffer: 1e8, ...opt }, e => e ? rej(e) : res()));
 
 app.whenReady().then(() => {
@@ -25,7 +25,7 @@ app.whenReady().then(() => {
   win.once('ready-to-show', () => win.show());
   win.loadFile('index.html');
   if (app.isPackaged) initUpdater();
-  discordInit();
+  discordInit(); ensureShortcut(); win.on('focus', () => { if (Date.now() - lastChk > 600000) chkNow(); });
 });
 app.on('window-all-closed', () => app.quit());
 
@@ -48,6 +48,7 @@ ipcMain.handle('versions', async () => {
 ipcMain.handle('ver', () => app.getVersion());
 ipcMain.handle('upd:get', () => upd);
 ipcMain.handle('discord:get', () => dsc);
+ipcMain.handle('shortcut:create', () => ensureShortcut(true));
 ipcMain.handle('upd:check', async () => {
   if (!app.isPackaged || !updater) return { s: 'dev' };
   if (upd.s === 'downloading' || upd.s === 'ready') return upd;
@@ -64,8 +65,9 @@ ipcMain.handle('http', (e, { url, headers }) => get(url, 'json', headers || {}))
 ipcMain.handle('inst:list', () => li());
 ipcMain.handle('inst:save', (e, o) => addInst(o));
 ipcMain.handle('inst:del', (e, id) => { wr(insFile, li().filter(i => i.id !== id)); fs.rmSync(path.join(root, 'instances', id), { recursive: true, force: true }); });
-ipcMain.handle('mod:install', async (e, { url, name, inst }) => {
-  const d = path.join(root, inst ? path.join('instances', inst) : '', 'mods'); fs.mkdirSync(d, { recursive: true });
+ipcMain.handle('mod:install', async (e, { url, name, inst, dir }) => {
+  const sub = ['mods', 'shaderpacks', 'resourcepacks'].includes(dir) ? dir : 'mods';
+  const d = path.join(root, inst ? path.join('instances', inst) : '', sub); fs.mkdirSync(d, { recursive: true });
   fs.writeFileSync(path.join(d, path.basename(name)), Buffer.from(await get(url, 'arrayBuffer'))); return true;
 });
 ipcMain.handle('login', async () => {
@@ -79,15 +81,19 @@ ipcMain.handle('pack', async (e, pid) => {
   const tmp = path.join(root, 'tmp_pack'); fs.rmSync(tmp, { recursive: true, force: true }); fs.mkdirSync(tmp, { recursive: true });
   const z = path.join(tmp, 'p.zip'); fs.writeFileSync(z, Buffer.from(await get(f.url, 'arrayBuffer')));
   await run('tar', ['-xf', z, '-C', tmp]);
+  send('status', 'Descargando modpack…');
   const ix = rd(path.join(tmp, 'modrinth.index.json'), null); if (!ix) throw new Error('Modpack no válido');
   const d = ix.dependencies, ld = d['fabric-loader'] ? 'Fabric' : d.neoforge ? 'NeoForge' : d.forge ? 'Forge' : 'Vanilla';
   const ins = addInst({ name: ix.name, mc: d.minecraft, ld, type: 'release' }), dir = path.join(root, 'instances', ins.id);
+  let n = 0;
   for (const fl of ix.files) {
+    if (fl.env && fl.env.client === 'unsupported') continue;
+    send('status', 'Modpack: archivo ' + (++n) + ' de ' + ix.files.length);
     const dest = path.resolve(dir, fl.path); if (!dest.startsWith(dir)) continue;
     fs.mkdirSync(path.dirname(dest), { recursive: true }); fs.writeFileSync(dest, Buffer.from(await get(fl.downloads[0], 'arrayBuffer')));
   }
   const ov = path.join(tmp, 'overrides'); if (fs.existsSync(ov)) fs.cpSync(ov, dir, { recursive: true });
-  fs.rmSync(tmp, { recursive: true, force: true }); return ins;
+  fs.rmSync(tmp, { recursive: true, force: true }); send('status', 'Modpack instalado: ' + ix.name); return ins;
 });
 
 // Java automático (Adoptium) según lo que pida cada versión de Minecraft
@@ -154,6 +160,7 @@ ipcMain.handle('play', async (e, { id }) => {
     const l = new Client();
     l.on('progress', p => send('progress', p)); l.on('data', d => send('log', String(d)));
     l.on('close', () => { discordSet(null); send('running', 0); send('status', 'Minecraft cerrado'); send('progress', null); if (cfg.reopen !== false) win.show(); });
+    discordSet({ details: 'Preparando Minecraft ' + ins.mc, state: (ins.ld || 'Vanilla') + ' · Nova Launcher', startTimestamp: Date.now() });
     send('status', 'Descargando archivos del juego…');
     if (!(await l.launch(o))) throw new Error('No se pudo iniciar Minecraft');
     send('running', 1); discordSet({ details: 'Jugando a Minecraft ' + ins.mc, state: (ins.ld || 'Vanilla') + ' · Nova Launcher', startTimestamp: Date.now() }); send('status', 'Minecraft en ejecución'); if (cfg.closeOnLaunch) win.hide();
@@ -162,7 +169,7 @@ ipcMain.handle('play', async (e, { id }) => {
 });
 
 // ===== Actualizaciones desde el launcher =====
-let upd = { s: 'idle' };
+let upd = { s: 'idle' }, lastChk = 0, chkNow = () => {};
 const setUpd = o => { upd = o; send('upd:state', upd); };
 function initUpdater() {
   try {
@@ -175,14 +182,15 @@ function initUpdater() {
     autoUpdater.on('download-progress', p => setUpd({ s: 'downloading', v: upd.v, p: p.percent, bps: p.bytesPerSecond }));
     autoUpdater.on('update-downloaded', i => setUpd({ s: 'ready', v: i.version }));
     autoUpdater.on('error', e => { if (upd.s !== 'ready') setUpd({ s: 'error', msg: String(e && e.message || e).slice(0, 80) }); });
-    const chk = () => { if (load().autoUpdate !== false && upd.s !== 'downloading' && upd.s !== 'ready') autoUpdater.checkForUpdates().catch(() => {}); };
-    setTimeout(chk, 4000); setInterval(chk, 3600000);
+    chkNow = () => { lastChk = Date.now(); if (load().autoUpdate !== false && upd.s !== 'downloading' && upd.s !== 'ready') autoUpdater.checkForUpdates().catch(() => {}); };
+    setTimeout(chkNow, 2500); setInterval(chkNow, 3600000);
   } catch {}
 }
 
 // ===== Discord Rich Presence =====
-// Para que lo vean todos los usuarios, pon aquí tu «Application ID» de Discord (ver README). También se puede poner desde Ajustes.
+// Application ID de Discord de Nova Launcher (ver README). Con él, TODOS los usuarios muestran la actividad sin configurar nada.
 const DISCORD_CLIENT_ID = '';
+const REPO_URL = 'https://github.com/JustMarcoDev/nova-launcher/releases/latest';
 let rpc = null, rpcOk = false, rpcAct = null, dsc = { s: 'off' };
 const tStart = Date.now();
 const setDsc = o => { dsc = o; send('discord:state', dsc); };
@@ -190,8 +198,10 @@ function discordStop() { const c = rpc; rpc = null; rpcOk = false; if (c) { try 
 function discordSet(a) {
   if (a !== undefined) rpcAct = a;
   if (!rpc || !rpcOk) return;
-  const x = rpcAct || { details: 'En el launcher', state: 'Eligiendo versión', startTimestamp: tStart };
-  rpc.setActivity({ ...x, largeImageKey: 'logo', largeImageText: 'Nova Launcher', instance: false }).catch(() => {});
+  const v = app.getVersion();
+  const x = rpcAct || { details: 'En el launcher', state: 'Nova Launcher v' + v, startTimestamp: tStart };
+  rpc.setActivity({ ...x, largeImageKey: 'logo', largeImageText: 'Nova Launcher v' + v, instance: false,
+    buttons: [{ label: 'Descargar Nova Launcher', url: REPO_URL }] }).catch(() => rpc && rpc.setActivity({ ...x, largeImageKey: 'logo', largeImageText: 'Nova Launcher v' + v, instance: false }).catch(() => {}));
 }
 function discordInit() {
   discordStop();
@@ -202,9 +212,22 @@ function discordInit() {
   let RPC; try { RPC = require('discord-rpc'); } catch { return setDsc({ s: 'error', msg: 'Módulo de Discord no disponible' }); }
   setDsc({ s: 'connecting' });
   const cl = new RPC.Client({ transport: 'ipc' }); rpc = cl;
-  const retry = msg => { if (rpc !== cl) return; rpcOk = false; setDsc({ s: 'error', msg }); setTimeout(() => { if (rpc === cl) discordInit(); }, 30000); };
+  const retry = msg => { if (rpc !== cl) return; rpcOk = false; setDsc({ s: 'error', msg }); try { cl.destroy().catch(() => {}); } catch {} setTimeout(() => { if (rpc === cl) discordInit(); }, 15000); };
   cl.on('ready', () => { rpcOk = true; setDsc({ s: 'on', user: cl.user && cl.user.username }); discordSet(); });
   cl.on('disconnected', () => retry('Discord se cerró'));
   cl.login({ clientId: id }).catch(() => retry('Abre Discord en el PC'));
 }
 app.on('before-quit', discordStop);
+
+// ===== Acceso directo del escritorio =====
+function ensureShortcut(force) {
+  try {
+    if (process.platform !== 'win32' || !app.isPackaged) return false;
+    const lnk = path.join(app.getPath('desktop'), 'Nova Launcher.lnk');
+    const c = load(), first = c.lastRun !== app.getVersion();
+    if (!force && !first) return true;
+    if (!fs.existsSync(lnk)) shell.writeShortcutLink(lnk, 'create', { target: process.execPath, cwd: path.dirname(process.execPath), description: 'Nova Launcher', icon: process.execPath, iconIndex: 0 });
+    wr(cfgFile, { ...c, lastRun: app.getVersion() });
+    return fs.existsSync(lnk);
+  } catch { return false; }
+}

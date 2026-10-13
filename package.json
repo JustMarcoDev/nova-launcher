@@ -1,6 +1,6 @@
 {
   "name": "nova-launcher",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "Nova Launcher para Minecraft",
   "author": "Nova",
   "main": "main.js",
@@ -23,7 +23,8 @@
     "productName": "Nova Launcher",
     "win": {
       "target": "nsis",
-      "signAndEditExecutable": false
+      "signAndEditExecutable": false,
+      "icon": "build/icon.png"
     },
     "nsis": {
       "oneClick": false,

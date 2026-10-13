@@ -32,23 +32,44 @@ También puedes comprobarlo a mano en **Ajustes → Acerca de → Buscar actuali
 
 La pestaña **Redes** está vacía de momento. Para activar una red, abre `index.html`, busca `const SOC=[` y pon el enlace en `u:""` (por ejemplo `u:"https://www.youtube.com/@tucanal"`).
 
-## Discord: mostrar a qué juegas (desde la 0.2.6)
+## Discord: que todos vean «Nova Launcher» como actividad (desde la 0.2.7)
 
-Cuando abres el launcher, tu perfil de Discord muestra **«Jugando a Minecraft 1.21.1»**. Para que funcione hace falta una «aplicación» de Discord (es gratis y solo se hace una vez):
+Con Discord y el launcher abiertos a la vez, el perfil muestra **Nova Launcher** con el logo, la versión del launcher y, al jugar, la versión de Minecraft y el tiempo de partida (como pasa con Valorant). Para que funcione en **todos los PCs** sin que nadie configure nada, hay que hacer esto **una sola vez**:
 
 1. Entra en https://discord.com/developers/applications con tu cuenta y pulsa **New Application**.
-2. Ponle el nombre **Nova Launcher** (ese nombre es el que verán tus amigos como «Jugando a…»).
-3. En la pestaña **General Information** copia el **Application ID**.
-4. En el launcher: **Ajustes → Cuenta → ID de aplicación de Discord** y pégalo. Se conecta al momento (Discord tiene que estar abierto en el PC).
-5. Opcional, para que salga el logo: en Discord Developers → **Rich Presence → Art Assets**, sube una imagen con el nombre `logo`.
+2. Ponle el nombre **Nova Launcher** (es el nombre que verán tus amigos en «Jugando a…»).
+3. En **General Information** copia el **Application ID**.
+4. Abre `main.js`, busca la línea `const DISCORD_CLIENT_ID = '';` y pega el número entre las comillas.
+5. En el mismo sitio de Discord Developers: **Rich Presence → Art Assets → Add Image(s)**, sube el archivo `assets/discord-logo.png` (viene en el proyecto) y ponle el nombre `logo`. Discord puede tardar unos minutos en mostrarlo.
+6. Publica la versión como siempre (`git add .`, `git commit`, `git push`, Actions).
 
-Para que lo vean todos los que instalen el launcher, copia ese número en `main.js`, en la línea `const DISCORD_CLIENT_ID = '';`, y publica una versión nueva.
+Mientras tanto, para probarlo en tu PC sin publicar, pega el número en **Ajustes → Cuenta → ID de aplicación de Discord**.
 
 ## ¿Qué es el historial de actualizaciones?
 
 Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión del launcher, para saber de un vistazo qué se ha **añadido**, qué se ha **mejorado** y qué se ha **quitado**. Cada vez que se publique una versión nueva hay que añadir una entrada al principio de la lista de abajo. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**.
 
 ## Historial de actualizaciones
+
+### 0.2.7 — Discord para todos, mods y modpacks, aviso de actualización
+
+**Añadido**
+- Discord: al tener Discord y el launcher abiertos a la vez, tu perfil muestra «Nova Launcher» con el logo, la versión del launcher y, al jugar, la versión de Minecraft con el tiempo de partida; se conecta solo aunque abras Discord después
+- Botón «Descargar Nova Launcher» en la actividad de Discord para que tus amigos lo instalen
+- Mods y Modpacks: pestañas para Mods, Modpacks, Shaders y Texturas, orden por descargas, seguidos, nuevos o actualizados, 20 categorías, botón «Cargar más» y contador de resultados
+- Los mods instalan solos sus dependencias obligatorias (por ejemplo Fabric API)
+- Los modpacks de Modrinth ya no se limitan a la versión elegida en la portada: se muestran todos y se crea una instancia propia
+- Shaders y texturas se guardan en la carpeta correcta de la instancia
+- Aviso «1 actualización pendiente» en la pantalla principal, ventana emergente al abrir, punto rojo en el menú y botón «Actualizar ahora» que descarga e instala de una vez
+- Acceso directo del escritorio: se crea al actualizar si no existía y hay un botón en Ajustes → Acerca de para crearlo cuando quieras
+- Icono propio (el logo de la app) para el .exe, el instalador y el acceso directo
+
+**Mejorado**
+- El launcher busca actualizaciones nada más abrir y cada vez que vuelves a la ventana
+- Búsqueda de mods con tarjetas más completas: autor, descargas, seguidores, categorías y versiones
+
+**Quitado**
+- Nada en esta versión
 
 ### 0.2.6 — Discord, logos oficiales y botón de lanzar nuevo
 
