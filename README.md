@@ -49,9 +49,21 @@ Con Discord y el launcher abiertos a la vez, el perfil muestra **Nova Launcher**
 
 Mientras tanto, para probarlo en tu PC sin publicar, pega el número en **Ajustes → Cuenta → ID de aplicación de Discord**.
 
-## Sistema de amigos (en preparación)
+## Servidores populares (desde la 0.2.10)
 
-Está pensado para una versión futura. Todavía no hay código: el plan, las opciones de servidor, la privacidad y las decisiones que faltan están en `docs/AMIGOS.md`.
+La pestaña **Servidores** (Alt + 4) muestra servidores conocidos con jugadores en línea y un botón **Unirse**: abre Minecraft en la versión adecuada y entra solo al servidor. La lista está en `index.html` (constante `SERVERS`); puedes añadir o quitar los que quieras.
+
+## Nova Network y Nova Pack (desde la 0.2.10)
+
+- `novapack/pack.json` define el modpack propio del launcher: versión de Minecraft, loader, mods (por «slug» de Modrinth), jars propios y el servidor.
+- Cuando subes cambios a GitHub (repo público), todos los launchers descargan el manifiesto nuevo y actualizan el pack con un clic.
+- Pon la dirección de tu servidor en `server.host` de `pack.json`. Mientras esté vacío, el botón de unirse aparece desactivado.
+- Archivos de configuración propios: `novapack/overrides/`.
+- Opciones para tener un servidor barato o gratis: `docs/NOVA-SERVER.md`.
+
+## Ventajas exclusivas (preparación)
+
+Cosméticos y extras dentro del juego. Solo hay diseño y un catálogo vacío (`novapack/cosmetics.json`); el plan está en `docs/VENTAJAS.md`.
 
 ## Aviso legal
 
@@ -63,12 +75,28 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 
 ## Historial de actualizaciones
 
+### 0.2.10 — Servidores, Nova Pack y vuelta al tamaño de la 0.2.8
+
+**Añadido**
+- Pestaña Servidores con los más populares, jugadores en línea y botón «Unirse» que abre Minecraft y entra automáticamente
+- Nova Network: tarjeta con el modpack propio del launcher (Nova Pack), actualizable desde GitHub sin sacar versión nueva
+- Preparación de ventajas exclusivas (cosméticos): `docs/VENTAJAS.md` y `novapack/cosmetics.json`
+- Guía para montar el servidor: `docs/NOVA-SERVER.md`
+- Atajo Alt + 4 para Servidores
+
+**Mejorado**
+- En pantalla completa (1920×1080) el launcher se ve como en la 0.2.8, sin estirarse
+- Al unirse a un servidor se crea o reutiliza una instancia Vanilla de la versión correcta
+
+**Quitado**
+- Escalado automático de la 0.2.9
+- Sistema de amigos (de momento, por el coste del servidor) y `docs/AMIGOS.md`
+
 ### 0.2.9 — Más espacio en la portada, pantalla completa, mods y Astrion Studio
 
 **Añadido**
 - Pantalla de carga con «Un proyecto dirigido por Astrion Studio», el copyright y el aviso de que Nova Launcher no tiene relación con Mojang ni con Microsoft (también en Ajustes → Acerca de)
 - Escalado automático según la resolución: en pantallas grandes (hasta 1920x1080 o más) el launcher se agranda proporcionalmente para que nada se vea pequeño ni estirado
-- Documento de diseño del futuro sistema de Amigos (solo preparación, todavía sin código)
 
 **Mejorado**
 - Portada con más espacio: el agujero negro es más grande y está más separado del botón de lanzar

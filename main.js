@@ -24,7 +24,6 @@ app.whenReady().then(() => {
   win = new BrowserWindow({ width: 1100, height: 680, minWidth: 900, minHeight: 560, frame: false, backgroundColor: '#0c0c10',
     show: false, webPreferences: { preload: path.join(__dirname, 'preload.js'), spellcheck: false } });
   win.once('ready-to-show', () => win.show());
-  ['maximize', 'unmaximize', 'enter-full-screen', 'leave-full-screen', 'restore', 'resized'].forEach(ev => win.on(ev, () => { setTimeout(() => { try { win.webContents.invalidate(); } catch {} send('relayout'); }, 120); }));
   win.loadFile('index.html');
   if (app.isPackaged) initUpdater();
   discordInit(); ensureShortcut(); win.on('focus', () => { if (Date.now() - lastChk > 600000) chkNow(); });
@@ -149,7 +148,7 @@ async function forge(ld, mc, java) {
   id = find(); if (!id) throw new Error('No se pudo instalar ' + ld); return id;
 }
 
-ipcMain.handle('play', async (e, { id }) => {
+ipcMain.handle('play', async (e, { id, server }) => {
   const cfg = load(), ins = li().find(i => i.id === id);
   try {
     if (!ins) throw new Error('Instancia no encontrada');
@@ -165,13 +164,14 @@ ipcMain.handle('play', async (e, { id }) => {
       window: { width: cfg.width, height: cfg.height, fullscreen: cfg.fullscreen }, customArgs: cfg.jvmArgs.split(' ').filter(Boolean) };
     if (ins.ld === 'Fabric') o.version.custom = await fabric(ins.mc);
     if (ins.ld === 'Forge' || ins.ld === 'NeoForge') o.version.custom = await forge(ins.ld, ins.mc, java);
+    if (server && server.host) o.quickPlay = { type: modernQP(ins.mc) ? 'multiplayer' : 'legacy', identifier: server.host + (server.port && +server.port !== 25565 ? ':' + server.port : '') };
     const l = new Client();
     l.on('progress', p => send('progress', p)); l.on('data', d => send('log', String(d)));
     l.on('close', () => { discordSet(null); send('running', 0); send('status', 'Minecraft cerrado'); send('progress', null); if (cfg.reopen !== false) win.show(); });
     discordSet({ details: 'Preparando Minecraft ' + ins.mc, state: (ins.ld || 'Vanilla') + ' · Nova Launcher', startTimestamp: Date.now() });
     send('status', 'Descargando archivos del juego…');
     if (!(await l.launch(o))) throw new Error('No se pudo iniciar Minecraft');
-    send('running', 1); discordSet({ details: 'Jugando a Minecraft ' + ins.mc, state: (ins.ld || 'Vanilla') + ' · Nova Launcher', startTimestamp: Date.now() }); send('status', 'Minecraft en ejecución'); if (cfg.closeOnLaunch) win.hide();
+    send('running', 1); discordSet({ details: server && server.name ? 'En ' + server.name + ' · ' + ins.mc : 'Jugando a Minecraft ' + ins.mc, state: (ins.ld || 'Vanilla') + ' · Nova Launcher', startTimestamp: Date.now() }); send('status', 'Minecraft en ejecución'); if (cfg.closeOnLaunch) win.hide();
     return { ok: true };
   } catch (err) { send('status', 'Error: ' + err.message); send('progress', null); return { ok: false }; }
 });
@@ -239,3 +239,61 @@ function ensureShortcut(force) {
     return fs.existsSync(lnk);
   } catch { return false; }
 }
+
+// ===== Servidores y Nova Pack (0.2.10) =====
+const modernQP = mc => { let m = /^(\d+)\.(\d+)/.exec(mc); if (m) return +m[1] > 1 || +m[2] >= 20; m = /^(\d\d)w/.exec(mc); return !!m && +m[1] >= 23; };
+const stCache = {};
+ipcMain.handle('srv:status', async (e, hosts) => {
+  const out = {};
+  await Promise.allSettled([...new Set(hosts)].map(async h => {
+    const c = stCache[h]; if (c && Date.now() - c.t < 60000) { out[h] = c.v; return; }
+    try { const r = await get('https://api.mcsrvstat.us/3/' + encodeURIComponent(h)); const v = { online: !!r.online, players: r.players ? r.players.online : 0, icon: r.icon || '' }; stCache[h] = { t: Date.now(), v }; out[h] = v; }
+    catch { out[h] = { online: false, players: 0, icon: '' }; }
+  }));
+  return out;
+});
+const PACK_URL = 'https://raw.githubusercontent.com/JustMarcoDev/nova-launcher/main/novapack/pack.json';
+const packLocal = () => rd(path.join(__dirname, 'novapack', 'pack.json'), null);
+const novaManifest = async () => { try { const m = await get(PACK_URL); if (m && m.mc && Array.isArray(m.mods)) return m; } catch {} return packLocal(); };
+const nbtStr = s => { const b = Buffer.from(String(s), 'utf8'), l = Buffer.alloc(2); l.writeUInt16BE(b.length); return Buffer.concat([l, b]); };
+const serversDat = list => { const n = Buffer.alloc(4); n.writeInt32BE(list.length);
+  const parts = [Buffer.from([10]), nbtStr(''), Buffer.from([9]), nbtStr('servers'), Buffer.from([10]), n];
+  for (const s of list) parts.push(Buffer.from([8]), nbtStr('ip'), nbtStr(s.ip), Buffer.from([8]), nbtStr('name'), nbtStr(s.name), Buffer.from([0]));
+  parts.push(Buffer.from([0])); return Buffer.concat(parts); };
+ipcMain.handle('nova:info', async () => {
+  const m = await novaManifest(); if (!m) throw new Error('Sin manifiesto');
+  const ins = li().find(i => i.novaPack), st = ins ? rd(path.join(root, 'instances', ins.id, '.nova-pack.json'), {}) : {};
+  return { name: m.name || 'Nova Pack', version: String(m.version || '0'), mc: m.mc, loader: m.loader || 'Fabric', mods: (m.mods || []).length, server: m.server || { name: 'Nova Network', host: '' }, installed: st.version || '' };
+});
+ipcMain.handle('nova:pack', async () => {
+  const m = await novaManifest(); if (!m) throw new Error('Sin manifiesto');
+  const ld = m.loader || 'Fabric';
+  let ins = li().find(i => i.novaPack);
+  if (!ins) ins = addInst({ name: m.name || 'Nova Pack', mc: m.mc, ld, type: 'release', novaPack: true });
+  else if (ins.mc !== m.mc || ins.ld !== ld) { wr(insFile, li().map(i => i.id === ins.id ? { ...i, mc: m.mc, ld, name: m.name || i.name } : i)); ins = { ...ins, mc: m.mc, ld }; }
+  const dir = path.join(root, 'instances', ins.id), mods = path.join(dir, 'mods'); fs.mkdirSync(mods, { recursive: true });
+  const stF = path.join(dir, '.nova-pack.json'), prev = rd(stF, { files: [] });
+  for (const f of prev.files || []) fs.rmSync(path.join(mods, path.basename(f)), { force: true });
+  const files = [], failed = [], list = m.mods || [], q = x => encodeURIComponent(JSON.stringify(x));
+  let n = 0;
+  for (const mod of list) {
+    send('status', 'Nova Pack: ' + (++n) + ' de ' + list.length);
+    try {
+      let url, name;
+      if (mod.url) { url = mod.url; name = path.basename(mod.file || new URL(mod.url).pathname); }
+      else {
+        const vs = await get(`https://api.modrinth.com/v2/project/${mod.slug}/version?game_versions=${q([m.mc])}&loaders=${q([ld.toLowerCase()])}`);
+        if (!vs.length) throw new Error('sin versión');
+        const f = vs[0].files.find(x => x.primary) || vs[0].files[0]; url = f.url; name = f.filename;
+      }
+      fs.writeFileSync(path.join(mods, path.basename(name)), Buffer.from(await get(url, 'arrayBuffer'))); files.push(path.basename(name));
+    } catch { failed.push(mod.slug || mod.file || mod.url); }
+  }
+  const ov = path.join(__dirname, 'novapack', 'overrides');
+  if (fs.existsSync(ov)) fs.cpSync(ov, dir, { recursive: true, force: false, errorOnExist: false });
+  const sd = path.join(dir, 'servers.dat');
+  if (m.server && m.server.host && !fs.existsSync(sd)) fs.writeFileSync(sd, serversDat([{ name: m.server.name || 'Nova Network', ip: m.server.host + (m.server.port && +m.server.port !== 25565 ? ':' + m.server.port : '') }]));
+  wr(stF, { version: String(m.version || '0'), files, date: Date.now() });
+  send('status', failed.length ? 'Nova Pack listo (no se pudieron instalar: ' + failed.join(', ') + ')' : 'Nova Pack ' + m.version + ' instalado');
+  return { ins, failed, version: String(m.version || '0') };
+});
