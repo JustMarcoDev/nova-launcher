@@ -189,7 +189,7 @@ function initUpdater() {
 
 // ===== Discord Rich Presence =====
 // Application ID de Discord de Nova Launcher (ver README). Con él, TODOS los usuarios muestran la actividad sin configurar nada.
-const DISCORD_CLIENT_ID = '';
+const DISCORD_CLIENT_ID = '1559289890636824597';
 const REPO_URL = 'https://github.com/JustMarcoDev/nova-launcher/releases/latest';
 let rpc = null, rpcOk = false, rpcAct = null, dsc = { s: 'off' };
 const tStart = Date.now();
