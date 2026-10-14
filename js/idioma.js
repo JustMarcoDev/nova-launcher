@@ -10,10 +10,11 @@ const LANG_FLAG={
   fr:FL(vb("#0055a4","#fff","#ef4135")),
   de:FL('<rect width="30" height="20" fill="#000"/><rect y="6.67" width="30" height="6.67" fill="#dd0000"/><rect y="13.33" width="30" height="6.67" fill="#ffce00"/>'),
   it:FL(vb("#009246","#fff","#ce2b37")),
-  pt:FL('<rect width="30" height="20" fill="#009c3b"/><path d="M15 2 27 10 15 18 3 10Z" fill="#ffdf00"/><circle cx="15" cy="10" r="4.3" fill="#002776"/><path d="M10.9 9.2Q15 8 19.1 11.2" stroke="#fff" stroke-width=".9" fill="none"/>')
+  "pt-BR":FL('<rect width="30" height="20" fill="#009c3b"/><path d="M15 2 27 10 15 18 3 10Z" fill="#ffdf00"/><circle cx="15" cy="10" r="4.3" fill="#002776"/><path d="M10.9 9.2Q15 8 19.1 11.2" stroke="#fff" stroke-width=".9" fill="none"/>'),
+  pt:FL('<rect width="30" height="20" fill="#d62c2c"/><rect width="12" height="20" fill="#046a38"/><circle cx="12" cy="10" r="3.7" fill="#ffd400"/><path d="M10.2 8.3h3.6v2.6a1.8 1.8 0 0 1-3.6 0Z" fill="#d62c2c" stroke="#fff" stroke-width=".5"/>')
 };
 const langFlag=k=>LANG_FLAG[k]||"";
-const LANG_ORDER=["es","es-419","en","fr","de","it","pt"];
+const LANG_ORDER=["es","es-419","en","fr","de","it","pt-BR","pt"];
 const LANG_BASE={es:"Español (España)"};
 const LANG_NAMES=()=>[["auto","Automático (el del sistema)"],...LANG_ORDER.map(k=>[k,LANG_BASE[k]||(window.LANGS[k]||{}).name]).filter(x=>x[1]),...Object.entries(window.LANGS||{}).filter(([k])=>!LANG_ORDER.includes(k)).map(([k,v])=>[k,v.name])];
 const LANG_OPTS=()=>Object.fromEntries(LANG_NAMES().map(([k,n])=>[k,k==="auto"?n:langFlag(k)+n]));
@@ -22,6 +23,7 @@ let LCUR="es",LMAP=new Map(),LPAT=[],LOBS=null;
 function langSys(){
   const n=String(navigator.language||"es").toLowerCase(),b=n.slice(0,2),L=window.LANGS||{};
   if(b==="es")return n==="es"||n==="es-es"||!L["es-419"]?"es":"es-419";
+  if(b==="pt")return n==="pt-br"&&L["pt-BR"]?"pt-BR":L.pt?"pt":L["pt-BR"]?"pt-BR":"es";
   return L[b]?b:"es";
 }
 function langPick(v){
@@ -74,7 +76,7 @@ function langSync(v,boot){
 }
 
 // Primer arranque: si nunca se ha elegido idioma, se muestra el selector (el del sistema viene marcado)
-const LANG_NATIVE=[["es","Español (España)","Continuar"],["es-419","Español (Latinoamérica)","Continuar"],["en","English (US)","Continue"],["fr","Français","Continuer"],["de","Deutsch","Weiter"],["it","Italiano","Continua"],["pt","Português","Continuar"]];
+const LANG_NATIVE=[["es","Español (España)","Continuar"],["es-419","Español (Latinoamérica)","Continuar"],["en","English (US)","Continue"],["fr","Français","Continuer"],["de","Deutsch","Weiter"],["it","Italiano","Continua"],["pt-BR","Português (Brasil)","Continuar"],["pt","Português (Portugal)","Continuar"]];
 function langFirst(){
   let seen=true;try{seen=localStorage.getItem("novaLang")!==null}catch{}
   if(seen||window.__langAsk)return;window.__langAsk=true;

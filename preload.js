@@ -2,7 +2,7 @@ const { contextBridge, ipcRenderer: r, webUtils } = require('electron');
 contextBridge.exposeInMainWorld('api', {
   cfg: () => r.invoke('cfg:get'), set: c => r.invoke('cfg:set', c),
   versions: () => r.invoke('versions'), play: o => r.invoke('play', o),
-  http: o => r.invoke('http', o), mod: o => r.invoke('mod:install', o), pack: o => r.invoke('pack', o), packVersions: id => r.invoke('pack:versions', id),
+  http: o => r.invoke('http', o), mod: o => r.invoke('mod:install', o), pack: o => r.invoke('pack', o), errLog: o => r.invoke('err:log', o), errFolder: () => r.invoke('err:folder'), packVersions: id => r.invoke('pack:versions', id),
   insts: () => r.invoke('inst:list'), saveInst: o => r.invoke('inst:save', o), delInst: id => r.invoke('inst:del', id),
   login: () => r.invoke('acc:login'), sys: () => r.invoke('sys'), ver: () => r.invoke('ver'), updGet: () => r.invoke('upd:get'), updCheck: () => r.invoke('upd:check'), updDownload: () => r.invoke('upd:download'), updInstall: () => r.invoke('upd:install'), discordGet: () => r.invoke('discord:get'), cacheClear: () => r.invoke('cache:clear'), diskUsage: () => r.invoke('disk:usage'), srvStatus: h => r.invoke('srv:status', h), shortcut: () => r.invoke('shortcut:create'), open: u => r.invoke('open', u), zoom: f => r.invoke('zoom', f), folder: () => r.invoke('folder'),
   instUpdate: (id, patch) => r.invoke('inst:update', { id, patch }), instDup: id => r.invoke('inst:dup', id), instOpen: (id, sub) => r.invoke('inst:open', { id, sub }), instExport: o => r.invoke('inst:export', o), instImport: () => r.invoke('inst:import'), loaderVersions: o => r.invoke('loader:versions', o),

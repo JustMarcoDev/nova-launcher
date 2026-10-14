@@ -2,6 +2,15 @@
 // La clave es el texto en español tal como sale en la app; {1}, {2}… son partes variables (nombres, números).
 window.LANGS=window.LANGS||{};
 window.LANGS.en={name:"English (US)",d:{
+"No se pudo instalar el modpack":"Couldn't install the modpack",
+"Se ha guardado un informe con los detalles:":"A report with the details has been saved:",
+"Abrir informe":"Open report",
+"Carpeta de informes":"Reports folder",
+"Copiado":"Copied",
+"Informes de errores de descarga":"Download error reports",
+"Si falla instalar un mod o modpack, aquí se guarda un archivo con la causa":"If installing a mod or modpack fails, a file with the cause is saved here",
+"Vista previa: se abriría la carpeta de informes":"Preview: the reports folder would open",
+"Faltan {1} archivos del modpack: la causa está en Ajustes → Juego → Informes de errores":"{1} modpack files are missing: the cause is in Settings → Game → Download error reports",
 "Nova Launcher 0.2.14":"Nova Launcher 0.2.14",
 "Seis idiomas, preparación en segundo plano, limpieza de espacio e instancias en lista.":"Six languages, background preparation, space cleanup and instances as a list.",
 "{1} · {2} {3} · código {4}":"{1} · {2} {3} · code {4}",

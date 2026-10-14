@@ -95,24 +95,57 @@ ipcMain.handle('http', (e, { url, headers }) => get(url, 'json', headers || {}))
 ipcMain.handle('inst:list', () => li());
 ipcMain.handle('inst:save', (e, o) => addInst(o));
 ipcMain.handle('inst:del', (e, id) => { id = String(id); if (running.has(id)) throw new Error('Cierra Minecraft antes de borrar la instancia'); wr(insFile, li().filter(i => i.id !== id)); fs.rmSync(path.join(root, 'instances', id), { recursive: true, force: true }); fs.rmSync(path.join(root, 'backups', id), { recursive: true, force: true }); });
+// ---- Informes de errores de descarga (mods, modpacks): se guardan en la carpeta «errores» ----
+const errDir = () => path.join(root, 'errores');
+const p2 = n => String(n).padStart(2, '0');
+function logErr(kind, err, info = {}) {
+  try {
+    fs.mkdirSync(errDir(), { recursive: true });
+    const d = new Date(), stamp = `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}_${p2(d.getHours())}-${p2(d.getMinutes())}-${p2(d.getSeconds())}`;
+    const f = path.join(errDir(), `${stamp}_${String(kind).replace(/[^\w-]/g, '')}.txt`);
+    const m = err && err.message || String(err), c = err && err.cause;
+    const L = ['Nova Launcher · informe de error', '='.repeat(40), 'Fecha: ' + d.toISOString(), 'Versión del launcher: ' + app.getVersion(), `Sistema: ${process.platform} ${os.release()} ${process.arch}`, 'Tipo: ' + kind, ''];
+    if (err && err.step) L.push('Paso en el que falló: ' + err.step);
+    for (const [k, v] of Object.entries(info)) if (v !== undefined && v !== null && v !== '') L.push(k + ': ' + (typeof v === 'string' ? v : JSON.stringify(v)));
+    L.push('', 'Causa: ' + m);
+    if (err && err.code) L.push('Código: ' + err.code);
+    if (c) L.push('Causa interna: ' + (c.message || c) + (c.code ? ' (' + c.code + ')' : ''));
+    if (err && err.stack) L.push('', 'Detalle técnico:', String(err.stack).split('\n').slice(0, 12).join('\n'));
+    L.push('', 'Si pides ayuda, envía este archivo tal cual.');
+    fs.writeFileSync(f, L.join('\n'));
+    try { const all = fs.readdirSync(errDir()).filter(x => x.endsWith('.txt')).sort(); for (const x of all.slice(0, Math.max(0, all.length - 40))) fs.rmSync(path.join(errDir(), x), { force: true }); } catch {}
+    return f;
+  } catch { return ''; }
+}
+// El error viaja al interfaz con la ruta del informe al final: «mensaje ‹informe: ruta›»
+const withLog = (e, f) => { const m = (e && e.message || String(e)) + (f ? ' ‹informe: ' + f + '›' : ''); const x = new Error(m); x.cancel = e && e.cancel; return x; };
+ipcMain.handle('err:log', (e, o = {}) => logErr(String(o.kind || 'descarga').slice(0, 30), Object.assign(new Error(String(o.message || 'Error').slice(0, 600)), { step: String(o.step || '').slice(0, 80), stack: String(o.stack || '').slice(0, 2000) }), { 'Qué se intentaba': String(o.what || '').slice(0, 200), Dirección: String(o.url || '').slice(0, 300) }));
+ipcMain.handle('err:folder', () => { fs.mkdirSync(errDir(), { recursive: true }); return shell.openPath(errDir()); });
 ipcMain.handle('mod:install', async (e, { url, name, inst, dir, sha1, sha512 }) => {
   const sub = ['mods', 'shaderpacks', 'resourcepacks'].includes(dir) ? dir : 'mods';
-  const d = path.join(root, inst ? path.join('instances', String(inst)) : '', sub); fs.mkdirSync(d, { recursive: true });
-  await dl(url, path.join(d, path.basename(name)), { sha1, sha512 }); return true;
+  try {
+    const d = path.join(root, inst ? path.join('instances', String(inst)) : '', sub); fs.mkdirSync(d, { recursive: true });
+    await dl(url, path.join(d, path.basename(name)), { sha1, sha512 }); return true;
+  } catch (x) { if (x && x.cancel) throw x; x.step = 'descargar el archivo'; throw withLog(x, logErr('mod', x, { 'Qué se intentaba': 'Instalar ' + name + ' en ' + sub, Dirección: url, Instancia: inst || '(carpeta general)' })); }
 });
 // Modpacks de Modrinth (.mrpack)
 ipcMain.handle('pack:versions', async (e, pid) => (await get(`https://api.modrinth.com/v2/project/${encodeURIComponent(pid)}/version`)).map(v => ({ id: v.id, name: v.name, num: v.version_number, mc: v.game_versions, ld: v.loaders, date: v.date_published, type: v.version_type })));
 ipcMain.handle('pack', async (e, a) => {
   const { id: pid, vid } = typeof a === 'string' ? { id: a } : a;
-  const v = vid ? await get(`https://api.modrinth.com/v2/version/${encodeURIComponent(vid)}`) : (await get(`https://api.modrinth.com/v2/project/${encodeURIComponent(pid)}/version`))[0];
-  if (!v) throw new Error('Sin versiones');
-  const f = v.files.find(x => x.primary) || v.files[0];
-  const tmp = path.join(root, 'tmp_pack'); fs.rmSync(tmp, { recursive: true, force: true }); fs.mkdirSync(tmp, { recursive: true });
+  let step = 'buscar la versión del modpack', f = null, v = null;
+  const tmp = path.join(root, 'tmp_pack');
   try {
-    const z = path.join(tmp, 'p.zip'); send('status', 'Descargando modpack…');
+    v = vid ? await get(`https://api.modrinth.com/v2/version/${encodeURIComponent(vid)}`) : (await get(`https://api.modrinth.com/v2/project/${encodeURIComponent(pid)}/version`))[0];
+    if (!v) throw new Error('Este modpack no tiene versiones');
+    f = (v.files || []).find(x => x.primary) || (v.files || [])[0]; if (!f) throw new Error('La versión no tiene ningún archivo para descargar');
+    step = 'preparar la carpeta temporal'; fs.rmSync(tmp, { recursive: true, force: true }); fs.mkdirSync(tmp, { recursive: true });
+    const z = path.join(tmp, 'p.zip'); send('status', 'Descargando modpack…'); step = 'descargar el modpack (' + f.filename + ')';
     await dl(f.url, z, { sha1: f.hashes && f.hashes.sha1, sha512: f.hashes && f.hashes.sha512 });
-    await unzip(z, tmp); fs.rmSync(z, { force: true });
-    return await installMrpackDir(tmp);
+    step = 'descomprimir el modpack'; await unzipSafe(z, tmp); fs.rmSync(z, { force: true });
+    step = 'instalar el modpack'; return await installMrpackDir(tmp);
+  } catch (x) {
+    if (x && x.cancel) throw x; x.step = x.step || step;
+    throw withLog(x, logErr('modpack', x, { 'Qué se intentaba': 'Instalar el modpack ' + (v && (v.name || v.version_number) || pid), Proyecto: pid, Versión: vid || '(la más nueva)', Archivo: f && f.filename, Dirección: f && f.url }));
   } finally { fs.rmSync(tmp, { recursive: true, force: true }); send('progress', null); }
 });
 async function installMrpackDir(tmp) {
@@ -121,14 +154,15 @@ async function installMrpackDir(tmp) {
   if (d['quilt-loader']) throw new Error('Los modpacks de Quilt no están soportados');
   const ld = d['fabric-loader'] ? 'Fabric' : d.neoforge ? 'NeoForge' : d.forge ? 'Forge' : 'Vanilla';
   const ins = addInst({ name: ix.name || 'Modpack', mc: d.minecraft, ld, loaderVersion: d['fabric-loader'] || d.neoforge || d.forge || undefined, type: 'release', custom: true });
-  const dir = path.join(root, 'instances', ins.id), list = (ix.files || []).filter(fl => !(fl.env && fl.env.client === 'unsupported')), failed = [];
+  const dir = path.join(root, 'instances', ins.id), list = (ix.files || []).filter(fl => !(fl.env && fl.env.client === 'unsupported')), failed = [], why = [];
   fs.mkdirSync(dir, { recursive: true }); let n = 0;
   await pool(list, 8, async fl => {
     const dest = path.resolve(dir, fl.path);
     try { if (!dest.startsWith(dir + path.sep)) throw new Error('ruta'); await dl(fl.downloads, dest, { sha1: fl.hashes && fl.hashes.sha1, sha512: fl.hashes && fl.hashes.sha512 }); }
-    catch { failed.push(path.basename(String(fl.path))); }
+    catch (x) { failed.push(path.basename(String(fl.path))); why.push(`${fl.path} ← ${[].concat(fl.downloads || []).join(' | ')} → ${x && x.message}`); }
     prog('Modpack', ++n, list.length);
   });
+  if (why.length) logErr('modpack-archivos', new Error(why.length + ' archivos no se pudieron descargar'), { 'Qué se intentaba': 'Instalar el modpack ' + (ix.name || ''), 'Archivos que fallaron': why.slice(0, 60).join('\n  ') });
   for (const o of ['overrides', 'client-overrides']) { const ov = path.join(tmp, o); if (fs.existsSync(ov)) fs.cpSync(ov, dir, { recursive: true }); }
   send('status', failed.length ? 'Modpack instalado (faltan ' + failed.length + ' archivos)' : 'Modpack instalado: ' + (ix.name || '')); notify('Modpack instalado', String(ix.name || 'Modpack') + (failed.length ? ' (faltan ' + failed.length + ' archivos)' : ' ya está listo'));
   return { ins, failed };
@@ -430,6 +464,14 @@ async function pool(items, n, fn) {
 const prog = (t, n, tot) => { send('status', `${t}: ${n} de ${tot}`); send('progress', { task: n, total: tot }); };
 const win32 = process.platform === 'win32';
 const unzip = (z, d) => win32 ? run('tar', ['-xf', z, '-C', d]) : run('unzip', ['-oq', z, '-d', d]);
+// Si «tar» falla (por ejemplo, otro tar que no sabe leer .zip), en Windows se usa PowerShell
+const unzipSafe = async (z, d) => {
+  try { await unzip(z, d); } catch (e1) {
+    if (!win32) throw e1;
+    try { await run('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', `Expand-Archive -LiteralPath '${z.replace(/'/g, "''")}' -DestinationPath '${d.replace(/'/g, "''")}' -Force`]); }
+    catch (e2) { throw Object.assign(new Error('No se pudo descomprimir: ' + (e1.message || e1)), { cause: e2 }); }
+  }
+};
 const zipItems = async (zip, cwd, items) => {
   if (!items.length) throw new Error('No hay nada que comprimir'); fs.rmSync(zip, { force: true }); fs.mkdirSync(path.dirname(zip), { recursive: true });
   return win32 ? run('tar', ['-a', '-c', '-f', zip, '-C', cwd, ...items]) : run('zip', ['-qr', zip, ...items], { cwd });
@@ -582,7 +624,7 @@ ipcMain.handle('inst:export', async (e, { id, kind, worlds }) => {
 async function importInstanceFile(file) {
   const tmp = path.join(root, 'tmp_import'); fs.rmSync(tmp, { recursive: true, force: true }); fs.mkdirSync(tmp, { recursive: true });
   try {
-    send('status', 'Importando…'); await unzip(file, tmp);
+    send('status', 'Importando…'); await unzipSafe(file, tmp);
     let base = tmp; const es = fs.readdirSync(tmp); if (es.length === 1 && fs.statSync(path.join(tmp, es[0])).isDirectory()) base = path.join(tmp, es[0]);
     if (fs.existsSync(path.join(base, 'modrinth.index.json'))) return await installMrpackDir(base);
     const mf = path.join(base, 'nova-instance.json'), m = rd(mf, null);
@@ -767,7 +809,7 @@ async function importWorldZips(files, id) {
   for (const zf of files) {
     const tmp = path.join(root, 'tmp_world'); fs.rmSync(tmp, { recursive: true, force: true }); fs.mkdirSync(tmp, { recursive: true });
     try {
-      send('status', 'Importando mapa…'); await unzip(zf, tmp);
+      send('status', 'Importando mapa…'); await unzipSafe(zf, tmp);
       for (const w of findWorlds(tmp)) { const base = w === tmp ? path.basename(zf).replace(/\.zip$/i, '') : path.basename(w), nn = uniq(sv, safeName(base, 'Mapa')); await fs.promises.cp(w, path.join(sv, nn), { recursive: true }); names.push(nn); }
     } finally { fs.rmSync(tmp, { recursive: true, force: true }); send('status', ''); }
   }

@@ -108,6 +108,15 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 
 ## Historial de actualizaciones
 
+### 0.2.14-beta.3 — Portugués de Brasil y de Portugal, e informes de errores de descarga
+
+**Añadido**
+- Português (Brasil) con su bandera; Português (Portugal) pasa a tener la bandera de Portugal
+- Cuando falla la descarga de un mod o modpack se guarda un informe con la causa (Ajustes → Juego → Informes de errores) y la ventana de error ya dice el motivo
+
+**Mejorado**
+- Instalar modpacks: el error indica en qué paso falla, la descompresión tiene alternativa con PowerShell y se informa de los archivos que no se descargan
+
 ### 0.2.14-beta.2 — Banderas en la selección de idioma
 
 **Añadido**

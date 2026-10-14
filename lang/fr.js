@@ -923,4 +923,13 @@ window.LANGS.fr={name:"Français",d:{
 "Cierra Minecraft antes de limpiar":"Fermez Minecraft avant de nettoyer",
 "{1} · {2} {3} · código {4}":"{1} · {2} {3} · code {4}",
 "Nova Launcher 0.2.14":"Nova Launcher 0.2.14",
-"Seis idiomas, preparación en segundo plano, limpieza de espacio e instancias en lista.":"Six langues, préparation en arrière-plan, nettoyage de l'espace et instances en liste."}};
+"Seis idiomas, preparación en segundo plano, limpieza de espacio e instancias en lista.":"Six langues, préparation en arrière-plan, nettoyage de l'espace et instances en liste.",
+"No se pudo instalar el modpack":"Impossible d'installer le modpack",
+"Se ha guardado un informe con los detalles:":"Un rapport avec les détails a été enregistré :",
+"Abrir informe":"Ouvrir le rapport",
+"Carpeta de informes":"Dossier des rapports",
+"Copiado":"Copié",
+"Informes de errores de descarga":"Rapports d'erreurs de téléchargement",
+"Si falla instalar un mod o modpack, aquí se guarda un archivo con la causa":"Si l'installation d'un mod ou modpack échoue, un fichier avec la cause est enregistré ici",
+"Vista previa: se abriría la carpeta de informes":"Aperçu : le dossier des rapports s'ouvrirait",
+"Faltan {1} archivos del modpack: la causa está en Ajustes → Juego → Informes de errores":"Il manque {1} fichiers du modpack : la cause est dans Paramètres → Jeu → Rapports d'erreurs de téléchargement"}};

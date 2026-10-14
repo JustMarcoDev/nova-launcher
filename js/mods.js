@@ -45,7 +45,7 @@ async function inst(b,h){const t=sel,L=b.textContent;b.disabled=true;b.textConte
 const fail=m=>{b.textContent=m;b.disabled=false;setTimeout(()=>b.textContent=L,3500)};
 try{
 if(!A){if(kind==="modpack"){const v=await pickPackVersion(h);if(!v){b.disabled=false;b.textContent=L;return}}setTimeout(()=>{b.textContent=kind==="modpack"?"Instancia creada ✓":"Instalado ✓";b.classList.add("ok")},700);return}
-if(kind==="modpack"){if(h.cf){A.open&&h.link&&A.open(h.link);b.disabled=false;b.textContent=L;return}const vid=await pickPackVersion(h);if(!vid){b.disabled=false;b.textContent=L;return}b.textContent="Instalando…";busyBtn=b;let r;try{r=await A.pack({id:h.id,vid})}finally{busyBtn=null}await loadI();b.textContent=r&&r.failed&&r.failed.length?"Creada (faltan "+r.failed.length+")":"Instancia creada ✓";b.classList.add("ok");return}
+if(kind==="modpack"){if(h.cf){A.open&&h.link&&A.open(h.link);b.disabled=false;b.textContent=L;return}const vid=await pickPackVersion(h);if(!vid){b.disabled=false;b.textContent=L;return}b.textContent="Instalando…";busyBtn=b;let r;try{r=await A.pack({id:h.id,vid})}finally{busyBtn=null}await loadI();b.textContent=r&&r.failed&&r.failed.length?"Creada (faltan "+r.failed.length+")":"Instancia creada ✓";b.classList.add("ok");if(r&&r.failed&&r.failed.length)flash("Faltan "+r.failed.length+" archivos del modpack: la causa está en Ajustes → Juego → Informes de errores");return}
 if(kind==="mod"&&t.ld==="Vanilla")return fail("Elige Fabric, Forge o NeoForge");
 let i=await ensure();const dir=DIR[kind];if(kind==="shader"){const g=await shaderGate(i);if(!g){b.disabled=false;b.textContent=L;return}i=g}
 if(h.cf){const r=(await H(`https://api.curseforge.com/v1/mods/${h.id}/files?gameVersion=${t.mc}${kind==="mod"&&CL[t.ld]?"&modLoaderType="+CL[t.ld]:""}`,{"x-api-key":cfg.cfKey})).data[0];if(!r||!r.downloadUrl)return fail("Descarga no permitida");await A.mod({url:r.downloadUrl,name:r.fileName,inst:i&&i.id,dir})}
@@ -55,4 +55,4 @@ const v=await H(`https://api.modrinth.com/v2/project/${pid}/version?`+qs.join("&
 const f=v[0].files.find(x=>x.primary)||v[0].files[0];await A.mod({url:f.url,name:f.filename,inst:i&&i.id,dir});
 if(kind==="mod"&&lvl<1)for(const d of v[0].dependencies||[])if(d.dependency_type==="required"&&d.project_id)await mr(d.project_id,lvl+1).catch(()=>{})};
 await mr(h.id,0)}
-b.textContent="Instalado ✓";b.classList.add("ok");b.disabled=false}catch(e){fail(e&&e.message==="nover"?"Sin versión para "+t.mc:"Error")}}
+b.textContent="Instalado ✓";b.classList.add("ok");b.disabled=false}catch(e){if(e&&e.message==="nover"){fail("Sin versión para "+t.mc);return}fail("Error");showDlErr(kind==="modpack"?"No se pudo instalar el modpack":"No se pudo instalar",h.t,e)}}

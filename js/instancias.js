@@ -2,6 +2,17 @@
 // ===== Instancias, mods y copias (0.2.11) =====
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const em=e=>String(e&&e.message||e).replace(/^Error invoking remote method '[^']+': (Error: )?/,"");
+// Errores de descarga: separa el mensaje de la ruta del informe y enseña el motivo real
+function errSplit(e){const m=em(e),x=/\s*‹informe: ([^›]+)›\s*$/.exec(m);return{msg:x?m.slice(0,x.index):m,file:x?x[1]:""}}
+async function showDlErr(title,what,e,extra){
+  let {msg,file}=errSplit(e);extra=extra||{};
+  if(!file&&A&&A.errLog){try{file=await A.errLog({kind:"descarga",what:String(what||""),message:msg,stack:e&&e.stack,url:extra.url,step:extra.step})}catch{}}
+  const d=modal(hdr(null,title,esc(what||""))+`<div class="dgs b2" style="margin:12px 0;white-space:pre-wrap;word-break:break-word">${esc(msg)}</div>`+(file?`<small class="hint">Se ha guardado un informe con los detalles:<br><code style="word-break:break-all">${esc(file)}</code></small>`:"")+`<div class="acts">${file&&A?`<button class="btn" id="eio">Abrir informe</button><button class="btn" id="eif">Carpeta de informes</button>`:""}<button class="btn" id="eic">Copiar</button><button class="btn pr" data-x>Cerrar</button></div>`);
+  const q=i=>d.querySelector("#"+i);
+  if(q("eio"))q("eio").onclick=()=>A.logOpen(file);
+  if(q("eif"))q("eif").onclick=()=>A.errFolder();
+  q("eic").onclick=async()=>{const t=`${title}\n${what||""}\n${msg}${file?"\nInforme: "+file:""}`;try{if(A&&A.clip)await A.clip(t);else await navigator.clipboard.writeText(t);flash("Copiado")}catch{flash(msg)}};
+}
 const cap=s=>s?s[0].toUpperCase()+s.slice(1):s;
 const ICS=["box","puzzle","rocket","game","heart","bolt","orbit","cup","globe","chip","server","code"],ICOL=["#2ee06f","#4fa8ff","#a78bfa","#f472b6","#fb923c","#facc15","#f87171","#94a3b8"];
 const fSz=n=>n>=1048576?(n/1048576).toFixed(1)+" MB":Math.max(1,Math.round(n/1024))+" KB";

@@ -923,4 +923,13 @@ window.LANGS.de={name:"Deutsch",d:{
 "Cierra Minecraft antes de limpiar":"Schließe Minecraft vor dem Aufräumen",
 "{1} · {2} {3} · código {4}":"{1} · {2} {3} · Code {4}",
 "Nova Launcher 0.2.14":"Nova Launcher 0.2.14",
-"Seis idiomas, preparación en segundo plano, limpieza de espacio e instancias en lista.":"Sechs Sprachen, Vorbereitung im Hintergrund, Speicher aufräumen und Instanzen als Liste."}};
+"Seis idiomas, preparación en segundo plano, limpieza de espacio e instancias en lista.":"Sechs Sprachen, Vorbereitung im Hintergrund, Speicher aufräumen und Instanzen als Liste.",
+"No se pudo instalar el modpack":"Das Modpack konnte nicht installiert werden",
+"Se ha guardado un informe con los detalles:":"Ein Bericht mit den Details wurde gespeichert:",
+"Abrir informe":"Bericht öffnen",
+"Carpeta de informes":"Berichtsordner",
+"Copiado":"Kopiert",
+"Informes de errores de descarga":"Berichte zu Download-Fehlern",
+"Si falla instalar un mod o modpack, aquí se guarda un archivo con la causa":"Schlägt die Installation einer Mod oder eines Modpacks fehl, wird hier eine Datei mit der Ursache gespeichert",
+"Vista previa: se abriría la carpeta de informes":"Vorschau: Der Berichtsordner würde geöffnet",
+"Faltan {1} archivos del modpack: la causa está en Ajustes → Juego → Informes de errores":"{1} Dateien des Modpacks fehlen: Die Ursache steht unter Einstellungen → Spiel → Berichte zu Download-Fehlern"}};
