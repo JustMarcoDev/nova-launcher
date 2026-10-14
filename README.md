@@ -53,24 +53,12 @@ Mientras tanto, para probarlo en tu PC sin publicar, pega el número en **Ajuste
 
 La pestaña **Servidores** (Alt + 4) muestra servidores conocidos con jugadores en línea y un botón **Unirse**: abre Minecraft en la versión adecuada y entra solo al servidor. La lista está en `index.html` (constante `SERVERS`); puedes añadir o quitar los que quieras.
 
-## Nova Network y Nova Pack (desde la 0.2.10)
-
-- `novapack/pack.json` define el modpack propio del launcher: versión de Minecraft, loader, mods (por «slug» de Modrinth), jars propios y el servidor.
-- Cuando subes cambios a GitHub (repo público), todos los launchers descargan el manifiesto nuevo y actualizan el pack con un clic.
-- Pon la dirección de tu servidor en `server.host` de `pack.json`. Mientras esté vacío, el botón de unirse aparece desactivado.
-- Archivos de configuración propios: `novapack/overrides/`.
-- Opciones para tener un servidor barato o gratis: `docs/NOVA-SERVER.md`.
-
-## Ventajas exclusivas (preparación)
-
-Cosméticos y extras dentro del juego. Solo hay diseño y un catálogo vacío (`novapack/cosmetics.json`); el plan está en `docs/VENTAJAS.md`.
-
 ## Instancias, mods y copias de seguridad (desde la 0.2.11)
 
 - **Instancias → Opciones:** nombre, icono, color, RAM y Java propios, versión de Fabric/Forge/NeoForge, duplicar, abrir carpeta, exportar y borrar.
 - **Gestor de mods:** botón «Mods» de cada instancia. Muestra el nombre real de cada mod (vía Modrinth), permite activarlo o desactivarlo, borrarlo, añadir un `.jar` y actualizarlo.
 - **Exportar / importar:** `.mrpack` (Modrinth, ligero) o `.zip` (todo dentro, solo para Nova Launcher). El botón «Importar» de la pestaña Instancias abre ambos.
-- **Copias de los mundos:** se guardan solas en `%APPDATA%\.nova\backups` antes de actualizar mods o el Nova Pack (máximo 10 minutos entre copias automáticas). Se pueden crear a mano y restaurar desde Opciones → Copias de seguridad. Ajustes → Juego controla cuántas se conservan.
+- **Copias de los mundos:** se guardan solas en `%APPDATA%\.nova\backups` antes de actualizar mods (máximo 10 minutos entre copias automáticas). Se pueden crear a mano y restaurar desde Opciones → Copias de seguridad. Ajustes → Juego controla cuántas se conservan.
 - **Si Minecraft falla:** aparece una ventana con las últimas líneas del registro y la causa probable. Cada partida se guarda en `%APPDATA%\.nova\logs` (las 20 últimas).
 - **Descargas:** los mods y modpacks se verifican con su huella (SHA) y se reintentan hasta 3 veces; los modpacks bajan 6–8 archivos a la vez.
 
@@ -96,6 +84,13 @@ Cosméticos y extras dentro del juego. Solo hay diseño y un catálogo vacío (`
 - **Beta:** si la versión de `package.json` lleva guion (por ejemplo `0.2.13-beta.1`), el flujo la publica como *pre-release*. Solo la reciben los launchers con Ajustes → Rendimiento → Canal de actualizaciones = **Beta**. Los de **Estable** la ignoran. Para una beta sin entrada propia se usa la de la versión sin el sufijo.
 - **Volver a la versión anterior:** Ajustes → Acerca de → Volver a una versión anterior. Lista las releases de GitHub más antiguas que la instalada y ejecuta su instalador. Para que no se actualice sola otra vez, desactiva «Buscar actualizaciones al abrir»; vuelve a activarlo en Ajustes → Rendimiento cuando quieras.
 
+## Probar versiones beta con otras personas
+
+1. Publica la versión con guion en `package.json` (por ejemplo `0.2.13-beta.1`) y ejecuta **Crear version**. Queda como *pre-release* en GitHub.
+2. Quien quiera probarla entra en **Ajustes → Rendimiento → Canal de actualizaciones** y elige **Beta**; después pulsa **Acerca de → Buscar actualizaciones**. También puede descargar el instalador directamente desde la página de la release.
+3. Quien siga en **Estable** no ve las betas. Cuando publiques una versión normal (`0.2.13`), los de Beta la reciben igual.
+4. Si el repositorio es público, cualquiera puede activar Beta. Para que solo entren personas concretas, repartes tú el aviso (Discord, grupo…) y no lo anuncias fuera. El launcher no tiene lista de invitados.
+
 ## Aviso legal
 
 Nova Launcher es un proyecto independiente de **Astrion Studio**. © 2026 Astrion Studio. No está afiliado, aprobado ni patrocinado por Mojang Studios ni por Microsoft. Minecraft es una marca registrada de Mojang Studios.
@@ -105,6 +100,19 @@ Nova Launcher es un proyecto independiente de **Astrion Studio**. © 2026 Astrio
 Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión del launcher, para saber de un vistazo qué se ha **añadido**, qué se ha **mejorado** y qué se ha **quitado**. Cada vez que se publique una versión nueva hay que añadir una entrada al principio de la lista de abajo. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**.
 
 ## Historial de actualizaciones
+
+### 0.2.13-beta.1 — Arreglos de la 0.2.12 y limpieza
+
+**Mejorado**
+- La mini consola de la esquina se cierra sola cuando se cierra Minecraft; ahora tiene un aspecto de cristal y sin barra horizontal
+- Barras de desplazamiento nuevas en todo el launcher: finas, redondeadas y del color elegido
+- Los colores del launcher en Ajustes → Apariencia están al final de la fila, como el resto de ajustes
+- El agujero negro sigue moviéndose aunque la ventana no tenga el foco (más despacio, a 15 FPS) y mientras juegas (hasta 30 FPS)
+- El menú de versión de la portada se ve nítido, sin el texto difuminado
+
+**Quitado**
+- Nova Network y Nova Pack (tarjeta de Servidores, instalación del pack y sus archivos)
+- El cuadro «Ventajas exclusivas de Nova»
 
 ### 0.2.12 — Cuentas, consola, mundos y más comodidad
 

@@ -334,54 +334,11 @@ ipcMain.handle('srv:status', async (e, hosts) => {
   }));
   return out;
 });
-const PACK_URL = 'https://raw.githubusercontent.com/JustMarcoDev/nova-launcher/main/novapack/pack.json';
-const packLocal = () => rd(path.join(__dirname, 'novapack', 'pack.json'), null);
-const novaManifest = async () => { try { const m = await get(PACK_URL); if (m && m.mc && Array.isArray(m.mods)) return m; } catch {} return packLocal(); };
 const nbtStr = s => { const b = Buffer.from(String(s), 'utf8'), l = Buffer.alloc(2); l.writeUInt16BE(b.length); return Buffer.concat([l, b]); };
 const serversDat = list => { const n = Buffer.alloc(4); n.writeInt32BE(list.length);
   const parts = [Buffer.from([10]), nbtStr(''), Buffer.from([9]), nbtStr('servers'), Buffer.from([10]), n];
   for (const s of list) parts.push(Buffer.from([8]), nbtStr('ip'), nbtStr(s.ip), Buffer.from([8]), nbtStr('name'), nbtStr(s.name), Buffer.from([0]));
   parts.push(Buffer.from([0])); return Buffer.concat(parts); };
-ipcMain.handle('nova:info', async () => {
-  const m = await novaManifest(); if (!m) throw new Error('Sin manifiesto');
-  const ins = li().find(i => i.novaPack), st = ins ? rd(path.join(root, 'instances', ins.id, '.nova-pack.json'), {}) : {};
-  return { name: m.name || 'Nova Pack', version: String(m.version || '0'), mc: m.mc, loader: m.loader || 'Fabric', mods: (m.mods || []).length, server: m.server || { name: 'Nova Network', host: '' }, installed: st.version || '' };
-});
-ipcMain.handle('nova:pack', async () => {
-  const m = await novaManifest(); if (!m) throw new Error('Sin manifiesto');
-  const ld = m.loader || 'Fabric';
-  let ins = li().find(i => i.novaPack);
-  if (!ins) ins = addInst({ name: m.name || 'Nova Pack', mc: m.mc, ld, type: 'release', novaPack: true, custom: true });
-  else if (ins.mc !== m.mc || ins.ld !== ld) { wr(insFile, li().map(i => i.id === ins.id ? { ...i, mc: m.mc, ld, name: m.name || i.name, loaderVersion: undefined } : i)); ins = { ...ins, mc: m.mc, ld }; }
-  const dir = path.join(root, 'instances', ins.id), mods = path.join(dir, 'mods'); fs.mkdirSync(mods, { recursive: true });
-  const stF = path.join(dir, '.nova-pack.json'), prev = rd(stF, { files: [] });
-  if (prev.version) { send('status', 'Copia de seguridad de tus mundos…'); await autoBackup(ins.id, 'antes de actualizar el Nova Pack').catch(() => {}); }
-  for (const f of prev.files || []) { fs.rmSync(path.join(mods, path.basename(f)), { force: true }); fs.rmSync(path.join(mods, path.basename(f) + '.disabled'), { force: true }); }
-  const files = [], failed = [], list = m.mods || [], q = x => encodeURIComponent(JSON.stringify(x));
-  let n = 0;
-  try {
-    await pool(list, 6, async mod => {
-      try {
-        let url, name, hs = {};
-        if (mod.url) { url = mod.url; name = path.basename(mod.file || new URL(mod.url).pathname); hs = { sha1: mod.sha1, sha512: mod.sha512 }; }
-        else {
-          const vs = await get(`https://api.modrinth.com/v2/project/${mod.slug}/version?game_versions=${q([m.mc])}&loaders=${q([ld.toLowerCase()])}`);
-          if (!vs.length) throw new Error('sin versión');
-          const f = vs[0].files.find(x => x.primary) || vs[0].files[0]; url = f.url; name = f.filename; hs = f.hashes || {};
-        }
-        await dl(url, path.join(mods, path.basename(name)), { sha1: hs.sha1, sha512: hs.sha512 }); files.push(path.basename(name));
-      } catch { failed.push(mod.slug || mod.file || mod.url); }
-      prog('Nova Pack', ++n, list.length);
-    });
-  } finally { send('progress', null); }
-  const ov = path.join(__dirname, 'novapack', 'overrides');
-  if (fs.existsSync(ov)) fs.cpSync(ov, dir, { recursive: true, force: false, errorOnExist: false });
-  const sd = path.join(dir, 'servers.dat');
-  if (m.server && m.server.host) { try { syncServers(dir, [{ name: m.server.name || 'Nova Network', ip: m.server.host + (m.server.port && +m.server.port !== 25565 ? ':' + m.server.port : '') }]); } catch {} }
-  wr(stF, { version: String(m.version || '0'), files, date: Date.now() });
-  send('status', failed.length ? 'Nova Pack listo (no se pudieron instalar: ' + failed.join(', ') + ')' : 'Nova Pack ' + m.version + ' instalado'); notify('Nova Pack instalado', 'Versión ' + m.version + ' lista para jugar');
-  return { ins, failed, version: String(m.version || '0') };
-});
 
 // ===== Estabilidad, instancias, mods y copias (0.2.11) =====
 const sleep = ms => new Promise(r => setTimeout(r, ms));
