@@ -1,4 +1,4 @@
-const { contextBridge, ipcRenderer: r } = require('electron');
+const { contextBridge, ipcRenderer: r, webUtils } = require('electron');
 contextBridge.exposeInMainWorld('api', {
   cfg: () => r.invoke('cfg:get'), set: c => r.invoke('cfg:set', c),
   versions: () => r.invoke('versions'), play: o => r.invoke('play', o),
@@ -16,5 +16,8 @@ contextBridge.exposeInMainWorld('api', {
   releases: () => r.invoke('app:releases'), rollback: o => r.invoke('app:rollback', o),
   importScan: () => r.invoke('import:scan'), importRun: d => r.invoke('import:run', d),
   settingsExport: o => r.invoke('settings:export', o), settingsImport: () => r.invoke('settings:import'),
+  worldLast: () => r.invoke('world:last'), diag: id => r.invoke('diag:run', id),
+  dqState: () => r.invoke('dq:state'), dqPause: on => r.invoke('dq:pause', on), dqCancel: () => r.invoke('dq:cancel'), dqLimit: mb => r.invoke('dq:limit', mb),
+  dropInspect: p => r.invoke('drop:inspect', p), dropInstall: o => r.invoke('drop:install', o), filePath: f => { try { return webUtils.getPathForFile(f); } catch { return ''; } },
   win: a => r.send('win', a), on: (ch, f) => r.on(ch, (e, d) => f(d))
 });

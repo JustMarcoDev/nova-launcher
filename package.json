@@ -1,11 +1,13 @@
 {
   "name": "nova-launcher",
-  "version": "0.2.13-beta.1",
+  "version": "0.2.13-beta.2",
   "description": "Nova Launcher para Minecraft",
   "author": "Astrion Studio",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
+    "test": "node tests/check.js && node tests/ui.js",
+    "smoke": "node scripts/smoke.js",
     "dist": "electron-builder --win"
   },
   "dependencies": {
@@ -16,7 +18,8 @@
   },
   "devDependencies": {
     "electron": "^33.0.0",
-    "electron-builder": "^25.0.0"
+    "electron-builder": "^25.0.0",
+    "jsdom": "^29.1.0"
   },
   "build": {
     "appId": "com.nova.launcher",
@@ -41,6 +44,13 @@
       "repo": "nova-launcher",
       "releaseType": "release"
     },
-    "copyright": "Copyright © 2026 Astrion Studio"
+    "copyright": "Copyright © 2026 Astrion Studio",
+    "files": [
+      "**/*",
+      "!tests/**",
+      "!scripts/**",
+      "!*.bat",
+      "!README.md"
+    ]
   }
 }

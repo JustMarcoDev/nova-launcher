@@ -13,7 +13,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
       - name: Leer la versión
         id: v
         shell: bash
@@ -23,6 +23,10 @@ jobs:
           if [[ "$VER" == *-* ]]; then echo "pre=true" >> "$GITHUB_OUTPUT"; else echo "pre=false" >> "$GITHUB_OUTPUT"; fi
       - name: Instalar dependencias
         run: npm install
+      - name: Revisar el código (si algo falla, no se publica nada)
+        run: npm test
+      - name: Probar que la app arranca
+        run: npm run smoke
       - name: Crear notas de la versión desde el README
         shell: bash
         run: node scripts/release-notes.js "${{ steps.v.outputs.version }}" > release-notes.md

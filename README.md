@@ -91,6 +91,13 @@ La pestaña **Servidores** (Alt + 4) muestra servidores conocidos con jugadores 
 3. Quien siga en **Estable** no ve las betas. Cuando publiques una versión normal (`0.2.13`), los de Beta la reciben igual.
 4. Si el repositorio es público, cualquiera puede activar Beta. Para que solo entren personas concretas, repartes tú el aviso (Discord, grupo…) y no lo anuncias fuera. El launcher no tiene lista de invitados.
 
+## Revisión automática, idiomas y archivos (desde la 0.2.13)
+
+- **Revisión antes de publicar.** «Crear version» ahora ejecuta `npm test` (sintaxis, archivos enlazados, canales entre la app y la interfaz, versión, notas y traducciones, y una prueba de la interfaz en un navegador simulado) y `npm run smoke` (abre la app de verdad y mira que cargue sin errores). Si algo falla, el instalador no se sube. El flujo «Revision» hace lo mismo en cada `git push`, sin publicar nada.
+- **Estructura.** `index.html` solo tiene el esqueleto; los estilos están en `css/style.css` y el código en `js/` (un archivo por pestaña o función). Se cargan en el orden que marca `index.html`.
+- **Idiomas.** El español es la base. Cada idioma es un archivo en `lang/` (mira `lang/en.js`): la clave es el texto en español y el valor su traducción; `{1}`, `{2}`… son partes variables. Para añadir uno, copia `lang/en.js`, cambia `en` por su código, traduce y enlázalo en `index.html` antes de `js/idioma.js`. Lo que no esté traducido se ve en español.
+- **Descargas.** El cuadro de pausa, cancelar y límite controla lo que descarga el propio launcher (Java, mods, modpacks, instaladores). Los archivos del juego que baja Minecraft por su cuenta no pasan por él.
+
 ## Aviso legal
 
 Nova Launcher es un proyecto independiente de **Astrion Studio**. © 2026 Astrion Studio. No está afiliado, aprobado ni patrocinado por Mojang Studios ni por Microsoft. Minecraft es una marca registrada de Mojang Studios.
@@ -100,6 +107,21 @@ Nova Launcher es un proyecto independiente de **Astrion Studio**. © 2026 Astrio
 Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión del launcher, para saber de un vistazo qué se ha **añadido**, qué se ha **mejorado** y qué se ha **quitado**. Cada vez que se publique una versión nueva hay que añadir una entrada al principio de la lista de abajo. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**.
 
 ## Historial de actualizaciones
+
+### 0.2.13 — Sin conexión, descargas, diagnóstico, arrastrar y soltar e inglés
+
+**Añadido**
+- Botón «Continuar» en la portada: abre Minecraft y entra directo al último mundo jugado (desde la 1.20)
+- Arrastrar y soltar sobre la ventana un .jar, .mrpack o .zip (mundo, shader o texturas): el launcher pregunta qué es y en qué instancia instalarlo
+- «Tarjeta gráfica» por instancia, para obligar a usar la potente en portátiles con dos (Windows), y ajustes de Java ya preparados: Rendimiento y Pocos tirones
+- Botón Diagnóstico (Ajustes → Juego): revisa conexión, RAM, Java, disco, cuenta, mods y la última partida, y copia un informe
+- Descargas con pausa, cancelar y límite de velocidad (cuadro abajo a la izquierda y ajuste en Rendimiento)
+- Inglés, con selector en Ajustes → Interfaz; los idiomas son archivos en la carpeta lang
+- Revisión automática antes de publicar: comprueba el código y que la app arranca; si falla, no se sube nada
+
+**Mejorado**
+- Jugar sin internet: el launcher recuerda qué Java necesita cada versión y, sin conexión, usa el ya instalado; una sesión de Microsoft que no se puede renovar ya no bloquea (se juega como offline)
+- El código de la interfaz está partido en archivos (estilos y una pestaña por archivo)
 
 ### 0.2.13-beta.1 — Arreglos de la 0.2.12 y limpieza
 

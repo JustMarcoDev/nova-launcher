@@ -27,10 +27,30 @@ app.whenReady().then(() => {
   win = new BrowserWindow({ width: 1100, height: 680, minWidth: 900, minHeight: 560, frame: false, backgroundColor: '#0c0c10',
     show: false, webPreferences: { preload: path.join(__dirname, 'preload.js'), spellcheck: false } });
   win.once('ready-to-show', () => win.show());
+  if (process.env.NOVA_SMOKE) return smokeTest();
   win.loadFile('index.html');
   if (app.isPackaged) initUpdater();
   discordInit(); ensureShortcut(); trayInit(); win.on('focus', () => { if (Date.now() - lastChk > 600000) chkNow(); });
 });
+// Prueba de arranque para la revisión automática (NOVA_SMOKE=1): abre la ventana, mira que la interfaz cargue sin errores y se cierra.
+function smokeTest() {
+  const errs = [], fail = m => { console.log('SMOKE FALLO: ' + m); errs.forEach(e => console.log('  · ' + e)); app.exit(1); };
+  setTimeout(() => fail('tiempo agotado'), 60000);
+  win.webContents.on('console-message', (...a) => { const lv = typeof a[0] === 'object' && a[0].level !== undefined ? a[0].level : a[1], msg = typeof a[0] === 'object' && a[0].message !== undefined ? a[0].message : a[2]; if ((lv === 3 || lv === 'error') && !/Failed to load resource|net::ERR/.test(String(msg))) errs.push(String(msg).slice(0, 300)); });
+  win.webContents.on('render-process-gone', (e, d) => fail('el proceso gráfico se cerró: ' + d.reason));
+  win.webContents.on('did-fail-load', (e, c, d) => fail('no cargó index.html: ' + d));
+  win.webContents.on('preload-error', (e, p, er) => fail('error en preload: ' + (er && er.message)));
+  win.webContents.once('did-finish-load', async () => {
+    await new Promise(r => setTimeout(r, 6500));
+    try {
+      const r = await win.webContents.executeJavaScript(`(async()=>{const o=[];const need=['home','go','cont','mods','set','con','dqw'];for(const i of need)if(!document.getElementById(i))o.push('falta #'+i);for(const f of ['play','dqState','diag','dropInstall','worldLast','insts','cfg','versions'])if(typeof window.api[f]!=='function')o.push('falta api.'+f);try{const v=await window.api.ver();if(!v)o.push('sin versión')}catch(e){o.push('api.ver: '+e.message)}document.querySelectorAll('nav button').forEach(b=>{});return o})()`);
+      if (r.length) return fail(r.join('; '));
+      if (errs.length) return fail('errores en la consola de la interfaz');
+      console.log('SMOKE OK · versión ' + app.getVersion()); app.exit(0);
+    } catch (e) { fail(e.message); }
+  });
+  win.loadFile('index.html');
+}
 app.on('window-all-closed', () => app.quit());
 
 ipcMain.handle('cfg:get', () => { const c = load(), st = accState(c); return { ...c, ms: c.ms ? { name: c.ms.name } : null, accounts: st.a.map(({ token, ...r }) => r), activeAccount: st.act.id, _first: FIRST && !c.setupDone }; });
@@ -117,14 +137,23 @@ async function installMrpackDir(tmp) {
 // Java automático (Adoptium) según lo que pida cada versión de Minecraft
 async function javaFor(mc, cfg) {
   if (cfg.javaPath) return cfg.javaPath;
-  const m = (await get(MAN)).versions.find(v => v.id === mc);
-  const major = m ? ((await get(m.url)).javaVersion || { majorVersion: 8 }).majorVersion : 17;
+  const jc = path.join(root, 'java-cache.json'), cache = rd(jc, {}); let major;
+  try {
+    const m = (await get(MAN)).versions.find(v => v.id === mc);
+    major = m ? ((await get(m.url)).javaVersion || { majorVersion: 8 }).majorVersion : 17;
+    if (cache[mc] !== major) { cache[mc] = major; try { wr(jc, cache); } catch {} }
+  } catch (e) {
+    // Sin conexión: usa la versión de Java recordada o, si no, cualquiera de las ya instaladas
+    major = cache[mc];
+    if (!major) { const jd = path.join(root, 'java'), have = fs.existsSync(jd) ? fs.readdirSync(jd).map(Number).filter(n => n > 0).sort((a, b) => b - a) : []; major = have.find(n => fs.existsSync(path.join(jd, String(n)))) ; if (!major) throw e; }
+    send('status', 'Sin conexión: se usa el Java ya instalado (' + major + ')');
+  }
   const d = path.join(root, 'java', String(major));
   const find = () => fs.existsSync(d) && fs.readdirSync(d).map(x => path.join(d, x, 'bin', 'java.exe')).find(fs.existsSync);
   let j = find(); if (j) return j;
   send('status', `Descargando Java ${major}…`); fs.mkdirSync(d, { recursive: true });
   const z = path.join(d, 'j.zip');
-  fs.writeFileSync(z, Buffer.from(await get(`https://api.adoptium.net/v3/binary/latest/${major}/ga/windows/x64/jre/hotspot/normal/eclipse`, 'arrayBuffer')));
+  await dl(`https://api.adoptium.net/v3/binary/latest/${major}/ga/windows/x64/jre/hotspot/normal/eclipse`, z);
   await run('tar', ['-xf', z, '-C', d]); fs.unlinkSync(z);
   j = find(); if (!j) throw new Error('No se pudo instalar Java ' + major); return j;
 }
@@ -197,7 +226,7 @@ function reportCrash(ins, code, tail, file, since) {
 ipcMain.handle('log:open', (e, f) => { const p = path.resolve(String(f || '')); if (p.startsWith(root + path.sep) && fs.existsSync(p)) { shell.showItemInFolder(p); return true; } return false; });
 ipcMain.handle('logs:folder', () => { const d = path.join(root, 'logs'); fs.mkdirSync(d, { recursive: true }); return shell.openPath(d); });
 
-ipcMain.handle('play', async (e, { id, server }) => {
+ipcMain.handle('play', async (e, { id, server, world }) => {
   const cfg = load(), ins = li().find(i => i.id === id);
   try {
     if (!ins) throw new Error('Instancia no encontrada');
@@ -206,15 +235,17 @@ ipcMain.handle('play', async (e, { id, server }) => {
     let auth; const { act } = accState(cfg);
     if (act.type === 'microsoft') {
       try { const x = await new Auth('select_account').refresh(act.token); auth = (await x.getMinecraft()).mclc(); const st = accState(); saveAcc(st.a.map(z => z.id === act.id ? { ...z, token: x.save() } : z), act.id); }
-      catch { throw new Error('La sesión de Microsoft de «' + act.name + '» caducó. Vuelve a iniciarla desde la cuenta (barra superior).'); }
+      catch { if (await isOnline(true)) throw new Error('La sesión de Microsoft de «' + act.name + '» caducó. Vuelve a iniciarla desde la cuenta (barra superior).'); auth = Authenticator.getAuth(act.name); send('status', 'Sin conexión: se juega en modo offline como ' + act.name); }
     } else auth = Authenticator.getAuth(act.name);
     const ram = +ins.ram > 0 ? +ins.ram : cfg.ram, java = await javaFor(ins.mc, { javaPath: ins.javaPath || cfg.javaPath });
     const o = { authorization: auth, root, javaPath: java, version: { number: ins.mc, type: ins.type === 'release' ? 'release' : 'snapshot' },
       overrides: { gameDirectory: dir }, memory: { max: ram + 'G', min: '1G' },
-      window: { width: cfg.width, height: cfg.height, fullscreen: cfg.fullscreen }, customArgs: cfg.jvmArgs.split(' ').filter(Boolean) };
+      window: { width: cfg.width, height: cfg.height, fullscreen: cfg.fullscreen }, customArgs: [...cfg.jvmArgs.split(' ').filter(Boolean), ...(JVM_PRESETS[ins.jvmPreset] || [])] };
+    try { await applyGpu(java, ins.gpu === 'high'); } catch {}
     if (ins.ld === 'Fabric') o.version.custom = await fabric(ins.mc, ins.loaderVersion);
     if (ins.ld === 'Forge' || ins.ld === 'NeoForge') o.version.custom = await forge(ins.ld, ins.mc, java, ins.loaderVersion);
     if (server && server.host) o.quickPlay = { type: modernQP(ins.mc) ? 'multiplayer' : 'legacy', identifier: server.host + (server.port && +server.port !== 25565 ? ':' + server.port : '') };
+    if (world && !server && modernQP(ins.mc)) o.quickPlay = { type: 'singleplayer', identifier: String(world) };
     try { syncServers(dir, (cfg.myServers || []).filter(z => z && z.host).map(z => ({ name: String(z.name || z.host), ip: String(z.host) + (z.port && +z.port !== 25565 ? ':' + z.port : '') }))); } catch {}
     const l = new Client(), tail = [], lg = openLog(ins, java, ram), since = Date.now(); let t0 = 0;
     send('log', '── ' + ins.name + ' · Minecraft ' + ins.mc + ' · ' + (ins.ld || 'Vanilla') + ' · ' + (act.name) + ' ──\n');
@@ -344,27 +375,56 @@ const serversDat = list => { const n = Buffer.alloc(4); n.writeInt32BE(list.leng
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const hashOf = (b, a) => crypto.createHash(a).update(b).digest('hex');
 // Descarga con comprobación de huella y 3 reintentos (prueba también los enlaces alternativos)
+// ---- Cola de descargas: pausar, cancelar y limitar la velocidad ----
+const DQ = { paused: false, cancel: false, limit: +rd(cfgFile, {}).dlLimit || 0, active: 0, pools: 0, bytes: 0, t: Date.now(), speed: 0, next: 0 };
+let dqT = null;
+const cancelErr = () => Object.assign(new Error('Descarga cancelada'), { cancel: true });
+const dqSend = () => send('dq', { active: DQ.active + DQ.pools, paused: DQ.paused, limit: DQ.limit, speed: DQ.speed });
+const dqTick = () => { if (dqT) return; DQ.t = Date.now(); DQ.bytes = 0; dqT = setInterval(() => { const n = Date.now(), dt = (n - DQ.t) / 1000; DQ.speed = dt > 0 ? DQ.bytes / dt : 0; DQ.bytes = 0; DQ.t = n; if (!DQ.active && !DQ.pools) { clearInterval(dqT); dqT = null; DQ.speed = 0; DQ.paused = false; } dqSend(); }, 700); if (dqT.unref) dqT.unref(); };
+const dqIdle = () => { if (!DQ.active && !DQ.pools) DQ.cancel = false; };
+async function dqChunk(n) {
+  while (DQ.paused && !DQ.cancel) await sleep(150);
+  if (DQ.cancel) throw cancelErr();
+  DQ.bytes += n;
+  if (DQ.limit > 0) { const now = Date.now(); DQ.next = Math.max(DQ.next, now) + n / (DQ.limit * 1048576) * 1000; const w = DQ.next - now - 300; if (w > 0) await sleep(Math.min(w, 5000)); }
+}
+async function fetchBuf(u) {
+  const r = await fetch(u, { signal: AbortSignal.timeout(600000), headers: { 'User-Agent': UA() } }); if (!r.ok) throw new Error('HTTP ' + r.status);
+  if (r.body && typeof r.body.getReader === 'function') {
+    const rd2 = r.body.getReader(), parts = [];
+    try { for (;;) { const { done, value } = await rd2.read(); if (done) break; await dqChunk(value.length); parts.push(Buffer.from(value)); } }
+    catch (e) { try { rd2.cancel(); } catch {} throw e; }
+    return Buffer.concat(parts);
+  }
+  const b = Buffer.from(await r.arrayBuffer()); await dqChunk(b.length); return b;
+}
+// Descarga con comprobación de huella y 3 reintentos (prueba también los enlaces alternativos)
 async function dl(urls, dest, o = {}) {
   urls = [].concat(urls || []).filter(Boolean); if (!urls.length) throw new Error('Sin enlace de descarga');
-  let err;
-  for (let i = 0; i < 3; i++) {
-    for (const u of urls) {
-      try {
-        const buf = Buffer.from(await get(u, 'arrayBuffer'));
-        const bad = o.sha512 ? hashOf(buf, 'sha512') !== String(o.sha512).toLowerCase() : o.sha1 && hashOf(buf, 'sha1') !== String(o.sha1).toLowerCase();
-        if (bad) throw new Error('hash');
-        fs.mkdirSync(path.dirname(dest), { recursive: true });
-        const t = dest + '.part'; fs.writeFileSync(t, buf); fs.renameSync(t, dest); return buf.length;
-      } catch (e) { err = e; }
+  DQ.active++; dqTick();
+  try {
+    let err;
+    for (let i = 0; i < 3; i++) {
+      for (const u of urls) {
+        try {
+          if (DQ.cancel) throw cancelErr();
+          const buf = await fetchBuf(u);
+          const bad = o.sha512 ? hashOf(buf, 'sha512') !== String(o.sha512).toLowerCase() : o.sha1 && hashOf(buf, 'sha1') !== String(o.sha1).toLowerCase();
+          if (bad) throw new Error('hash');
+          fs.mkdirSync(path.dirname(dest), { recursive: true });
+          const t = dest + '.part'; fs.writeFileSync(t, buf); fs.renameSync(t, dest); return buf.length;
+        } catch (e) { if (e.cancel) throw e; err = e; }
+      }
+      await sleep(400 * (i + 1));
     }
-    await sleep(400 * (i + 1));
-  }
-  throw new Error(err && err.message === 'hash' ? 'Archivo corrupto: la huella no coincide' : 'Descarga fallida: ' + (err && err.message));
+    throw new Error(err && err.message === 'hash' ? 'Archivo corrupto: la huella no coincide' : 'Descarga fallida: ' + (err && err.message));
+  } finally { DQ.active--; dqIdle(); dqSend(); }
 }
 async function pool(items, n, fn) {
-  let k = 0; const out = new Array(items.length);
-  const w = async () => { while (k < items.length) { const i = k++; out[i] = await fn(items[i], i); } };
-  await Promise.all(Array.from({ length: Math.min(n, items.length) }, w)); return out;
+  DQ.pools++; dqTick(); let k = 0; const out = new Array(items.length);
+  const w = async () => { while (k < items.length && !DQ.cancel) { const i = k++; out[i] = await fn(items[i], i); } };
+  try { await Promise.all(Array.from({ length: Math.min(n, items.length) }, w)); if (DQ.cancel) throw cancelErr(); return out; }
+  finally { DQ.pools--; dqIdle(); dqSend(); }
 }
 const prog = (t, n, tot) => { send('status', `${t}: ${n} de ${tot}`); send('progress', { task: n, total: tot }); };
 const win32 = process.platform === 'win32';
@@ -387,6 +447,8 @@ ipcMain.handle('inst:update', (e, { id, patch }) => {
   if ('ram' in q) { const r = +q.ram; p.ram = r > 0 ? Math.min(64, Math.round(r)) : 0; }
   if ('javaPath' in q) p.javaPath = String(q.javaPath || '').trim();
   if ('loaderVersion' in q) p.loaderVersion = String(q.loaderVersion || '').trim();
+  if ('gpu' in q) p.gpu = q.gpu === 'high' ? 'high' : '';
+  if ('jvmPreset' in q) p.jvmPreset = ['rendimiento', 'tirones'].includes(q.jvmPreset) ? q.jvmPreset : '';
   wr(insFile, li().map(i => i.id === String(id) ? { ...i, ...p } : i)); return getIns(id);
 });
 ipcMain.handle('inst:dup', async (e, id) => {
@@ -513,12 +575,10 @@ ipcMain.handle('inst:export', async (e, { id, kind, worlds }) => {
     } finally { fs.rmSync(stage, { recursive: true, force: true }); }
   } finally { send('status', ''); }
 });
-ipcMain.handle('inst:import', async () => {
-  const r = await dialog.showOpenDialog(win, { title: 'Importar instancia o modpack', properties: ['openFile'], filters: [{ name: 'Instancia o modpack', extensions: ['zip', 'mrpack'] }] });
-  if (r.canceled || !r.filePaths[0]) return { canceled: true };
+async function importInstanceFile(file) {
   const tmp = path.join(root, 'tmp_import'); fs.rmSync(tmp, { recursive: true, force: true }); fs.mkdirSync(tmp, { recursive: true });
   try {
-    send('status', 'Importando…'); await unzip(r.filePaths[0], tmp);
+    send('status', 'Importando…'); await unzip(file, tmp);
     let base = tmp; const es = fs.readdirSync(tmp); if (es.length === 1 && fs.statSync(path.join(tmp, es[0])).isDirectory()) base = path.join(tmp, es[0]);
     if (fs.existsSync(path.join(base, 'modrinth.index.json'))) return await installMrpackDir(base);
     const mf = path.join(base, 'nova-instance.json'), m = rd(mf, null);
@@ -527,6 +587,11 @@ ipcMain.handle('inst:import', async () => {
     fs.rmSync(mf, { force: true }); await fs.promises.cp(base, iDir(ins.id), { recursive: true });
     send('status', 'Instancia importada: ' + ins.name); return { ins, failed: [] };
   } finally { fs.rmSync(tmp, { recursive: true, force: true }); send('progress', null); }
+}
+ipcMain.handle('inst:import', async () => {
+  const r = await dialog.showOpenDialog(win, { title: 'Importar instancia o modpack', properties: ['openFile'], filters: [{ name: 'Instancia o modpack', extensions: ['zip', 'mrpack'] }] });
+  if (r.canceled || !r.filePaths[0]) return { canceled: true };
+  return importInstanceFile(r.filePaths[0]);
 });
 
 // ===== Cuentas, estadísticas, bandeja y más (0.2.12) =====
@@ -693,11 +758,9 @@ function findWorlds(d, depth = 0) {
   for (const e of es) if (e.isDirectory() && e.name !== '__MACOSX') out.push(...findWorlds(path.join(d, e.name), depth + 1));
   return out;
 }
-ipcMain.handle('worlds:import', async (e, id) => {
-  getIns(id); const r = await dialog.showOpenDialog(win, { title: 'Importar mapas', properties: ['openFile', 'multiSelections'], filters: [{ name: 'Mapa (.zip)', extensions: ['zip'] }] });
-  if (r.canceled || !r.filePaths.length) return { canceled: true };
+async function importWorldZips(files, id) {
   const names = [], sv = path.join(iDir(id), 'saves'); fs.mkdirSync(sv, { recursive: true });
-  for (const zf of r.filePaths) {
+  for (const zf of files) {
     const tmp = path.join(root, 'tmp_world'); fs.rmSync(tmp, { recursive: true, force: true }); fs.mkdirSync(tmp, { recursive: true });
     try {
       send('status', 'Importando mapa…'); await unzip(zf, tmp);
@@ -706,6 +769,11 @@ ipcMain.handle('worlds:import', async (e, id) => {
   }
   if (!names.length) throw new Error('No se encontró ningún mundo dentro del .zip (debe contener level.dat)');
   return { names };
+}
+ipcMain.handle('worlds:import', async (e, id) => {
+  getIns(id); const r = await dialog.showOpenDialog(win, { title: 'Importar mapas', properties: ['openFile', 'multiSelections'], filters: [{ name: 'Mapa (.zip)', extensions: ['zip'] }] });
+  if (r.canceled || !r.filePaths.length) return { canceled: true };
+  return importWorldZips(r.filePaths, getIns(id).id);
 });
 
 // ---- Shaders: Iris + Sodium ----
@@ -808,4 +876,109 @@ ipcMain.handle('settings:import', async () => {
   let j; try { j = JSON.parse(fs.readFileSync(r.filePaths[0], 'utf8')); } catch { throw new Error('El archivo no es válido'); }
   if (!j || j.app !== 'nova-launcher' || !j.settings || typeof j.settings !== 'object') throw new Error('Este archivo no es de Nova Launcher');
   return { settings: j.settings };
+});
+
+
+// ===== 0.2.13: sin conexión, diagnóstico, cola de descargas, arrastrar y soltar, GPU, ajustes de Java, último mundo =====
+let onl = { t: 0, v: true };
+async function isOnline(force) {
+  if (!force && Date.now() - onl.t < 15000) return onl.v;
+  let v = true; try { const r = await fetch(MAN, { method: 'HEAD', signal: AbortSignal.timeout(5000) }); v = !!r && r.ok !== false; } catch { v = false; }
+  onl = { t: Date.now(), v }; return v;
+}
+const JVM_PRESETS = {
+  rendimiento: ['-XX:+UseG1GC', '-XX:+UnlockExperimentalVMOptions', '-XX:+DisableExplicitGC', '-XX:+ParallelRefProcEnabled', '-XX:+UseStringDeduplication'],
+  tirones: ['-XX:+UseG1GC', '-XX:+ParallelRefProcEnabled', '-XX:MaxGCPauseMillis=200', '-XX:+UnlockExperimentalVMOptions', '-XX:+DisableExplicitGC', '-XX:G1NewSizePercent=30', '-XX:G1MaxNewSizePercent=40', '-XX:G1HeapRegionSize=8M', '-XX:G1ReservePercent=20', '-XX:G1HeapWastePercent=5', '-XX:G1MixedGCCountTarget=4', '-XX:InitiatingHeapOccupancyPercent=15', '-XX:G1MixedGCLiveThresholdPercent=90', '-XX:G1RSetUpdatingPauseTimePercent=5', '-XX:SurvivorRatio=32', '-XX:+PerfDisableSharedMem', '-XX:MaxTenuringThreshold=1']
+};
+const GPU_KEY = 'HKCU\\Software\\Microsoft\\DirectX\\UserGpuPreferences';
+async function applyGpu(java, on) {
+  if (process.platform !== 'win32' || !java) return;
+  const exes = [java, java.replace(/java\.exe$/i, 'javaw.exe')].filter((v, i, a) => a.indexOf(v) === i), set = new Set(load().gpuSet || []);
+  for (const x of exes) {
+    if (on) { await run('reg', ['add', GPU_KEY, '/v', x, '/t', 'REG_SZ', '/d', 'GpuPreference=2;', '/f']); set.add(x); }
+    else if (set.has(x)) { await run('reg', ['delete', GPU_KEY, '/v', x, '/f']).catch(() => {}); set.delete(x); }
+  }
+  wr(cfgFile, { ...load(), gpuSet: [...set] });
+}
+// ---- Cola de descargas (controles) ----
+ipcMain.handle('dq:state', () => ({ active: DQ.active + DQ.pools, paused: DQ.paused, limit: DQ.limit, speed: DQ.speed }));
+ipcMain.handle('dq:pause', (e, on) => { DQ.paused = on === undefined ? !DQ.paused : !!on; dqSend(); return DQ.paused; });
+ipcMain.handle('dq:cancel', () => { if (DQ.active || DQ.pools) { DQ.cancel = true; DQ.paused = false; } dqSend(); return true; });
+ipcMain.handle('dq:limit', (e, mb) => { const v = Math.max(0, Math.min(100, +mb || 0)); DQ.limit = v; wr(cfgFile, { ...load(), dlLimit: v }); dqSend(); return v; });
+// ---- Continuar: último mundo jugado ----
+ipcMain.handle('world:last', () => {
+  let best = null;
+  for (const i of li()) {
+    if (!modernQP(i.mc)) continue; const sv = path.join(iDir(i.id), 'saves'); let es = []; try { es = fs.readdirSync(sv, { withFileTypes: true }); } catch { continue; }
+    for (const d of es) { if (!d.isDirectory()) continue; try { const st = fs.statSync(path.join(sv, d.name, 'level.dat')); if (!best || st.mtimeMs > best.date) best = { inst: i.id, name: d.name, date: st.mtimeMs, instName: i.name, mc: i.mc, ld: i.ld || 'Vanilla' }; } catch {} }
+  }
+  return best;
+});
+// ---- Diagnóstico ----
+ipcMain.handle('diag:run', async (e, id) => {
+  const cfg = load(), ins = (id && li().find(i => i.id === String(id))) || li()[0] || null, checks = [], add = (level, t, d) => checks.push({ level, t, d });
+  const online = await isOnline(true);
+  add(online ? 'ok' : 'warn', online ? 'Conexión con Mojang' : 'Sin conexión', online ? 'Los servidores de Mojang responden.' : 'No se alcanzan los servidores de Mojang. Podrás jugar si ya descargaste esa versión; con una cuenta Microsoft se juega en modo offline.');
+  const totGB = Math.round(os.totalmem() / 1073741824), freeGB = Math.round(os.freemem() / 1073741824 * 10) / 10, ram = ins ? (+ins.ram > 0 ? +ins.ram : cfg.ram) : cfg.ram;
+  if (ram > totGB) add('bad', 'RAM asignada mayor que la de tu PC', `Tienes ${totGB} GB y el juego pide ${ram} GB. Bájala en Opciones de la instancia o Ajustes → Juego.`);
+  else if (ram > totGB * .75) add('warn', 'RAM asignada muy alta', `Usas ${ram} de ${totGB} GB: el PC puede ir lento. Lo recomendado es la mitad.`);
+  else if (ram < 2) add('warn', 'Poca RAM para Minecraft', `Con ${ram} GB puede ir muy justo. Prueba con 3–4 GB.`);
+  else if (ram > freeGB + 1) add('warn', 'Poca memoria libre ahora mismo', `El juego pide ${ram} GB y ahora quedan ${freeGB} GB libres. Cierra otros programas.`);
+  else add('ok', 'Memoria RAM', `${ram} GB para el juego, ${totGB} GB en total (${freeGB} GB libres).`);
+  const jp = (ins && ins.javaPath) || cfg.javaPath;
+  if (jp) add(fs.existsSync(jp) ? 'ok' : 'bad', fs.existsSync(jp) ? 'Java personalizado' : 'No existe el Java indicado', fs.existsSync(jp) ? jp : `La ruta «${jp}» no existe. Vacía el campo para usar el Java automático.`);
+  else { const jd = path.join(root, 'java'); let have = []; try { have = fs.readdirSync(jd); } catch {} add('ok', 'Java automático', have.length ? 'Instalado: Java ' + have.sort((a, b) => a - b).join(', ') + '.' : 'Se descargará la primera vez que juegues.'); }
+  try { const fsf = fs.statfsSync(root), gb = fsf.bavail * fsf.bsize / 1073741824; add(gb < 2 ? 'bad' : gb < 5 ? 'warn' : 'ok', gb < 2 ? 'Casi sin espacio en disco' : gb < 5 ? 'Poco espacio en disco' : 'Espacio en disco', `Quedan ${gb.toFixed(1)} GB libres donde se guarda el launcher.`); } catch {}
+  const { act } = accState(cfg);
+  add(act.type === 'microsoft' ? (act.token ? 'ok' : 'warn') : 'ok', 'Cuenta: ' + act.name, act.type === 'microsoft' ? 'Cuenta de Microsoft.' : 'Cuenta offline: no podrás entrar en servidores con verificación de cuenta (online-mode).');
+  if (ins) {
+    let jars = []; try { jars = fs.readdirSync(path.join(iDir(ins.id), 'mods')).filter(f => /\.jar$/i.test(f)); } catch {}
+    const ld = ins.ld || 'Vanilla';
+    if (ld === 'Vanilla' && jars.length) add('warn', 'Mods en una instancia Vanilla', `Hay ${jars.length} mods pero la instancia es Vanilla: no se cargarán. Cámbiala a Fabric, Forge o NeoForge.`);
+    else if (ld === 'Fabric' && jars.length && !jars.some(f => /fabric-api/i.test(f))) add('warn', 'Falta Fabric API', 'Casi todos los mods de Fabric la necesitan. Instálala desde Mods.');
+    else add('ok', 'Mods', jars.length ? `${jars.length} mods en «${ins.name}».` : `Sin mods en «${ins.name}».`);
+    if (ins.gpu === 'high') add('ok', 'Tarjeta gráfica potente', process.platform === 'win32' ? 'Windows usará la tarjeta dedicada para Java en esta instancia.' : 'Solo se aplica en Windows.');
+  }
+  let log = null;
+  try {
+    const dir = path.join(root, 'logs'), fl = fs.readdirSync(dir).filter(x => x.endsWith('.log')).sort().reverse(), mine = ins ? fl.find(x => x.includes(String(ins.name).replace(/[^\w.-]+/g, '_').slice(0, 30))) : null, f = mine || fl[0];
+    if (f) { const lines = fs.readFileSync(path.join(dir, f), 'utf8').split(/\r?\n/).slice(-600), c = diagnose(lines); log = { file: path.join(dir, f), name: f }; if (c.id !== 'unknown') { add('bad', 'Última partida: ' + c.t, c.d); log.cause = c; } else add('ok', 'Última partida', 'No se ven errores conocidos en el registro.'); }
+  } catch {}
+  return { name: ins ? ins.name : '', checks, log, text: checks.map(c => `[${c.level.toUpperCase()}] ${c.t}: ${c.d}`).join('\n') };
+});
+// ---- Arrastrar y soltar ----
+const zipList = z => new Promise((res, rej) => execFile(win32 ? 'tar' : 'unzip', win32 ? ['-tf', z] : ['-Z1', z], { maxBuffer: 1e8 }, (er, out) => er ? rej(er) : res(String(out).split(/\r?\n/).filter(Boolean))));
+async function dropKind(f) {
+  const ext = path.extname(f).toLowerCase();
+  if (ext === '.jar') return 'mod';
+  if (ext === '.mrpack') return 'modpack';
+  if (ext !== '.zip') return 'unknown';
+  let L = []; try { L = (await zipList(f)).map(x => x.replace(/\\/g, '/')); } catch { return 'unknown'; }
+  const has = re => L.some(x => re.test(x));
+  if (has(/^([^/]+\/)?modrinth\.index\.json$/)) return 'modpack';
+  if (has(/^([^/]+\/)?nova-instance\.json$/)) return 'instance';
+  if (has(/^([^/]+\/){0,2}level\.dat$/)) return 'world';
+  if (has(/^([^/]+\/)?pack\.mcmeta$/)) return 'resource';
+  if (has(/^([^/]+\/)?shaders\//)) return 'shader';
+  if (has(/^([^/]+\/)?assets\//)) return 'resource';
+  return 'unknown';
+}
+ipcMain.handle('drop:inspect', async (e, paths) => {
+  const out = [];
+  for (const f of (Array.isArray(paths) ? paths : []).slice(0, 20)) { try { const st = fs.statSync(String(f)); if (st.isFile()) out.push({ path: String(f), name: path.basename(String(f)), size: st.size, kind: await dropKind(String(f)) }); } catch {} }
+  return out;
+});
+ipcMain.handle('drop:install', async (e, { path: f, kind, inst }) => {
+  f = String(f || ''); if (!fs.existsSync(f) || !fs.statSync(f).isFile()) throw new Error('Archivo no encontrado');
+  const ext = path.extname(f).toLowerCase(), place = { mod: ['mods', '.jar'], shader: ['shaderpacks', '.zip'], resource: ['resourcepacks', '.zip'] }[kind];
+  if (place) {
+    if (ext !== place[1]) throw new Error('Este tipo necesita un archivo ' + place[1]);
+    const ins = getIns(inst), d = path.join(iDir(ins.id), place[0]); fs.mkdirSync(d, { recursive: true });
+    if (kind === 'mod') { try { await autoBackup(ins.id, 'antes de añadir un mod'); } catch {} }
+    const base = safeName(path.basename(f), 'archivo'); let nn = base, k = 2; while (fs.existsSync(path.join(d, nn))) nn = base.replace(/(\.[^.]*)?$/, ' (' + k++ + ')$1');
+    await fs.promises.copyFile(f, path.join(d, nn)); return { kind, name: nn, inst: ins.name };
+  }
+  if (kind === 'world') { const ins = getIns(inst), r = await importWorldZips([f], ins.id); return { kind, name: r.names.join(', '), inst: ins.name }; }
+  if (kind === 'modpack' || kind === 'instance') { const r = await importInstanceFile(f); return { kind, name: r.ins.name, failed: r.failed || [] }; }
+  throw new Error('Tipo no reconocido');
 });
