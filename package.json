@@ -1,6 +1,6 @@
 {
   "name": "nova-launcher",
-  "version": "0.2.10",
+  "version": "0.2.11",
   "description": "Nova Launcher para Minecraft",
   "author": "Astrion Studio",
   "main": "main.js",
@@ -37,7 +37,7 @@
     },
     "publish": {
       "provider": "github",
-      "owner": "TU_USUARIO_GITHUB",
+      "owner": "JustMarcoDev",
       "repo": "nova-launcher",
       "releaseType": "release"
     },

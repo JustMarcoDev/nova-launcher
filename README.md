@@ -65,6 +65,15 @@ La pestaña **Servidores** (Alt + 4) muestra servidores conocidos con jugadores 
 
 Cosméticos y extras dentro del juego. Solo hay diseño y un catálogo vacío (`novapack/cosmetics.json`); el plan está en `docs/VENTAJAS.md`.
 
+## Instancias, mods y copias de seguridad (desde la 0.2.11)
+
+- **Instancias → Opciones:** nombre, icono, color, RAM y Java propios, versión de Fabric/Forge/NeoForge, duplicar, abrir carpeta, exportar y borrar.
+- **Gestor de mods:** botón «Mods» de cada instancia. Muestra el nombre real de cada mod (vía Modrinth), permite activarlo o desactivarlo, borrarlo, añadir un `.jar` y actualizarlo.
+- **Exportar / importar:** `.mrpack` (Modrinth, ligero) o `.zip` (todo dentro, solo para Nova Launcher). El botón «Importar» de la pestaña Instancias abre ambos.
+- **Copias de los mundos:** se guardan solas en `%APPDATA%\.nova\backups` antes de actualizar mods o el Nova Pack (máximo 10 minutos entre copias automáticas). Se pueden crear a mano y restaurar desde Opciones → Copias de seguridad. Ajustes → Juego controla cuántas se conservan.
+- **Si Minecraft falla:** aparece una ventana con las últimas líneas del registro y la causa probable. Cada partida se guarda en `%APPDATA%\.nova\logs` (las 20 últimas).
+- **Descargas:** los mods y modpacks se verifican con su huella (SHA) y se reintentan hasta 3 veces; los modpacks bajan 6–8 archivos a la vez.
+
 ## Aviso legal
 
 Nova Launcher es un proyecto independiente de **Astrion Studio**. © 2026 Astrion Studio. No está afiliado, aprobado ni patrocinado por Mojang Studios ni por Microsoft. Minecraft es una marca registrada de Mojang Studios.
@@ -74,6 +83,22 @@ Nova Launcher es un proyecto independiente de **Astrion Studio**. © 2026 Astrio
 Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión del launcher, para saber de un vistazo qué se ha **añadido**, qué se ha **mejorado** y qué se ha **quitado**. Cada vez que se publique una versión nueva hay que añadir una entrada al principio de la lista de abajo. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**.
 
 ## Historial de actualizaciones
+
+### 0.2.11 — Más estabilidad, gestor de mods y copias de seguridad
+
+**Añadido**
+- Aviso cuando Minecraft se cierra por un error, con las últimas líneas del registro y la causa probable (falta de RAM, Java equivocado, mod incompatible…); el registro de cada partida se guarda en un archivo
+- Gestor de mods de cada instancia: ver, activar o desactivar, borrar, añadir un .jar y actualizar (uno a uno o todos)
+- Opciones por instancia: renombrar, duplicar, icono y color, abrir su carpeta, RAM y Java propios y elegir la versión de Fabric, Forge o NeoForge
+- Exportar e importar instancias en .mrpack (Modrinth) o .zip
+- Copias de seguridad de los mundos: automáticas antes de actualizar mods o el Nova Pack, con botón de restaurar
+- Al instalar un modpack puedes elegir su versión; la compatible con tu Minecraft sale primero y recomendada
+
+**Mejorado**
+- Los archivos descargados se comprueban con su huella y se reintentan si llegan mal
+- Los modpacks y el Nova Pack se descargan 6–8 archivos a la vez
+- Un modpack instalado ya no se confunde con la instancia normal de la misma versión
+- Corregido el repositorio de actualizaciones en `package.json` (ahora `JustMarcoDev`)
 
 ### 0.2.10 — Servidores, Nova Pack y vuelta al tamaño de la 0.2.8
 
