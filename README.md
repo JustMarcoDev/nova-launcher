@@ -13,7 +13,7 @@ Alternativas: `Crear-Instalador.bat` (genera el instalador en tu PC) o `Abrir-La
 ## Cómo publicar una actualización
 
 1. Cambia los archivos del proyecto.
-2. Sube el número de `"version"` en `package.json`. Sin este paso los launchers ya instalados no detectan la actualización.
+2. Sube el número de `"version"` en `package.json` y añade su entrada al «Historial de actualizaciones» de este README (el flujo la copia a las notas de la release). Sin subir el número los launchers ya instalados no detectan la actualización.
 3. `git add .`, `git commit -m "vX.Y.Z"` y `git push`.
 4. En **Actions**, ejecuta de nuevo **Crear version**.
 5. Los launchers instalados la descargan solos y se instala al cerrarlos. También puedes pulsar **Ajustes → Acerca de → Buscar actualizaciones**.
@@ -74,6 +74,28 @@ Cosméticos y extras dentro del juego. Solo hay diseño y un catálogo vacío (`
 - **Si Minecraft falla:** aparece una ventana con las últimas líneas del registro y la causa probable. Cada partida se guarda en `%APPDATA%\.nova\logs` (las 20 últimas).
 - **Descargas:** los mods y modpacks se verifican con su huella (SHA) y se reintentan hasta 3 veces; los modpacks bajan 6–8 archivos a la vez.
 
+## Cuentas, consola y comodidad (desde la 0.2.12)
+
+- **Varias cuentas:** pulsa tu nombre en la barra superior para cambiar entre cuentas Microsoft y offline, añadir o quitar. También en Ajustes → Cuenta. Los tokens de Microsoft se guardan solo en tu PC.
+- **Tiempo jugado:** cada instancia muestra las horas jugadas y la última vez que se abrió; el total sale en la tarjeta Estado.
+- **Capturas:** botón «Capturas» de cada instancia (o el de arriba de la pestaña Instancias para ver todas). Abrir, copiar al portapapeles y borrar (van a la papelera).
+- **Consola** (`Alt + 6`): salida del juego con errores en rojo y avisos en amarillo, buscador, copiar y guardar en archivo.
+- **Bandeja y avisos:** al minimizar, Nova Launcher se queda junto al reloj. Avisa cuando termina una descarga, hay una actualización lista o Minecraft se cierra por un error. Se pueden apagar en Ajustes → Juego.
+- **Novedades:** la primera vez que abres una versión nueva sale la ventana con lo que trae. También en Ajustes → Acerca de → Novedades.
+- **Mundos:** Instancias → Opciones → Mundos. Lista los mundos, copia uno a otra instancia e importa mapas `.zip`.
+- **Tus servidores:** pestaña Servidores → Mis servidores. Se muestran con ping y jugadores y se añaden también a la lista de servidores de Minecraft (sin borrar los que ya tengas).
+- **Shaders:** al instalar un shader en una instancia sin Iris, el launcher ofrece instalar Iris y Sodium (Oculus y Embeddium en Forge), crear una instancia Fabric preparada o instalar solo el shader.
+- **Asistente de bienvenida** (primer inicio, o Ajustes → Acerca de): cuenta, RAM recomendada, color/tema y primera versión.
+- **Buscador `Ctrl + K`:** versiones, instancias, ajustes y mods de Modrinth.
+- **Importar desde otros launchers:** `.minecraft` oficial, CurseForge y Prism/MultiMC (Instancias → Otros launchers). Copia mundos, mods, configuración, texturas y shaders; lo original no se toca. Las instancias con Quilt no se pueden importar.
+- **Ajustes en un archivo:** Ajustes → Acerca de → Guardar mis ajustes. Exporta e importa colores, tipografía, agujero negro y accesibilidad.
+
+## Publicar con notas automáticas, canal Beta y volver atrás (desde la 0.2.12)
+
+- **Notas de la release:** el flujo **Crear version** (`.github/workflows/release.yml`) copia a la página de la versión la entrada de ese número en «Historial de actualizaciones» de este README (la saca `scripts/release-notes.js`). Por eso hay que escribir la entrada **antes** de ejecutar el flujo.
+- **Beta:** si la versión de `package.json` lleva guion (por ejemplo `0.2.13-beta.1`), el flujo la publica como *pre-release*. Solo la reciben los launchers con Ajustes → Rendimiento → Canal de actualizaciones = **Beta**. Los de **Estable** la ignoran. Para una beta sin entrada propia se usa la de la versión sin el sufijo.
+- **Volver a la versión anterior:** Ajustes → Acerca de → Volver a una versión anterior. Lista las releases de GitHub más antiguas que la instalada y ejecuta su instalador. Para que no se actualice sola otra vez, desactiva «Buscar actualizaciones al abrir»; vuelve a activarlo en Ajustes → Rendimiento cuando quieras.
+
 ## Aviso legal
 
 Nova Launcher es un proyecto independiente de **Astrion Studio**. © 2026 Astrion Studio. No está afiliado, aprobado ni patrocinado por Mojang Studios ni por Microsoft. Minecraft es una marca registrada de Mojang Studios.
@@ -83,6 +105,32 @@ Nova Launcher es un proyecto independiente de **Astrion Studio**. © 2026 Astrio
 Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión del launcher, para saber de un vistazo qué se ha **añadido**, qué se ha **mejorado** y qué se ha **quitado**. Cada vez que se publique una versión nueva hay que añadir una entrada al principio de la lista de abajo. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**.
 
 ## Historial de actualizaciones
+
+### 0.2.12 — Cuentas, consola, mundos y más comodidad
+
+**Añadido**
+- Varias cuentas (Microsoft y offline) con cambio rápido desde tu nombre en la barra superior
+- Tiempo jugado y última vez abierta de cada instancia
+- Galería de capturas de pantalla: abrir, copiar y borrar
+- Pestaña Consola con colores para errores y avisos, buscador y botones para copiar o guardar
+- Icono junto al reloj de Windows y avisos cuando termina una descarga, hay una actualización lista o Minecraft se cierra por un error
+- Ventana «Novedades de esta versión», que sale la primera vez que abres una versión nueva
+- Canal Beta (Ajustes → Rendimiento) y botón para volver a una versión anterior (Ajustes → Acerca de)
+- Mundos de cada instancia: ver, copiar a otra instancia e importar mapas .zip
+- Tus propios servidores en la pestaña Servidores, con ping y jugadores; también se guardan en la lista del juego
+- Shaders que funcionan siempre: si falta Iris, el launcher lo instala junto a Sodium o crea una instancia Fabric preparada
+- Asistente de bienvenida de 4 pasos (cuenta, RAM, tema y primera versión)
+- Buscador global con Ctrl + K (versiones, mods, instancias y ajustes)
+- Importar desde el launcher oficial, CurseForge y Prism
+- Guardar y cargar la personalización en un archivo
+- Notas automáticas en GitHub: el flujo «Crear version» copia la entrada del historial a la página de la versión
+
+**Mejorado**
+- Los servidores populares también muestran el ping
+- Los atajos Alt + 1…8 incluyen la Consola
+
+**Quitado**
+- El campo «Nombre de usuario» suelto de Ajustes: ahora los nombres offline se gestionan en Cuentas
 
 ### 0.2.11 — Más estabilidad, gestor de mods y copias de seguridad
 

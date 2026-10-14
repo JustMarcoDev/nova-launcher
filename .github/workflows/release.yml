@@ -1,8 +1,11 @@
 name: Crear version
+
 on:
   workflow_dispatch:
+
 permissions:
   contents: write
+
 jobs:
   build:
     runs-on: windows-latest
@@ -11,12 +14,28 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Configurar repositorio de actualizaciones
+      - name: Leer la versión
+        id: v
         shell: bash
         run: |
-          node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('package.json'));const [o,r]=process.env.GITHUB_REPOSITORY.split('/');p.build.publish={provider:'github',owner:o,repo:r,releaseType:'release'};fs.writeFileSync('package.json',JSON.stringify(p,null,2))"
-      - run: npm install
-      - run: npm run dist -- --publish always
+          VER=$(node -p "require('./package.json').version")
+          echo "version=$VER" >> "$GITHUB_OUTPUT"
+          if [[ "$VER" == *-* ]]; then echo "pre=true" >> "$GITHUB_OUTPUT"; else echo "pre=false" >> "$GITHUB_OUTPUT"; fi
+      - name: Instalar dependencias
+        run: npm install
+      - name: Crear notas de la versión desde el README
+        shell: bash
+        run: node scripts/release-notes.js "${{ steps.v.outputs.version }}" > release-notes.md
+      - name: Compilar y subir el instalador
+        shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CSC_IDENTITY_AUTO_DISCOVERY: false
+        run: |
+          if [ "${{ steps.v.outputs.pre }}" = "true" ]; then TYPE=prerelease; else TYPE=release; fi
+          npx electron-builder --win --publish always -c.publish.releaseType=$TYPE
+      - name: Poner las notas en la página de la versión
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release edit "v${{ steps.v.outputs.version }}" --notes-file release-notes.md --draft=false --prerelease=${{ steps.v.outputs.pre }}

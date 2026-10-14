@@ -1,5 +1,5 @@
-const { app, BrowserWindow, ipcMain, shell, dialog } = require('electron');
-const path = require('path'), fs = require('fs'), os = require('os'), crypto = require('crypto'), { execFile } = require('child_process');
+const { app, BrowserWindow, ipcMain, shell, dialog, Tray, Menu, Notification, clipboard, nativeImage } = require('electron');
+const path = require('path'), fs = require('fs'), os = require('os'), crypto = require('crypto'), net = require('net'), dns = require('dns').promises, { pathToFileURL } = require('url'), { execFile } = require('child_process');
 const { Client, Authenticator } = require('minecraft-launcher-core');
 const { Auth } = require('msmc');
 const root = path.join(app.getPath('appData'), '.nova');
@@ -9,9 +9,11 @@ const rd = (f, d) => { try { return JSON.parse(fs.readFileSync(f)); } catch { re
 const wr = (f, d) => { fs.mkdirSync(root, { recursive: true }); fs.writeFileSync(f, JSON.stringify(d, null, 1)); };
 const load = () => ({ ...DEF, ...rd(cfgFile, {}) }), li = () => rd(insFile, []);
 const addInst = o => { const i = { id: Date.now().toString(36), ...o }; wr(insFile, [...li(), i]); return i; };
+const FIRST = !fs.existsSync(cfgFile) && !fs.existsSync(insFile);
 if (rd(cfgFile, {}).hwaccel === false) app.disableHardwareAcceleration();
 const MAN = 'https://launchermeta.mojang.com/mc/game/version_manifest_v2.json';
 let win, updater = null;
+if (process.platform === 'win32') app.setAppUserModelId('com.nova.launcher');
 const single = app.requestSingleInstanceLock();
 if (!single) app.quit();
 else app.on('second-instance', () => { if (win) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); } });
@@ -27,16 +29,16 @@ app.whenReady().then(() => {
   win.once('ready-to-show', () => win.show());
   win.loadFile('index.html');
   if (app.isPackaged) initUpdater();
-  discordInit(); ensureShortcut(); win.on('focus', () => { if (Date.now() - lastChk > 600000) chkNow(); });
+  discordInit(); ensureShortcut(); trayInit(); win.on('focus', () => { if (Date.now() - lastChk > 600000) chkNow(); });
 });
 app.on('window-all-closed', () => app.quit());
 
-ipcMain.handle('cfg:get', () => load());
+ipcMain.handle('cfg:get', () => { const c = load(), st = accState(c); return { ...c, ms: c.ms ? { name: c.ms.name } : null, accounts: st.a.map(({ token, ...r }) => r), activeAccount: st.act.id, _first: FIRST && !c.setupDone }; });
 ipcMain.handle('sys', () => ({ total: Math.max(1, Math.round(os.totalmem() / 1073741824)) }));
 ipcMain.handle('zoom', (e, f) => { win.webContents.setZoomFactor(Math.min(1.6, Math.max(0.7, +f || 1))); });
-ipcMain.handle('cfg:set', (e, c) => { wr(cfgFile, { ...load(), ...c }); if (updater && 'autoDownload' in c) updater.autoDownload = c.autoDownload !== false; if ('discord' in c || 'discordId' in c) discordInit(); return load(); });
+ipcMain.handle('cfg:set', (e, c) => { wr(cfgFile, { ...load(), ...c }); if (updater && 'autoDownload' in c) updater.autoDownload = c.autoDownload !== false; if ('discord' in c || 'discordId' in c) discordInit(); if ('tray' in c) trayInit(); if ('channel' in c && updater) { updater.allowPrerelease = c.channel === 'beta'; updater.checkForUpdates().catch(() => {}); } return true; });
 ipcMain.handle('folder', () => { fs.mkdirSync(root, { recursive: true }); return shell.openPath(root); });
-ipcMain.on('win', (e, a) => a === 'min' ? win.minimize() : a === 'max' ? (win.isMaximized() ? win.unmaximize() : win.maximize()) : win.close());
+ipcMain.on('win', (e, a) => a === 'min' ? (tray || (load().tray !== false && trayInit()) ? win.hide() : win.minimize()) : a === 'max' ? (win.isMaximized() ? win.unmaximize() : win.maximize()) : win.close());
 const vcache = path.join(root, 'versions_cache.json');
 ipcMain.handle('versions', async () => {
   let err;
@@ -78,11 +80,6 @@ ipcMain.handle('mod:install', async (e, { url, name, inst, dir, sha1, sha512 }) 
   const d = path.join(root, inst ? path.join('instances', String(inst)) : '', sub); fs.mkdirSync(d, { recursive: true });
   await dl(url, path.join(d, path.basename(name)), { sha1, sha512 }); return true;
 });
-ipcMain.handle('login', async () => {
-  try { const x = await new Auth('select_account').launch('electron'); const t = await x.getMinecraft();
-    wr(cfgFile, { ...load(), ms: { name: t.profile.name, token: x.save() } }); return true; } catch { return false; }
-});
-
 // Modpacks de Modrinth (.mrpack)
 ipcMain.handle('pack:versions', async (e, pid) => (await get(`https://api.modrinth.com/v2/project/${encodeURIComponent(pid)}/version`)).map(v => ({ id: v.id, name: v.name, num: v.version_number, mc: v.game_versions, ld: v.loaders, date: v.date_published, type: v.version_type })));
 ipcMain.handle('pack', async (e, a) => {
@@ -113,7 +110,7 @@ async function installMrpackDir(tmp) {
     prog('Modpack', ++n, list.length);
   });
   for (const o of ['overrides', 'client-overrides']) { const ov = path.join(tmp, o); if (fs.existsSync(ov)) fs.cpSync(ov, dir, { recursive: true }); }
-  send('status', failed.length ? 'Modpack instalado (faltan ' + failed.length + ' archivos)' : 'Modpack instalado: ' + (ix.name || ''));
+  send('status', failed.length ? 'Modpack instalado (faltan ' + failed.length + ' archivos)' : 'Modpack instalado: ' + (ix.name || '')); notify('Modpack instalado', String(ix.name || 'Modpack') + (failed.length ? ' (faltan ' + failed.length + ' archivos)' : ' ya está listo'));
   return { ins, failed };
 }
 
@@ -206,11 +203,11 @@ ipcMain.handle('play', async (e, { id, server }) => {
     if (!ins) throw new Error('Instancia no encontrada');
     if (running.has(id)) throw new Error('Esta instancia ya está en ejecución');
     const dir = path.join(root, 'instances', id); fs.mkdirSync(dir, { recursive: true });
-    let auth;
-    if (cfg.ms) {
-      try { const x = await new Auth('select_account').refresh(cfg.ms.token); auth = (await x.getMinecraft()).mclc(); wr(cfgFile, { ...cfg, ms: { ...cfg.ms, token: x.save() } }); }
-      catch { throw new Error('La sesión de Microsoft caducó. Vuelve a iniciarla en Ajustes.'); }
-    } else auth = Authenticator.getAuth(cfg.username);
+    let auth; const { act } = accState(cfg);
+    if (act.type === 'microsoft') {
+      try { const x = await new Auth('select_account').refresh(act.token); auth = (await x.getMinecraft()).mclc(); const st = accState(); saveAcc(st.a.map(z => z.id === act.id ? { ...z, token: x.save() } : z), act.id); }
+      catch { throw new Error('La sesión de Microsoft de «' + act.name + '» caducó. Vuelve a iniciarla desde la cuenta (barra superior).'); }
+    } else auth = Authenticator.getAuth(act.name);
     const ram = +ins.ram > 0 ? +ins.ram : cfg.ram, java = await javaFor(ins.mc, { javaPath: ins.javaPath || cfg.javaPath });
     const o = { authorization: auth, root, javaPath: java, version: { number: ins.mc, type: ins.type === 'release' ? 'release' : 'snapshot' },
       overrides: { gameDirectory: dir }, memory: { max: ram + 'G', min: '1G' },
@@ -218,20 +215,22 @@ ipcMain.handle('play', async (e, { id, server }) => {
     if (ins.ld === 'Fabric') o.version.custom = await fabric(ins.mc, ins.loaderVersion);
     if (ins.ld === 'Forge' || ins.ld === 'NeoForge') o.version.custom = await forge(ins.ld, ins.mc, java, ins.loaderVersion);
     if (server && server.host) o.quickPlay = { type: modernQP(ins.mc) ? 'multiplayer' : 'legacy', identifier: server.host + (server.port && +server.port !== 25565 ? ':' + server.port : '') };
-    const l = new Client(), tail = [], lg = openLog(ins, java, ram), since = Date.now();
+    try { syncServers(dir, (cfg.myServers || []).filter(z => z && z.host).map(z => ({ name: String(z.name || z.host), ip: String(z.host) + (z.port && +z.port !== 25565 ? ':' + z.port : '') }))); } catch {}
+    const l = new Client(), tail = [], lg = openLog(ins, java, ram), since = Date.now(); let t0 = 0;
+    send('log', '── ' + ins.name + ' · Minecraft ' + ins.mc + ' · ' + (ins.ld || 'Vanilla') + ' · ' + (act.name) + ' ──\n');
     l.on('progress', p => send('progress', p));
     l.on('data', d => { const t = String(d); try { lg.w.write(t.endsWith('\n') ? t : t + '\n'); } catch {} for (const ln of t.split(/\r?\n/)) if (ln) tail.push(ln); if (tail.length > 500) tail.splice(0, tail.length - 300); send('log', t); });
     l.on('close', code => {
-      running.delete(id); try { lg.w.end(); } catch {} discordSet(null); send('running', 0); send('progress', null);
+      running.delete(id); try { lg.w.end(); } catch {} if (t0) { const cur = li().find(i => i.id === id) || {}; upIns(id, { playMs: (cur.playMs || 0) + (Date.now() - t0), lastPlayed: Date.now() }); } discordSet(null); send('running', 0); send('progress', null);
       const crashed = !!code && tail.length > 0;
       send('status', crashed ? 'Minecraft se cerró con un error' : 'Minecraft cerrado');
       if (cfg.reopen !== false || crashed) { win.show(); }
-      if (crashed) reportCrash(ins, code, tail, lg.f, since - 5000);
+      if (crashed) { reportCrash(ins, code, tail, lg.f, since - 5000); notify('Minecraft se cerró con un error', diagnose(tail).t); }
     });
     discordSet({ details: 'Preparando Minecraft ' + ins.mc, state: (ins.ld || 'Vanilla') + ' · Nova Launcher', startTimestamp: Date.now() });
     send('status', 'Descargando archivos del juego…');
     if (!(await l.launch(o))) throw new Error('No se pudo iniciar Minecraft');
-    running.add(id);
+    running.add(id); t0 = Date.now(); upIns(id, { lastPlayed: t0 });
     send('running', 1); discordSet({ details: server && server.name ? 'En ' + server.name + ' · ' + ins.mc : 'Jugando a Minecraft ' + ins.mc, state: (ins.ld || 'Vanilla') + ' · Nova Launcher', startTimestamp: Date.now() }); send('status', 'Minecraft en ejecución'); if (cfg.closeOnLaunch) win.hide();
     return { ok: true };
   } catch (err) { send('status', 'Error: ' + err.message); send('progress', null); return { ok: false }; }
@@ -239,11 +238,11 @@ ipcMain.handle('play', async (e, { id, server }) => {
 
 // ===== Actualizaciones desde el launcher =====
 let upd = { s: 'idle' }, lastChk = 0, chkNow = () => {};
-const setUpd = o => { upd = o; send('upd:state', upd); };
+const setUpd = o => { const was = upd.s; upd = o; send('upd:state', upd); if (was !== o.s && o.s === 'ready') notify('Actualización lista', 'Nova Launcher ' + (o.v || '') + ' está listo para instalarse'); if (was !== o.s && o.s === 'available') notify('Hay una actualización', 'Nova Launcher ' + (o.v || '') + ' está disponible'); };
 function initUpdater() {
   try {
     const { autoUpdater } = require('electron-updater'); updater = autoUpdater;
-    autoUpdater.autoDownload = load().autoDownload !== false;
+    autoUpdater.autoDownload = load().autoDownload !== false; autoUpdater.allowPrerelease = load().channel === 'beta';
     autoUpdater.autoInstallOnAppQuit = true;
     autoUpdater.on('checking-for-update', () => { if (upd.s !== 'downloading' && upd.s !== 'ready') setUpd({ s: 'checking' }); });
     autoUpdater.on('update-available', i => setUpd(autoUpdater.autoDownload ? { s: 'downloading', v: i.version, p: 0 } : { s: 'available', v: i.version }));
@@ -304,12 +303,34 @@ function ensureShortcut(force) {
 // ===== Servidores y Nova Pack (0.2.10) =====
 const modernQP = mc => { let m = /^(\d+)\.(\d+)/.exec(mc); if (m) return +m[1] > 1 || +m[2] >= 20; m = /^(\d\d)w/.exec(mc); return !!m && +m[1] >= 23; };
 const stCache = {};
+const vi = n => { const b = []; do { let x = n & 0x7f; n >>>= 7; if (n) x |= 0x80; b.push(x); } while (n); return Buffer.from(b); };
+const pstr = t => { const b = Buffer.from(t, 'utf8'); return Buffer.concat([vi(b.length), b]); };
+const pkt = b => Buffer.concat([vi(b.length), b]);
+const rvi = (b, o) => { let n = 0, sh = 0, x; do { if (o >= b.length) return null; x = b[o++]; n |= (x & 0x7f) << sh; sh += 7; } while (x & 0x80); return [n, o]; };
+const flat = d => typeof d === 'string' ? d : d ? (d.text || '') + (d.extra || []).map(flat).join('') : '';
+// Ping oficial del juego (Server List Ping): jugadores, versión y latencia
+async function slp(host, port, timeout = 4000) {
+  try { const r = await Promise.race([dns.resolveSrv('_minecraft._tcp.' + host), sleep(1500).then(() => [])]); if (r && r[0]) { host = r[0].name; port = r[0].port; } } catch {}
+  return new Promise((res, rej) => {
+    const s = net.connect({ host, port }); let buf = Buffer.alloc(0), done = false, p0 = 0, st = null;
+    const fin = (e, v) => { if (done) return; done = true; s.destroy(); e ? rej(e) : res(v); };
+    s.setTimeout(timeout, () => fin(new Error('timeout'))); s.on('error', fin);
+    s.on('connect', () => { s.write(Buffer.concat([pkt(Buffer.concat([vi(0), vi(765), pstr(host), Buffer.from([port >> 8, port & 255]), vi(1)])), pkt(vi(0))])); });
+    s.on('data', d => { buf = Buffer.concat([buf, d]);
+      for (;;) { const L = rvi(buf, 0); if (!L || buf.length < L[1] + L[0]) return; const body = buf.subarray(L[1], L[1] + L[0]); buf = buf.subarray(L[1] + L[0]);
+        const id = rvi(body, 0); if (!id) return;
+        if (id[0] === 0 && !st) { const sl = rvi(body, id[1]); try { st = JSON.parse(body.toString('utf8', sl[1], sl[1] + sl[0])); } catch { return fin(new Error('json')); } p0 = Date.now(); s.write(pkt(Buffer.concat([vi(1), Buffer.alloc(8)]))); }
+        else if (id[0] === 1 && st) return fin(null, { online: true, players: st.players ? st.players.online : 0, max: st.players ? st.players.max : 0, version: st.version ? st.version.name : '', motd: flat(st.description).replace(/§./g, '').trim().slice(0, 120), ping: Date.now() - p0, icon: st.favicon || '' }); } });
+  });
+}
 ipcMain.handle('srv:status', async (e, hosts) => {
   const out = {};
-  await Promise.allSettled([...new Set(hosts)].map(async h => {
-    const c = stCache[h]; if (c && Date.now() - c.t < 60000) { out[h] = c.v; return; }
-    try { const r = await get('https://api.mcsrvstat.us/3/' + encodeURIComponent(h)); const v = { online: !!r.online, players: r.players ? r.players.online : 0, icon: r.icon || '' }; stCache[h] = { t: Date.now(), v }; out[h] = v; }
-    catch { out[h] = { online: false, players: 0, icon: '' }; }
+  await Promise.allSettled([...new Set(hosts)].map(async key => {
+    const c = stCache[key]; if (c && Date.now() - c.t < 60000) { out[key] = c.v; return; }
+    const m = /^([A-Za-z0-9._-]{1,255})(?::(\d{1,5}))?$/.exec(String(key)); if (!m) { out[key] = { online: false, players: 0, icon: '' }; return; }
+    let v; try { v = await slp(m[1], +m[2] || 25565); }
+    catch { try { const r = await get('https://api.mcsrvstat.us/3/' + encodeURIComponent(m[1] + (m[2] ? ':' + m[2] : ''))); v = { online: !!r.online, players: r.players ? r.players.online : 0, max: r.players ? r.players.max : 0, version: r.version || '', motd: '', ping: 0, icon: r.icon || '' }; } catch { v = { online: false, players: 0, icon: '' }; } }
+    stCache[key] = { t: Date.now(), v }; out[key] = v;
   }));
   return out;
 });
@@ -356,9 +377,9 @@ ipcMain.handle('nova:pack', async () => {
   const ov = path.join(__dirname, 'novapack', 'overrides');
   if (fs.existsSync(ov)) fs.cpSync(ov, dir, { recursive: true, force: false, errorOnExist: false });
   const sd = path.join(dir, 'servers.dat');
-  if (m.server && m.server.host && !fs.existsSync(sd)) fs.writeFileSync(sd, serversDat([{ name: m.server.name || 'Nova Network', ip: m.server.host + (m.server.port && +m.server.port !== 25565 ? ':' + m.server.port : '') }]));
+  if (m.server && m.server.host) { try { syncServers(dir, [{ name: m.server.name || 'Nova Network', ip: m.server.host + (m.server.port && +m.server.port !== 25565 ? ':' + m.server.port : '') }]); } catch {} }
   wr(stF, { version: String(m.version || '0'), files, date: Date.now() });
-  send('status', failed.length ? 'Nova Pack listo (no se pudieron instalar: ' + failed.join(', ') + ')' : 'Nova Pack ' + m.version + ' instalado');
+  send('status', failed.length ? 'Nova Pack listo (no se pudieron instalar: ' + failed.join(', ') + ')' : 'Nova Pack ' + m.version + ' instalado'); notify('Nova Pack instalado', 'Versión ' + m.version + ' lista para jugar');
   return { ins, failed, version: String(m.version || '0') };
 });
 
@@ -416,7 +437,7 @@ ipcMain.handle('inst:dup', async (e, id) => {
   send('status', 'Duplicando instancia…');
   try { if (fs.existsSync(iDir(id))) await fs.promises.cp(iDir(id), iDir(nid), { recursive: true, filter: f => path.basename(f) !== '.nova-pack.json' }); else fs.mkdirSync(iDir(nid), { recursive: true }); }
   finally { send('status', ''); }
-  const ins = { ...rest, id: nid, name: (src.name + ' (copia)').slice(0, 40), custom: true }; wr(insFile, [...li(), ins]); return ins;
+  const ins = { ...rest, id: nid, name: (src.name + ' (copia)').slice(0, 40), custom: true, playMs: 0, lastPlayed: 0 }; wr(insFile, [...li(), ins]); return ins;
 });
 ipcMain.handle('inst:open', (e, { id, sub }) => { getIns(id); const d = path.join(iDir(id), ['mods', 'saves', 'resourcepacks', 'shaderpacks', 'screenshots'].includes(sub) ? sub : ''); fs.mkdirSync(d, { recursive: true }); return shell.openPath(d); });
 ipcMain.handle('loader:versions', async (e, { ld, mc }) => (await loaderList(String(ld), String(mc))).slice(0, 80));
@@ -549,4 +570,285 @@ ipcMain.handle('inst:import', async () => {
     fs.rmSync(mf, { force: true }); await fs.promises.cp(base, iDir(ins.id), { recursive: true });
     send('status', 'Instancia importada: ' + ins.name); return { ins, failed: [] };
   } finally { fs.rmSync(tmp, { recursive: true, force: true }); send('progress', null); }
+});
+
+// ===== Cuentas, estadísticas, bandeja y más (0.2.12) =====
+const upIns = (id, p) => wr(insFile, li().map(i => i.id === id ? { ...i, ...p } : i));
+
+// ---- Varias cuentas (Microsoft y offline) ----
+function accState(c = load()) {
+  let a = Array.isArray(c.accounts) ? c.accounts.filter(x => x && x.id) : null;
+  if (!a || !a.length) { a = []; if (c.ms && c.ms.token) a.push({ id: 'ms1', type: 'microsoft', name: c.ms.name || 'Microsoft', token: c.ms.token }); a.push({ id: 'off1', type: 'offline', name: c.username || 'Jugador' }); }
+  let act = a.find(x => x.id === c.activeAccount);
+  if (!act) act = (c.ms && c.ms.token ? a.find(x => x.type === 'microsoft') : null) || a.find(x => x.type === 'offline') || a[0];
+  return { a, act };
+}
+function saveAcc(a, actId) { const act = a.find(x => x.id === actId) || a[0]; wr(cfgFile, { ...load(), accounts: a, activeAccount: act.id, username: act.name, ms: act.type === 'microsoft' ? { name: act.name, token: act.token } : null }); }
+const accOut = () => { const st = accState(); return { accounts: st.a.map(({ token, pid, ...r }) => r), active: st.act.id }; };
+ipcMain.handle('acc:list', () => accOut());
+ipcMain.handle('acc:addOffline', (e, name) => {
+  name = String(name || '').trim(); if (!/^[A-Za-z0-9_]{3,16}$/.test(name)) throw new Error('El nombre debe tener de 3 a 16 letras, números o _');
+  const st = accState(); if (st.a.some(x => x.type === 'offline' && x.name.toLowerCase() === name.toLowerCase())) throw new Error('Ya tienes una cuenta offline con ese nombre');
+  const id = 'o' + Date.now().toString(36); saveAcc([...st.a, { id, type: 'offline', name }], id); return accOut();
+});
+ipcMain.handle('acc:login', async () => {
+  try {
+    const x = await new Auth('select_account').launch('electron'), t = await x.getMinecraft(), st = accState(), name = t.profile.name, pid = t.profile.id;
+    const ex = st.a.find(z => z.type === 'microsoft' && (z.pid === pid || z.name === name)); let id, a;
+    if (ex) { id = ex.id; a = st.a.map(z => z.id === id ? { ...z, name, pid, token: x.save() } : z); } else { id = 'm' + Date.now().toString(36); a = [...st.a, { id, type: 'microsoft', name, pid, token: x.save() }]; }
+    saveAcc(a, id); return accOut();
+  } catch { return { error: 'No se pudo iniciar sesión con Microsoft' }; }
+});
+ipcMain.handle('acc:switch', (e, id) => { const st = accState(); if (!st.a.some(x => x.id === id)) throw new Error('Cuenta no encontrada'); saveAcc(st.a, id); return accOut(); });
+ipcMain.handle('acc:remove', (e, id) => { const st = accState(); if (st.a.length <= 1) throw new Error('Debe quedar al menos una cuenta'); const a = st.a.filter(x => x.id !== id); saveAcc(a, st.act.id === id ? a[0].id : st.act.id); return accOut(); });
+
+// ---- Bandeja de Windows y notificaciones ----
+let tray = null, trayImg = null;
+const trayIcon = () => { if (!trayImg) { try { trayImg = nativeImage.createFromPath(path.join(__dirname, 'assets', 'tray.png')); } catch {} } return trayImg && !trayImg.isEmpty() ? trayImg.resize({ width: 16, height: 16 }) : null; };
+function trayInit() {
+  if (load().tray === false) { if (tray) { try { tray.destroy(); } catch {} tray = null; } return false; }
+  if (tray) return true;
+  const ic = trayIcon(); if (!ic) return false;
+  try {
+    tray = new Tray(ic); tray.setToolTip('Nova Launcher');
+    const show = () => { if (!win) return; win.show(); if (win.isMinimized()) win.restore(); win.focus(); };
+    tray.on('click', show);
+    tray.setContextMenu(Menu.buildFromTemplate([{ label: 'Abrir Nova Launcher', click: show }, { type: 'separator' }, { label: 'Salir', click: () => app.quit() }]));
+    return true;
+  } catch { tray = null; return false; }
+}
+function notify(title, body) {
+  try {
+    if (load().notify === false || !Notification.isSupported()) return;
+    if (win && win.isVisible() && win.isFocused()) return;
+    const n = new Notification({ title, body: String(body || ''), icon: trayImg && !trayImg.isEmpty() ? trayImg : undefined });
+    n.on('click', () => { if (win) { win.show(); win.focus(); } }); n.show();
+  } catch {}
+}
+
+// ---- Texto, portapapeles ----
+ipcMain.handle('clip:text', (e, t) => { clipboard.writeText(String(t || '').slice(0, 5e6)); return true; });
+ipcMain.handle('text:save', async (e, { name, text }) => {
+  const r = await dialog.showSaveDialog(win, { title: 'Guardar', defaultPath: path.join(app.getPath('documents'), safeName(name || 'registro.txt', 'registro.txt')), filters: [{ name: 'Texto', extensions: ['txt', 'log'] }] });
+  if (r.canceled || !r.filePath) return { canceled: true }; fs.writeFileSync(r.filePath, String(text || '')); return { ok: true, file: r.filePath };
+});
+
+// ---- Capturas de pantalla ----
+const shotsDir = id => path.join(iDir(id), 'screenshots');
+const shotPath = (id, f) => { f = path.basename(String(f)); const p = path.join(shotsDir(getIns(id).id), f); if (!fs.existsSync(p)) throw new Error('Captura no encontrada'); return p; };
+ipcMain.handle('shots:list', async (e, id) => {
+  const ids = id === 'all' ? li().map(i => i.id) : [getIns(id).id], out = [];
+  for (const i of ids) {
+    let es = []; try { es = await fs.promises.readdir(shotsDir(i)); } catch { continue; }
+    for (const f of es) { if (!/\.(png|jpe?g)$/i.test(f)) continue; const p = path.join(shotsDir(i), f); try { const st = await fs.promises.stat(p); out.push({ inst: i, file: f, date: st.mtimeMs, size: st.size, url: pathToFileURL(p).href }); } catch {} }
+  }
+  return out.sort((a, b) => b.date - a.date).slice(0, 600);
+});
+ipcMain.handle('shots:open', (e, { id, file }) => shell.openPath(shotPath(id, file)));
+ipcMain.handle('shots:copy', (e, { id, file }) => { const im = nativeImage.createFromPath(shotPath(id, file)); if (im.isEmpty()) throw new Error('No se pudo leer la imagen'); clipboard.writeImage(im); return true; });
+ipcMain.handle('shots:delete', async (e, { id, file }) => { const p = shotPath(id, file); try { await shell.trashItem(p); } catch { fs.rmSync(p, { force: true }); } return true; });
+ipcMain.handle('shots:folder', (e, id) => { fs.mkdirSync(shotsDir(getIns(id).id), { recursive: true }); return shell.openPath(shotsDir(id)); });
+
+// ---- NBT (para servers.dat) ----
+function nbtRead(buf) {
+  let o = 0; const rs = () => { const l = buf.readUInt16BE(o); o += 2; const t = buf.toString('utf8', o, o + l); o += l; return t; };
+  const rd = t => { switch (t) {
+    case 1: return { t, v: buf.readInt8(o++) };
+    case 2: { const v = buf.readInt16BE(o); o += 2; return { t, v }; }
+    case 3: { const v = buf.readInt32BE(o); o += 4; return { t, v }; }
+    case 4: { const v = buf.readBigInt64BE(o); o += 8; return { t, v }; }
+    case 5: { const v = buf.readFloatBE(o); o += 4; return { t, v }; }
+    case 6: { const v = buf.readDoubleBE(o); o += 8; return { t, v }; }
+    case 7: { const n = buf.readInt32BE(o); o += 4; const v = Buffer.from(buf.subarray(o, o + n)); o += n; return { t, v }; }
+    case 8: return { t, v: rs() };
+    case 9: { const et = buf[o++], n = buf.readInt32BE(o); o += 4; const v = []; for (let i = 0; i < n; i++) v.push(rd(et)); return { t, et, v }; }
+    case 10: { const v = []; for (;;) { const tt = buf[o++]; if (tt === 0) break; const k = rs(); v.push([k, rd(tt)]); } return { t, v }; }
+    case 11: { const n = buf.readInt32BE(o); o += 4; const v = []; for (let i = 0; i < n; i++) { v.push(buf.readInt32BE(o)); o += 4; } return { t, v }; }
+    case 12: { const n = buf.readInt32BE(o); o += 4; const v = []; for (let i = 0; i < n; i++) { v.push(buf.readBigInt64BE(o)); o += 8; } return { t, v }; }
+    default: throw new Error('NBT no válido'); } };
+  const t = buf[o++]; const name = rs(); return { name, tag: rd(t) };
+}
+function nbtPay(tag) {
+  const { t, v } = tag, B = n => Buffer.alloc(n);
+  switch (t) {
+    case 1: return Buffer.from([v & 255]);
+    case 2: { const b = B(2); b.writeInt16BE(v); return b; }
+    case 3: { const b = B(4); b.writeInt32BE(v); return b; }
+    case 4: { const b = B(8); b.writeBigInt64BE(BigInt(v)); return b; }
+    case 5: { const b = B(4); b.writeFloatBE(v); return b; }
+    case 6: { const b = B(8); b.writeDoubleBE(v); return b; }
+    case 7: { const l = B(4); l.writeInt32BE(v.length); return Buffer.concat([l, Buffer.from(v)]); }
+    case 8: return nbtStr(v);
+    case 9: { const l = B(5); l[0] = v.length ? tag.et : (tag.et || 0); l.writeInt32BE(v.length, 1); return Buffer.concat([l, ...v.map(nbtPay)]); }
+    case 10: return Buffer.concat([...v.map(([k, x]) => Buffer.concat([Buffer.from([x.t]), nbtStr(k), nbtPay(x)])), Buffer.from([0])]);
+    case 11: { const b = B(4 + v.length * 4); b.writeInt32BE(v.length); v.forEach((x, i) => b.writeInt32BE(x, 4 + i * 4)); return b; }
+    case 12: { const b = B(4 + v.length * 8); b.writeInt32BE(v.length); v.forEach((x, i) => b.writeBigInt64BE(BigInt(x), 4 + i * 8)); return b; }
+  }
+}
+const nbtWrite = r => Buffer.concat([Buffer.from([r.tag.t]), nbtStr(r.name), nbtPay(r.tag)]);
+// Añade servidores a servers.dat sin tocar los que ya hay
+function syncServers(dir, list) {
+  if (!list.length) return false;
+  const f = path.join(dir, 'servers.dat'); let root = null;
+  try { root = nbtRead(fs.readFileSync(f)); } catch {}
+  if (!root || root.tag.t !== 10) root = { name: '', tag: { t: 10, v: [] } };
+  let sv = root.tag.v.find(([k, x]) => k === 'servers' && x.t === 9);
+  if (!sv) { sv = ['servers', { t: 9, et: 10, v: [] }]; root.tag.v = root.tag.v.filter(([k]) => k !== 'servers'); root.tag.v.push(sv); }
+  if (!sv[1].v.length) sv[1].et = 10;
+  let ch = false;
+  for (const s of list) {
+    if (sv[1].v.some(c => c.t === 10 && c.v.some(([k, x]) => k === 'ip' && String(x.v).toLowerCase() === s.ip.toLowerCase()))) continue;
+    sv[1].v.push({ t: 10, v: [['ip', { t: 8, v: s.ip }], ['name', { t: 8, v: s.name }]] }); ch = true;
+  }
+  if (ch) { fs.mkdirSync(dir, { recursive: true }); fs.writeFileSync(f, nbtWrite(root)); }
+  return ch;
+}
+ipcMain.handle('srv:sync', (e, id) => { const c = load(); syncServers(iDir(getIns(id).id), (c.myServers || []).filter(z => z && z.host).map(z => ({ name: String(z.name || z.host), ip: String(z.host) + (z.port && +z.port !== 25565 ? ':' + z.port : '') }))); return true; });
+
+// ---- Mundos de cada instancia ----
+async function dirSize(d, lim = { n: 0 }) {
+  let t = 0, es; try { es = await fs.promises.readdir(d, { withFileTypes: true }); } catch { return 0; }
+  for (const e of es) { if (++lim.n > 60000) return t; const p = path.join(d, e.name); if (e.isDirectory()) t += await dirSize(p, lim); else { try { t += (await fs.promises.stat(p)).size; } catch {} } }
+  return t;
+}
+const uniq = (dir, name) => { let n = name, i = 2; while (fs.existsSync(path.join(dir, n))) n = name + ' (' + i++ + ')'; return n; };
+ipcMain.handle('worlds:list', async (e, id) => {
+  const sv = path.join(iDir(getIns(id).id), 'saves'); let es = []; try { es = await fs.promises.readdir(sv, { withFileTypes: true }); } catch { return []; }
+  const out = [];
+  for (const d of es) {
+    if (!d.isDirectory()) continue; let st; try { st = await fs.promises.stat(path.join(sv, d.name, 'level.dat')); } catch { continue; }
+    let icon = ''; try { const b = await fs.promises.readFile(path.join(sv, d.name, 'icon.png')); if (b.length < 300000) icon = 'data:image/png;base64,' + b.toString('base64'); } catch {}
+    out.push({ name: d.name, date: st.mtimeMs, size: await dirSize(path.join(sv, d.name)), icon });
+  }
+  return out.sort((a, b) => b.date - a.date);
+});
+ipcMain.handle('worlds:copy', async (e, { from, world, to }) => {
+  getIns(from); getIns(to); const name = path.basename(String(world)), src = path.join(iDir(from), 'saves', name);
+  if (!fs.existsSync(path.join(src, 'level.dat'))) throw new Error('Mundo no encontrado');
+  if (running.has(String(from))) throw new Error('Cierra Minecraft antes de copiar un mundo');
+  const dst = path.join(iDir(to), 'saves'); fs.mkdirSync(dst, { recursive: true }); const nn = uniq(dst, name);
+  send('status', 'Copiando mundo…'); try { await fs.promises.cp(src, path.join(dst, nn), { recursive: true }); } finally { send('status', ''); }
+  return nn;
+});
+function findWorlds(d, depth = 0) {
+  if (fs.existsSync(path.join(d, 'level.dat'))) return [d]; const out = []; if (depth >= 3) return out;
+  let es = []; try { es = fs.readdirSync(d, { withFileTypes: true }); } catch {}
+  for (const e of es) if (e.isDirectory() && e.name !== '__MACOSX') out.push(...findWorlds(path.join(d, e.name), depth + 1));
+  return out;
+}
+ipcMain.handle('worlds:import', async (e, id) => {
+  getIns(id); const r = await dialog.showOpenDialog(win, { title: 'Importar mapas', properties: ['openFile', 'multiSelections'], filters: [{ name: 'Mapa (.zip)', extensions: ['zip'] }] });
+  if (r.canceled || !r.filePaths.length) return { canceled: true };
+  const names = [], sv = path.join(iDir(id), 'saves'); fs.mkdirSync(sv, { recursive: true });
+  for (const zf of r.filePaths) {
+    const tmp = path.join(root, 'tmp_world'); fs.rmSync(tmp, { recursive: true, force: true }); fs.mkdirSync(tmp, { recursive: true });
+    try {
+      send('status', 'Importando mapa…'); await unzip(zf, tmp);
+      for (const w of findWorlds(tmp)) { const base = w === tmp ? path.basename(zf).replace(/\.zip$/i, '') : path.basename(w), nn = uniq(sv, safeName(base, 'Mapa')); await fs.promises.cp(w, path.join(sv, nn), { recursive: true }); names.push(nn); }
+    } finally { fs.rmSync(tmp, { recursive: true, force: true }); send('status', ''); }
+  }
+  if (!names.length) throw new Error('No se encontró ningún mundo dentro del .zip (debe contener level.dat)');
+  return { names };
+});
+
+// ---- Shaders: Iris + Sodium ----
+ipcMain.handle('mods:has', (e, { id, names }) => {
+  let fl = []; try { fl = fs.readdirSync(path.join(iDir(getIns(id).id), 'mods')).filter(f => /\.jar(\.disabled)?$/i.test(f) && !/\.disabled$/i.test(f)).map(f => f.toLowerCase()); } catch {}
+  const out = {}; for (const n of names || []) out[n] = fl.some(f => f.includes(String(n).toLowerCase())); return out;
+});
+ipcMain.handle('mods:bundle', async (e, { id, slugs }) => {
+  const ins = getIns(id), md = path.join(iDir(ins.id), 'mods'), ld = String(ins.ld || '').toLowerCase(), failed = [], done = new Set(), q = x => encodeURIComponent(JSON.stringify(x));
+  if (!['fabric', 'forge', 'neoforge'].includes(ld)) throw new Error('Elige Fabric, Forge o NeoForge');
+  fs.mkdirSync(md, { recursive: true });
+  const one = async (pid, lvl) => {
+    if (done.has(pid)) return; done.add(pid);
+    const vs = await get(`https://api.modrinth.com/v2/project/${encodeURIComponent(pid)}/version?game_versions=${q([ins.mc])}&loaders=${q([ld])}`); if (!vs.length) throw new Error('sin versión');
+    const v = vs[0], f = v.files.find(x => x.primary) || v.files[0]; await dl(f.url, path.join(md, path.basename(f.filename)), { sha1: f.hashes && f.hashes.sha1, sha512: f.hashes && f.hashes.sha512 });
+    if (lvl < 1) for (const d of v.dependencies || []) if (d.dependency_type === 'required' && d.project_id) await one(d.project_id, lvl + 1).catch(() => {});
+  };
+  let n = 0; await pool(slugs || [], 3, async s => { try { await one(String(s), 0); } catch { failed.push(s); } prog('Instalando', ++n, (slugs || []).length); });
+  send('progress', null); return { failed };
+});
+
+// ---- Volver a una versión anterior ----
+const GH = 'JustMarcoDev/nova-launcher';
+ipcMain.handle('app:releases', async () => {
+  const r = await get(`https://api.github.com/repos/${GH}/releases?per_page=30`, 'json', { Accept: 'application/vnd.github+json' });
+  return r.filter(x => !x.draft).map(x => { const a = (x.assets || []).find(z => /\.exe$/i.test(z.name) && !/blockmap/i.test(z.name)); return { tag: x.tag_name, version: String(x.tag_name).replace(/^v/, ''), name: x.name || x.tag_name, date: x.published_at, pre: !!x.prerelease, url: a ? a.browser_download_url : '', size: a ? a.size : 0 }; }).filter(x => x.url);
+});
+ipcMain.handle('app:rollback', async (e, { url, version }) => {
+  if (!app.isPackaged) throw new Error('Solo funciona en la app instalada');
+  if (!String(url).startsWith(`https://github.com/${GH}/releases/download/`)) throw new Error('Enlace no válido');
+  send('status', 'Descargando Nova Launcher ' + version + '…');
+  const f = path.join(os.tmpdir(), 'NovaLauncher-' + String(version).replace(/[^\w.-]/g, '') + '-Setup.exe');
+  fs.writeFileSync(f, Buffer.from(await get(url, 'arrayBuffer')));
+  wr(cfgFile, { ...load(), autoUpdate: false });
+  require('child_process').spawn(f, [], { detached: true, stdio: 'ignore' }).unref(); setTimeout(() => app.quit(), 600); return true;
+});
+
+// ---- Importar desde otros launchers ----
+const IMP_ITEMS = ['saves', 'mods', 'config', 'resourcepacks', 'shaderpacks', 'screenshots', 'options.txt', 'optionsof.txt', 'servers.dat', 'defaultconfigs', 'kubejs', 'scripts', 'schematics'];
+const cnt = d => { try { return fs.readdirSync(d).length; } catch { return 0; } };
+const subdirs = d => { try { return fs.readdirSync(d, { withFileTypes: true }).filter(x => x.isDirectory()).map(x => x.name); } catch { return []; } };
+const neoMc = v => { const p = String(v).split('.'); return '1.' + p[0] + (+p[1] ? '.' + p[1] : ''); };
+function scanOther() {
+  const out = [], ap = app.getPath('appData'), home = os.homedir();
+  const mc = path.join(ap, '.minecraft');
+  if (fs.existsSync(path.join(mc, 'saves')) || fs.existsSync(path.join(mc, 'launcher_profiles.json'))) {
+    let mcv = '', ld = 'Vanilla', lv = ''; const lp = rd(path.join(mc, 'launcher_profiles.json'), null);
+    if (lp && lp.profiles) {
+      const ps = Object.values(lp.profiles).filter(x => x && x.lastVersionId && !/^latest-/.test(x.lastVersionId)).sort((a, b) => String(b.lastUsed || '').localeCompare(String(a.lastUsed || '')));
+      if (ps[0]) { const id = String(ps[0].lastVersionId); let m;
+        if ((m = /^fabric-loader-([\d.]+)-(.+)$/.exec(id))) { ld = 'Fabric'; lv = m[1]; mcv = m[2]; }
+        else if ((m = /^(.+)-forge-?([\d.]+)$/i.exec(id))) { ld = 'Forge'; lv = m[2]; mcv = m[1]; }
+        else if ((m = /^neoforge-([\d.]+)/.exec(id))) { ld = 'NeoForge'; lv = m[1]; mcv = neoMc(lv); }
+        else mcv = id; }
+    }
+    out.push({ src: 'official', label: 'Launcher oficial', name: 'Minecraft oficial', dir: mc, mc: mcv, ld, loaderVersion: lv, worlds: cnt(path.join(mc, 'saves')), mods: cnt(path.join(mc, 'mods')) });
+  }
+  for (const base of [path.join(home, 'curseforge', 'minecraft', 'Instances'), path.join(home, 'Documents', 'curseforge', 'minecraft', 'Instances')]) {
+    for (const d of subdirs(base)) {
+      const j = rd(path.join(base, d, 'minecraftinstance.json'), null); if (!j) continue;
+      const bn = String((j.baseModLoader && j.baseModLoader.name) || '').toLowerCase(); let ld = 'Vanilla', lv = '', un = '', m;
+      if ((m = /^fabric-([\d.]+)/.exec(bn))) { ld = 'Fabric'; lv = m[1]; } else if ((m = /^neoforge-([\d.]+)/.exec(bn))) { ld = 'NeoForge'; lv = m[1]; } else if ((m = /^forge-([\d.]+)/.exec(bn))) { ld = 'Forge'; lv = m[1]; } else if (/^quilt/.test(bn)) un = 'Quilt no está soportado';
+      out.push({ src: 'curseforge', label: 'CurseForge', name: String(j.name || d), dir: path.join(base, d), mc: String(j.gameVersion || (j.baseModLoader && j.baseModLoader.minecraftVersion) || ''), ld, loaderVersion: lv, worlds: cnt(path.join(base, d, 'saves')), mods: cnt(path.join(base, d, 'mods')), unsupported: un });
+    }
+  }
+  for (const [lab, base] of [['Prism', path.join(ap, 'PrismLauncher', 'instances')], ['MultiMC', path.join(ap, 'MultiMC', 'instances')]]) {
+    for (const d of subdirs(base)) {
+      const pk = rd(path.join(base, d, 'mmc-pack.json'), null); if (!pk || !pk.components) continue;
+      const v = u => { const c = pk.components.find(x => x.uid === u); return c ? String(c.version || '') : ''; };
+      let nm = d; try { const m = /^name=(.*)$/m.exec(fs.readFileSync(path.join(base, d, 'instance.cfg'), 'utf8')); if (m) nm = m[1].trim(); } catch {}
+      let ld = 'Vanilla', lv = '', un = '';
+      if (v('net.fabricmc.fabric-loader')) { ld = 'Fabric'; lv = v('net.fabricmc.fabric-loader'); } else if (v('net.neoforged')) { ld = 'NeoForge'; lv = v('net.neoforged'); } else if (v('net.minecraftforge')) { ld = 'Forge'; lv = v('net.minecraftforge'); } else if (v('org.quiltmc.quilt-loader')) un = 'Quilt no está soportado';
+      const gd = [path.join(base, d, '.minecraft'), path.join(base, d, 'minecraft')].find(fs.existsSync) || path.join(base, d);
+      out.push({ src: lab.toLowerCase(), label: lab, name: nm, dir: gd, mc: v('net.minecraft'), ld, loaderVersion: lv, worlds: cnt(path.join(gd, 'saves')), mods: cnt(path.join(gd, 'mods')), unsupported: un });
+    }
+  }
+  return out;
+}
+ipcMain.handle('import:scan', () => scanOther());
+ipcMain.handle('import:run', async (e, dir) => {
+  const x = scanOther().find(z => z.dir === String(dir)); if (!x) throw new Error('No se encontró esa instancia');
+  if (x.unsupported) throw new Error(x.unsupported);
+  const mcv = x.mc || (await get(MAN)).latest.release;
+  const ins = addInst({ name: String(x.name).slice(0, 40), mc: mcv, ld: x.ld, loaderVersion: x.loaderVersion || undefined, type: /^\d+\.\d+(\.\d+)?$/.test(mcv) ? 'release' : 'snapshot', custom: true });
+  const dst = iDir(ins.id); fs.mkdirSync(dst, { recursive: true });
+  try { for (const it of IMP_ITEMS) { const sp = path.join(x.dir, it); if (!fs.existsSync(sp)) continue; send('status', 'Importando: ' + it + '…'); await fs.promises.cp(sp, path.join(dst, it), { recursive: true }); } }
+  finally { send('status', ''); }
+  notify('Instancia importada', ins.name); return { ins };
+});
+
+// ---- Guardar y cargar los ajustes ----
+ipcMain.handle('settings:export', async (e, obj) => {
+  const r = await dialog.showSaveDialog(win, { title: 'Guardar mis ajustes', defaultPath: path.join(app.getPath('documents'), 'nova-ajustes.json'), filters: [{ name: 'Ajustes de Nova Launcher', extensions: ['json'] }] });
+  if (r.canceled || !r.filePath) return { canceled: true };
+  fs.writeFileSync(r.filePath, JSON.stringify({ app: 'nova-launcher', version: app.getVersion(), settings: obj || {} }, null, 1)); return { ok: true, file: r.filePath };
+});
+ipcMain.handle('settings:import', async () => {
+  const r = await dialog.showOpenDialog(win, { title: 'Cargar mis ajustes', properties: ['openFile'], filters: [{ name: 'Ajustes de Nova Launcher', extensions: ['json'] }] });
+  if (r.canceled || !r.filePaths[0]) return { canceled: true };
+  let j; try { j = JSON.parse(fs.readFileSync(r.filePaths[0], 'utf8')); } catch { throw new Error('El archivo no es válido'); }
+  if (!j || j.app !== 'nova-launcher' || !j.settings || typeof j.settings !== 'object') throw new Error('Este archivo no es de Nova Launcher');
+  return { settings: j.settings };
 });
