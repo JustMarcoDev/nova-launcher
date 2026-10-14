@@ -1,9 +1,22 @@
 // Idiomas: el español es el idioma base. Los demás son archivos en lang/ que traducen cada texto.
 // Si el idioma es el español no hace nada. Si es otro, traduce lo que hay en pantalla y lo que aparezca después.
+// Banderas en SVG (Windows no dibuja los emojis de bandera, solo las letras del país)
+const FL=x=>`<svg class="flg" viewBox="0 0 30 20" aria-hidden="true">${x}</svg>`;
+const vb=(a,b,c)=>`<rect width="10" height="20" fill="${a}"/><rect x="10" width="10" height="20" fill="${b}"/><rect x="20" width="10" height="20" fill="${c}"/>`;
+const LANG_FLAG={
+  es:FL('<rect width="30" height="20" fill="#c60b1e"/><rect y="5" width="30" height="10" fill="#ffc400"/>'),
+  "es-419":FL(vb("#006847","#fff","#ce1126")+'<circle cx="15" cy="10" r="2.6" fill="#8c6a2f"/><circle cx="15" cy="10" r="1.5" fill="#3a8a4a"/>'),
+  en:FL('<rect width="30" height="20" fill="#fff"/>'+[0,2,4,6,8,10,12].map(i=>`<rect y="${(i*20/13).toFixed(2)}" width="30" height="${(20/13).toFixed(2)}" fill="#b22234"/>`).join("")+'<rect width="13" height="10.77" fill="#3c3b6e"/>'+[0,1,2,3,4].flatMap(r=>[0,1,2,3,4,5].filter(c=>(r+c)%2===0||true).map(c=>(r%2?c>4:false)?"":`<circle cx="${(1.1+c*2.1+(r%2?1.05:0)).toFixed(2)}" cy="${(1.2+r*2.1).toFixed(2)}" r=".55" fill="#fff"/>`)).join("")),
+  fr:FL(vb("#0055a4","#fff","#ef4135")),
+  de:FL('<rect width="30" height="20" fill="#000"/><rect y="6.67" width="30" height="6.67" fill="#dd0000"/><rect y="13.33" width="30" height="6.67" fill="#ffce00"/>'),
+  it:FL(vb("#009246","#fff","#ce2b37")),
+  pt:FL('<rect width="30" height="20" fill="#009c3b"/><path d="M15 2 27 10 15 18 3 10Z" fill="#ffdf00"/><circle cx="15" cy="10" r="4.3" fill="#002776"/><path d="M10.9 9.2Q15 8 19.1 11.2" stroke="#fff" stroke-width=".9" fill="none"/>')
+};
+const langFlag=k=>LANG_FLAG[k]||"";
 const LANG_ORDER=["es","es-419","en","fr","de","it","pt"];
 const LANG_BASE={es:"Español (España)"};
 const LANG_NAMES=()=>[["auto","Automático (el del sistema)"],...LANG_ORDER.map(k=>[k,LANG_BASE[k]||(window.LANGS[k]||{}).name]).filter(x=>x[1]),...Object.entries(window.LANGS||{}).filter(([k])=>!LANG_ORDER.includes(k)).map(([k,v])=>[k,v.name])];
-const LANG_OPTS=()=>Object.fromEntries(LANG_NAMES());
+const LANG_OPTS=()=>Object.fromEntries(LANG_NAMES().map(([k,n])=>[k,k==="auto"?n:langFlag(k)+n]));
 let LCUR="es",LMAP=new Map(),LPAT=[],LOBS=null;
 // Idioma del sistema → idioma de la app (es-ES → español, otros es-* → Latinoamérica, pt-* → portugués…)
 function langSys(){
@@ -68,7 +81,7 @@ function langFirst(){
   const L=window.LANGS||{},list=LANG_NATIVE.filter(x=>x[0]==="es"||L[x[0]]);let cur=langSys();if(!list.some(x=>x[0]===cur))cur="es";
   const d=document.createElement("div");d.className="lpk";d.setAttribute("role","dialog");d.setAttribute("aria-modal","true");d.setAttribute("aria-label","Language");
   const draw=()=>{const cont=(list.find(x=>x[0]===cur)||list[0])[2];
-    d.innerHTML=`<div class="lpb"><div class="lpl"><svg viewBox="0 0 120 120"><use href="#logo"/></svg></div><h2>Nova Launcher</h2><p>Idioma · Language · Langue · Sprache · Lingua</p><div class="lpg">${list.map(x=>`<button type="button" class="${x[0]===cur?"on":""}" data-l="${x[0]}">${x[1]}</button>`).join("")}</div><button type="button" class="lpc" id="lpc">${cont} →</button></div>`;};
+    d.innerHTML=`<div class="lpb"><div class="lpl"><svg viewBox="0 0 120 120"><use href="#logo"/></svg></div><h2>Nova Launcher</h2><p>Idioma · Language · Langue · Sprache · Lingua</p><div class="lpg">${list.map(x=>`<button type="button" class="${x[0]===cur?"on":""}" data-l="${x[0]}">${langFlag(x[0])}<span>${x[1]}</span></button>`).join("")}</div><button type="button" class="lpc" id="lpc">${cont} →</button></div>`;};
   draw();document.body.appendChild(d);
   const go=async()=>{
     const v=cur,A=window.api;langStore(v);

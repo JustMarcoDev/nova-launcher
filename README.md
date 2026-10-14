@@ -108,6 +108,11 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 
 ## Historial de actualizaciones
 
+### 0.2.14-beta.2 — Banderas en la selección de idioma
+
+**Añadido**
+- Cada idioma lleva su bandera (dibujada en el propio launcher, porque Windows no muestra los emojis de bandera) en el selector del primer arranque y en Ajustes → Interfaz
+
 ### 0.2.14-beta.1 — Idiomas, preparación en segundo plano, limpieza de espacio e instancias en lista
 
 **Añadido**

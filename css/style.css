@@ -434,3 +434,5 @@ button.pl{font:inherit;color:inherit;cursor:pointer}button.pl:hover{border-color
 .lpg button.on{border-color:var(--ac);background:color-mix(in srgb,var(--ac) 16%,transparent);box-shadow:0 0 0 1px var(--ac) inset}
 .lpc{width:100%;padding:13px;border:0;border-radius:calc(12px*var(--rs,1));background:var(--ac);color:#04120a;font:inherit;font-weight:800;cursor:pointer}
 .lpg button:focus-visible,.lpc:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.flg{width:24px;height:16px;border-radius:3px;box-shadow:0 0 0 1px rgba(255,255,255,.2);flex:none;vertical-align:-3px;margin-right:8px}
+.lpg button{display:flex;align-items:center;justify-content:center;gap:10px}.lpg .flg{width:30px;height:20px;margin:0}
