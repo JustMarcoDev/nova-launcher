@@ -18,6 +18,7 @@ contextBridge.exposeInMainWorld('api', {
   settingsExport: o => r.invoke('settings:export', o), settingsImport: () => r.invoke('settings:import'),
   worldLast: () => r.invoke('world:last'), diag: id => r.invoke('diag:run', id),
   dqState: () => r.invoke('dq:state'), dqPause: on => r.invoke('dq:pause', on), dqCancel: () => r.invoke('dq:cancel'), dqLimit: mb => r.invoke('dq:limit', mb),
+  prepRun: q => r.invoke('prep:run', q), prepState: () => r.invoke('prep:state'), cleanScan: () => r.invoke('clean:scan'), cleanRun: ids => r.invoke('clean:run', ids),
   dropInspect: p => r.invoke('drop:inspect', p), dropInstall: o => r.invoke('drop:install', o), filePath: f => { try { return webUtils.getPathForFile(f); } catch { return ''; } },
   win: a => r.send('win', a), on: (ch, f) => r.on(ch, (e, d) => f(d))
 });

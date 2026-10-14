@@ -232,6 +232,7 @@ ipcMain.handle('play', async (e, { id, server, world }) => {
     if (!ins) throw new Error('Instancia no encontrada');
     if (running.has(id)) throw new Error('Esta instancia ya está en ejecución');
     const dir = path.join(root, 'instances', id); fs.mkdirSync(dir, { recursive: true });
+    if (PREPP) { send('status', 'Terminando la preparación…'); try { await PREPP; } catch {} }
     let auth; const { act } = accState(cfg);
     if (act.type === 'microsoft') {
       try { const x = await new Auth('select_account').refresh(act.token); auth = (await x.getMinecraft()).mclc(); const st = accState(); saveAcc(st.a.map(z => z.id === act.id ? { ...z, token: x.save() } : z), act.id); }
@@ -449,6 +450,9 @@ ipcMain.handle('inst:update', (e, { id, patch }) => {
   if ('loaderVersion' in q) p.loaderVersion = String(q.loaderVersion || '').trim();
   if ('gpu' in q) p.gpu = q.gpu === 'high' ? 'high' : '';
   if ('jvmPreset' in q) p.jvmPreset = ['rendimiento', 'tirones'].includes(q.jvmPreset) ? q.jvmPreset : '';
+  if ('fav' in q) p.fav = !!q.fav;
+  if ('note' in q) p.note = String(q.note || '').slice(0, 600);
+  if ('tags' in q) p.tags = [...new Set((Array.isArray(q.tags) ? q.tags : String(q.tags || '').split(',')).map(t => String(t).trim().replace(/\s+/g, ' ').slice(0, 24)).filter(Boolean))].slice(0, 8);
   wr(insFile, li().map(i => i.id === String(id) ? { ...i, ...p } : i)); return getIns(id);
 });
 ipcMain.handle('inst:dup', async (e, id) => {
@@ -981,4 +985,135 @@ ipcMain.handle('drop:install', async (e, { path: f, kind, inst }) => {
   if (kind === 'world') { const ins = getIns(inst), r = await importWorldZips([f], ins.id); return { kind, name: r.names.join(', '), inst: ins.name }; }
   if (kind === 'modpack' || kind === 'instance') { const r = await importInstanceFile(f); return { kind, name: r.ins.name, failed: r.failed || [] }; }
   throw new Error('Tipo no reconocido');
+});
+
+// ===== 0.2.14: preparar antes de jugar, limpieza de espacio =====
+const { EventEmitter } = require('events');
+let PREPP = null, PREPQ = null; const PREPD = new Set(); let PREPLAST = null;
+const prepKey = r => [r.mc, r.ld || 'Vanilla', r.loaderVersion || ''].join('|');
+async function prepRun(r) {
+  const cfg = load(), key = prepKey(r), mc = String(r.mc || ''), ld = ['Fabric', 'Forge', 'NeoForge'].includes(r.ld) ? r.ld : 'Vanilla';
+  const pr = (state, extra) => send('prep', { state, mc, ld, ...extra });
+  if (!mc || !/^[\w.\-+ ]{1,40}$/.test(mc)) return pr('error', { msg: 'Versión no válida' });
+  if (PREPD.has(key)) return pr('done', {});
+  if (!(await isOnline())) return pr('offline', {});
+  pr('start', { pct: 0 }); PREPLAST = mc;
+  try {
+    const java = await javaFor(mc, { javaPath: cfg.javaPath });
+    const o = { authorization: Authenticator.getAuth('Nova'), root, javaPath: java, version: { number: mc, type: r.type === 'release' ? 'release' : 'snapshot' },
+      overrides: { gameDirectory: path.join(root, 'instances', '.prep') }, memory: { max: '1G', min: '256M' } };
+    if (ld === 'Fabric') o.version.custom = await fabric(mc, r.loaderVersion);
+    if (ld === 'Forge' || ld === 'NeoForge') o.version.custom = await forge(ld, mc, java, r.loaderVersion);
+    const l = new Client();
+    l.startMinecraft = () => { const f = new EventEmitter(); f.stdout = new EventEmitter(); f.stderr = new EventEmitter(); f.pid = 0; f.kill = () => {}; return f; };
+    l.on('progress', p => { if (p && p.total) pr('progress', { pct: Math.min(99, Math.round(p.task / p.total * 100)) }); });
+    const res = await l.launch(o);
+    if (!res) throw new Error('No se pudo preparar');
+    try { fs.rmSync(path.join(root, 'instances', '.prep'), { recursive: true, force: true }); } catch {}
+    PREPD.add(key); pr('done', {});
+  } catch (e) { pr('error', { msg: String(e && e.message || e) }); }
+}
+ipcMain.handle('prep:run', (e, r) => {
+  r = r || {}; if (load().prefetch === false || running.size) return { skipped: true };
+  if (PREPP) { PREPQ = r; return { queued: true }; }
+  const go = req => { PREPP = prepRun(req).finally(() => { PREPP = null; const n = PREPQ; PREPQ = null; if (n && prepKey(n) !== prepKey(req)) go(n); }); };
+  go(r); return { started: true };
+});
+ipcMain.handle('prep:state', () => ({ busy: !!PREPP, last: PREPLAST }));
+
+const D = { day: 864e5 };
+async function walkFiles(dir, out = [], rel = '') {
+  let es; try { es = await fs.promises.readdir(dir, { withFileTypes: true }); } catch { return out; }
+  for (const e of es) { const r = rel ? rel + '/' + e.name : e.name, p = path.join(dir, e.name); if (e.isDirectory()) await walkFiles(p, out, r); else { try { const st = await fs.promises.stat(p); out.push({ rel: r, p, size: st.size, mtime: st.mtimeMs }); } catch {} } }
+  return out;
+}
+const mavenDir = n => { const [g, a, v] = String(n).split(':'); return g && a && v ? g.replace(/\./g, '/') + '/' + a + '/' + v.split('@')[0] : null; };
+function usedVersionDirs() {
+  const vd = path.join(root, 'versions'); let have = []; try { have = fs.readdirSync(vd, { withFileTypes: true }).filter(d => d.isDirectory()).map(d => d.name); } catch {}
+  const used = new Set();
+  for (const i of li()) {
+    used.add(i.mc);
+    for (const d of have) {
+      if (i.ld === 'Fabric' && d.startsWith('fabric-loader-') && d.endsWith('-' + i.mc)) used.add(d);
+      if (i.ld === 'Forge' && d.startsWith(i.mc + '-forge')) used.add(d);
+      if (i.ld === 'NeoForge' && nfC(i.mc).some(c => d.startsWith('neoforge-' + c))) used.add(d);
+    }
+  }
+  if (PREPLAST) used.add(PREPLAST);
+  for (const d of have) { try { if (Date.now() - fs.statSync(path.join(vd, d)).mtimeMs < 2 * D.day) used.add(d); } catch {} }
+  return { have, used };
+}
+function usedLibDirs(usedVers) {
+  const dirs = new Set(), arts = new Set(), seen = new Set();
+  const add = v => {
+    if (seen.has(v)) return; seen.add(v);
+    let j; try { j = JSON.parse(fs.readFileSync(path.join(root, 'versions', v, v + '.json'), 'utf8')); } catch { return; }
+    for (const lib of j.libraries || []) {
+      const dn = mavenDir(lib.name); if (dn) { dirs.add(dn); arts.add(dn.split('/').slice(0, -1).join('/')); }
+      const d = lib.downloads || {}; if (d.artifact && d.artifact.path) dirs.add(path.posix.dirname(d.artifact.path));
+      for (const c of Object.values(d.classifiers || {})) if (c && c.path) dirs.add(path.posix.dirname(c.path));
+    }
+    if (j.inheritsFrom) add(j.inheritsFrom);
+  };
+  for (const v of usedVers) add(v);
+  return { dirs, arts };
+}
+const PROT = ['net/minecraftforge/', 'net/neoforged/', 'net/minecraft/', 'de/oceanlabs/', 'cpw/'];
+async function cleanScan() {
+  const cats = [], now = Date.now();
+  // 1) versiones sin uso
+  const { have, used } = usedVersionDirs(), vd = path.join(root, 'versions'), unusedV = have.filter(d => !used.has(d));
+  const vItems = []; for (const d of unusedV) vItems.push({ p: path.join(vd, d), name: d, size: await dirSize(path.join(vd, d)) });
+  cats.push({ id: 'versions', title: 'Versiones de Minecraft sin uso', desc: 'Versiones y cargadores que ninguna instancia usa. Se descargan otra vez si los necesitas.', items: vItems });
+  // 2) librerías sin uso
+  const ld = path.join(root, 'libraries'), keepVers = have.filter(d => used.has(d)), { dirs, arts } = usedLibDirs(keepVers);
+  const protectLoader = li().some(i => i.ld === 'Forge' || i.ld === 'NeoForge') || keepVers.some(d => /forge/i.test(d));
+  const libFiles = await walkFiles(ld), byDir = new Map();
+  for (const f of libFiles) {
+    const dn = path.posix.dirname(f.rel); if (dirs.has(dn)) continue;
+    if (protectLoader && PROT.some(x => f.rel.startsWith(x))) continue;
+    if (now - f.mtime < 2 * D.day) continue;
+    const e = byDir.get(dn) || { p: path.join(ld, ...dn.split('/')), name: dn, size: 0 }; e.size += f.size; byDir.set(dn, e);
+  }
+  cats.push({ id: 'libs', title: 'Librerías sin uso', desc: 'Archivos de versiones antiguas de librerías que ya no necesita ninguna versión instalada.', items: [...byDir.values()] });
+  // 3) copias de seguridad antiguas
+  const bItems = [], br = path.join(root, 'backups'); let bd = []; try { bd = fs.readdirSync(br, { withFileTypes: true }).filter(d => d.isDirectory()).map(d => d.name); } catch {}
+  const ids = new Set(li().map(i => i.id));
+  for (const id of bd) {
+    const fl = bkList(id);
+    fl.forEach((f, k) => { if (!ids.has(id) || (k >= 2 && now - f.date > 30 * D.day)) bItems.push({ p: path.join(br, id, f.file), name: (ids.has(id) ? '' : '(instancia borrada) ') + f.file, size: f.size }); });
+  }
+  cats.push({ id: 'backups', title: 'Copias de seguridad antiguas', desc: 'Copias de más de 30 días (se conservan las 2 últimas de cada instancia) y las de instancias ya borradas.', items: bItems });
+  // 4) registros e informes viejos
+  const lItems = [], lg = path.join(root, 'logs'); let lf = []; try { lf = fs.readdirSync(lg).filter(x => x.endsWith('.log')).map(x => ({ x, st: fs.statSync(path.join(lg, x)) })).sort((a, b) => b.st.mtimeMs - a.st.mtimeMs); } catch {}
+  lf.forEach((f, k) => { if (k >= 5 && now - f.st.mtimeMs > 14 * D.day) lItems.push({ p: path.join(lg, f.x), name: f.x, size: f.st.size }); });
+  for (const i of li()) for (const sub of ['crash-reports', 'logs']) {
+    const cd = path.join(iDir(i.id), sub); let es = []; try { es = fs.readdirSync(cd); } catch {}
+    for (const x of es) { if (x === 'latest.log') continue; try { const st = fs.statSync(path.join(cd, x)); if (st.isFile() && now - st.mtimeMs > 30 * D.day) lItems.push({ p: path.join(cd, x), name: i.name + ' · ' + x, size: st.size }); } catch {} }
+  }
+  cats.push({ id: 'logs', title: 'Registros e informes de fallos viejos', desc: 'Registros del launcher de más de 14 días (se conservan los 5 últimos) e informes de fallos de más de 30 días.', items: lItems });
+  // 5) temporales
+  const tItems = []; for (const t of [path.join(root, 'installer.jar'), path.join(root, 'instances', '.prep')]) { try { const st = fs.statSync(t); tItems.push({ p: t, name: path.basename(t), size: st.isDirectory() ? await dirSize(t) : st.size }); } catch {} }
+  cats.push({ id: 'temp', title: 'Archivos temporales', desc: 'Restos de instalaciones y de la preparación en segundo plano.', items: tItems });
+  return cats;
+}
+ipcMain.handle('clean:scan', async () => {
+  const cats = await cleanScan();
+  return { running: running.size > 0, cats: cats.map(c => ({ id: c.id, title: c.title, desc: c.desc, count: c.items.length, size: c.items.reduce((a, b) => a + b.size, 0), sample: c.items.slice(0, 4).map(x => x.name) })) };
+});
+ipcMain.handle('clean:run', async (e, ids) => {
+  if (running.size) throw new Error('Cierra Minecraft antes de limpiar');
+  if (PREPP) { try { await PREPP; } catch {} }
+  const want = new Set(Array.isArray(ids) ? ids.map(String) : []); let freed = 0, n = 0;
+  const cats = await cleanScan(), base = path.resolve(root);
+  for (const c of cats) {
+    if (!want.has(c.id)) continue;
+    for (const it of c.items) {
+      const t = path.resolve(it.p); if (!t.startsWith(base + path.sep)) continue;
+      try { fs.rmSync(t, { recursive: true, force: true }); freed += it.size; n++; } catch {}
+    }
+    if (c.id === 'libs') { const prune = d => { let es; try { es = fs.readdirSync(d, { withFileTypes: true }); } catch { return; } for (const x of es) if (x.isDirectory()) prune(path.join(d, x.name)); try { if (!fs.readdirSync(d).length && path.resolve(d) !== path.join(base, 'libraries')) fs.rmdirSync(d); } catch {} }; prune(path.join(root, 'libraries')); }
+    if (c.id === 'versions') PREPD.clear();
+  }
+  return { freed, count: n };
 });

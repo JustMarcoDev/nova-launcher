@@ -25,9 +25,35 @@ instExport:async()=>({ok:true,file:"demo.mrpack"}),instImport:async()=>({cancele
 packVersions:async()=>[{id:"p3",name:"Fabulously Optimized 10.0",num:"10.0.0",mc:["1.21","1.21.1"],ld:["fabric"],date:"2026-09-30T10:00:00Z",type:"release"},{id:"p2",name:"Fabulously Optimized 9.5",num:"9.5.0",mc:["1.20.4","1.20.6"],ld:["fabric"],date:"2026-06-12T10:00:00Z",type:"release"},{id:"p1",name:"Beta 11.0",num:"11.0.0-beta.2",mc:["1.21.4"],ld:["fabric"],date:"2026-10-05T10:00:00Z",type:"beta"}],
 pack:async()=>({failed:[]}),delInst:async id=>{I=I.filter(x=>x.id!==id)},sys:async()=>({total:16})};
 // --- Tarjetas de instancias ---
+let iQ="",iTag="";
+const INS_SORT={last:"Último uso",name:"Nombre",time:"Tiempo jugado"};
+function insOrder(L,sort){
+  const cmp={name:(a,b)=>String(a.name).localeCompare(String(b.name)),last:(a,b)=>(b.lastPlayed||0)-(a.lastPlayed||0)||String(a.name).localeCompare(String(b.name)),time:(a,b)=>(b.playMs||0)-(a.playMs||0)||String(a.name).localeCompare(String(b.name))}[sort]||(()=>0);
+  return [...L].sort((a,b)=>(!!b.fav-!!a.fav)||cmp(a,b));
+}
+function insRow(i){
+  const ic=i.icon&&ICS.includes(i.icon)?i.icon:"box";
+  return `<div class="ir ${i.fav?"fav":""}" data-i="${esc(i.id)}" style="${i.color?"--ic:"+esc(i.color):""}"><button class="star ${i.fav?"on":""}" data-a="fav" type="button" title="${i.fav?"Quitar de favoritas":"Fijar arriba como favorita"}" aria-label="Favorita">${i.fav?"★":"☆"}</button><div class="iic">${IC(ic)}</div><div class="im"><div class="t"><span class="tn">${esc(i.name)}</span>${(i.tags||[]).map(t=>`<span class="etq" data-t="${esc(t)}">${esc(t)}</span>`).join("")}</div><div class="s">${esc(i.ld||"Vanilla")} · ${esc(i.mc)}${i.ram?" · "+i.ram+" GB":""}</div>${i.note?`<div class="nt">${esc(i.note)}</div>`:""}</div><div class="ip s">${esc(plLine(i))}</div><div class="a"><button class="btn pr sm" data-a="play">Jugar</button><button class="btn sm" data-a="mods">Mods</button><button class="btn sm" data-a="shots">Capturas</button><button class="btn sm" data-a="opt">Opciones</button></div></div>`;
+}
 function ri(){
-$("il").innerHTML=I.length?I.map(i=>`<div class="ins" data-i="${i.id}" style="${i.color?"--ic:"+esc(i.color):""}"><div class="ih"><div class="iic">${IC(i.icon&&ICS.includes(i.icon)?i.icon:"box")}</div><div style="min-width:0"><div class="t">${esc(i.name)}</div><div class="s">${esc(i.ld||"Vanilla")} · ${esc(i.mc)}${i.ram?" · "+i.ram+" GB":""}</div><div class="s pt">${esc(plLine(i))}</div></div></div><div class="a"><button class="btn pr" data-a="play">Jugar</button><button class="btn" data-a="mods">Mods</button><button class="btn" data-a="shots">Capturas</button><button class="btn" data-a="opt">Opciones</button></div></div>`).join(""):'<div style="color:var(--m)">Todavía no tienes instancias. Elige una versión y pulsa Lanzar juego, o importa un modpack.</div>';
-$("il").onclick=e=>{const b=e.target.closest("button[data-a]");if(!b)return;const id=b.closest(".ins").dataset.i,i=I.find(x=>x.id===id),a=b.dataset.a;if(!i)return;if(a==="play"){pick(i.mc,i.type||"release",i.ld);sel.inst=i.id;show("home");play(i.id)}else if(a==="mods")openMods(id);else if(a==="shots")openShots(id);else openOpts(id)}}
+  const sort=cfg.instSort||"last",tags=[...new Set(I.flatMap(i=>i.tags||[]))].sort((a,b)=>a.localeCompare(b));
+  if(iTag&&!tags.includes(iTag))iTag="";
+  chips($("iso"),Object.entries(INS_SORT).map(([k,n])=>[k,esc(n)]),sort,k=>{sv({instSort:k});ri()});
+  $("itg").style.display=tags.length?"flex":"none";
+  chips($("itg"),[["",esc("Todas")],...tags.map(t=>[esc(t),esc(t)])],esc(iTag),k=>{iTag=k?tags.find(t=>esc(t)===k)||"":"";ri()});
+  const L=insOrder(I.filter(i=>(!iTag||(i.tags||[]).includes(iTag))&&(!iQ||[i.name,i.note,(i.tags||[]).join(" "),i.mc,i.ld].join(" ").toLowerCase().includes(iQ))),sort);
+  let h="";
+  if(!I.length)h='<div style="color:var(--m)">Todavía no tienes instancias. Elige una versión y pulsa Lanzar juego, o importa un modpack.</div>';
+  else if(!L.length)h='<div style="color:var(--m)">Ninguna instancia coincide.</div>';
+  else{const nf=L.filter(i=>i.fav).length;L.forEach((i,k)=>{if(nf&&k===0)h+='<div class="isep">Favoritas</div>';if(nf&&k===nf&&nf<L.length)h+='<div class="isep">Otras instancias</div>';h+=insRow(i)})}
+  $("il").innerHTML=h;
+}
+$("iq").oninput=()=>{iQ=$("iq").value.trim().toLowerCase();ri()};
+$("il").onclick=async e=>{
+  const tg=e.target.closest(".etq");if(tg){iTag=tg.dataset.t;ri();return}
+  const b=e.target.closest("button[data-a]");if(!b)return;const id=b.closest(".ir").dataset.i,i=I.find(x=>x.id===id),a=b.dataset.a;if(!i)return;
+  if(a==="fav"){try{await(A||DA).instUpdate(id,{fav:!i.fav});await loadI()}catch(x){flash(em(x))}return}
+  if(a==="play"){pick(i.mc,i.type||"release",i.ld);sel.inst=i.id;show("home");play(i.id)}else if(a==="mods")openMods(id);else if(a==="shots")openShots(id);else openOpts(id)};
 $("ish").onclick=()=>openShots("all");$("imo2").onclick=()=>openImport();
 $("imp").onclick=async()=>{if(!A){flash("Vista previa: en la app puedes importar un .mrpack o un .zip de Nova Launcher");return}
 const b=$("imp");b.disabled=true;try{const r=await A.instImport();if(r&&!r.canceled){await loadI();flash("Instancia importada: "+r.ins.name+(r.failed&&r.failed.length?" (faltan "+r.failed.length+" archivos)":""))}}catch(e){flash("No se pudo importar: "+em(e))}finally{b.disabled=false}};
@@ -60,6 +86,8 @@ const d=modal(hdr(ins,"Opciones de la instancia",esc(ins.ld||"Vanilla")+" · "+e
 <div class="fr"><label>Color</label><div class="cs2" id="ocl"><div class="sw2 ${col?"":"on"}" data-c="" style="background:var(--ac)" title="Color del launcher"></div>${ICOL.map(c=>`<div class="sw2 ${col===c?"on":""}" data-c="${c}" style="background:${c}"></div>`).join("")}</div></div>
 <div class="fr"><label>Memoria RAM</label><div class="rr"><input type="range" id="orm" min="0" max="${Math.max(2,Math.min(32,tot))}" step="1" value="${ins.ram||0}"><b id="orv"></b></div></div>
 <div class="fr"><label>Java</label><input id="oj" type="text" placeholder="Vacío = el de Ajustes (o Java automático)" value="${esc(ins.javaPath||"")}"></div>
+<div class="fr"><label>Etiquetas</label><input id="otg" type="text" maxlength="120" placeholder="Survival, Pruebas… (separadas por comas)" value="${esc((ins.tags||[]).join(", "))}"></div>
+<div class="fr"><label>Nota</label><textarea id="ont" rows="2" maxlength="600" placeholder="Para qué usas esta instancia, mods que faltan…">${esc(ins.note||"")}</textarea></div>
 <div class="fr"><label>Ajustes de Java</label><select id="ojp"><option value="">Normales</option><option value="rendimiento" ${ins.jvmPreset==="rendimiento"?"selected":""}>Rendimiento</option><option value="tirones" ${ins.jvmPreset==="tirones"?"selected":""}>Pocos tirones</option></select></div>
 <div class="fr"><label>Tarjeta gráfica</label><select id="ogp"><option value="">Automática</option><option value="high" ${ins.gpu==="high"?"selected":""}>Usar la más potente</option></select></div><small class="hint" style="margin:-6px 0 12px 142px">En portátiles con dos tarjetas gráficas obliga a Java a usar la dedicada (Windows 10/11).</small>
 ${hasL?`<div class="fr"><label>Versión de ${esc(ins.ld)}</label><select id="olv"><option value="">Cargando…</option></select></div>`:""}
@@ -71,7 +99,7 @@ $("ocl").onclick=e=>{const b=e.target.closest(".sw2");if(!b)return;col=b.dataset
 if(hasL)(async()=>{const s=$("olv");let L=[];try{L=await api.loaderVersions({ld:ins.ld,mc:ins.mc})}catch{}if(!$("olv"))return;
 const cur=ins.loaderVersion||"";if(cur&&!L.some(x=>x.v===cur))L.unshift({v:cur,stable:true});
 s.innerHTML=`<option value="">Automática (recomendada)</option>`+L.map((x,k)=>`<option value="${esc(x.v)}" ${x.v===cur?"selected":""}>${esc(x.v)}${x.stable?"":" (beta)"}${k===0&&!cur?"":""}</option>`).join("");if(!L.length)s.title="No se pudo cargar la lista (¿sin conexión?)"})();
-$("osv").onclick=async()=>{const b=$("osv");b.disabled=true;const p={name:$("on").value.trim()||ins.name,icon:ic,color:col,ram:+$("orm").value,javaPath:$("oj").value.trim(),jvmPreset:$("ojp").value,gpu:$("ogp").value};if(hasL&&$("olv"))p.loaderVersion=$("olv").value;
+$("osv").onclick=async()=>{const b=$("osv");b.disabled=true;const p={name:$("on").value.trim()||ins.name,icon:ic,color:col,ram:+$("orm").value,javaPath:$("oj").value.trim(),jvmPreset:$("ojp").value,gpu:$("ogp").value,tags:$("otg").value,note:$("ont").value.trim()};if(hasL&&$("olv"))p.loaderVersion=$("olv").value;
 try{await api.instUpdate(id,p);await loadI();closeModal();flash("Cambios guardados")}catch(e){b.disabled=false;flash(em(e))}};
 d.querySelector(".acts2").onclick=async e=>{const b=e.target.closest("button[data-a]");if(!b)return;const a=b.dataset.a;
 try{if(a==="fo"){if(A)A.instOpen(id,"");else flash("Vista previa: se abriría la carpeta de la instancia")}

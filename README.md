@@ -81,21 +81,21 @@ La pestaña **Servidores** (Alt + 4) muestra servidores conocidos con jugadores 
 ## Publicar con notas automáticas, canal Beta y volver atrás (desde la 0.2.12)
 
 - **Notas de la release:** el flujo **Crear version** (`.github/workflows/release.yml`) copia a la página de la versión la entrada de ese número en «Historial de actualizaciones» de este README (la saca `scripts/release-notes.js`). Por eso hay que escribir la entrada **antes** de ejecutar el flujo.
-- **Beta:** si la versión de `package.json` lleva guion (por ejemplo `0.2.13-beta.1`), el flujo la publica como *pre-release*. Solo la reciben los launchers con Ajustes → Rendimiento → Canal de actualizaciones = **Beta**. Los de **Estable** la ignoran. Para una beta sin entrada propia se usa la de la versión sin el sufijo.
+- **Beta:** si la versión de `package.json` lleva guion (por ejemplo `0.2.14-beta.1`), el flujo la publica como *pre-release*. Solo la reciben los launchers con Ajustes → Rendimiento → Canal de actualizaciones = **Beta**. Los de **Estable** la ignoran. Para una beta sin entrada propia se usa la de la versión sin el sufijo.
 - **Volver a la versión anterior:** Ajustes → Acerca de → Volver a una versión anterior. Lista las releases de GitHub más antiguas que la instalada y ejecuta su instalador. Para que no se actualice sola otra vez, desactiva «Buscar actualizaciones al abrir»; vuelve a activarlo en Ajustes → Rendimiento cuando quieras.
 
 ## Probar versiones beta con otras personas
 
-1. Publica la versión con guion en `package.json` (por ejemplo `0.2.13-beta.1`) y ejecuta **Crear version**. Queda como *pre-release* en GitHub.
+1. Publica la versión con guion en `package.json` (por ejemplo `0.2.14-beta.1`) y ejecuta **Crear version**. Queda como *pre-release* en GitHub.
 2. Quien quiera probarla entra en **Ajustes → Rendimiento → Canal de actualizaciones** y elige **Beta**; después pulsa **Acerca de → Buscar actualizaciones**. También puede descargar el instalador directamente desde la página de la release.
-3. Quien siga en **Estable** no ve las betas. Cuando publiques una versión normal (`0.2.13`), los de Beta la reciben igual.
+3. Quien siga en **Estable** no ve las betas. Cuando publiques una versión normal (`0.2.14`), los de Beta la reciben igual.
 4. Si el repositorio es público, cualquiera puede activar Beta. Para que solo entren personas concretas, repartes tú el aviso (Discord, grupo…) y no lo anuncias fuera. El launcher no tiene lista de invitados.
 
 ## Revisión automática, idiomas y archivos (desde la 0.2.13)
 
 - **Revisión antes de publicar.** «Crear version» ahora ejecuta `npm test` (sintaxis, archivos enlazados, canales entre la app y la interfaz, versión, notas y traducciones, y una prueba de la interfaz en un navegador simulado) y `npm run smoke` (abre la app de verdad y mira que cargue sin errores). Si algo falla, el instalador no se sube. El flujo «Revision» hace lo mismo en cada `git push`, sin publicar nada.
 - **Estructura.** `index.html` solo tiene el esqueleto; los estilos están en `css/style.css` y el código en `js/` (un archivo por pestaña o función). Se cargan en el orden que marca `index.html`.
-- **Idiomas.** El español es la base. Cada idioma es un archivo en `lang/` (mira `lang/en.js`): la clave es el texto en español y el valor su traducción; `{1}`, `{2}`… son partes variables. Para añadir uno, copia `lang/en.js`, cambia `en` por su código, traduce y enlázalo en `index.html` antes de `js/idioma.js`. Lo que no esté traducido se ve en español.
+- **Idiomas.** El español es la base. Hay seis: `es` (España), `es-419` (Latinoamérica, solo cambia las palabras distintas), `en`, `fr`, `de`, `it` y `pt`. Las traducciones están escritas con IA y no las ha revisado nadie nativo: si ves algo raro, corrígelo en su archivo de `lang/`. Cada idioma es un archivo en `lang/` (mira `lang/en.js`): la clave es el texto en español y el valor su traducción; `{1}`, `{2}`… son partes variables. Para añadir uno, copia `lang/en.js`, cambia `en` por su código, traduce y enlázalo en `index.html` antes de `js/idioma.js`. Lo que no esté traducido se ve en español.
 - **Descargas.** El cuadro de pausa, cancelar y límite controla lo que descarga el propio launcher (Java, mods, modpacks, instaladores). Los archivos del juego que baja Minecraft por su cuenta no pasan por él.
 
 ## Aviso legal
@@ -107,6 +107,18 @@ Nova Launcher es un proyecto independiente de **Astrion Studio**. © 2026 Astrio
 Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión del launcher, para saber de un vistazo qué se ha **añadido**, qué se ha **mejorado** y qué se ha **quitado**. Cada vez que se publique una versión nueva hay que añadir una entrada al principio de la lista de abajo. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**.
 
 ## Historial de actualizaciones
+
+### 0.2.14-beta.1 — Idiomas, preparación en segundo plano, limpieza de espacio e instancias en lista
+
+**Añadido**
+- Seis idiomas: español (España), español (Latinoamérica), English (US), français, Deutsch, italiano y português; la primera vez que se abre el launcher aparece un selector (viene marcado el idioma del sistema) y después se cambia en Ajustes → Interfaz
+- Preparar antes de jugar: al elegir una versión en la portada se descarga en segundo plano lo que falte (Java, librerías y cargador); al pulsar Lanzar el juego se abre casi al instante (se puede desactivar en Ajustes → Rendimiento)
+- Limpieza de espacio (Ajustes → Juego): detecta versiones y librerías que ninguna instancia usa, copias de seguridad antiguas y registros viejos, y los borra con un clic indicando cuánto espacio se libera
+- Instancias: favoritas fijadas arriba (★), etiquetas («Survival», «Pruebas»), nota por instancia y orden por nombre, último uso o tiempo jugado
+
+**Mejorado**
+- Las instancias se muestran en lista en vez de en recuadros, con búsqueda y filtro por etiqueta
+- La limpieza es prudente: no toca nada de lo que usa alguna instancia, nada con menos de 2 días y se niega a borrar mientras Minecraft está abierto
 
 ### 0.2.13 — Sin conexión, descargas, diagnóstico, arrastrar y soltar e inglés
 
