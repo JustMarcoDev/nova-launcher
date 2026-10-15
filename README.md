@@ -108,6 +108,12 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 
 ## Historial de actualizaciones
 
+### 0.2.14-beta.5 — Publicación más fiable
+
+**Mejorado**
+- Incluye todo lo de la 0.2.14-beta.4 (idioma bajo demanda, disco sin bloqueos y Electron 44)
+- La publicación de versiones ya no se atasca si queda una release a medias de un intento anterior
+
 ### 0.2.14-beta.4 — Optimización: arranque más rápido y sin congelaciones
 
 **Mejorado**
