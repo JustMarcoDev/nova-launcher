@@ -49,3 +49,12 @@ $("qi").querySelectorAll(".row").forEach(r=>r.onclick=()=>{const i=I.find(x=>x.i
 // Jugar
 $("go").onclick=()=>play();
 async function play(id){if(!A){$("st").textContent="Vista previa: instala la app de escritorio para jugar";return}$("go").disabled=true;try{const i=id?I.find(x=>x.id===id):await ensure();if(i)await A.play({id:i.id})}finally{$("go").disabled=false}}
+// Carga diferida: estos archivos (type="lazy" en index.html) solo se cargan la primera vez que se necesitan
+const LZ={};
+function lazyLoad(n){return LZ[n]||(LZ[n]=new Promise((ok,no)=>{const el=document.querySelector('script[type="lazy"][src="js/'+n+'.js"],script[type="lazy"][data-f="js/'+n+'.js"]');if(!el){no(new Error("Falta "+n));return}
+  const s=document.createElement("script");if(el.textContent.trim()){s.text=el.textContent;document.head.appendChild(s);ok();return}
+  s.onload=()=>ok();s.onerror=()=>{delete LZ[n];no(new Error("No se pudo cargar "+n+".js"))};s.src=el.getAttribute("src");document.head.appendChild(s)}))}
+function lazyFn(n,names){for(const f of names){const stub=(...a)=>lazyLoad(n).then(()=>{if(window[f]===stub)throw new Error("No se pudo cargar "+n);return window[f](...a)});window[f]=stub}}
+lazyFn("limpieza",["openClean"]);lazyFn("asistente",["openNews","openWizard","startup212"]);
+// Ctrl + K abre el buscador: la primera vez se carga su archivo
+addEventListener("keydown",function lk(e){if(LZ.buscador)return;if(e.ctrlKey&&!e.altKey&&e.key.toLowerCase()==="k"&&(typeof cfg==="undefined"||cfg.shortcuts!==false)){e.preventDefault();lazyLoad("buscador").then(()=>palOpen(true)).catch(()=>{})}});

@@ -5,6 +5,7 @@ const { Auth } = require('msmc');
 const root = path.join(app.getPath('appData'), '.nova');
 const cfgFile = path.join(root, 'config.json'), insFile = path.join(root, 'instances.json');
 const DEF = { username: 'Jugador', ram: 4, javaPath: '', width: 1280, height: 720, fullscreen: false, jvmArgs: '', closeOnLaunch: false, cfKey: '', ms: null };
+const fsp = fs.promises, rmAsync = (p) => fsp.rm(p, { recursive: true, force: true });
 const rd = (f, d) => { try { return JSON.parse(fs.readFileSync(f)); } catch { return d; } };
 const wr = (f, d) => { fs.mkdirSync(root, { recursive: true }); fs.writeFileSync(f, JSON.stringify(d, null, 1)); };
 const load = () => ({ ...DEF, ...rd(cfgFile, {}) }), li = () => rd(insFile, []);
@@ -94,7 +95,7 @@ ipcMain.handle('open', (e, u) => { if (/^https?:\/\//i.test(String(u))) shell.op
 ipcMain.handle('http', (e, { url, headers }) => get(url, 'json', headers || {}));
 ipcMain.handle('inst:list', () => li());
 ipcMain.handle('inst:save', (e, o) => addInst(o));
-ipcMain.handle('inst:del', (e, id) => { id = String(id); if (running.has(id)) throw new Error('Cierra Minecraft antes de borrar la instancia'); wr(insFile, li().filter(i => i.id !== id)); fs.rmSync(path.join(root, 'instances', id), { recursive: true, force: true }); fs.rmSync(path.join(root, 'backups', id), { recursive: true, force: true }); });
+ipcMain.handle('inst:del', async (e, id) => { id = String(id); if (running.has(id)) throw new Error('Cierra Minecraft antes de borrar la instancia'); wr(insFile, li().filter(i => i.id !== id)); await rmAsync(path.join(root, 'instances', id)); await rmAsync(path.join(root, 'backups', id)); });
 // ---- Informes de errores de descarga (mods, modpacks): se guardan en la carpeta «errores» ----
 const errDir = () => path.join(root, 'errores');
 const p2 = n => String(n).padStart(2, '0');
@@ -138,7 +139,7 @@ ipcMain.handle('pack', async (e, a) => {
     v = vid ? await get(`https://api.modrinth.com/v2/version/${encodeURIComponent(vid)}`) : (await get(`https://api.modrinth.com/v2/project/${encodeURIComponent(pid)}/version`))[0];
     if (!v) throw new Error('Este modpack no tiene versiones');
     f = (v.files || []).find(x => x.primary) || (v.files || [])[0]; if (!f) throw new Error('La versión no tiene ningún archivo para descargar');
-    step = 'preparar la carpeta temporal'; fs.rmSync(tmp, { recursive: true, force: true }); fs.mkdirSync(tmp, { recursive: true });
+    step = 'preparar la carpeta temporal'; await rmAsync(tmp); await fsp.mkdir(tmp, { recursive: true });
     const z = path.join(tmp, 'p.zip'); send('status', 'Descargando modpack…'); step = 'descargar el modpack (' + f.filename + ')';
     await dl(f.url, z, { sha1: f.hashes && f.hashes.sha1, sha512: f.hashes && f.hashes.sha512 });
     step = 'descomprimir el modpack'; await unzipSafe(z, tmp); fs.rmSync(z, { force: true });
@@ -146,7 +147,7 @@ ipcMain.handle('pack', async (e, a) => {
   } catch (x) {
     if (x && x.cancel) throw x; x.step = x.step || step;
     throw withLog(x, logErr('modpack', x, { 'Qué se intentaba': 'Instalar el modpack ' + (v && (v.name || v.version_number) || pid), Proyecto: pid, Versión: vid || '(la más nueva)', Archivo: f && f.filename, Dirección: f && f.url }));
-  } finally { fs.rmSync(tmp, { recursive: true, force: true }); send('progress', null); }
+  } finally { await rmAsync(tmp).catch(() => {}); send('progress', null); }
 });
 async function installMrpackDir(tmp) {
   const ix = rd(path.join(tmp, 'modrinth.index.json'), null); if (!ix) throw new Error('Modpack no válido');
@@ -163,7 +164,7 @@ async function installMrpackDir(tmp) {
     prog('Modpack', ++n, list.length);
   });
   if (why.length) logErr('modpack-archivos', new Error(why.length + ' archivos no se pudieron descargar'), { 'Qué se intentaba': 'Instalar el modpack ' + (ix.name || ''), 'Archivos que fallaron': why.slice(0, 60).join('\n  ') });
-  for (const o of ['overrides', 'client-overrides']) { const ov = path.join(tmp, o); if (fs.existsSync(ov)) fs.cpSync(ov, dir, { recursive: true }); }
+  for (const o of ['overrides', 'client-overrides']) { const ov = path.join(tmp, o); if (fs.existsSync(ov)) await fsp.cp(ov, dir, { recursive: true }); }
   send('status', failed.length ? 'Modpack instalado (faltan ' + failed.length + ' archivos)' : 'Modpack instalado: ' + (ix.name || '')); notify('Modpack instalado', String(ix.name || 'Modpack') + (failed.length ? ' (faltan ' + failed.length + ' archivos)' : ' ya está listo'));
   return { ins, failed };
 }
@@ -558,32 +559,33 @@ ipcMain.handle('mods:add', async (e, id) => {
 
 // ---- Copias de seguridad de los mundos ----
 const bkRoot = id => path.join(root, 'backups', String(id));
-const bkList = id => {
-  let es = []; try { es = fs.readdirSync(bkRoot(id)).filter(x => x.endsWith('.zip')); } catch {}
-  return es.map(f => { const st = fs.statSync(path.join(bkRoot(id), f)), m = /^\d{8}-\d{6}__(.*)\.zip$/.exec(f); return { file: f, date: st.mtimeMs, size: st.size, reason: m ? m[1].replace(/-/g, ' ') : f }; }).sort((a, b) => b.date - a.date);
+const bkList = async id => {
+  let es = []; try { es = (await fsp.readdir(bkRoot(id))).filter(x => x.endsWith('.zip')); } catch {}
+  const out = []; for (const f of es) { try { const st = await fsp.stat(path.join(bkRoot(id), f)), m = /^\d{8}-\d{6}__(.*)\.zip$/.exec(f); out.push({ file: f, date: st.mtimeMs, size: st.size, reason: m ? m[1].replace(/-/g, ' ') : f }); } catch {} }
+  return out.sort((a, b) => b.date - a.date);
 };
 async function autoBackup(id, reason, force) {
   if (!force && load().autoBackup === false) return null;
-  const idir = iDir(id); let has = false; try { has = fs.readdirSync(path.join(idir, 'saves')).length > 0; } catch {}
+  const idir = iDir(id); let has = false; try { has = (await fsp.readdir(path.join(idir, 'saves'))).length > 0; } catch {}
   if (!has) return null;
-  const l = bkList(id); if (!force && l.length && Date.now() - l[0].date < 600000) return null;
+  const l = await bkList(id); if (!force && l.length && Date.now() - l[0].date < 600000) return null;
   const t = new Date(), z = n => String(n).padStart(2, '0'), st = `${t.getFullYear()}${z(t.getMonth() + 1)}${z(t.getDate())}-${z(t.getHours())}${z(t.getMinutes())}${z(t.getSeconds())}`;
   const slug = String(reason || 'manual').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'manual';
   const f = `${st}__${slug}.zip`; await zipItems(path.join(bkRoot(id), f), idir, ['saves']);
-  const keep = Math.max(1, +load().backupKeep || 8); for (const o of bkList(id).slice(keep)) fs.rmSync(path.join(bkRoot(id), o.file), { force: true });
+  const keep = Math.max(1, +load().backupKeep || 8); for (const o of (await bkList(id)).slice(keep)) await fsp.rm(path.join(bkRoot(id), o.file), { force: true });
   return f;
 }
 const bkFile = (id, f) => { f = path.basename(String(f)); const p = path.join(bkRoot(getIns(id).id), f); if (!f.endsWith('.zip') || !fs.existsSync(p)) throw new Error('Copia no encontrada'); return p; };
-ipcMain.handle('bk:list', (e, id) => { getIns(id); return bkList(id); });
+ipcMain.handle('bk:list', async (e, id) => { getIns(id); return await bkList(id); });
 ipcMain.handle('bk:create', async (e, id) => { getIns(id); send('status', 'Copiando mundos…'); try { return await autoBackup(id, 'manual', true); } finally { send('status', ''); } });
 ipcMain.handle('bk:restore', async (e, { id, file }) => {
   const z = bkFile(id, file); if (running.has(String(id))) throw new Error('Cierra Minecraft antes de restaurar');
   send('status', 'Restaurando mundos…');
-  try { await autoBackup(id, 'antes de restaurar', true); fs.rmSync(path.join(iDir(id), 'saves'), { recursive: true, force: true }); fs.mkdirSync(iDir(id), { recursive: true }); await unzip(z, iDir(id)); }
+  try { await autoBackup(id, 'antes de restaurar', true); await rmAsync(path.join(iDir(id), 'saves')); await fsp.mkdir(iDir(id), { recursive: true }); await unzip(z, iDir(id)); }
   finally { send('status', ''); }
   return true;
 });
-ipcMain.handle('bk:del', (e, { id, file }) => { fs.rmSync(bkFile(id, file), { force: true }); return true; });
+ipcMain.handle('bk:del', async (e, { id, file }) => { await fsp.rm(bkFile(id, file), { force: true }); return true; });
 ipcMain.handle('bk:open', (e, id) => { getIns(id); fs.mkdirSync(bkRoot(id), { recursive: true }); return shell.openPath(bkRoot(id)); });
 
 // ---- Exportar e importar instancias ----
@@ -601,7 +603,7 @@ ipcMain.handle('inst:export', async (e, { id, kind, worlds }) => {
       finally { fs.rmSync(meta, { force: true }); }
       return { ok: true, file: dest };
     }
-    const stage = path.join(root, 'tmp_export'); fs.rmSync(stage, { recursive: true, force: true }); fs.mkdirSync(path.join(stage, 'overrides'), { recursive: true });
+    const stage = path.join(root, 'tmp_export'); await rmAsync(stage); await fsp.mkdir(path.join(stage, 'overrides'), { recursive: true });
     try {
       const md = path.join(dir, 'mods'); let jars = []; try { jars = fs.readdirSync(md).filter(f => /\.jar$/i.test(f)); } catch {}
       const info = jars.map(f => { const b = fs.readFileSync(path.join(md, f)); return { f, sha1: hashOf(b, 'sha1'), sha512: hashOf(b, 'sha512'), size: b.length }; });
@@ -618,11 +620,11 @@ ipcMain.handle('inst:export', async (e, { id, kind, worlds }) => {
       fs.writeFileSync(path.join(stage, 'modrinth.index.json'), JSON.stringify({ formatVersion: 1, game: 'minecraft', versionId: '1.0.0', name: ins.name, summary: 'Exportado desde Nova Launcher ' + app.getVersion(), files, dependencies: dep }, null, 1));
       await zipItems(dest, stage, ['modrinth.index.json', 'overrides']);
       return { ok: true, file: dest, linked: files.length, own };
-    } finally { fs.rmSync(stage, { recursive: true, force: true }); }
+    } finally { await rmAsync(stage).catch(() => {}); }
   } finally { send('status', ''); }
 });
 async function importInstanceFile(file) {
-  const tmp = path.join(root, 'tmp_import'); fs.rmSync(tmp, { recursive: true, force: true }); fs.mkdirSync(tmp, { recursive: true });
+  const tmp = path.join(root, 'tmp_import'); await rmAsync(tmp); await fsp.mkdir(tmp, { recursive: true });
   try {
     send('status', 'Importando…'); await unzipSafe(file, tmp);
     let base = tmp; const es = fs.readdirSync(tmp); if (es.length === 1 && fs.statSync(path.join(tmp, es[0])).isDirectory()) base = path.join(tmp, es[0]);
@@ -632,7 +634,7 @@ async function importInstanceFile(file) {
     const ins = addInst({ name: String(m.name || 'Importada').slice(0, 40), mc: String(m.mc), ld: ['Fabric', 'Forge', 'NeoForge'].includes(m.ld) ? m.ld : 'Vanilla', loaderVersion: m.loaderVersion || undefined, type: m.type === 'snapshot' ? 'snapshot' : 'release', icon: m.icon || undefined, color: m.color || undefined, ram: +m.ram || undefined, custom: true });
     fs.rmSync(mf, { force: true }); await fs.promises.cp(base, iDir(ins.id), { recursive: true });
     send('status', 'Instancia importada: ' + ins.name); return { ins, failed: [] };
-  } finally { fs.rmSync(tmp, { recursive: true, force: true }); send('progress', null); }
+  } finally { await rmAsync(tmp).catch(() => {}); send('progress', null); }
 }
 ipcMain.handle('inst:import', async () => {
   const r = await dialog.showOpenDialog(win, { title: 'Importar instancia o modpack', properties: ['openFile'], filters: [{ name: 'Instancia o modpack', extensions: ['zip', 'mrpack'] }] });
@@ -807,11 +809,11 @@ function findWorlds(d, depth = 0) {
 async function importWorldZips(files, id) {
   const names = [], sv = path.join(iDir(id), 'saves'); fs.mkdirSync(sv, { recursive: true });
   for (const zf of files) {
-    const tmp = path.join(root, 'tmp_world'); fs.rmSync(tmp, { recursive: true, force: true }); fs.mkdirSync(tmp, { recursive: true });
+    const tmp = path.join(root, 'tmp_world'); await rmAsync(tmp); await fsp.mkdir(tmp, { recursive: true });
     try {
       send('status', 'Importando mapa…'); await unzipSafe(zf, tmp);
       for (const w of findWorlds(tmp)) { const base = w === tmp ? path.basename(zf).replace(/\.zip$/i, '') : path.basename(w), nn = uniq(sv, safeName(base, 'Mapa')); await fs.promises.cp(w, path.join(sv, nn), { recursive: true }); names.push(nn); }
-    } finally { fs.rmSync(tmp, { recursive: true, force: true }); send('status', ''); }
+    } finally { await rmAsync(tmp).catch(() => {}); send('status', ''); }
   }
   if (!names.length) throw new Error('No se encontró ningún mundo dentro del .zip (debe contener level.dat)');
   return { names };
@@ -1051,7 +1053,7 @@ async function prepRun(r) {
     l.on('progress', p => { if (p && p.total) pr('progress', { pct: Math.min(99, Math.round(p.task / p.total * 100)) }); });
     const res = await l.launch(o);
     if (!res) throw new Error('No se pudo preparar');
-    try { fs.rmSync(path.join(root, 'instances', '.prep'), { recursive: true, force: true }); } catch {}
+    try { await rmAsync(path.join(root, 'instances', '.prep')); } catch {}
     PREPD.add(key); pr('done', {});
   } catch (e) { pr('error', { msg: String(e && e.message || e) }); }
 }
@@ -1070,8 +1072,8 @@ async function walkFiles(dir, out = [], rel = '') {
   return out;
 }
 const mavenDir = n => { const [g, a, v] = String(n).split(':'); return g && a && v ? g.replace(/\./g, '/') + '/' + a + '/' + v.split('@')[0] : null; };
-function usedVersionDirs() {
-  const vd = path.join(root, 'versions'); let have = []; try { have = fs.readdirSync(vd, { withFileTypes: true }).filter(d => d.isDirectory()).map(d => d.name); } catch {}
+async function usedVersionDirs() {
+  const vd = path.join(root, 'versions'); let have = []; try { have = (await fsp.readdir(vd, { withFileTypes: true })).filter(d => d.isDirectory()).map(d => d.name); } catch {}
   const used = new Set();
   for (const i of li()) {
     used.add(i.mc);
@@ -1082,33 +1084,33 @@ function usedVersionDirs() {
     }
   }
   if (PREPLAST) used.add(PREPLAST);
-  for (const d of have) { try { if (Date.now() - fs.statSync(path.join(vd, d)).mtimeMs < 2 * D.day) used.add(d); } catch {} }
+  for (const d of have) { try { if (Date.now() - (await fsp.stat(path.join(vd, d))).mtimeMs < 2 * D.day) used.add(d); } catch {} }
   return { have, used };
 }
-function usedLibDirs(usedVers) {
+async function usedLibDirs(usedVers) {
   const dirs = new Set(), arts = new Set(), seen = new Set();
-  const add = v => {
+  const add = async v => {
     if (seen.has(v)) return; seen.add(v);
-    let j; try { j = JSON.parse(fs.readFileSync(path.join(root, 'versions', v, v + '.json'), 'utf8')); } catch { return; }
+    let j; try { j = JSON.parse(await fsp.readFile(path.join(root, 'versions', v, v + '.json'), 'utf8')); } catch { return; }
     for (const lib of j.libraries || []) {
       const dn = mavenDir(lib.name); if (dn) { dirs.add(dn); arts.add(dn.split('/').slice(0, -1).join('/')); }
       const d = lib.downloads || {}; if (d.artifact && d.artifact.path) dirs.add(path.posix.dirname(d.artifact.path));
       for (const c of Object.values(d.classifiers || {})) if (c && c.path) dirs.add(path.posix.dirname(c.path));
     }
-    if (j.inheritsFrom) add(j.inheritsFrom);
+    if (j.inheritsFrom) await add(j.inheritsFrom);
   };
-  for (const v of usedVers) add(v);
+  for (const v of usedVers) await add(v);
   return { dirs, arts };
 }
 const PROT = ['net/minecraftforge/', 'net/neoforged/', 'net/minecraft/', 'de/oceanlabs/', 'cpw/'];
 async function cleanScan() {
   const cats = [], now = Date.now();
   // 1) versiones sin uso
-  const { have, used } = usedVersionDirs(), vd = path.join(root, 'versions'), unusedV = have.filter(d => !used.has(d));
+  const { have, used } = await usedVersionDirs(), vd = path.join(root, 'versions'), unusedV = have.filter(d => !used.has(d));
   const vItems = []; for (const d of unusedV) vItems.push({ p: path.join(vd, d), name: d, size: await dirSize(path.join(vd, d)) });
   cats.push({ id: 'versions', title: 'Versiones de Minecraft sin uso', desc: 'Versiones y cargadores que ninguna instancia usa. Se descargan otra vez si los necesitas.', items: vItems });
   // 2) librerías sin uso
-  const ld = path.join(root, 'libraries'), keepVers = have.filter(d => used.has(d)), { dirs, arts } = usedLibDirs(keepVers);
+  const ld = path.join(root, 'libraries'), keepVers = have.filter(d => used.has(d)), { dirs, arts } = await usedLibDirs(keepVers);
   const protectLoader = li().some(i => i.ld === 'Forge' || i.ld === 'NeoForge') || keepVers.some(d => /forge/i.test(d));
   const libFiles = await walkFiles(ld), byDir = new Map();
   for (const f of libFiles) {
@@ -1119,23 +1121,23 @@ async function cleanScan() {
   }
   cats.push({ id: 'libs', title: 'Librerías sin uso', desc: 'Archivos de versiones antiguas de librerías que ya no necesita ninguna versión instalada.', items: [...byDir.values()] });
   // 3) copias de seguridad antiguas
-  const bItems = [], br = path.join(root, 'backups'); let bd = []; try { bd = fs.readdirSync(br, { withFileTypes: true }).filter(d => d.isDirectory()).map(d => d.name); } catch {}
+  const bItems = [], br = path.join(root, 'backups'); let bd = []; try { bd = (await fsp.readdir(br, { withFileTypes: true })).filter(d => d.isDirectory()).map(d => d.name); } catch {}
   const ids = new Set(li().map(i => i.id));
   for (const id of bd) {
-    const fl = bkList(id);
+    const fl = await bkList(id);
     fl.forEach((f, k) => { if (!ids.has(id) || (k >= 2 && now - f.date > 30 * D.day)) bItems.push({ p: path.join(br, id, f.file), name: (ids.has(id) ? '' : '(instancia borrada) ') + f.file, size: f.size }); });
   }
   cats.push({ id: 'backups', title: 'Copias de seguridad antiguas', desc: 'Copias de más de 30 días (se conservan las 2 últimas de cada instancia) y las de instancias ya borradas.', items: bItems });
   // 4) registros e informes viejos
-  const lItems = [], lg = path.join(root, 'logs'); let lf = []; try { lf = fs.readdirSync(lg).filter(x => x.endsWith('.log')).map(x => ({ x, st: fs.statSync(path.join(lg, x)) })).sort((a, b) => b.st.mtimeMs - a.st.mtimeMs); } catch {}
+  const lItems = [], lg = path.join(root, 'logs'); let lf = []; try { for (const x of (await fsp.readdir(lg)).filter(x => x.endsWith('.log'))) { try { lf.push({ x, st: await fsp.stat(path.join(lg, x)) }); } catch {} } lf.sort((a, b) => b.st.mtimeMs - a.st.mtimeMs); } catch {}
   lf.forEach((f, k) => { if (k >= 5 && now - f.st.mtimeMs > 14 * D.day) lItems.push({ p: path.join(lg, f.x), name: f.x, size: f.st.size }); });
   for (const i of li()) for (const sub of ['crash-reports', 'logs']) {
-    const cd = path.join(iDir(i.id), sub); let es = []; try { es = fs.readdirSync(cd); } catch {}
-    for (const x of es) { if (x === 'latest.log') continue; try { const st = fs.statSync(path.join(cd, x)); if (st.isFile() && now - st.mtimeMs > 30 * D.day) lItems.push({ p: path.join(cd, x), name: i.name + ' · ' + x, size: st.size }); } catch {} }
+    const cd = path.join(iDir(i.id), sub); let es = []; try { es = await fsp.readdir(cd); } catch {}
+    for (const x of es) { if (x === 'latest.log') continue; try { const st = await fsp.stat(path.join(cd, x)); if (st.isFile() && now - st.mtimeMs > 30 * D.day) lItems.push({ p: path.join(cd, x), name: i.name + ' · ' + x, size: st.size }); } catch {} }
   }
   cats.push({ id: 'logs', title: 'Registros e informes de fallos viejos', desc: 'Registros del launcher de más de 14 días (se conservan los 5 últimos) e informes de fallos de más de 30 días.', items: lItems });
   // 5) temporales
-  const tItems = []; for (const t of [path.join(root, 'installer.jar'), path.join(root, 'instances', '.prep')]) { try { const st = fs.statSync(t); tItems.push({ p: t, name: path.basename(t), size: st.isDirectory() ? await dirSize(t) : st.size }); } catch {} }
+  const tItems = []; for (const t of [path.join(root, 'installer.jar'), path.join(root, 'instances', '.prep')]) { try { const st = await fsp.stat(t); tItems.push({ p: t, name: path.basename(t), size: st.isDirectory() ? await dirSize(t) : st.size }); } catch {} }
   cats.push({ id: 'temp', title: 'Archivos temporales', desc: 'Restos de instalaciones y de la preparación en segundo plano.', items: tItems });
   return cats;
 }
@@ -1152,9 +1154,9 @@ ipcMain.handle('clean:run', async (e, ids) => {
     if (!want.has(c.id)) continue;
     for (const it of c.items) {
       const t = path.resolve(it.p); if (!t.startsWith(base + path.sep)) continue;
-      try { fs.rmSync(t, { recursive: true, force: true }); freed += it.size; n++; } catch {}
+      try { await rmAsync(t); freed += it.size; n++; } catch {}
     }
-    if (c.id === 'libs') { const prune = d => { let es; try { es = fs.readdirSync(d, { withFileTypes: true }); } catch { return; } for (const x of es) if (x.isDirectory()) prune(path.join(d, x.name)); try { if (!fs.readdirSync(d).length && path.resolve(d) !== path.join(base, 'libraries')) fs.rmdirSync(d); } catch {} }; prune(path.join(root, 'libraries')); }
+    if (c.id === 'libs') { const prune = async d => { let es; try { es = await fsp.readdir(d, { withFileTypes: true }); } catch { return; } for (const x of es) if (x.isDirectory()) await prune(path.join(d, x.name)); try { if (!(await fsp.readdir(d)).length && path.resolve(d) !== path.join(base, 'libraries')) await fsp.rmdir(d); } catch {} }; await prune(path.join(root, 'libraries')); }
     if (c.id === 'versions') PREPD.clear();
   }
   return { freed, count: n };

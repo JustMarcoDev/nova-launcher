@@ -108,6 +108,14 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 
 ## Historial de actualizaciones
 
+### 0.2.14-beta.4 — Optimización: arranque más rápido y sin congelaciones
+
+**Mejorado**
+- Solo se carga el idioma elegido en vez de los ocho: el launcher abre antes y gasta menos memoria
+- La limpieza de espacio, las copias de seguridad, el borrado de instancias y la instalación o exportación de modpacks ya no congelan la ventana con muchas carpetas o mundos grandes
+- El asistente de bienvenida, la limpieza de espacio y el buscador (Ctrl + K) se cargan la primera vez que se usan
+- Electron actualizado de la versión 33 a la 44 (parches de seguridad y un Chromium más reciente)
+
 ### 0.2.14-beta.3 — Portugués de Brasil y de Portugal, e informes de errores de descarga
 
 **Añadido**

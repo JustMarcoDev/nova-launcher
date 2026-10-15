@@ -23,6 +23,11 @@ const api = new Set([...pre.matchAll(/^\s*([a-zA-Z]+):\s/gm)].map(m => m[1]).con
 const used = new Set(); for (const f of fs.readdirSync(path.join(root, 'js'))) for (const m of rd('js/' + f).matchAll(/\bA\.([a-zA-Z]+)\(/g)) used.add(m[1]);
 for (const u of used) if (u !== 'on' && !api.has(u)) bad('la interfaz usa A.' + u + '() y preload.js no lo ofrece');
 
+// 3a. Idiomas bajo demanda: cada idioma de la lista tiene su archivo y index.html no los carga todos
+{ const m = /const LANG_ORDER=(\[[^\]]*\])/.exec(rd('js/idioma.js')); const order = m ? JSON.parse(m[1]) : [];
+  if (!order.length) bad('no se encuentra LANG_ORDER en js/idioma.js');
+  for (const k of order) if (k !== 'es' && !fs.existsSync(path.join(root, 'lang', k + '.js'))) bad('falta lang/' + k + '.js');
+  if (/<script src="lang\//.test(html)) bad('index.html carga archivos de idioma directamente: deben cargarse solo los activos'); }
 // 3b. Idiomas: cada traducción conserva las partes variables {1}, {2}…
 for (const f of fs.readdirSync(path.join(root, 'lang')).filter(x => x.endsWith('.js'))) {
   const w = {}; try { new Function('window', rd('lang/' + f))(w); } catch (e) { bad('lang/' + f + ': ' + e.message); continue; }

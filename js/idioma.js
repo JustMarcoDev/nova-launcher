@@ -15,20 +15,20 @@ const LANG_FLAG={
 };
 const langFlag=k=>LANG_FLAG[k]||"";
 const LANG_ORDER=["es","es-419","en","fr","de","it","pt-BR","pt"];
-const LANG_BASE={es:"Español (España)"};
-const LANG_NAMES=()=>[["auto","Automático (el del sistema)"],...LANG_ORDER.map(k=>[k,LANG_BASE[k]||(window.LANGS[k]||{}).name]).filter(x=>x[1]),...Object.entries(window.LANGS||{}).filter(([k])=>!LANG_ORDER.includes(k)).map(([k,v])=>[k,v.name])];
+const LANG_BASE={es:"Español (España)","es-419":"Español (Latinoamérica)",en:"English (US)",fr:"Français",de:"Deutsch",it:"Italiano","pt-BR":"Português (Brasil)",pt:"Português (Portugal)"};
+const LANG_NAMES=()=>[["auto","Automático (el del sistema)"],...LANG_ORDER.map(k=>[k,LANG_BASE[k]||((window.LANGS||{})[k]||{}).name]).filter(x=>x[1]),...Object.entries(window.LANGS||{}).filter(([k])=>!LANG_ORDER.includes(k)).map(([k,v])=>[k,v.name])];
 const LANG_OPTS=()=>Object.fromEntries(LANG_NAMES().map(([k,n])=>[k,k==="auto"?n:langFlag(k)+n]));
 let LCUR="es",LMAP=new Map(),LPAT=[],LOBS=null;
 // Idioma del sistema → idioma de la app (es-ES → español, otros es-* → Latinoamérica, pt-* → portugués…)
 function langSys(){
-  const n=String(navigator.language||"es").toLowerCase(),b=n.slice(0,2),L=window.LANGS||{};
-  if(b==="es")return n==="es"||n==="es-es"||!L["es-419"]?"es":"es-419";
-  if(b==="pt")return n==="pt-br"&&L["pt-BR"]?"pt-BR":L.pt?"pt":L["pt-BR"]?"pt-BR":"es";
-  return L[b]?b:"es";
+  const n=String(navigator.language||"es").toLowerCase(),b=n.slice(0,2);
+  if(b==="es")return n==="es"||n==="es-es"?"es":"es-419";
+  if(b==="pt")return n==="pt-br"?"pt-BR":"pt";
+  return LANG_ORDER.includes(b)?b:"es";
 }
 function langPick(v){
   v=v||"auto";if(v==="auto")v=langSys();
-  return v==="es"||!(window.LANGS&&window.LANGS[v])?"es":v;
+  return v==="es"||!LANG_ORDER.includes(v)?"es":v;
 }
 function langStored(){try{return localStorage.getItem("novaLang")||"auto"}catch{return"auto"}}
 function langStore(v){try{localStorage.setItem("novaLang",v||"auto")}catch{}}
@@ -66,7 +66,8 @@ function langStart(l){
   LOBS.observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:L_ATTR});
 }
 try{if(sessionStorage.getItem("novaSI")==="1"){sessionStorage.removeItem("novaSI");window.__skipIntro=true;document.documentElement.classList.add("ni");const i=document.getElementById("intro");i&&i.remove()}}catch{}
-langStart(langPick(langStored()));
+// Solo se carga el archivo del idioma activo (el español no necesita ninguno). El script se inserta justo después de este y se ejecuta antes de idioma-inicio.js
+{const w=langPick(langStored());if(w!=="es"&&!(window.LANGS&&window.LANGS[w]))document.write('<script src="lang/'+w+'.js"><\/script>')}
 // Cuando el ajuste cambia (o llega la configuración real), si el idioma no coincide, se guarda y se recarga la interfaz una sola vez.
 function langSync(v,boot){
   v=v||"auto";const want=langPick(v);langStore(v);
@@ -80,7 +81,7 @@ const LANG_NATIVE=[["es","Español (España)","Continuar"],["es-419","Español (
 function langFirst(){
   let seen=true;try{seen=localStorage.getItem("novaLang")!==null}catch{}
   if(seen||window.__langAsk)return;window.__langAsk=true;
-  const L=window.LANGS||{},list=LANG_NATIVE.filter(x=>x[0]==="es"||L[x[0]]);let cur=langSys();if(!list.some(x=>x[0]===cur))cur="es";
+  const list=LANG_NATIVE;let cur=langSys();if(!list.some(x=>x[0]===cur))cur="es";
   const d=document.createElement("div");d.className="lpk";d.setAttribute("role","dialog");d.setAttribute("aria-modal","true");d.setAttribute("aria-label","Language");
   const draw=()=>{const cont=(list.find(x=>x[0]===cur)||list[0])[2];
     d.innerHTML=`<div class="lpb"><div class="lpl"><svg viewBox="0 0 120 120"><use href="#logo"/></svg></div><h2>Nova Launcher</h2><p>Idioma · Language · Langue · Sprache · Lingua</p><div class="lpg">${list.map(x=>`<button type="button" class="${x[0]===cur?"on":""}" data-l="${x[0]}">${langFlag(x[0])}<span>${x[1]}</span></button>`).join("")}</div><button type="button" class="lpc" id="lpc">${cont} →</button></div>`;};
