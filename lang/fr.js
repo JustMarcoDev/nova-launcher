@@ -932,4 +932,13 @@ window.LANGS.fr={name:"Français",d:{
 "Informes de errores de descarga":"Rapports d'erreurs de téléchargement",
 "Si falla instalar un mod o modpack, aquí se guarda un archivo con la causa":"Si l'installation d'un mod ou modpack échoue, un fichier avec la cause est enregistré ici",
 "Vista previa: se abriría la carpeta de informes":"Aperçu : le dossier des rapports s'ouvrirait",
-"Faltan {1} archivos del modpack: la causa está en Ajustes → Juego → Informes de errores":"Il manque {1} fichiers du modpack : la cause est dans Paramètres → Jeu → Rapports d'erreurs de téléchargement"}};
+"Faltan {1} archivos del modpack: la causa está en Ajustes → Juego → Informes de errores":"Il manque {1} fichiers du modpack : la cause est dans Paramètres → Jeu → Rapports d'erreurs de téléchargement",
+"Reportar un error":"Signaler un problème",
+"{1} en curso · {2} · faltan {3}":"{1} en cours · {2} · il reste {3}",
+"Avisos ({1})":"Avertissements ({1})",
+"Errores ({1})":"Erreurs ({1})",
+"Todas ({1})":"Toutes ({1})",
+"Protanopia (rojo)":"Protanopie (rouge)",
+"Deuteranopia (verde)":"Deutéranopie (vert)",
+"Tritanopia (azul)":"Tritanopie (bleu)",
+"{1} min":"{1} min"}};

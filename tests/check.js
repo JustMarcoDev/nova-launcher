@@ -37,6 +37,13 @@ for (const f of fs.readdirSync(path.join(root, 'lang')).filter(x => x.endsWith('
   console.log('idioma ' + L.name + ': ' + n + ' textos');
 }
 
+// 3c. Todos los idiomas completos tienen las mismas frases que el inglés (si falta una, esa frase se queda en español sin avisar)
+{ const get = f => { const w = {}; new Function('window', rd('lang/' + f))(w); return Object.values(w.LANGS)[0]; };
+  const en = get('en.js').d;
+  for (const f of fs.readdirSync(path.join(root, 'lang')).filter(x => x.endsWith('.js') && x !== 'en.js' && x !== 'es-419.js')) {
+    const d = get(f).d, falta = Object.keys(en).filter(k => !(k in d));
+    if (falta.length) bad('lang/' + f + ' no traduce ' + falta.length + ' frases que sí están en inglés, por ejemplo: «' + falta.slice(0, 3).map(x => x.slice(0, 50)).join('», «') + '»');
+  } }
 // 4. Versión y notas
 const pkg = JSON.parse(rd('package.json'));
 if (!/^\d+\.\d+\.\d+(-[0-9A-Za-z.]+)?$/.test(pkg.version)) bad('versión no válida: ' + pkg.version);

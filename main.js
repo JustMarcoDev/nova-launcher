@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell, dialog, Tray, Menu, Notification, clipboard, nativeImage } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, dialog, Tray, Menu, Notification, clipboard, nativeImage, safeStorage, screen, protocol } = require('electron');
 const path = require('path'), fs = require('fs'), os = require('os'), crypto = require('crypto'), net = require('net'), dns = require('dns').promises, { pathToFileURL } = require('url'), { execFile } = require('child_process');
 const { Client, Authenticator } = require('minecraft-launcher-core');
 const { Auth } = require('msmc');
@@ -23,10 +23,53 @@ const UA = () => 'NovaLauncher/' + app.getVersion() + ' (github.com/JustMarcoDev
 const get = async (u, t = 'json', h = {}) => { const r = await fetch(u, { signal: AbortSignal.timeout(t === 'arrayBuffer' ? 600000 : 30000), headers: { 'User-Agent': UA(), ...h } }); if (!r.ok) throw new Error('HTTP ' + r.status); return r[t](); };
 const run = (cmd, args, opt = {}) => new Promise((res, rej) => execFile(cmd, args, { maxBuffer: 1e8, ...opt }, e => e ? rej(e) : res()));
 
+protocol.registerSchemesAsPrivileged([{ scheme: 'nova-img', privileges: { standard: true, secure: true, supportFetchAPI: true, bypassCSP: true } }]);
+// Tamaño y posición de la ventana (y si estaba maximizada) entre aperturas
+const winFile = path.join(root, 'window.json');
+function winLoad() {
+  const b = rd(winFile, null); if (!b || !(b.width >= 900 && b.height >= 560)) return {};
+  const ok = Number.isFinite(b.x) && Number.isFinite(b.y) && screen.getAllDisplays().some(d => { const a = d.workArea; return b.x + 120 > a.x && b.x < a.x + a.width - 120 && b.y >= a.y - 8 && b.y < a.y + a.height - 80; });
+  return { ...(ok ? { x: b.x, y: b.y } : {}), width: b.width, height: b.height, max: !!b.max };
+}
+let winSaveT = null;
+function winSave() {
+  if (!win || win.isDestroyed() || win.isMinimized() || win.isFullScreen()) return;
+  try { const b = win.getNormalBounds(); fs.mkdirSync(root, { recursive: true }); fs.writeFileSync(winFile, JSON.stringify({ x: b.x, y: b.y, width: b.width, height: b.height, max: win.isMaximized() })); } catch {}
+}
+// Imágenes de Modrinth/CurseForge: se guardan en el PC para que carguen al instante y se vean sin conexión
+const IMG_HOSTS = /^(cdn(-raw)?\.modrinth\.com|media\.forgecdn\.net|edge\.forgecdn\.net|raw\.githubusercontent\.com)$/;
+const imgDir = () => path.join(root, 'cache', 'img');
+async function imgGet(u) {
+  const url = new URL(u); const extra = process.env.NOVA_TEST_IMG_HOST;
+  if (!(url.protocol === 'https:' && IMG_HOSTS.test(url.hostname)) && !(extra && url.host === extra)) return new Response('no permitido', { status: 403 });
+  const key = crypto.createHash('sha1').update(url.href).digest('hex'), f = path.join(imgDir(), key), hdr = t => ({ 'content-type': t, 'cache-control': 'max-age=31536000' });
+  try { const [b, m] = await Promise.all([fsp.readFile(f), fsp.readFile(f + '.t', 'utf8')]); return new Response(b, { headers: hdr(m) }); } catch {}
+  try {
+    const r = await fetch(url.href, { signal: AbortSignal.timeout(15000), headers: { 'User-Agent': UA() } }), t = r.headers.get('content-type') || '';
+    if (!r.ok || !/^image\//.test(t)) return new Response('', { status: 502 });
+    const b = Buffer.from(await r.arrayBuffer()); if (b.length > 5e6) return new Response('', { status: 502 });
+    try { await fsp.mkdir(imgDir(), { recursive: true }); await fsp.writeFile(f, b); await fsp.writeFile(f + '.t', t); } catch {}
+    return new Response(b, { headers: hdr(t) });
+  } catch { return new Response('', { status: 504 }); }
+}
+// Si la caché pasa de 200 MB se borran las imágenes más antiguas
+async function imgPrune() {
+  try {
+    const es = await fsp.readdir(imgDir()), L = []; let tot = 0;
+    for (const n of es) { if (n.endsWith('.t')) continue; try { const st = await fsp.stat(path.join(imgDir(), n)); L.push({ n, t: st.atimeMs || st.mtimeMs, s: st.size }); tot += st.size; } catch {} }
+    L.sort((a, b) => a.t - b.t); for (const x of L) { if (tot < 150e6) break; await fsp.rm(path.join(imgDir(), x.n), { force: true }); await fsp.rm(path.join(imgDir(), x.n + '.t'), { force: true }); tot -= x.s; }
+  } catch {}
+}
 app.whenReady().then(() => {
   if (!single) return;
-  win = new BrowserWindow({ width: 1100, height: 680, minWidth: 900, minHeight: 560, frame: false, backgroundColor: '#0c0c10',
+  try { protocol.handle('nova-img', req => { try { return imgGet(new URL(req.url).searchParams.get('u') || ''); } catch { return new Response('', { status: 400 }); } }); } catch {}
+  const wb = winLoad();
+  win = new BrowserWindow({ width: wb.width || 1100, height: wb.height || 680, ...(wb.x !== undefined ? { x: wb.x, y: wb.y } : {}), minWidth: 900, minHeight: 560, frame: false, backgroundColor: '#0c0c10',
     show: false, webPreferences: { preload: path.join(__dirname, 'preload.js'), spellcheck: false } });
+  if (wb.max) win.maximize();
+  const later = () => { clearTimeout(winSaveT); winSaveT = setTimeout(winSave, 600); };
+  win.on('resize', later); win.on('move', later); win.on('maximize', later); win.on('unmaximize', later); win.on('close', winSave);
+  setTimeout(imgPrune, 20000); setTimeout(encryptOldTokens, 500);
   win.once('ready-to-show', () => win.show());
   if (process.env.NOVA_SMOKE) return smokeTest();
   win.loadFile('index.html');
@@ -73,7 +116,7 @@ ipcMain.handle('versions', async () => {
 ipcMain.handle('ver', () => app.getVersion());
 ipcMain.handle('upd:get', () => upd);
 ipcMain.handle('discord:get', () => dsc);
-ipcMain.handle('cache:clear', async () => { try { await win.webContents.session.clearCache(); fs.rmSync(path.join(root, 'versions_cache.json'), { force: true }); } catch {} return true; });
+ipcMain.handle('cache:clear', async () => { try { await win.webContents.session.clearCache(); fs.rmSync(path.join(root, 'versions_cache.json'), { force: true }); await rmAsync(imgDir()); } catch {} return true; });
 ipcMain.handle('disk:usage', async () => {
   let total = 0, n = 0; const walk = async d => { let es; try { es = await fs.promises.readdir(d, { withFileTypes: true }); } catch { return; }
     for (const e of es) { if (++n > 300000) return; const p = path.join(d, e.name); if (e.isDirectory()) await walk(p); else { try { total += (await fs.promises.stat(p)).size; } catch {} } } };
@@ -121,6 +164,7 @@ function logErr(kind, err, info = {}) {
 // El error viaja al interfaz con la ruta del informe al final: «mensaje ‹informe: ruta›»
 const withLog = (e, f) => { const m = (e && e.message || String(e)) + (f ? ' ‹informe: ' + f + '›' : ''); const x = new Error(m); x.cancel = e && e.cancel; return x; };
 ipcMain.handle('err:log', (e, o = {}) => logErr(String(o.kind || 'descarga').slice(0, 30), Object.assign(new Error(String(o.message || 'Error').slice(0, 600)), { step: String(o.step || '').slice(0, 80), stack: String(o.stack || '').slice(0, 2000) }), { 'Qué se intentaba': String(o.what || '').slice(0, 200), Dirección: String(o.url || '').slice(0, 300) }));
+ipcMain.handle('err:text', async (e, f) => { const p = path.resolve(String(f || '')); if (!p.startsWith(path.resolve(errDir()) + path.sep)) throw new Error('Archivo no válido'); return (await fsp.readFile(p, 'utf8')).slice(0, 6000); });
 ipcMain.handle('err:folder', () => { fs.mkdirSync(errDir(), { recursive: true }); return shell.openPath(errDir()); });
 ipcMain.handle('mod:install', async (e, { url, name, inst, dir, sha1, sha512 }) => {
   const sub = ['mods', 'shaderpacks', 'resourcepacks'].includes(dir) ? dir : 'mods';
@@ -159,10 +203,10 @@ async function installMrpackDir(tmp) {
   fs.mkdirSync(dir, { recursive: true }); let n = 0;
   await pool(list, 8, async fl => {
     const dest = path.resolve(dir, fl.path);
-    try { if (!dest.startsWith(dir + path.sep)) throw new Error('ruta'); await dl(fl.downloads, dest, { sha1: fl.hashes && fl.hashes.sha1, sha512: fl.hashes && fl.hashes.sha512 }); }
+    try { if (!dest.startsWith(dir + path.sep)) throw new Error('ruta'); await dl(fl.downloads, dest, { sha1: fl.hashes && fl.hashes.sha1, sha512: fl.hashes && fl.hashes.sha512, pooled: true }); }
     catch (x) { failed.push(path.basename(String(fl.path))); why.push(`${fl.path} ← ${[].concat(fl.downloads || []).join(' | ')} → ${x && x.message}`); }
     prog('Modpack', ++n, list.length);
-  });
+  }, fl => fl.fileSize);
   if (why.length) logErr('modpack-archivos', new Error(why.length + ' archivos no se pudieron descargar'), { 'Qué se intentaba': 'Instalar el modpack ' + (ix.name || ''), 'Archivos que fallaron': why.slice(0, 60).join('\n  ') });
   for (const o of ['overrides', 'client-overrides']) { const ov = path.join(tmp, o); if (fs.existsSync(ov)) await fsp.cp(ov, dir, { recursive: true }); }
   send('status', failed.length ? 'Modpack instalado (faltan ' + failed.length + ' archivos)' : 'Modpack instalado: ' + (ix.name || '')); notify('Modpack instalado', String(ix.name || 'Modpack') + (failed.length ? ' (faltan ' + failed.length + ' archivos)' : ' ya está listo'));
@@ -412,20 +456,23 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 const hashOf = (b, a) => crypto.createHash(a).update(b).digest('hex');
 // Descarga con comprobación de huella y 3 reintentos (prueba también los enlaces alternativos)
 // ---- Cola de descargas: pausar, cancelar y limitar la velocidad ----
-const DQ = { paused: false, cancel: false, limit: +rd(cfgFile, {}).dlLimit || 0, active: 0, pools: 0, bytes: 0, t: Date.now(), speed: 0, next: 0 };
+const DQ = { paused: false, cancel: false, limit: +rd(cfgFile, {}).dlLimit || 0, active: 0, pools: 0, bytes: 0, t: Date.now(), speed: 0, next: 0, total: 0, done: 0 };
 let dqT = null;
 const cancelErr = () => Object.assign(new Error('Descarga cancelada'), { cancel: true });
-const dqSend = () => send('dq', { active: DQ.active + DQ.pools, paused: DQ.paused, limit: DQ.limit, speed: DQ.speed });
-const dqTick = () => { if (dqT) return; DQ.t = Date.now(); DQ.bytes = 0; dqT = setInterval(() => { const n = Date.now(), dt = (n - DQ.t) / 1000; DQ.speed = dt > 0 ? DQ.bytes / dt : 0; DQ.bytes = 0; DQ.t = n; if (!DQ.active && !DQ.pools) { clearInterval(dqT); dqT = null; DQ.speed = 0; DQ.paused = false; } dqSend(); }, 700); if (dqT.unref) dqT.unref(); };
+const dqLeft = () => DQ.total > DQ.done ? DQ.total - DQ.done : 0;
+const dqEta = () => { const l = dqLeft(); return l > 0 && DQ.speed > 1024 ? Math.round(l / DQ.speed) : 0; };
+const dqSend = () => send('dq', { active: DQ.active + DQ.pools, paused: DQ.paused, limit: DQ.limit, speed: DQ.speed, left: dqLeft(), eta: dqEta() });
+const dqTick = () => { if (dqT) return; DQ.t = Date.now(); DQ.bytes = 0; dqT = setInterval(() => { const n = Date.now(), dt = (n - DQ.t) / 1000; DQ.speed = dt > 0 ? DQ.bytes / dt : 0; DQ.bytes = 0; DQ.t = n; if (!DQ.active && !DQ.pools) { clearInterval(dqT); dqT = null; DQ.speed = 0; DQ.paused = false; DQ.total = 0; DQ.done = 0; } dqSend(); }, 700); if (dqT.unref) dqT.unref(); };
 const dqIdle = () => { if (!DQ.active && !DQ.pools) DQ.cancel = false; };
 async function dqChunk(n) {
   while (DQ.paused && !DQ.cancel) await sleep(150);
   if (DQ.cancel) throw cancelErr();
-  DQ.bytes += n;
+  DQ.bytes += n; DQ.done += n;
   if (DQ.limit > 0) { const now = Date.now(); DQ.next = Math.max(DQ.next, now) + n / (DQ.limit * 1048576) * 1000; const w = DQ.next - now - 300; if (w > 0) await sleep(Math.min(w, 5000)); }
 }
-async function fetchBuf(u) {
+async function fetchBuf(u, pooled) {
   const r = await fetch(u, { signal: AbortSignal.timeout(600000), headers: { 'User-Agent': UA() } }); if (!r.ok) throw new Error('HTTP ' + r.status);
+  if (!pooled && r.headers && r.headers.get) DQ.total += +r.headers.get('content-length') || 0;
   if (r.body && typeof r.body.getReader === 'function') {
     const rd2 = r.body.getReader(), parts = [];
     try { for (;;) { const { done, value } = await rd2.read(); if (done) break; await dqChunk(value.length); parts.push(Buffer.from(value)); } }
@@ -444,7 +491,7 @@ async function dl(urls, dest, o = {}) {
       for (const u of urls) {
         try {
           if (DQ.cancel) throw cancelErr();
-          const buf = await fetchBuf(u);
+          const buf = await fetchBuf(u, o.pooled);
           const bad = o.sha512 ? hashOf(buf, 'sha512') !== String(o.sha512).toLowerCase() : o.sha1 && hashOf(buf, 'sha1') !== String(o.sha1).toLowerCase();
           if (bad) throw new Error('hash');
           fs.mkdirSync(path.dirname(dest), { recursive: true });
@@ -456,8 +503,8 @@ async function dl(urls, dest, o = {}) {
     throw new Error(err && err.message === 'hash' ? 'Archivo corrupto: la huella no coincide' : 'Descarga fallida: ' + (err && err.message));
   } finally { DQ.active--; dqIdle(); dqSend(); }
 }
-async function pool(items, n, fn) {
-  DQ.pools++; dqTick(); let k = 0; const out = new Array(items.length);
+async function pool(items, n, fn, sizeOf) {
+  DQ.pools++; dqTick(); if (sizeOf) for (const it of items) DQ.total += +sizeOf(it) || 0; let k = 0; const out = new Array(items.length);
   const w = async () => { while (k < items.length && !DQ.cancel) { const i = k++; out[i] = await fn(items[i], i); } };
   try { await Promise.all(Array.from({ length: Math.min(n, items.length) }, w)); if (DQ.cancel) throw cancelErr(); return out; }
   finally { DQ.pools--; dqIdle(); dqSend(); }
@@ -646,14 +693,27 @@ ipcMain.handle('inst:import', async () => {
 const upIns = (id, p) => wr(insFile, li().map(i => i.id === id ? { ...i, ...p } : i));
 
 // ---- Varias cuentas (Microsoft y offline) ----
+// Las sesiones de Microsoft se guardan cifradas con el almacén seguro del sistema (en Windows, DPAPI: solo tu usuario de Windows puede leerlas)
+const tokOk = () => { try { return safeStorage.isEncryptionAvailable(); } catch { return false; } };
+const encTok = t => { if (typeof t !== 'string' || !t || t.startsWith('enc:') || !tokOk()) return t; try { return 'enc:' + safeStorage.encryptString(t).toString('base64'); } catch { return t; } };
+const decTok = t => { if (typeof t !== 'string' || !t.startsWith('enc:')) return t; try { return safeStorage.decryptString(Buffer.from(t.slice(4), 'base64')); } catch { return null; } };
 function accState(c = load()) {
-  let a = Array.isArray(c.accounts) ? c.accounts.filter(x => x && x.id) : null;
-  if (!a || !a.length) { a = []; if (c.ms && c.ms.token) a.push({ id: 'ms1', type: 'microsoft', name: c.ms.name || 'Microsoft', token: c.ms.token }); a.push({ id: 'off1', type: 'offline', name: c.username || 'Jugador' }); }
+  let a = Array.isArray(c.accounts) ? c.accounts.filter(x => x && x.id).map(x => x.token ? { ...x, token: decTok(x.token) } : x) : null;
+  const msTok = c.ms && c.ms.token ? decTok(c.ms.token) : null;
+  if (!a || !a.length) { a = []; if (c.ms && c.ms.token) a.push({ id: 'ms1', type: 'microsoft', name: c.ms.name || 'Microsoft', token: msTok }); a.push({ id: 'off1', type: 'offline', name: c.username || 'Jugador' }); }
   let act = a.find(x => x.id === c.activeAccount);
   if (!act) act = (c.ms && c.ms.token ? a.find(x => x.type === 'microsoft') : null) || a.find(x => x.type === 'offline') || a[0];
   return { a, act };
 }
-function saveAcc(a, actId) { const act = a.find(x => x.id === actId) || a[0]; wr(cfgFile, { ...load(), accounts: a, activeAccount: act.id, username: act.name, ms: act.type === 'microsoft' ? { name: act.name, token: act.token } : null }); }
+function saveAcc(a, actId) { const act = a.find(x => x.id === actId) || a[0]; wr(cfgFile, { ...load(), accounts: a.map(x => x.token ? { ...x, token: encTok(x.token) } : x), activeAccount: act.id, username: act.name, ms: act.type === 'microsoft' ? { name: act.name, token: encTok(act.token) } : null }); }
+// Al arrancar: las sesiones guardadas sin cifrar de versiones anteriores se cifran una sola vez
+function encryptOldTokens() {
+  try {
+    if (!tokOk()) return; const c = load(), raw = JSON.stringify([c.accounts, c.ms]);
+    if (!/"token":"(?!enc:)[^"]+"/.test(raw)) return;
+    const st = accState(c); saveAcc(st.a, st.act.id);
+  } catch {}
+}
 const accOut = () => { const st = accState(); return { accounts: st.a.map(({ token, pid, ...r }) => r), active: st.act.id }; };
 ipcMain.handle('acc:list', () => accOut());
 ipcMain.handle('acc:addOffline', (e, name) => {
@@ -949,7 +1009,7 @@ async function applyGpu(java, on) {
   wr(cfgFile, { ...load(), gpuSet: [...set] });
 }
 // ---- Cola de descargas (controles) ----
-ipcMain.handle('dq:state', () => ({ active: DQ.active + DQ.pools, paused: DQ.paused, limit: DQ.limit, speed: DQ.speed }));
+ipcMain.handle('dq:state', () => ({ active: DQ.active + DQ.pools, paused: DQ.paused, limit: DQ.limit, speed: DQ.speed, left: dqLeft(), eta: dqEta() }));
 ipcMain.handle('dq:pause', (e, on) => { DQ.paused = on === undefined ? !DQ.paused : !!on; dqSend(); return DQ.paused; });
 ipcMain.handle('dq:cancel', () => { if (DQ.active || DQ.pools) { DQ.cancel = true; DQ.paused = false; } dqSend(); return true; });
 ipcMain.handle('dq:limit', (e, mb) => { const v = Math.max(0, Math.min(100, +mb || 0)); DQ.limit = v; wr(cfgFile, { ...load(), dlLimit: v }); dqSend(); return v; });

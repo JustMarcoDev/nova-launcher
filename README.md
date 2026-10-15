@@ -108,6 +108,18 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 
 ## Historial de actualizaciones
 
+### 0.2.14-beta.6 — Seguridad y fiabilidad
+
+**Añadido**
+- Botón «Reportar un error» en la ventana de error de descarga y en el Diagnóstico: abre una incidencia nueva en GitHub con el informe pegado
+- Tiempo restante en las descargas (por ejemplo «faltan 1 min 20 s»)
+- Una prueba en tests/ avisa de los textos sin traducir en cada idioma antes de publicar
+
+**Mejorado**
+- Las sesiones de Microsoft se guardan cifradas (safeStorage); las antiguas se cifran solas al arrancar
+- El launcher recuerda el tamaño y la posición de la ventana, también si estaba maximizada
+- Las imágenes de Modrinth se guardan en el PC: cargan al instante y sin conexión
+
 ### 0.2.14-beta.5 — Publicación más fiable
 
 **Mejorado**

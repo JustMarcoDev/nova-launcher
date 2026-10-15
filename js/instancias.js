@@ -4,11 +4,18 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;"
 const em=e=>String(e&&e.message||e).replace(/^Error invoking remote method '[^']+': (Error: )?/,"");
 // Errores de descarga: separa el mensaje de la ruta del informe y enseña el motivo real
 function errSplit(e){const m=em(e),x=/\s*‹informe: ([^›]+)›\s*$/.exec(m);return{msg:x?m.slice(0,x.index):m,file:x?x[1]:""}}
+// Abre una incidencia nueva en GitHub con el informe ya pegado (la dirección admite unos 7 000 caracteres)
+function reportIssue(title,text){
+  const mk=n=>"https://github.com/JustMarcoDev/nova-launcher/issues/new?title="+encodeURIComponent(String(title).slice(0,120))+"&body="+encodeURIComponent("**Nova Launcher "+VER+"**\n\n```\n"+String(text).slice(0,n)+"\n```\n\n_Cuenta aquí qué estabas haciendo cuando falló. Si puedes, adjunta el archivo del informe._");
+  let n=3000,u=mk(n);while(u.length>7200&&n>300){n-=300;u=mk(n)}
+  if(A&&A.open)A.open(u);else window.open(u,"_blank");
+}
 async function showDlErr(title,what,e,extra){
   let {msg,file}=errSplit(e);extra=extra||{};
   if(!file&&A&&A.errLog){try{file=await A.errLog({kind:"descarga",what:String(what||""),message:msg,stack:e&&e.stack,url:extra.url,step:extra.step})}catch{}}
-  const d=modal(hdr(null,title,esc(what||""))+`<div class="dgs b2" style="margin:12px 0;white-space:pre-wrap;word-break:break-word">${esc(msg)}</div>`+(file?`<small class="hint">Se ha guardado un informe con los detalles:<br><code style="word-break:break-all">${esc(file)}</code></small>`:"")+`<div class="acts">${file&&A?`<button class="btn" id="eio">Abrir informe</button><button class="btn" id="eif">Carpeta de informes</button>`:""}<button class="btn" id="eic">Copiar</button><button class="btn pr" data-x>Cerrar</button></div>`);
+  const d=modal(hdr(null,title,esc(what||""))+`<div class="dgs b2" style="margin:12px 0;white-space:pre-wrap;word-break:break-word">${esc(msg)}</div>`+(file?`<small class="hint">Se ha guardado un informe con los detalles:<br><code style="word-break:break-all">${esc(file)}</code></small>`:"")+`<div class="acts">${file&&A?`<button class="btn" id="eio">Abrir informe</button><button class="btn" id="eif">Carpeta de informes</button>`:""}<button class="btn" id="eir">Reportar un error</button><button class="btn" id="eic">Copiar</button><button class="btn pr" data-x>Cerrar</button></div>`);
   const q=i=>d.querySelector("#"+i);
+  q("eir").onclick=async()=>{let t=`${title}\n${what||""}\n${msg}`;if(file&&A&&A.errText){try{t+="\n\n"+await A.errText(file)}catch{}}reportIssue(title,t)};
   if(q("eio"))q("eio").onclick=()=>A.logOpen(file);
   if(q("eif"))q("eif").onclick=()=>A.errFolder();
   q("eic").onclick=async()=>{const t=`${title}\n${what||""}\n${msg}${file?"\nInforme: "+file:""}`;try{if(A&&A.clip)await A.clip(t);else await navigator.clipboard.writeText(t);flash("Copiado")}catch{flash(msg)}};

@@ -2,6 +2,15 @@
 // La clave es el texto en español tal como sale en la app; {1}, {2}… son partes variables (nombres, números).
 window.LANGS=window.LANGS||{};
 window.LANGS.en={name:"English (US)",d:{
+"Reportar un error":"Report a bug",
+"{1} en curso · {2} · faltan {3}":"{1} in progress · {2} · {3} left",
+"Avisos ({1})":"Warnings ({1})",
+"Errores ({1})":"Errors ({1})",
+"Todas ({1})":"All ({1})",
+"Protanopia (rojo)":"Protanopia (red)",
+"Deuteranopia (verde)":"Deuteranopia (green)",
+"Tritanopia (azul)":"Tritanopia (blue)",
+"{1} min":"{1} min",
 "No se pudo instalar el modpack":"Couldn't install the modpack",
 "Se ha guardado un informe con los detalles:":"A report with the details has been saved:",
 "Abrir informe":"Open report",

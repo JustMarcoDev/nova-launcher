@@ -1,5 +1,7 @@
 // Núcleo: navegación, versiones, instancias automáticas y jugar
 const A=window.api||null,$=id=>document.getElementById(id);
+// Las imágenes de Modrinth y CurseForge pasan por una caché en el PC (carga rápida y sin conexión)
+const imgSrc=u=>A&&/^https:\/\//.test(u||"")?"nova-img://i/?u="+encodeURIComponent(u):(u||"");
 const DEMO=[["1.21.1","release"],["1.20.1","release"],["1.16.5","release"],["1.12.2","release"],["1.8.9","release"],["25w02a","snapshot"],["b1.7.3","old_beta"],["a1.2.6","old_alpha"]].map(([id,type])=>({id,type}));
 const ord=v=>v.replace(/^[ab]/,"").split(".").map(Number),gte=(v,m)=>{const a=ord(v),b=ord(m);for(let i=0;i<3;i++){const x=a[i]||0,y=b[i]||0;if(x!==y)return x>y}return true};
 let LS={f:null,g:null,n:null};

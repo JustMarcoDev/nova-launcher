@@ -932,4 +932,13 @@ window.LANGS.de={name:"Deutsch",d:{
 "Informes de errores de descarga":"Berichte zu Download-Fehlern",
 "Si falla instalar un mod o modpack, aquí se guarda un archivo con la causa":"Schlägt die Installation einer Mod oder eines Modpacks fehl, wird hier eine Datei mit der Ursache gespeichert",
 "Vista previa: se abriría la carpeta de informes":"Vorschau: Der Berichtsordner würde geöffnet",
-"Faltan {1} archivos del modpack: la causa está en Ajustes → Juego → Informes de errores":"{1} Dateien des Modpacks fehlen: Die Ursache steht unter Einstellungen → Spiel → Berichte zu Download-Fehlern"}};
+"Faltan {1} archivos del modpack: la causa está en Ajustes → Juego → Informes de errores":"{1} Dateien des Modpacks fehlen: Die Ursache steht unter Einstellungen → Spiel → Berichte zu Download-Fehlern",
+"Reportar un error":"Fehler melden",
+"{1} en curso · {2} · faltan {3}":"{1} läuft · {2} · noch {3}",
+"Avisos ({1})":"Warnungen ({1})",
+"Errores ({1})":"Fehler ({1})",
+"Todas ({1})":"Alle ({1})",
+"Protanopia (rojo)":"Protanopie (Rot)",
+"Deuteranopia (verde)":"Deuteranopie (Grün)",
+"Tritanopia (azul)":"Tritanopie (Blau)",
+"{1} min":"{1} Min."}};

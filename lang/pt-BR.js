@@ -932,4 +932,13 @@ window.LANGS["pt-BR"]={name:"Português (Brasil)",d:{
 "Informes de errores de descarga":"Relatórios de erros de download",
 "Si falla instalar un mod o modpack, aquí se guarda un archivo con la causa":"Se a instalação de um mod ou modpack falhar, um arquivo com a causa é salvo aqui",
 "Vista previa: se abriría la carpeta de informes":"Pré-visualização: a pasta de relatórios seria aberta",
-"Faltan {1} archivos del modpack: la causa está en Ajustes → Juego → Informes de errores":"Faltam {1} arquivos do modpack: a causa está em Configurações → Jogo → Relatórios de erros de download"}};
+"Faltan {1} archivos del modpack: la causa está en Ajustes → Juego → Informes de errores":"Faltam {1} arquivos do modpack: a causa está em Configurações → Jogo → Relatórios de erros de download",
+"Reportar un error":"Relatar um erro",
+"{1} en curso · {2} · faltan {3}":"{1} em andamento · {2} · faltam {3}",
+"Avisos ({1})":"Avisos ({1})",
+"Errores ({1})":"Erros ({1})",
+"Todas ({1})":"Todas ({1})",
+"Protanopia (rojo)":"Protanopia (vermelho)",
+"Deuteranopia (verde)":"Deuteranopia (verde)",
+"Tritanopia (azul)":"Tritanopia (azul)",
+"{1} min":"{1} min"}};
