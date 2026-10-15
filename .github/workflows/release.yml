@@ -42,4 +42,10 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release edit "v${{ steps.v.outputs.version }}" --notes-file release-notes.md --draft=false --prerelease=${{ steps.v.outputs.pre }}
+          TAG="v${{ steps.v.outputs.version }}"; PRE=${{ steps.v.outputs.pre }}
+          # Si la versión ya estaba publicada (por ejemplo al repetir la ejecución) solo se cambian las notas; si es un borrador, se publica.
+          if [ "$(gh release view "$TAG" --json isDraft -q .isDraft)" = "true" ]; then
+            gh release edit "$TAG" --notes-file release-notes.md --draft=false --prerelease=$PRE
+          else
+            gh release edit "$TAG" --notes-file release-notes.md --prerelease=$PRE
+          fi
