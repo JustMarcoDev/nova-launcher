@@ -30,6 +30,17 @@ jobs:
       - name: Crear notas de la versión desde el README
         shell: bash
         run: node scripts/release-notes.js "${{ steps.v.outputs.version }}" > release-notes.md
+      - name: Borrar restos de un intento anterior de esta misma versión
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Si una ejecución anterior dejó una release (o un borrador) con esta etiqueta, se borra para que no haya dos con el mismo nombre
+          TAG="v${{ steps.v.outputs.version }}"
+          for ID in $(gh api "repos/${{ github.repository }}/releases?per_page=100" --paginate -q ".[] | select(.tag_name==\"$TAG\") | .id"); do
+            echo "Borrando release $ID ($TAG)"; gh api -X DELETE "repos/${{ github.repository }}/releases/$ID" || true
+          done
+          gh api -X DELETE "repos/${{ github.repository }}/git/refs/tags/$TAG" 2>/dev/null || true
       - name: Compilar y subir el instalador
         shell: bash
         env:
