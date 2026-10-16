@@ -1,7 +1,7 @@
 // Mods, modpacks, shaders y texturas
 // Mods
 let mt,src="modrinth",kind="mod",cat="",sort="relevance",off=0,total=0,MH=[];const cmp={mod:true,modpack:false,shader:true,resourcepack:true};
-const H=(u,h)=>A.http({url:u,headers:h}),CL={Fabric:4,Forge:1,NeoForge:6},enc=x=>encodeURIComponent(JSON.stringify(x));
+const CL={Fabric:4,Forge:1,NeoForge:6};
 const KINDS=[["mod","Mods"],["modpack","Modpacks"],["shader","Shaders"],["resourcepack","Texturas"]],SORTS=[["relevance","Relevancia"],["downloads","Más descargados"],["follows","Más seguidos"],["newest","Más nuevos"],["updated","Actualizados"]];
 const CATS={mod:[["optimization","Optimización"],["technology","Tecnología"],["magic","Magia"],["adventure","Aventura"],["utility","Utilidad"],["decoration","Decoración"],["storage","Almacenamiento"],["mobs","Mobs"],["equipment","Equipo"],["worldgen","Mundo"],["library","Librerías"],["food","Comida"],["game-mechanics","Mecánicas"],["transportation","Transporte"],["social","Social"],["management","Gestión"],["economy","Economía"],["minigame","Minijuegos"],["cursed","Locuras"]],
 modpack:[["adventure","Aventura"],["technology","Tecnología"],["magic","Magia"],["optimization","Optimización"],["lightweight","Ligeros"],["quests","Misiones"],["multiplayer","Multijugador"],["challenging","Difíciles"],["kitchen-sink","De todo"],["combat","Combate"],["exploration","Exploración"]],

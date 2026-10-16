@@ -51,7 +51,7 @@ Mientras tanto, para probarlo en tu PC sin publicar, pega el número en **Ajuste
 
 ## Servidores populares (desde la 0.2.10)
 
-La pestaña **Servidores** (Alt + 4) muestra servidores conocidos con jugadores en línea y un botón **Unirse**: abre Minecraft en la versión adecuada y entra solo al servidor. La lista está en `index.html` (constante `SERVERS`); puedes añadir o quitar los que quieras.
+La pestaña **Servidores** (Alt + 4) muestra servidores conocidos con jugadores en línea y un botón **Unirse**: abre Minecraft en la versión adecuada y entra solo al servidor. La lista está en `js/servidores.js` (constante `SERVERS`); puedes añadir o quitar los que quieras.
 
 ## Instancias, mods y copias de seguridad (desde la 0.2.11)
 
@@ -107,6 +107,18 @@ Nova Launcher es un proyecto independiente de **Astrion Studio**. © 2026 Astrio
 Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión del launcher, para saber de un vistazo qué se ha **añadido**, qué se ha **mejorado** y qué se ha **quitado**. Cada vez que se publique una versión nueva hay que añadir una entrada al principio de la lista de abajo. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**.
 
 ## Historial de actualizaciones
+
+### 0.2.14-beta.7 — Modo juego, mods revisados y descargas que continúan
+
+**Añadido**
+- Modo juego (Ajustes → Rendimiento, activado por defecto): al lanzar Minecraft el launcher para por completo las animaciones y se esconde en la bandeja (o se minimiza si la bandeja está desactivada); al cerrar el juego vuelve a aparecer
+- Revisión de mods antes de jugar (Ajustes → Juego, activada por defecto): avisa de mods de otro cargador o de otra versión de Minecraft, de mods incompatibles entre sí y de dependencias obligatorias que faltan. Puedes jugar igualmente, desactivar los problemáticos, instalar lo que falta o cancelar
+
+**Mejorado**
+- Las descargas que se cortan continúan desde donde se quedaron en vez de empezar de cero (archivo .part), con hasta 3 reintentos (1, 3 y 8 s) y comprobación de la huella al final
+- La Limpieza de espacio también borra las descargas a medias de más de 2 días
+- El launcher arranca más rápido: Mods, Instancias, Ajustes, Servidores, Redes y Consola se cargan la primera vez que se abren
+- Con varias instancias abiertas, el launcher solo reaparece al cerrar la última
 
 ### 0.2.14-beta.6 — Seguridad y fiabilidad
 

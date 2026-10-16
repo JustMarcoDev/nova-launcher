@@ -1,8 +1,6 @@
 // Consola
 // --- Consola ---
-const CON=[];let cLv="all",cQ="",cAuto=true,cT=0,cLast="i";
-const conLevel=t=>{if(/^── /.test(t))return"s";if(/^\s+at\s|^Caused by|^\s*\.\.\. \d+ more/.test(t))return"e";if(/\b(ERROR|FATAL|SEVERE)\b|Exception|\bCrash/i.test(t))return"e";if(/\bWARN(ING)?\b/i.test(t))return"w";if(/\b(DEBUG|TRACE)\b/.test(t))return"d";return"i"};
-function conAdd(t){for(const ln of String(t).split(/\r?\n/)){if(!ln.trim())continue;const l=conLevel(ln);CON.push({t:ln,l});}if(CON.length>5000)CON.splice(0,CON.length-4500);if($("con").classList.contains("on")&&!cT)cT=setTimeout(()=>{cT=0;conDraw()},120)}
+let cLv="all",cQ="",cAuto=true,cLast="i";
 const conVis=()=>{const q=cQ.toLowerCase();return CON.filter(x=>(cLv==="all"||x.l===cLv||(cLv==="w"&&x.l==="e"&&false))&&(!q||x.t.toLowerCase().includes(q)))};
 function conDraw(){const o=$("cov"),v=conVis().slice(-1500),q=cQ.trim(),re=q?new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"gi"):null;
 o.innerHTML=v.length?v.map(x=>{let h=esc(x.t);if(re)h=h.replace(new RegExp(esc(q).replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"gi"),m=>"<mark>"+m+"</mark>");return`<div class="${x.l}">${h}</div>`}).join(""):`<div class="ce">${CON.length?"Ninguna línea coincide con el filtro.":"Aún no hay salida. Lanza el juego y aparecerá aquí."}</div>`;

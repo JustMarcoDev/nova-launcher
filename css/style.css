@@ -108,6 +108,8 @@ html[data-th=medianoche]{--bg:#060a18;--p:#0c1226;--p2:#131b36}
 html[data-th=violeta]{--bg:#0b0613;--p:#140c22;--p2:#1c1131}
 .bold,.bold *{font-weight:700!important}
 .hc{--l:rgba(255,255,255,.32);--m:#c9cfdd}
+nav button.ld{opacity:.55;pointer-events:none}nav button.ld svg{animation:spin .7s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+.gm *,.gm *::before,.gm *::after{animation-play-state:paused!important}.gm .card,.gm nav,.gm .tb{backdrop-filter:none}
 .rm *,.rm *::after{animation:none!important;transition:none!important}.rm .card,.rm nav,.rm .tb{backdrop-filter:none}
 .ni #intro{display:none}.ni .tb,.ni .app{animation:none}
 .sg{display:grid;grid-template-columns:210px 1fr;gap:24px;max-width:1000px}

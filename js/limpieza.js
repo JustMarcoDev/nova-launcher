@@ -5,7 +5,7 @@ async function demoClean(){await new Promise(r=>setTimeout(r,600));return{runnin
  {id:"libs",title:"Librerías sin uso",desc:"Archivos de versiones antiguas de librerías que ya no necesita ninguna versión instalada.",count:41,size:186e6,sample:["org/lwjgl/lwjgl/3.2.2","com/google/guava/guava/21.0"]},
  {id:"backups",title:"Copias de seguridad antiguas",desc:"Copias de más de 30 días (se conservan las 2 últimas de cada instancia) y las de instancias ya borradas.",count:6,size:340e6,sample:["20260801-100000__antes-de-actualizar-mods.zip"]},
  {id:"logs",title:"Registros e informes de fallos viejos",desc:"Registros del launcher de más de 14 días (se conservan los 5 últimos) e informes de fallos de más de 30 días.",count:17,size:4.2e6,sample:["2026-08-01-10-00-00_Fabric.log"]},
- {id:"temp",title:"Archivos temporales",desc:"Restos de instalaciones y de la preparación en segundo plano.",count:0,size:0,sample:[]}]}}
+ {id:"temp",title:"Archivos temporales",desc:"Restos de instalaciones, de la preparación en segundo plano y descargas a medias de más de 2 días.",count:0,size:0,sample:[]}]}}
 async function openClean(){
   modal(hdr(null,"Limpieza de espacio","Busca lo que ya no usa ninguna instancia")+`<div class="cll" id="cll"><div class="dgw"><i class="spn"></i>Buscando archivos que ya no hacen falta…</div></div><div class="acts"><button class="btn" data-x>Cerrar</button><button class="btn pr" id="clg" disabled>Liberar espacio</button></div>`,"wide");
   let r;try{r=A?await A.cleanScan():await demoClean()}catch(e){if($("cll"))$("cll").innerHTML=`<div class="dgw">${esc(em(e))}</div>`;return}

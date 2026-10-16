@@ -20,4 +20,3 @@ if($("wzp"))$("wzp").onclick=()=>{st--;draw()};if($("wzn"))$("wzn").onclick=()=>
 const fin=async go=>{pick(W.mc,"release",W.ld);await sv({setupDone:true});closeModal();flash("¡Listo! Ya puedes jugar");if(go&&A){show("home");play()}};
 if($("wzf"))$("wzf").onclick=()=>fin(false);if($("wzg"))$("wzg").onclick=()=>fin(true)};
 draw()}
-function startup212(){if(!A)return;if(cfg._first){sv({setupDone:true,seenVersion:VER});openWizard()}else if(cfg.seenVersion!==VER){sv({seenVersion:VER});openNews()}}

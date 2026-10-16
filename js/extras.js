@@ -7,7 +7,7 @@ async function contRefresh(){
 {const _l=loadI;loadI=async function(){const r=await _l.apply(this,arguments);try{contRefresh()}catch{}return r}}
 $("cont").onclick=async()=>{
   if(!LASTW)return;if(!A){$("st").textContent="Vista previa: instala la app de escritorio para jugar";return}
-  const b=$("cont");b.disabled=true;try{await A.play({id:LASTW.inst,world:LASTW.name})}catch(e){flash(em(e))}finally{b.disabled=false}
+  const b=$("cont");b.disabled=true;try{await launch({id:LASTW.inst,world:LASTW.name})}catch(e){flash(em(e))}finally{b.disabled=false}
 };
 
 // ----- Arrastrar y soltar -----

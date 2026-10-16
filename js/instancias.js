@@ -1,47 +1,5 @@
 // Instancias, gestor de mods, copias y avisos de error
 // ===== Instancias, mods y copias (0.2.11) =====
-const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const em=e=>String(e&&e.message||e).replace(/^Error invoking remote method '[^']+': (Error: )?/,"");
-// Errores de descarga: separa el mensaje de la ruta del informe y enseña el motivo real
-function errSplit(e){const m=em(e),x=/\s*‹informe: ([^›]+)›\s*$/.exec(m);return{msg:x?m.slice(0,x.index):m,file:x?x[1]:""}}
-// Abre una incidencia nueva en GitHub con el informe ya pegado (la dirección admite unos 7 000 caracteres)
-function reportIssue(title,text){
-  const mk=n=>"https://github.com/JustMarcoDev/nova-launcher/issues/new?title="+encodeURIComponent(String(title).slice(0,120))+"&body="+encodeURIComponent("**Nova Launcher "+VER+"**\n\n```\n"+String(text).slice(0,n)+"\n```\n\n_Cuenta aquí qué estabas haciendo cuando falló. Si puedes, adjunta el archivo del informe._");
-  let n=3000,u=mk(n);while(u.length>7200&&n>300){n-=300;u=mk(n)}
-  if(A&&A.open)A.open(u);else window.open(u,"_blank");
-}
-async function showDlErr(title,what,e,extra){
-  let {msg,file}=errSplit(e);extra=extra||{};
-  if(!file&&A&&A.errLog){try{file=await A.errLog({kind:"descarga",what:String(what||""),message:msg,stack:e&&e.stack,url:extra.url,step:extra.step})}catch{}}
-  const d=modal(hdr(null,title,esc(what||""))+`<div class="dgs b2" style="margin:12px 0;white-space:pre-wrap;word-break:break-word">${esc(msg)}</div>`+(file?`<small class="hint">Se ha guardado un informe con los detalles:<br><code style="word-break:break-all">${esc(file)}</code></small>`:"")+`<div class="acts">${file&&A?`<button class="btn" id="eio">Abrir informe</button><button class="btn" id="eif">Carpeta de informes</button>`:""}<button class="btn" id="eir">Reportar un error</button><button class="btn" id="eic">Copiar</button><button class="btn pr" data-x>Cerrar</button></div>`);
-  const q=i=>d.querySelector("#"+i);
-  q("eir").onclick=async()=>{let t=`${title}\n${what||""}\n${msg}`;if(file&&A&&A.errText){try{t+="\n\n"+await A.errText(file)}catch{}}reportIssue(title,t)};
-  if(q("eio"))q("eio").onclick=()=>A.logOpen(file);
-  if(q("eif"))q("eif").onclick=()=>A.errFolder();
-  q("eic").onclick=async()=>{const t=`${title}\n${what||""}\n${msg}${file?"\nInforme: "+file:""}`;try{if(A&&A.clip)await A.clip(t);else await navigator.clipboard.writeText(t);flash("Copiado")}catch{flash(msg)}};
-}
-const cap=s=>s?s[0].toUpperCase()+s.slice(1):s;
-const ICS=["box","puzzle","rocket","game","heart","bolt","orbit","cup","globe","chip","server","code"],ICOL=["#2ee06f","#4fa8ff","#a78bfa","#f472b6","#fb923c","#facc15","#f87171","#94a3b8"];
-const fSz=n=>n>=1048576?(n/1048576).toFixed(1)+" MB":Math.max(1,Math.round(n/1024))+" KB";
-const fmtD=t=>new Date(t).toLocaleString(LCUR,{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
-let flT=0,pickRes=null,busyBtn=null;
-function flash(t){const f=$("ft");f.textContent=t;f.classList.add("on");clearTimeout(flT);flT=setTimeout(()=>f.classList.remove("on"),4600)}
-function modal(h,w){const m=$("mdl"),d=m.querySelector(".md");d.className="md"+(w?" "+w:"");d.innerHTML=h;m.classList.add("on");d.scrollTop=0;d.querySelectorAll("[data-x]").forEach(x=>x.onclick=closeModal);return d}
-function closeModal(){$("mdl").classList.remove("on");if(pickRes){const r=pickRes;pickRes=null;r(null)}}
-$("mdl").onclick=e=>{if(e.target.id==="mdl")closeModal()};
-const hdr=(i,t,s)=>`<div class="hd"><div class="iic" style="${i&&i.color?"--ic:"+esc(i.color):""}">${IC(i&&i.icon&&ICS.includes(i.icon)?i.icon:"box")}</div><div style="min-width:0"><h3>${t}</h3><span class="sub">${s}</span></div><button class="btn sm x" data-x>Cerrar</button></div>`;
-// --- Datos de ejemplo para la vista previa (sin la app) ---
-const DMOD=[{file:"sodium-fabric-0.5.11.jar",enabled:true,size:1.2e6,sha1:"a1",t:"Sodium",v:"0.5.11",u:"0.6.0"},{file:"lithium-fabric-0.13.0.jar",enabled:true,size:640e3,sha1:"a2",t:"Lithium",v:"0.13.0"},{file:"iris-1.7.3.jar",enabled:false,size:2.3e6,sha1:"a3",t:"Iris Shaders",v:"1.7.3",u:"1.8.0"},{file:"fabric-api-0.102.0.jar",enabled:true,size:2.1e6,sha1:"a4",t:"Fabric API",v:"0.102.0"},{file:"mi-mod-casero.jar",enabled:true,size:88e3,sha1:"a5"}];
-let DBK=[{file:"1",date:Date.now()-36e5,size:48e6,reason:"antes de actualizar mods"},{file:"2",date:Date.now()-864e5,size:47e6,reason:"manual"}];
-const DA={modsList:async()=>DMOD.map(m=>({file:m.file,enabled:m.enabled,size:m.size,sha1:m.sha1})),
-modsCheck:async()=>Object.fromEntries(DMOD.filter(m=>m.t).map(m=>[m.sha1,{title:m.t,icon:"",ver:m.v,update:m.u?{ver:m.u,url:"https://x",filename:m.file,sha1:"",sha512:""}:null}])),
-modsToggle:async({file})=>{const m=DMOD.find(x=>x.file===file);if(m)m.enabled=!m.enabled;return file},modsRemove:async({file})=>{const k=DMOD.findIndex(x=>x.file===file);if(k>=0)DMOD.splice(k,1);return true},
-modsUpdate:async({file})=>{const m=DMOD.find(x=>x.file===file);if(m){m.v=m.u;m.u=""}return file},modsAdd:async()=>0,
-bkList:async()=>DBK,bkCreate:async()=>{DBK.unshift({file:"n"+Date.now(),date:Date.now(),size:48e6,reason:"manual"});return"x"},bkRestore:async()=>true,bkDel:async({file})=>{DBK=DBK.filter(b=>b.file!==file);return true},bkOpen:async()=>{},
-instUpdate:async(id,p)=>{const i=I.find(x=>x.id===id);Object.assign(i,p);return i},instDup:async id=>{const i=I.find(x=>x.id===id);I.push({...i,id:"d"+Date.now(),name:i.name+" (copia)",custom:true});return 1},instOpen:async()=>{},
-instExport:async()=>({ok:true,file:"demo.mrpack"}),instImport:async()=>({canceled:true}),loaderVersions:async({ld})=>ld==="Fabric"?[{v:"0.16.9",stable:true},{v:"0.16.8",stable:true},{v:"0.16.5",stable:true}]:[{v:"52.0.3",stable:true},{v:"52.0.1",stable:true}],
-packVersions:async()=>[{id:"p3",name:"Fabulously Optimized 10.0",num:"10.0.0",mc:["1.21","1.21.1"],ld:["fabric"],date:"2026-09-30T10:00:00Z",type:"release"},{id:"p2",name:"Fabulously Optimized 9.5",num:"9.5.0",mc:["1.20.4","1.20.6"],ld:["fabric"],date:"2026-06-12T10:00:00Z",type:"release"},{id:"p1",name:"Beta 11.0",num:"11.0.0-beta.2",mc:["1.21.4"],ld:["fabric"],date:"2026-10-05T10:00:00Z",type:"beta"}],
-pack:async()=>({failed:[]}),delInst:async id=>{I=I.filter(x=>x.id!==id)},sys:async()=>({total:16})};
 // --- Tarjetas de instancias ---
 let iQ="",iTag="";
 const INS_SORT={last:"Último uso",name:"Nombre",time:"Tiempo jugado"};

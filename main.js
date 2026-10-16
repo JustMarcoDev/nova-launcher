@@ -9,7 +9,7 @@ const fsp = fs.promises, rmAsync = (p) => fsp.rm(p, { recursive: true, force: tr
 const rd = (f, d) => { try { return JSON.parse(fs.readFileSync(f)); } catch { return d; } };
 const wr = (f, d) => { fs.mkdirSync(root, { recursive: true }); fs.writeFileSync(f, JSON.stringify(d, null, 1)); };
 const load = () => ({ ...DEF, ...rd(cfgFile, {}) }), li = () => rd(insFile, []);
-const addInst = o => { const i = { id: Date.now().toString(36), ...o }; wr(insFile, [...li(), i]); return i; };
+const addInst = o => { const L = li(); let id = Date.now().toString(36); while (L.some(x => x.id === id)) id += Math.random().toString(36).slice(2, 4); const i = { id, ...o }; wr(insFile, [...L, i]); return i; };
 const FIRST = !fs.existsSync(cfgFile) && !fs.existsSync(insFile);
 if (rd(cfgFile, {}).hwaccel === false) app.disableHardwareAcceleration();
 const MAN = 'https://launchermeta.mojang.com/mc/game/version_manifest_v2.json';
@@ -87,7 +87,7 @@ function smokeTest() {
   win.webContents.once('did-finish-load', async () => {
     await new Promise(r => setTimeout(r, 6500));
     try {
-      const r = await win.webContents.executeJavaScript(`(async()=>{const o=[];const need=['home','go','cont','mods','set','con','dqw'];for(const i of need)if(!document.getElementById(i))o.push('falta #'+i);for(const f of ['play','dqState','diag','dropInstall','worldLast','insts','cfg','versions'])if(typeof window.api[f]!=='function')o.push('falta api.'+f);try{const v=await window.api.ver();if(!v)o.push('sin versión')}catch(e){o.push('api.ver: '+e.message)}document.querySelectorAll('nav button').forEach(b=>{});return o})()`);
+      const r = await win.webContents.executeJavaScript(`(async()=>{const o=[];const need=['home','go','cont','mods','set','con','dqw'];for(const i of need)if(!document.getElementById(i))o.push('falta #'+i);for(const f of ['play','dqState','diag','dropInstall','worldLast','insts','cfg','versions'])if(typeof window.api[f]!=='function')o.push('falta api.'+f);try{const v=await window.api.ver();if(!v)o.push('sin versión')}catch(e){o.push('api.ver: '+e.message)}for(const p of ['mods','inst','set','srv','con','soc','vers','home']){show(p);await new Promise(r=>setTimeout(r,500));if(!document.getElementById(p).classList.contains('on'))o.push('la pestaña '+p+' no abre')}return o})()`);
       if (r.length) return fail(r.join('; '));
       if (errs.length) return fail('errores en la consola de la interfaz');
       console.log('SMOKE OK · versión ' + app.getVersion()); app.exit(0);
@@ -332,17 +332,17 @@ ipcMain.handle('play', async (e, { id, server, world }) => {
     l.on('progress', p => send('progress', p));
     l.on('data', d => { const t = String(d); try { lg.w.write(t.endsWith('\n') ? t : t + '\n'); } catch {} for (const ln of t.split(/\r?\n/)) if (ln) tail.push(ln); if (tail.length > 500) tail.splice(0, tail.length - 300); send('log', t); });
     l.on('close', code => {
-      running.delete(id); try { lg.w.end(); } catch {} if (t0) { const cur = li().find(i => i.id === id) || {}; upIns(id, { playMs: (cur.playMs || 0) + (Date.now() - t0), lastPlayed: Date.now() }); } discordSet(null); send('running', 0); send('progress', null);
+      running.delete(id); try { lg.w.end(); } catch {} if (t0) { const cur = li().find(i => i.id === id) || {}; upIns(id, { playMs: (cur.playMs || 0) + (Date.now() - t0), lastPlayed: Date.now() }); } discordSet(null); send('running', running.size ? 1 : 0); send('progress', null);
       const crashed = !!code && tail.length > 0;
       send('status', crashed ? 'Minecraft se cerró con un error' : 'Minecraft cerrado');
-      if (cfg.reopen !== false || crashed) { win.show(); }
+      if ((running.size === 0 && cfg.reopen !== false) || crashed) { if (win.isMinimized()) win.restore(); win.show(); }
       if (crashed) { reportCrash(ins, code, tail, lg.f, since - 5000); notify('Minecraft se cerró con un error', diagnose(tail).t); }
     });
     discordSet({ details: 'Preparando Minecraft ' + ins.mc, state: (ins.ld || 'Vanilla') + ' · Nova Launcher', startTimestamp: Date.now() });
     send('status', 'Descargando archivos del juego…');
     if (!(await l.launch(o))) throw new Error('No se pudo iniciar Minecraft');
     running.add(id); t0 = Date.now(); upIns(id, { lastPlayed: t0 });
-    send('running', 1); discordSet({ details: server && server.name ? 'En ' + server.name + ' · ' + ins.mc : 'Jugando a Minecraft ' + ins.mc, state: (ins.ld || 'Vanilla') + ' · Nova Launcher', startTimestamp: Date.now() }); send('status', 'Minecraft en ejecución'); if (cfg.closeOnLaunch) win.hide();
+    send('running', 1); discordSet({ details: server && server.name ? 'En ' + server.name + ' · ' + ins.mc : 'Jugando a Minecraft ' + ins.mc, state: (ins.ld || 'Vanilla') + ' · Nova Launcher', startTimestamp: Date.now() }); send('status', 'Minecraft en ejecución'); if (cfg.closeOnLaunch) win.hide(); else if (cfg.gameMode !== false) gameHide();
     return { ok: true };
   } catch (err) { send('status', 'Error: ' + err.message); send('progress', null); return { ok: false }; }
 });
@@ -454,7 +454,6 @@ const serversDat = list => { const n = Buffer.alloc(4); n.writeInt32BE(list.leng
 // ===== Estabilidad, instancias, mods y copias (0.2.11) =====
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const hashOf = (b, a) => crypto.createHash(a).update(b).digest('hex');
-// Descarga con comprobación de huella y 3 reintentos (prueba también los enlaces alternativos)
 // ---- Cola de descargas: pausar, cancelar y limitar la velocidad ----
 const DQ = { paused: false, cancel: false, limit: +rd(cfgFile, {}).dlLimit || 0, active: 0, pools: 0, bytes: 0, t: Date.now(), speed: 0, next: 0, total: 0, done: 0 };
 let dqT = null;
@@ -470,38 +469,76 @@ async function dqChunk(n) {
   DQ.bytes += n; DQ.done += n;
   if (DQ.limit > 0) { const now = Date.now(); DQ.next = Math.max(DQ.next, now) + n / (DQ.limit * 1048576) * 1000; const w = DQ.next - now - 300; if (w > 0) await sleep(Math.min(w, 5000)); }
 }
-async function fetchBuf(u, pooled) {
-  const r = await fetch(u, { signal: AbortSignal.timeout(600000), headers: { 'User-Agent': UA() } }); if (!r.ok) throw new Error('HTTP ' + r.status);
-  if (!pooled && r.headers && r.headers.get) DQ.total += +r.headers.get('content-length') || 0;
-  if (r.body && typeof r.body.getReader === 'function') {
-    const rd2 = r.body.getReader(), parts = [];
-    try { for (;;) { const { done, value } = await rd2.read(); if (done) break; await dqChunk(value.length); parts.push(Buffer.from(value)); } }
-    catch (e) { try { rd2.cancel(); } catch {} throw e; }
-    return Buffer.concat(parts);
-  }
-  const b = Buffer.from(await r.arrayBuffer()); await dqChunk(b.length); return b;
+// Las descargas van a «archivo.part» por trozos. Si se cortan se reanudan desde donde se quedaron (cabecera Range)
+// y solo al terminar y comprobar la huella se renombran al nombre final. Junto al .part se guarda «.part.meta» con
+// la dirección y el identificador del archivo (ETag / fecha) para no mezclar trozos de dos versiones distintas.
+const DL_WAITS = process.env.NOVA_DL_WAITS ? JSON.parse(process.env.NOVA_DL_WAITS) : [1000, 3000, 8000];
+const rmQ = p => fs.promises.rm(p, { force: true }).catch(() => {});
+const metaOf = p => p + '.meta';
+const hashFile = (p, a) => new Promise((ok, no) => { const h = crypto.createHash(a), s = fs.createReadStream(p); s.on('data', d => h.update(d)); s.on('end', () => ok(h.digest('hex'))); s.on('error', no); });
+async function sleepC(ms) { const end = Date.now() + ms; while (Date.now() < end) { if (DQ.cancel) throw cancelErr(); await sleep(Math.max(1, Math.min(200, end - Date.now()))); } }
+async function fetchPart(u, part, o, depth = 0) {
+  let size = 0; try { size = (await fs.promises.stat(part)).size; } catch {}
+  let meta = null; if (size) { try { meta = JSON.parse(await fs.promises.readFile(metaOf(part), 'utf8')); } catch {} }
+  if (size && (!meta || meta.u !== u)) { await rmQ(part); await rmQ(metaOf(part)); size = 0; meta = null; } // un .part de otra dirección o sin datos no sirve
+  const headers = { 'User-Agent': UA() };
+  if (size) { headers.Range = 'bytes=' + size + '-'; const iv = meta.e || meta.m; if (iv) headers['If-Range'] = iv; }
+  const r = await fetch(u, { signal: AbortSignal.timeout(600000), headers });
+  const hd = k => (r.headers && r.headers.get ? r.headers.get(k) : null);
+  const again = async () => { try { r.body && r.body.cancel && await r.body.cancel(); } catch {} await rmQ(part); await rmQ(metaOf(part)); if (depth) throw new Error('No se pudo reanudar la descarga'); return fetchPart(u, part, o, depth + 1); };
+  if (r.status === 416 && size) return again(); // el .part ya estaba completo o no vale: se empieza de cero
+  if (!r.ok) throw Object.assign(new Error('HTTP ' + r.status), { http: r.status });
+  let base = 0;
+  if (size && r.status === 206) {
+    const cr = /^bytes (\d+)-/.exec(hd('content-range') || ''); if (cr && +cr[1] !== size) return again();
+    base = size; if (o.pooled) { const credit = size - o.st.cnt; if (credit > 0) DQ.done += credit; o.st.cnt = size; } // en los modpacks el total ya cuenta el archivo entero (se suma lo de otros intentos)
+  } // con 200 (el servidor no admite Range o el archivo cambió) se empieza de cero
+  const len = +hd('content-length') || 0; if (!o.pooled) DQ.total += len;
+  let got = 0; if (!base) o.st.cnt = 0;
+  try {
+    await fs.promises.mkdir(path.dirname(part), { recursive: true });
+    if (!base) await fs.promises.writeFile(metaOf(part), JSON.stringify({ u, e: hd('etag') || '', m: hd('last-modified') || '' })).catch(() => {});
+    const fh = await fs.promises.open(part, base ? 'a' : 'w');
+    try {
+      if (r.body && typeof r.body.getReader === 'function') {
+        const rd2 = r.body.getReader();
+        try { for (;;) { const { done, value } = await rd2.read(); if (done) break; await dqChunk(value.length); await fh.write(value); got += value.length; o.st.cnt += value.length; } }
+        catch (e) { try { rd2.cancel(); } catch {} throw e; }
+      } else { const b = Buffer.from(await r.arrayBuffer()); await dqChunk(b.length); await fh.write(b); got = b.length; o.st.cnt += b.length; }
+    } finally { await fh.close(); }
+    if (len && got !== len) throw new Error('Descarga incompleta');
+  } catch (e) { if (!o.pooled && len > got) DQ.total -= len - got; throw e; }
+  return base + got;
 }
-// Descarga con comprobación de huella y 3 reintentos (prueba también los enlaces alternativos)
+// Descarga con comprobación de huella, reanudación y 3 reintentos (1 s, 3 s y 8 s; prueba también los enlaces alternativos)
 async function dl(urls, dest, o = {}) {
   urls = [].concat(urls || []).filter(Boolean); if (!urls.length) throw new Error('Sin enlace de descarga');
   DQ.active++; dqTick();
+  o = { ...o, st: { cnt: 0 } }; // st.cnt: bytes de este .part que ya cuentan en la cola
+  const part = dest + '.part', bad = new Set(), clean = async () => { await rmQ(part); await rmQ(metaOf(part)); };
   try {
     let err;
-    for (let i = 0; i < 3; i++) {
+    for (let round = 0; round <= DL_WAITS.length; round++) {
       for (const u of urls) {
-        try {
-          if (DQ.cancel) throw cancelErr();
-          const buf = await fetchBuf(u, o.pooled);
-          const bad = o.sha512 ? hashOf(buf, 'sha512') !== String(o.sha512).toLowerCase() : o.sha1 && hashOf(buf, 'sha1') !== String(o.sha1).toLowerCase();
-          if (bad) throw new Error('hash');
-          fs.mkdirSync(path.dirname(dest), { recursive: true });
-          const t = dest + '.part'; fs.writeFileSync(t, buf); fs.renameSync(t, dest); return buf.length;
-        } catch (e) { if (e.cancel) throw e; err = e; }
+        if (bad.has(u)) continue;
+        for (let z = 0; z < 2; z++) {
+          try {
+            if (DQ.cancel) throw cancelErr();
+            const n = await fetchPart(u, part, o);
+            const want = String(o.sha512 || o.sha1 || '').toLowerCase();
+            if (want && await hashFile(part, o.sha512 ? 'sha512' : 'sha1') !== want) { await clean(); err = new Error('hash'); if (z === 0) continue; bad.add(u); break; } // huella distinta: una vez más desde cero
+            await rmQ(metaOf(part)); await fs.promises.rename(part, dest); return n;
+          } catch (e) { if (e.cancel) throw e; err = e; if (e.http >= 400 && e.http < 500 && e.http !== 408 && e.http !== 429) bad.add(u); break; }
+        }
       }
-      await sleep(400 * (i + 1));
+      if (round === DL_WAITS.length || urls.every(u => bad.has(u))) break;
+      if (!o.pooled) send('status', `Se cortó la descarga: reintentando (${round + 1} de ${DL_WAITS.length})…`);
+      await sleepC(DL_WAITS[round]);
     }
+    if (urls.every(u => bad.has(u))) await clean();
     throw new Error(err && err.message === 'hash' ? 'Archivo corrupto: la huella no coincide' : 'Descarga fallida: ' + (err && err.message));
-  } finally { DQ.active--; dqIdle(); dqSend(); }
+  } catch (e) { if (e.cancel) await clean(); throw e; }
+  finally { DQ.active--; dqIdle(); dqSend(); }
 }
 async function pool(items, n, fn, sizeOf) {
   DQ.pools++; dqTick(); if (sizeOf) for (const it of items) DQ.total += +sizeOf(it) || 0; let k = 0; const out = new Array(items.length);
@@ -559,7 +596,7 @@ ipcMain.handle('loader:versions', async (e, { ld, mc }) => (await loaderList(Str
 const modsDir = id => path.join(iDir(getIns(id).id), 'mods');
 const modFile = (id, f) => { f = path.basename(String(f)); if (!/\.jar(\.disabled)?$/i.test(f)) throw new Error('Archivo no válido'); return path.join(modsDir(id), f); };
 const hcache = new Map();
-ipcMain.handle('mods:list', async (e, id) => {
+async function listMods(id) {
   const d = modsDir(id); let es = []; try { es = await fs.promises.readdir(d); } catch { return []; }
   const out = [];
   for (const f of es) {
@@ -567,10 +604,11 @@ ipcMain.handle('mods:list', async (e, id) => {
     const p = path.join(d, f); let st; try { st = await fs.promises.stat(p); } catch { continue; } if (!st.isFile()) continue;
     const k = p + '|' + st.size + '|' + st.mtimeMs; let h = hcache.get(k);
     if (!h) { h = hashOf(await fs.promises.readFile(p), 'sha1'); hcache.set(k, h); }
-    out.push({ file: f, enabled: !m[1], size: st.size, sha1: h });
+    out.push({ file: f, enabled: !m[1], size: st.size, sha1: h, mt: st.mtimeMs });
   }
   return out.sort((a, b) => a.file.localeCompare(b.file));
-});
+}
+ipcMain.handle('mods:list', async (e, id) => (await listMods(id)).map(({ mt, ...m }) => m));
 // Busca en Modrinth el nombre de cada mod y si hay una versión más nueva para esta instancia
 ipcMain.handle('mods:check', async (e, { id, hashes }) => {
   const ins = getIns(id); hashes = [...new Set(hashes || [])].slice(0, 1000); if (!hashes.length) return {};
@@ -747,6 +785,8 @@ function trayInit() {
     return true;
   } catch { tray = null; return false; }
 }
+// Modo juego: al abrirse Minecraft el launcher se esconde en la bandeja (o se minimiza si la bandeja está desactivada)
+function gameHide() { try { if (!win) return; if (trayInit()) win.hide(); else win.minimize(); } catch {} }
 function notify(title, body) {
   try {
     if (load().notify === false || !Notification.isSupported()) return;
@@ -901,6 +941,92 @@ ipcMain.handle('mods:bundle', async (e, { id, slugs }) => {
   };
   let n = 0; await pool(slugs || [], 3, async s => { try { await one(String(s), 0); } catch { failed.push(s); } prog('Instalando', ++n, (slugs || []).length); });
   send('progress', null); return { failed };
+});
+
+// ---- Revisión de mods antes de jugar ----
+// Consulta Modrinth por la huella de cada mod activo y avisa de: mod de otro cargador, de otra versión de Minecraft,
+// mods incompatibles entre sí y dependencias obligatorias que faltan. Los resultados se guardan por huella.
+const MCK_TTL = 7 * 864e5, MCK_NEG = 864e5, MCK_LD = ['fabric', 'forge', 'neoforge', 'quilt'];
+let mck = null, mckT = 0;
+const mckFile = () => path.join(root, 'cache', 'modcheck.json');
+async function mckLoad() {
+  if (mck) return mck;
+  try { mck = JSON.parse(await fs.promises.readFile(mckFile(), 'utf8')); } catch {}
+  if (!mck || mck.v !== 1 || !mck.h || !mck.p) mck = { v: 1, h: {}, p: {} };
+  return mck;
+}
+function mckSave() {
+  clearTimeout(mckT);
+  mckT = setTimeout(async () => {
+    try {
+      const now = Date.now();
+      for (const k of Object.keys(mck.h)) if (now - mck.h[k].t > 30 * 864e5) delete mck.h[k];
+      for (const k of Object.keys(mck.p)) if (now - mck.p[k].t > 30 * 864e5) delete mck.p[k];
+      await fs.promises.mkdir(path.dirname(mckFile()), { recursive: true }); await fs.promises.writeFile(mckFile(), JSON.stringify(mck));
+    } catch {}
+  }, 400);
+}
+const mckJson = async (u, body) => {
+  const r = await fetch(u, { method: body ? 'POST' : 'GET', signal: AbortSignal.timeout(9000), headers: { 'User-Agent': UA(), ...(body ? { 'Content-Type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined });
+  if (!r.ok) throw new Error('HTTP ' + r.status); return r.json();
+};
+const mckMc = g => { const r = g.filter(x => /^\d+\.\d+(\.\d+)?$/.test(x)), L = r.length ? r : g; return L[L.length - 1]; };
+const mckLd = n => ({ fabric: 'Fabric', forge: 'Forge', neoforge: 'NeoForge', quilt: 'Quilt' }[n] || n);
+ipcMain.handle('mods:precheck', async (e, { id }) => {
+  const none = (why, extra) => ({ skipped: why, problems: [], missing: [], ...extra });
+  if (load().modCheck === false) return none('off');
+  const ins = getIns(id), ld = String(ins.ld || '').toLowerCase();
+  if (!['fabric', 'forge', 'neoforge'].includes(ld)) return none('vanilla');
+  const files = (await listMods(ins.id)).filter(m => m.enabled);
+  if (!files.length) return none('nomods');
+  send('status', 'Revisando los mods…');
+  const C = await mckLoad(), now = Date.now(), fresh = en => en && now - en.t < (en.d ? MCK_TTL : MCK_NEG);
+  const need = [...new Set(files.map(f => f.sha1))].filter(h => !fresh(C.h[h]));
+  let offline = false;
+  if (need.length) {
+    try {
+      const r = await mckJson('https://api.modrinth.com/v2/version_files', { hashes: need, algorithm: 'sha1' });
+      for (const h of need) { const v = r && r[h]; C.h[h] = { t: now, d: v ? { p: v.project_id, g: v.game_versions || [], l: v.loaders || [], dp: (v.dependencies || []).filter(x => x && x.project_id && (x.dependency_type === 'required' || x.dependency_type === 'incompatible')).map(x => [x.project_id, x.dependency_type]) } : null }; }
+      mckSave();
+    } catch { offline = true; }
+  }
+  const known = [];
+  for (const f of files) { const en = C.h[f.sha1]; if (en && en.d) known.push({ ...f, e: en.d }); }
+  if (!known.length) return none(offline ? 'offline' : 'unknown', { offline, checked: 0, unknown: files.length });
+  // Nombres de los proyectos (también los de las dependencias que faltan)
+  const byP = new Map(); for (const f of known) if (!byP.has(f.e.p)) byP.set(f.e.p, f);
+  const pids = new Set(byP.keys()); for (const f of known) for (const [p] of f.e.dp) pids.add(p);
+  const needP = [...pids].filter(p => !C.p[p] || now - C.p[p].t > MCK_TTL);
+  if (needP.length && !offline) {
+    for (let i = 0; i < needP.length; i += 80) {
+      try { for (const p of await mckJson('https://api.modrinth.com/v2/projects?ids=' + encodeURIComponent(JSON.stringify(needP.slice(i, i + 80))))) C.p[p.id] = { t: now, n: p.title || '', s: p.slug || '' }; mckSave(); } catch { offline = true; break; }
+    }
+  }
+  const title = p => (C.p[p] && C.p[p].n) || '', nm = f => title(f.e.p) || f.file.replace(/\.jar$/i, '');
+  const problems = [], bad = new Set(), pairs = new Set();
+  for (const f of known) {
+    const mods = f.e.l.filter(x => MCK_LD.includes(x));
+    if (mods.length && !mods.includes(ld)) { problems.push({ t: 'loader', file: f.file, name: nm(f), has: mods.map(mckLd).join(' / '), ld: mckLd(ld) }); bad.add(f.file); continue; }
+    if (f.e.g.length && !f.e.g.includes(ins.mc)) { problems.push({ t: 'mc', file: f.file, name: nm(f), mc: mckMc(f.e.g), now: ins.mc }); bad.add(f.file); continue; }
+  }
+  for (const f of known) for (const [p, ty] of f.e.dp) {
+    if (ty !== 'incompatible' || !byP.has(p)) continue;
+    const o = byP.get(p); if (o.file === f.file || bad.has(f.file) || bad.has(o.file)) continue;
+    const key = [f.file, o.file].sort().join('|'); if (pairs.has(key)) continue; pairs.add(key);
+    const [off, keep] = f.mt >= o.mt ? [f, o] : [o, f]; // se apaga el último que se añadió
+    problems.push({ t: 'inc', file: off.file, name: nm(off), other: nm(keep) }); bad.add(off.file);
+  }
+  const unk = files.filter(f => !C.h[f.sha1] || !C.h[f.sha1].d).map(f => f.file.toLowerCase().replace(/[^a-z0-9]/g, ''));
+  const miss = new Map();
+  for (const f of known) {
+    if (bad.has(f.file)) continue;
+    for (const [p, ty] of f.e.dp) {
+      if (ty !== 'required' || byP.has(p)) continue;
+      const slug = ((C.p[p] && C.p[p].s) || '').replace(/[^a-z0-9]/g, ''); if (slug && unk.some(u => u.includes(slug))) continue; // lo trae un jar que Modrinth no conoce
+      if (!miss.has(p)) miss.set(p, { pid: p, name: title(p) || '', by: [] }); const m = miss.get(p); if (!m.by.includes(nm(f))) m.by.push(nm(f));
+    }
+  }
+  return { problems, missing: [...miss.values()], offline, checked: known.length, unknown: files.length - known.length };
 });
 
 // ---- Volver a una versión anterior ----
@@ -1198,7 +1324,18 @@ async function cleanScan() {
   cats.push({ id: 'logs', title: 'Registros e informes de fallos viejos', desc: 'Registros del launcher de más de 14 días (se conservan los 5 últimos) e informes de fallos de más de 30 días.', items: lItems });
   // 5) temporales
   const tItems = []; for (const t of [path.join(root, 'installer.jar'), path.join(root, 'instances', '.prep')]) { try { const st = await fsp.stat(t); tItems.push({ p: t, name: path.basename(t), size: st.isDirectory() ? await dirSize(t) : st.size }); } catch {} }
-  cats.push({ id: 'temp', title: 'Archivos temporales', desc: 'Restos de instalaciones y de la preparación en segundo plano.', items: tItems });
+  // descargas a medias (.part) de más de 2 días: ya no se van a reanudar
+  const SKIPD = ['saves', 'screenshots', 'logs', 'crash-reports', 'backups', 'libraries', 'assets', 'versions', 'instances', 'cache'];
+  const findParts = async (dir, depth, skip) => {
+    let es; try { es = await fsp.readdir(dir, { withFileTypes: true }); } catch { return; }
+    for (const x of es) {
+      const p = path.join(dir, x.name);
+      if (x.isDirectory()) { if (depth > 0 && !(skip && SKIPD.includes(x.name)) && !['saves', 'screenshots', 'logs', 'crash-reports'].includes(x.name)) await findParts(p, depth - 1, skip); }
+      else if (/\.part(\.meta)?$/i.test(x.name)) { try { const st = await fsp.stat(p); if (now - st.mtimeMs > 2 * D.day) tItems.push({ p, name: path.relative(root, p), size: st.size }); } catch {} }
+    }
+  };
+  await findParts(root, 2, true); for (const i of li()) await findParts(iDir(i.id), 4, false);
+  cats.push({ id: 'temp', title: 'Archivos temporales', desc: 'Restos de instalaciones, de la preparación en segundo plano y descargas a medias de más de 2 días.', items: tItems });
   return cats;
 }
 ipcMain.handle('clean:scan', async () => {

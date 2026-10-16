@@ -24,7 +24,7 @@ g.textContent="";await sv({myServers:[...L,s]});$("msn").value=$("msh").value=""
 $("ml").onclick=async e=>{const r=e.target.closest("[data-r]"),j=e.target.closest("[data-j]");
 if(r){const L=[...(cfg.myServers||[])];L.splice(+r.dataset.r,1);await sv({myServers:L});renderMine()}
 else if(j){const s=(cfg.myServers||[])[+j.dataset.j];if(!s)return;if(!A){j.textContent="Vista previa";setTimeout(()=>j.textContent="Unirse",1500);return}
-j.disabled=true;j.textContent="Preparando…";try{const i=await ensure();show("home");$("go").disabled=true;try{await A.play({id:i.id,server:{name:s.name,host:s.host,port:s.port||25565}})}finally{$("go").disabled=false}}finally{j.disabled=false;j.textContent="Unirse"}}};
+j.disabled=true;j.textContent="Preparando…";try{const i=await ensure();show("home");$("go").disabled=true;try{await launch({id:i.id,server:{name:s.name,host:s.host,port:s.port||25565}})}finally{$("go").disabled=false}}finally{j.disabled=false;j.textContent="Unirse"}}};
 // --- Shaders: que funcionen siempre ---
 function shaderGate(i){return new Promise(async res=>{
 let has={};const ld=(i&&i.ld)||"Vanilla",ok=ld==="Fabric"||ld==="NeoForge"||ld==="Forge";
