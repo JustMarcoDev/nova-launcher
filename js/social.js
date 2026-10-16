@@ -6,4 +6,3 @@ const SOC=[{n:"YouTube",i:"b-youtube",c:"#FF0033",u:""},{n:"Twitch",i:"b-twitch"
 function renderSoc(){$("sg").innerHTML=SOC.map((r,k)=>`<button class="sk${r.u?"":" off"}" data-k="${k}" style="--i:${k};--b:${r.c}"><div class="si"><svg class="ic"><use href="#${r.i}"/></svg></div><div><b>${r.n}</b>${r.u?"<span>Abrir</span>":"<em>Próximamente</em>"}</div></button>`).join("");
 $("sg").querySelectorAll(".sk").forEach(b=>b.onclick=()=>{const r=SOC[b.dataset.k];if(!r.u)return;A&&A.open?A.open(r.u):window.open(r.u,"_blank")})}
 renderSoc();
-setTimeout(()=>{if(!A&&U.s==="idle")demoUpd("idle")},9000);

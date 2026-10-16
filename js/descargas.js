@@ -18,9 +18,6 @@ $("dqp").onclick=async()=>{if(A){await A.dqPause(!DQS.paused)}else dqDraw({pause
 $("dqc").onclick=async()=>{if(!confirm("¿Cancelar las descargas en curso? Lo ya descargado se conserva."))return;if(A)await A.dqCancel();else dqDraw({active:0})};
 $("dql").onchange=async()=>{const v=+$("dql").value;if(A){await A.dqLimit(v);cfg.dlLimit=v}else dqDraw({limit:v});if(typeof buildSet==="function"&&$("set").classList.contains("on"))buildSet()};
 if(A){A.on("dq",dqDraw);try{A.dqState().then(dqDraw).catch(()=>{})}catch{}}
-// Vista previa: simula una descarga para poder ver el widget
-function demoDq(){let n=0;dqDraw({active:3,paused:false,speed:4.2e6});const t=setInterval(()=>{if(DQS.paused)return;if(++n>14||DQS.active===0){clearInterval(t);dqDraw({active:0});return}dqDraw({speed:(2+Math.random()*4)*1048576/(DQS.limit?Math.max(1,6/DQS.limit):1)})},800)}
-window.demoDq=demoDq;
 
 // ----- Diagnóstico -----
 const DGI={ok:"✓",warn:"!",bad:"✕"};
@@ -36,4 +33,3 @@ async function openDiag(id){
   $("dgc").onclick=async()=>{try{await navigator.clipboard.writeText("Nova Launcher "+VER+"\n"+r.text);flash("Informe copiado")}catch{flash("No se pudo copiar")}};
   $("dgr").onclick=()=>openDiag(iid);
 }
-async function demoDiag(){await new Promise(r=>setTimeout(r,700));const checks=[{level:"ok",t:"Conexión con Mojang",d:"Los servidores de Mojang responden."},{level:"ok",t:"Memoria RAM",d:"4 GB para el juego, 16 GB en total (9.1 GB libres)."},{level:"ok",t:"Java automático",d:"Instalado: Java 21."},{level:"warn",t:"Espacio en disco",d:"Quedan 3.2 GB libres donde se guarda el launcher. Libera espacio."},{level:"ok",t:"Cuenta: Jugador",d:"Cuenta offline: no podrás entrar en servidores con verificación de cuenta (online-mode)."},{level:"ok",t:"Última partida",d:"No se ven errores conocidos en el registro."}];return{name:"Fabric 1.21.1",checks,text:checks.map(c=>`[${c.level.toUpperCase()}] ${c.t}: ${c.d}`).join("\n")}}

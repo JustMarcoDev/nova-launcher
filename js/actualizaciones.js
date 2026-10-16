@@ -1,6 +1,6 @@
 // Actualizaciones del launcher
 // ===== Actualizaciones (0.2.5) =====
-let U={s:"idle"},demoT=null;
+let U={s:"idle"};
 const fmtB=b=>b>1048576?(b/1048576).toFixed(1)+" MB/s":Math.round(b/1024)+" KB/s";
 function ulabel(){const v=U.v?" "+U.v:"";switch(U.s){case"checking":return"Buscando actualizaciones…";case"available":return"Nueva versión"+v+" disponible";case"downloading":return"Descargando"+v+"… "+Math.round(U.p||0)+"%";case"ready":return"Versión"+v+" lista para instalar";case"none":return"Estás al día ✓ (versión "+VER+")";case"error":return"No se pudo comprobar"+(U.msg?": "+U.msg:"");case"dev":return"Solo funciona en la app instalada";default:return"Versión "+VER}}
 let CH=false,umSeen="";
@@ -24,9 +24,4 @@ function setU(o){U=o||{s:"idle"};renderU();autoInst();if(CH&&U.s==="ready"){CH=f
 async function updAction(){const s=U.s;if(s==="available"||s==="downloading")CH=true;
 if(!A){demoUpd(s);return}
 try{if(s==="available")setU(await A.updDownload());else if(s==="ready")A.updInstall();else if(s!=="downloading"){setU({s:"checking"});setU(await A.updCheck())}}catch(e){setU({s:"error"})}}
-function demoUpd(s){clearInterval(demoT);
-if(s==="ready"){setU({s:"none"});return}
-if(s==="available"){let p=0;demoT=setInterval(()=>{p+=7+Math.random()*9;if(p>=100){clearInterval(demoT);setU({s:"ready",v:"0.2.6 (simulación)"})}else setU({s:"downloading",v:"0.2.6 (simulación)",p,bps:2400000+Math.random()*900000})},320);return}
-setU({s:"checking"});demoT=setTimeout(()=>setU({s:"available",v:"0.2.6 (simulación)"}),1200)}
-$("ubb").onclick=updAction;$("umb").onclick=()=>{updAction();if(U.s==="ready")return};$("uml").onclick=()=>$("um").classList.remove("on");$("up").onclick=()=>{show("home");updAction()};
 

@@ -5,7 +5,7 @@ const BHM={dorado:[44,100],azul:[205,100],violeta:[268,95],rosa:[328,95],verde:[
 const FF=[["Segoe UI","sans-serif"],["Segoe UI Variable Text","sans-serif","Segoe UI Variable"],["Bahnschrift","sans-serif"],["Calibri","sans-serif"],["Arial","sans-serif"],["Tahoma","sans-serif"],["Verdana","sans-serif"],["Trebuchet MS","sans-serif"],["Century Gothic","sans-serif"],["Candara","sans-serif"],["Corbel","sans-serif"],["Franklin Gothic Medium","sans-serif"],["Ebrima","sans-serif"],["Nirmala UI","sans-serif"],["Gill Sans MT","sans-serif"],["Cambria","serif"],["Constantia","serif"],["Georgia","serif"],["Palatino Linotype","serif"],["Sitka Text","serif"],["Times New Roman","serif"],["Comic Sans MS","cursive"],["Impact","sans-serif"],["Consolas","monospace"],["Cascadia Code","monospace"],["Lucida Console","monospace"],["Courier New","monospace"]];
 const FONTS=Object.fromEntries(FF.map(([n,g,l])=>[l||n,`"${n}",${n==="Segoe UI"?"system-ui,":""}${g}`]));
 // --- Estado compartido (versión, sistema, fondo) ---
-let VER="0.2.14-beta.7",SYS={total:16},secNow="gen",BG="#080a0f",BHs=BHM.dorado,dirty=60,RUN=false;
+let VER="0.2.14-beta.8",SYS={total:16},secNow="gen",BG="#080a0f",BHs=BHM.dorado,dirty=60,RUN=false;
 // --- Ajustes guardados ---
 const rec=()=>Math.max(1,Math.floor(SYS.total/2));
 async function sv(c){cfg={...cfg,...c};if(A)await A.set(c);if(A&&c.dlLimit!==undefined)A.dqLimit(c.dlLimit);if(c.lang!==undefined)setTimeout(()=>langSync(c.lang),120);dirty=60}
@@ -65,18 +65,6 @@ function modal(h,w){const m=$("mdl"),d=m.querySelector(".md");d.className="md"+(
 function closeModal(){$("mdl").classList.remove("on");if(pickRes){const r=pickRes;pickRes=null;r(null)}}
 $("mdl").onclick=e=>{if(e.target.id==="mdl")closeModal()};
 const hdr=(i,t,s)=>`<div class="hd"><div class="iic" style="${i&&i.color?"--ic:"+esc(i.color):""}">${IC(i&&i.icon&&ICS.includes(i.icon)?i.icon:"box")}</div><div style="min-width:0"><h3>${t}</h3><span class="sub">${s}</span></div><button class="btn sm x" data-x>Cerrar</button></div>`;
-// --- Datos de ejemplo para la vista previa (sin la app) ---
-const DMOD=[{file:"sodium-fabric-0.5.11.jar",enabled:true,size:1.2e6,sha1:"a1",t:"Sodium",v:"0.5.11",u:"0.6.0"},{file:"lithium-fabric-0.13.0.jar",enabled:true,size:640e3,sha1:"a2",t:"Lithium",v:"0.13.0"},{file:"iris-1.7.3.jar",enabled:false,size:2.3e6,sha1:"a3",t:"Iris Shaders",v:"1.7.3",u:"1.8.0"},{file:"fabric-api-0.102.0.jar",enabled:true,size:2.1e6,sha1:"a4",t:"Fabric API",v:"0.102.0"},{file:"mi-mod-casero.jar",enabled:true,size:88e3,sha1:"a5"}];
-let DBK=[{file:"1",date:Date.now()-36e5,size:48e6,reason:"antes de actualizar mods"},{file:"2",date:Date.now()-864e5,size:47e6,reason:"manual"}];
-const DA={modsList:async()=>DMOD.map(m=>({file:m.file,enabled:m.enabled,size:m.size,sha1:m.sha1})),
-modsCheck:async()=>Object.fromEntries(DMOD.filter(m=>m.t).map(m=>[m.sha1,{title:m.t,icon:"",ver:m.v,update:m.u?{ver:m.u,url:"https://x",filename:m.file,sha1:"",sha512:""}:null}])),
-modsToggle:async({file})=>{const m=DMOD.find(x=>x.file===file);if(m)m.enabled=!m.enabled;return file},modsRemove:async({file})=>{const k=DMOD.findIndex(x=>x.file===file);if(k>=0)DMOD.splice(k,1);return true},
-modsUpdate:async({file})=>{const m=DMOD.find(x=>x.file===file);if(m){m.v=m.u;m.u=""}return file},modsAdd:async()=>0,
-bkList:async()=>DBK,bkCreate:async()=>{DBK.unshift({file:"n"+Date.now(),date:Date.now(),size:48e6,reason:"manual"});return"x"},bkRestore:async()=>true,bkDel:async({file})=>{DBK=DBK.filter(b=>b.file!==file);return true},bkOpen:async()=>{},
-instUpdate:async(id,p)=>{const i=I.find(x=>x.id===id);Object.assign(i,p);return i},instDup:async id=>{const i=I.find(x=>x.id===id);I.push({...i,id:"d"+Date.now(),name:i.name+" (copia)",custom:true});return 1},instOpen:async()=>{},
-instExport:async()=>({ok:true,file:"demo.mrpack"}),instImport:async()=>({canceled:true}),loaderVersions:async({ld})=>ld==="Fabric"?[{v:"0.16.9",stable:true},{v:"0.16.8",stable:true},{v:"0.16.5",stable:true}]:[{v:"52.0.3",stable:true},{v:"52.0.1",stable:true}],
-packVersions:async()=>[{id:"p3",name:"Fabulously Optimized 10.0",num:"10.0.0",mc:["1.21","1.21.1"],ld:["fabric"],date:"2026-09-30T10:00:00Z",type:"release"},{id:"p2",name:"Fabulously Optimized 9.5",num:"9.5.0",mc:["1.20.4","1.20.6"],ld:["fabric"],date:"2026-06-12T10:00:00Z",type:"release"},{id:"p1",name:"Beta 11.0",num:"11.0.0-beta.2",mc:["1.21.4"],ld:["fabric"],date:"2026-10-05T10:00:00Z",type:"beta"}],
-pack:async()=>({failed:[]}),delInst:async id=>{I=I.filter(x=>x.id!==id)},sys:async()=>({total:16})};
 // --- Discord ---
 let DS={s:"off"};
 function dlabel(){switch(DS.s){case"on":return"Conectado"+(DS.user?" como "+DS.user:"")+" ✓";case"connecting":return"Conectando…";case"noid":return"Falta el ID de aplicación";case"error":return(DS.msg||"No se pudo conectar")+" · reintentando";default:return A?"Desactivado":"Solo funciona en la app instalada"}}

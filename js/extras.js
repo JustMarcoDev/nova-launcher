@@ -1,12 +1,12 @@
 // Continuar el último mundo y arrastrar y soltar
 let LASTW=null;
 async function contRefresh(){
-  let w=null;try{w=A?await A.worldLast():{inst:"d1",name:"Mi mundo de supervivencia",date:Date.now()-72e5,instName:"Fabric 1.21.1",mc:"1.21.1",ld:"Fabric"}}catch{}
+  let w=null;try{w=A?await A.worldLast():demoWorld()}catch{}
   LASTW=w;const b=$("cont");if(!b)return;b.hidden=!w;if(w)$("cons").textContent=w.name+" · "+w.instName;
 }
 {const _l=loadI;loadI=async function(){const r=await _l.apply(this,arguments);try{contRefresh()}catch{}return r}}
 $("cont").onclick=async()=>{
-  if(!LASTW)return;if(!A){$("st").textContent="Vista previa: instala la app de escritorio para jugar";return}
+  if(!LASTW)return;if(!A){pvPlay();return}
   const b=$("cont");b.disabled=true;try{await launch({id:LASTW.inst,world:LASTW.name})}catch(e){flash(em(e))}finally{b.disabled=false}
 };
 
@@ -39,7 +39,7 @@ function openDrop(items){
   const fix=r=>{const k=r.querySelector(".dpk").value;r.querySelector(".dpi").style.visibility=(k==="modpack"||k==="skip")?"hidden":"visible"};
   $("dpl").querySelectorAll(".dpr").forEach(r=>{fix(r);r.querySelector(".dpk").onchange=()=>fix(r)});
   $("dpg").onclick=async()=>{
-    const b=$("dpg");b.disabled=true;let ok=0,bad=0;const api=A||{dropInstall:async o=>{await new Promise(r=>setTimeout(r,300));if(o.kind==="unknown")throw new Error("Tipo no reconocido");return{kind:o.kind,name:o.path}}};
+    const b=$("dpg");b.disabled=true;let ok=0,bad=0;const api=A||DA;
     for(const r of $("dpl").querySelectorAll(".dpr")){
       const it=items[+r.dataset.k],kind=r.querySelector(".dpk").value,st=r.querySelector(".dps");if(kind==="skip"){st.textContent="—";continue}
       st.textContent="…";try{await api.dropInstall({path:it.path,kind,inst:r.querySelector(".dpi").value});st.textContent="✓";st.className="dps ok";ok++}catch(x){st.textContent="✕";st.className="dps bad";st.title=em(x);bad++;flash(em(x))}

@@ -2,6 +2,8 @@
 // La clave es el texto en español tal como sale en la app; {1}, {2}… son partes variables (nombres, números).
 window.LANGS=window.LANGS||{};
 window.LANGS.en={name:"English (US)",d:{
+"Caché de imágenes":"Image cache",
+"Imágenes de mods y modpacks guardadas para verse al instante. Se vuelven a descargar al abrir el buscador.":"Mod and modpack images saved so they show up instantly. They are downloaded again when you open the search.",
 "Modo juego":"Game mode",
 "Al lanzar Minecraft, el launcher para las animaciones y se esconde en la bandeja para dejar toda la potencia al juego":"When Minecraft launches, the launcher stops its animations and hides in the tray to leave all the power to the game",
 "Revisar los mods antes de jugar":"Check mods before playing",

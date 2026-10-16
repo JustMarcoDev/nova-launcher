@@ -1,6 +1,6 @@
 {
   "name": "nova-launcher",
-  "version": "0.2.14-beta.7",
+  "version": "0.2.14-beta.8",
   "description": "Nova Launcher para Minecraft",
   "author": "Astrion Studio",
   "main": "main.js",
@@ -45,12 +45,15 @@
       "releaseType": "release"
     },
     "copyright": "Copyright © 2026 Astrion Studio",
+    "compression": "maximum",
     "files": [
       "**/*",
       "!tests/**",
       "!scripts/**",
       "!*.bat",
-      "!README.md"
+      "!README.md",
+      "!assets/discord-logo.png",
+      "!js/vista-previa.js"
     ]
   }
 }

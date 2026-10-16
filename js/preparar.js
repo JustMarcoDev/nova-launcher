@@ -26,6 +26,3 @@ function prepEvent(d){
 }
 if(A&&A.on)A.on("prep",prepEvent);
 {const _p=pick;pick=function(){const r=_p.apply(this,arguments);try{prepSoon()}catch{}return r}}
-// Vista previa: simula la preparación para poder verla
-function demoPrep(){let p=0;prepShow("Preparando Minecraft "+sel.mc+" en segundo plano…",0);const t=setInterval(()=>{p+=12;if(p>=100){clearInterval(t);prepEvent({state:"done",mc:sel.mc});return}prepEvent({state:"progress",mc:sel.mc,pct:p})},350)}
-window.demoPrep=demoPrep;

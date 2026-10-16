@@ -1,13 +1,12 @@
 // Mundos, servidores propios, shaders, importar, versiones anteriores, ajustes en archivo
 // --- Mundos ---
-Object.assign(DA,{worldsList:async()=>[{name:"Mi mundo",date:Date.now()-36e5,size:84e6,icon:""},{name:"Supervivencia con amigos",date:Date.now()-5*864e5,size:210e6,icon:""},{name:"Creativo",date:Date.now()-30*864e5,size:12e6,icon:""}],worldsCopy:async({world})=>world+" (copia)",worldsImport:async()=>({canceled:true})});
 async function openWorlds(id){const ins=I.find(x=>x.id===id);if(!ins)return;const api=A||DA;
 modal(hdr(ins,"Mundos","«"+esc(ins.name)+"»")+`<div class="mbar"><button class="btn sm pr" id="wim">Importar mapa (.zip)</button><button class="btn sm" id="wfo">Abrir carpeta de mundos</button><button class="btn sm" id="wbk">Copias de seguridad</button></div><div id="wls"><div class="emp">Cargando…</div></div><div class="acts"><button class="btn" id="wba">Volver</button></div>`);
 const others=I.filter(x=>x.id!==id);
 const load=async()=>{let L=[];try{L=await api.worldsList(id)}catch(e){flash(em(e))}
 $("wls").innerHTML=L.length?L.map((w,k)=>`<div class="mr" data-w="${esc(w.name)}"><div class="ico">${w.icon?`<img src="${esc(w.icon)}" alt="">`:IC("globe")}</div><div class="nm"><b>${esc(w.name)}</b><small>${fmtD(w.date)} · ${fSz(w.size)}</small></div><span class="cp2"><button class="btn sm" data-a="cp">Copiar a…</button></span></div>`).join(""):'<div class="emp">Esta instancia aún no tiene mundos. Entra a jugar o importa un mapa .zip.</div>'};
-$("wba").onclick=()=>openOpts(id);$("wbk").onclick=()=>openBackups(id);$("wfo").onclick=()=>{if(A)A.instOpen(id,"saves");else flash("Vista previa: se abriría la carpeta de mundos")};
-$("wim").onclick=async()=>{const b=$("wim");b.disabled=true;try{const r=await api.worldsImport(id);if(r&&!r.canceled){flash("Importado: "+r.names.join(", "));await load()}else if(!A)flash("Vista previa: en la app eliges un .zip con el mapa")}catch(e){flash(em(e))}b.disabled=false};
+$("wba").onclick=()=>openOpts(id);$("wbk").onclick=()=>openBackups(id);$("wfo").onclick=()=>{if(A)A.instOpen(id,"saves");else pv("wfo")};
+$("wim").onclick=async()=>{const b=$("wim");b.disabled=true;try{const r=await api.worldsImport(id);if(r&&!r.canceled){flash("Importado: "+r.names.join(", "));await load()}else if(!A)pv("wim")}catch(e){flash(em(e))}b.disabled=false};
 $("wls").onclick=async e=>{const b=e.target.closest("button[data-a]");if(!b)return;const row=b.closest(".mr"),w=row.dataset.w;
 if(b.dataset.a==="cp"){if(!others.length){flash("Necesitas otra instancia para copiar el mundo");return}const c=row.querySelector(".cp2");c.innerHTML=`<select>${others.map(o=>`<option value="${esc(o.id)}">${esc(o.name)}</option>`).join("")}</select><button class="btn sm pr" data-a="go">Copiar</button><button class="btn sm" data-a="no">✕</button>`}
 else if(b.dataset.a==="no"){row.querySelector(".cp2").innerHTML='<button class="btn sm" data-a="cp">Copiar a…</button>'}
@@ -20,10 +19,10 @@ function pingMine(L){if(!A)return;A.srvStatus(L.map(mkey)).then(r=>{Object.assig
 $("msf").onsubmit=async e=>{e.preventDefault();const h=$("msh").value.trim(),m=/^([A-Za-z0-9._-]{1,255})(?::(\d{1,5}))?$/.exec(h),g=$("msg");
 if(!m){g.textContent="Escribe una dirección válida, como play.miservidor.net o 1.2.3.4:25565";return}const port=m[2]?+m[2]:25565;if(port<1||port>65535){g.textContent="El puerto debe estar entre 1 y 65535";return}
 const s={name:$("msn").value.trim()||m[1],host:m[1],port},L=cfg.myServers||[];if(L.some(x=>mkey(x)===mkey(s))){g.textContent="Ese servidor ya está en tu lista";return}
-g.textContent="";await sv({myServers:[...L,s]});$("msn").value=$("msh").value="";if(!A)SST[mkey(s)]={online:true,players:Math.round(Math.random()*40),max:100,ping:30,version:"1.21.1",motd:"Servidor de ejemplo"};renderMine();pingMine([s])};
+g.textContent="";await sv({myServers:[...L,s]});$("msn").value=$("msh").value="";if(!A)pvSrv(s);renderMine();pingMine([s])};
 $("ml").onclick=async e=>{const r=e.target.closest("[data-r]"),j=e.target.closest("[data-j]");
 if(r){const L=[...(cfg.myServers||[])];L.splice(+r.dataset.r,1);await sv({myServers:L});renderMine()}
-else if(j){const s=(cfg.myServers||[])[+j.dataset.j];if(!s)return;if(!A){j.textContent="Vista previa";setTimeout(()=>j.textContent="Unirse",1500);return}
+else if(j){const s=(cfg.myServers||[])[+j.dataset.j];if(!s)return;if(!A){pvJoin(j);return}
 j.disabled=true;j.textContent="Preparando…";try{const i=await ensure();show("home");$("go").disabled=true;try{await launch({id:i.id,server:{name:s.name,host:s.host,port:s.port||25565}})}finally{$("go").disabled=false}}finally{j.disabled=false;j.textContent="Unirse"}}};
 // --- Shaders: que funcionen siempre ---
 function shaderGate(i){return new Promise(async res=>{
@@ -40,14 +39,12 @@ const r=await A.modsBundle({id:t.id,slugs:sl});if(r.failed&&r.failed.includes(sl
 await loadI();pickRes=null;closeModal();flash((r.failed&&r.failed.length?"Instalado con avisos (falló "+r.failed.join(", ")+")":"Listo ✓ Iris y Sodium instalados")+(o==="nw"?" en la instancia nueva":""));res(I.find(x=>x.id===t.id)||t)}
 catch(x){$("shm").textContent=em(x);all.forEach(z=>z.disabled=false);b.textContent=L0}}})}
 // --- Importar desde otros launchers ---
-Object.assign(DA,{importScan:async()=>[{src:"oficial",label:"Launcher oficial",name:"Minecraft oficial",dir:"/x/.minecraft",mc:"1.21.1",ld:"Vanilla",worlds:6,mods:0,unsupported:""},{src:"prism",label:"Prism",name:"Mi Prism",dir:"/x/prism",mc:"1.20.1",ld:"Fabric",worlds:2,mods:34,unsupported:""},{src:"curseforge",label:"CurseForge",name:"All the Mods 9",dir:"/x/cf",mc:"1.20.1",ld:"Forge",worlds:1,mods:180,unsupported:""}],importRun:async()=>({ins:{}})});
 async function openImport(){const api=A||DA;
 modal(hdr(null,"Importar desde otro launcher","Minecraft oficial, CurseForge, Prism y MultiMC")+`<p class="sub" style="margin-bottom:12px">Se copian mundos, mods, configuración, texturas, shaders y capturas a una instancia nueva. Lo original no se toca.</p><div id="iml" style="display:flex;flex-direction:column;gap:7px"><div class="emp">Buscando instancias…</div></div><div class="acts"><button class="btn" data-x>Cerrar</button></div>`);
 let L=[];try{L=await api.importScan()}catch(e){flash(em(e))}if(!$("iml"))return;
 $("iml").innerHTML=L.length?L.map((x,k)=>`<div class="mr"><div class="ico">${IC("folder")}</div><div class="nm"><b>${esc(x.name)}</b><small>${esc(x.label)} · ${esc(x.ld)} ${esc(x.mc||"?")} · ${x.worlds} mundos · ${x.mods} mods${x.unsupported?" · "+esc(x.unsupported):""}</small></div><button class="btn sm pr" data-k="${k}" ${x.unsupported?"disabled":""}>Importar</button></div>`).join(""):'<div class="emp">No se encontró nada en las carpetas habituales de otros launchers.</div>';
 $("iml").onclick=async e=>{const b=e.target.closest("button[data-k]");if(!b)return;const x=L[+b.dataset.k];b.disabled=true;b.textContent="Importando…";try{await api.importRun(x.dir);if(A)await loadI();b.textContent="Importada ✓";flash("Instancia importada: "+x.name)}catch(er){b.disabled=false;b.textContent="Reintentar";flash(em(er))}}}
 // --- Volver a una versión anterior ---
-Object.assign(DA,{releases:async()=>[{version:"0.2.11",date:"2026-10-05T10:00:00Z",size:84e6,pre:false,url:"https://x"},{version:"0.2.10",date:"2026-09-28T10:00:00Z",size:83e6,pre:false,url:"https://x"},{version:"0.2.9",date:"2026-09-20T10:00:00Z",size:82e6,pre:false,url:"https://x"}],rollback:async()=>{throw new Error("Vista previa: solo funciona en la app instalada")}});
 async function openRollback(){const api=A||DA;
 modal(hdr(null,"Volver a una versión anterior","Ahora tienes la "+VER)+`<div class="wn">Se descargará e instalará la versión que elijas. Tus mundos, mods, cuentas y ajustes se conservan. Para que no vuelva a actualizarse sola, se desactiva «Buscar actualizaciones al abrir» (puedes activarlo otra vez en Ajustes → Rendimiento).</div><div id="rbl" style="display:flex;flex-direction:column;gap:7px"><div class="emp">Buscando versiones…</div></div><div class="acts"><button class="btn" data-x>Cerrar</button></div>`);
 let L=[];try{L=(await api.releases()).filter(r=>verCmp(r.version,VER)<0)}catch(e){if($("rbl"))$("rbl").innerHTML='<div class="emp">No se pudo leer la lista de versiones (¿sin conexión?).</div>';return}

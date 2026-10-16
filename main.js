@@ -6,8 +6,19 @@ const root = path.join(app.getPath('appData'), '.nova');
 const cfgFile = path.join(root, 'config.json'), insFile = path.join(root, 'instances.json');
 const DEF = { username: 'Jugador', ram: 4, javaPath: '', width: 1280, height: 720, fullscreen: false, jvmArgs: '', closeOnLaunch: false, cfKey: '', ms: null };
 const fsp = fs.promises, rmAsync = (p) => fsp.rm(p, { recursive: true, force: true });
-const rd = (f, d) => { try { return JSON.parse(fs.readFileSync(f)); } catch { return d; } };
-const wr = (f, d) => { fs.mkdirSync(root, { recursive: true }); fs.writeFileSync(f, JSON.stringify(d, null, 1)); };
+// Guardado seguro: se escribe en .tmp y se renombra; antes se guarda una copia .bak del archivo bueno. Si el archivo se estropea, rd recupera la copia.
+const rd = (f, d) => {
+  let raw; try { raw = fs.readFileSync(f); } catch { return d; }
+  try { return JSON.parse(raw); } catch {}
+  try { const v = JSON.parse(fs.readFileSync(f + '.bak')); try { fs.writeFileSync(f, JSON.stringify(v, null, 1)); } catch {} return v; } catch { return d; }
+};
+const wr = (f, d) => {
+  fs.mkdirSync(path.dirname(f), { recursive: true });
+  const txt = JSON.stringify(d, null, 1), tmp = f + '.tmp';
+  try { JSON.parse(fs.readFileSync(f)); fs.copyFileSync(f, f + '.bak'); } catch {}
+  try { fs.writeFileSync(tmp, txt); fs.renameSync(tmp, f); }
+  catch (e) { try { fs.rmSync(tmp, { force: true }); } catch {} fs.writeFileSync(f, txt); }
+};
 const load = () => ({ ...DEF, ...rd(cfgFile, {}) }), li = () => rd(insFile, []);
 const addInst = o => { const L = li(); let id = Date.now().toString(36); while (L.some(x => x.id === id)) id += Math.random().toString(36).slice(2, 4); const i = { id, ...o }; wr(insFile, [...L, i]); return i; };
 const FIRST = !fs.existsSync(cfgFile) && !fs.existsSync(insFile);
@@ -34,7 +45,7 @@ function winLoad() {
 let winSaveT = null;
 function winSave() {
   if (!win || win.isDestroyed() || win.isMinimized() || win.isFullScreen()) return;
-  try { const b = win.getNormalBounds(); fs.mkdirSync(root, { recursive: true }); fs.writeFileSync(winFile, JSON.stringify({ x: b.x, y: b.y, width: b.width, height: b.height, max: win.isMaximized() })); } catch {}
+  try { const b = win.getNormalBounds(); wr(winFile, { x: b.x, y: b.y, width: b.width, height: b.height, max: win.isMaximized() }); } catch {}
 }
 // Imágenes de Modrinth/CurseForge: se guardan en el PC para que carguen al instante y se vean sin conexión
 const IMG_HOSTS = /^(cdn(-raw)?\.modrinth\.com|media\.forgecdn\.net|edge\.forgecdn\.net|raw\.githubusercontent\.com)$/;
@@ -43,7 +54,7 @@ async function imgGet(u) {
   const url = new URL(u); const extra = process.env.NOVA_TEST_IMG_HOST;
   if (!(url.protocol === 'https:' && IMG_HOSTS.test(url.hostname)) && !(extra && url.host === extra)) return new Response('no permitido', { status: 403 });
   const key = crypto.createHash('sha1').update(url.href).digest('hex'), f = path.join(imgDir(), key), hdr = t => ({ 'content-type': t, 'cache-control': 'max-age=31536000' });
-  try { const [b, m] = await Promise.all([fsp.readFile(f), fsp.readFile(f + '.t', 'utf8')]); return new Response(b, { headers: hdr(m) }); } catch {}
+  try { const [b, m] = await Promise.all([fsp.readFile(f), fsp.readFile(f + '.t', 'utf8')]); const now = new Date(); fsp.utimes(f, now, now).catch(() => {}); return new Response(b, { headers: hdr(m) }); } catch {}
   try {
     const r = await fetch(url.href, { signal: AbortSignal.timeout(15000), headers: { 'User-Agent': UA() } }), t = r.headers.get('content-type') || '';
     if (!r.ok || !/^image\//.test(t)) return new Response('', { status: 502 });
@@ -52,12 +63,17 @@ async function imgGet(u) {
     return new Response(b, { headers: hdr(t) });
   } catch { return new Response('', { status: 504 }); }
 }
-// Si la caché pasa de 200 MB se borran las imágenes más antiguas
+// Caché de imágenes: se borra lo que lleva más de 30 días sin usarse y, si pasa de 100 MB, lo más antiguo hasta bajar de 80 MB
 async function imgPrune() {
   try {
-    const es = await fsp.readdir(imgDir()), L = []; let tot = 0;
-    for (const n of es) { if (n.endsWith('.t')) continue; try { const st = await fsp.stat(path.join(imgDir(), n)); L.push({ n, t: st.atimeMs || st.mtimeMs, s: st.size }); tot += st.size; } catch {} }
-    L.sort((a, b) => a.t - b.t); for (const x of L) { if (tot < 150e6) break; await fsp.rm(path.join(imgDir(), x.n), { force: true }); await fsp.rm(path.join(imgDir(), x.n + '.t'), { force: true }); tot -= x.s; }
+    const dir = imgDir(), es = await fsp.readdir(dir), L = [], now = Date.now(); let tot = 0;
+    const del = async n => { await fsp.rm(path.join(dir, n), { force: true }); await fsp.rm(path.join(dir, n + '.t'), { force: true }); };
+    for (const n of es) {
+      if (n.endsWith('.t')) { if (!es.includes(n.slice(0, -2))) await fsp.rm(path.join(dir, n), { force: true }); continue; }
+      try { const st = await fsp.stat(path.join(dir, n)); if (now - st.mtimeMs > 30 * 864e5) { await del(n); continue; } L.push({ n, t: st.mtimeMs, s: st.size }); tot += st.size; } catch {}
+    }
+    if (tot <= 100e6) return;
+    L.sort((a, b) => a.t - b.t); for (const x of L) { if (tot < 80e6) break; await del(x.n); tot -= x.s; }
   } catch {}
 }
 app.whenReady().then(() => {
@@ -69,7 +85,7 @@ app.whenReady().then(() => {
   if (wb.max) win.maximize();
   const later = () => { clearTimeout(winSaveT); winSaveT = setTimeout(winSave, 600); };
   win.on('resize', later); win.on('move', later); win.on('maximize', later); win.on('unmaximize', later); win.on('close', winSave);
-  setTimeout(imgPrune, 20000); setTimeout(encryptOldTokens, 500);
+  setTimeout(imgPrune, 3000); setTimeout(encryptOldTokens, 500);
   win.once('ready-to-show', () => win.show());
   if (process.env.NOVA_SMOKE) return smokeTest();
   win.loadFile('index.html');
@@ -772,7 +788,16 @@ ipcMain.handle('acc:remove', (e, id) => { const st = accState(); if (st.a.length
 
 // ---- Bandeja de Windows y notificaciones ----
 let tray = null, trayImg = null;
-const trayIcon = () => { if (!trayImg) { try { trayImg = nativeImage.createFromPath(path.join(__dirname, 'assets', 'tray.png')); } catch {} } return trayImg && !trayImg.isEmpty() ? trayImg.resize({ width: 16, height: 16 }) : null; };
+// En Windows se carga tray.ico tal cual (5 tamaños) para que el sistema elija el que mejor encaja con el escalado de pantalla; tray.png queda como alternativa
+let trayIco = false;
+const trayIcon = () => {
+  if (!trayImg) {
+    if (process.platform === 'win32') { try { const i = nativeImage.createFromPath(path.join(__dirname, 'assets', 'tray.ico')); if (i && !i.isEmpty()) { trayImg = i; trayIco = true; } } catch {} }
+    if (!trayImg) { try { trayImg = nativeImage.createFromPath(path.join(__dirname, 'assets', 'tray.png')); } catch {} }
+  }
+  if (!trayImg || trayImg.isEmpty()) return null;
+  return trayIco ? trayImg : trayImg.resize({ width: 16, height: 16 });
+};
 function trayInit() {
   if (load().tray === false) { if (tray) { try { tray.destroy(); } catch {} tray = null; } return false; }
   if (tray) return true;
@@ -951,7 +976,7 @@ let mck = null, mckT = 0;
 const mckFile = () => path.join(root, 'cache', 'modcheck.json');
 async function mckLoad() {
   if (mck) return mck;
-  try { mck = JSON.parse(await fs.promises.readFile(mckFile(), 'utf8')); } catch {}
+  mck = rd(mckFile(), null);
   if (!mck || mck.v !== 1 || !mck.h || !mck.p) mck = { v: 1, h: {}, p: {} };
   return mck;
 }
@@ -962,7 +987,7 @@ function mckSave() {
       const now = Date.now();
       for (const k of Object.keys(mck.h)) if (now - mck.h[k].t > 30 * 864e5) delete mck.h[k];
       for (const k of Object.keys(mck.p)) if (now - mck.p[k].t > 30 * 864e5) delete mck.p[k];
-      await fs.promises.mkdir(path.dirname(mckFile()), { recursive: true }); await fs.promises.writeFile(mckFile(), JSON.stringify(mck));
+      wr(mckFile(), mck);
     } catch {}
   }, 400);
 }
@@ -1335,6 +1360,9 @@ async function cleanScan() {
     }
   };
   await findParts(root, 2, true); for (const i of li()) await findParts(iDir(i.id), 4, false);
+  // 6) caché de imágenes
+  const imItems = []; try { const sz = await dirSize(imgDir()); if (sz > 0) imItems.push({ p: imgDir(), name: 'Caché de imágenes', size: sz }); } catch {}
+  cats.push({ id: 'imgs', title: 'Caché de imágenes', desc: 'Imágenes de mods y modpacks guardadas para verse al instante. Se vuelven a descargar al abrir el buscador.', items: imItems });
   cats.push({ id: 'temp', title: 'Archivos temporales', desc: 'Restos de instalaciones, de la preparación en segundo plano y descargas a medias de más de 2 días.', items: tItems });
   return cats;
 }

@@ -27,6 +27,13 @@ jobs:
         run: npm test
       - name: Probar que la app arranca
         run: npm run smoke
+      - name: Minificar el código de la app (solo en esta copia; el repositorio no cambia)
+        shell: bash
+        run: |
+          # Se hace después de las pruebas: tests/ y el smoke trabajan con el código sin minificar
+          npx --yes esbuild@0.25.0 js/*.js --minify --allow-overwrite --outdir=js
+          npx --yes esbuild@0.25.0 lang/*.js --minify --allow-overwrite --outdir=lang
+          npx --yes esbuild@0.25.0 css/style.css --minify --allow-overwrite --outfile=css/style.css
       - name: Crear notas de la versión desde el README
         shell: bash
         run: node scripts/release-notes.js "${{ steps.v.outputs.version }}" > release-notes.md

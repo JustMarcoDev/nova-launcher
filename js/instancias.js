@@ -31,9 +31,9 @@ $("il").onclick=async e=>{
   if(a==="fav"){try{await(A||DA).instUpdate(id,{fav:!i.fav});await loadI()}catch(x){flash(em(x))}return}
   if(a==="play"){pick(i.mc,i.type||"release",i.ld);sel.inst=i.id;show("home");play(i.id)}else if(a==="mods")openMods(id);else if(a==="shots")openShots(id);else openOpts(id)};
 $("ish").onclick=()=>openShots("all");$("imo2").onclick=()=>openImport();
-$("imp").onclick=async()=>{if(!A){flash("Vista previa: en la app puedes importar un .mrpack o un .zip de Nova Launcher");return}
+$("imp").onclick=async()=>{if(!A){pv("imp");return}
 const b=$("imp");b.disabled=true;try{const r=await A.instImport();if(r&&!r.canceled){await loadI();flash("Instancia importada: "+r.ins.name+(r.failed&&r.failed.length?" (faltan "+r.failed.length+" archivos)":""))}}catch(e){flash("No se pudo importar: "+em(e))}finally{b.disabled=false}};
-$("ifo").onclick=()=>{if(A)A.folder();else flash("Vista previa: abre la carpeta del juego desde la app")};
+$("ifo").onclick=()=>{if(A)A.folder();else pv("ifo")};
 // --- Gestor de mods ---
 async function openMods(id){const ins=I.find(x=>x.id===id);if(!ins)return;const api=A||DA;
 modal(hdr(ins,"Mods de "+esc(ins.name),'<span id="mst">Cargando…</span>')+`<div class="mbar"><input id="mq" type="text" placeholder="Filtrar mods…"><button class="btn sm pr" id="mup" style="display:none"></button><button class="btn sm" id="mad">Añadir .jar</button><button class="btn sm" id="mfo">Abrir carpeta</button></div><div id="mls"></div>`,"wide");
@@ -46,7 +46,7 @@ const load=async()=>{M={};await relist();$("mst").textContent=L.length+" mods";i
 try{M=await api.modsCheck({id,hashes:L.map(m=>m.sha1)})}catch{$("mst").textContent=L.length+" mods · sin conexión con Modrinth";return}
 const n=sum();$("mst").textContent=L.length+" mods · "+(n?n+" con actualización":"todo al día");draw()};
 $("mq").oninput=draw;$("mfo").onclick=()=>{if(A)A.instOpen(id,"mods")};
-$("mad").onclick=async()=>{if(!A){flash("Vista previa: en la app puedes añadir tus propios .jar");return}try{if(await A.modsAdd(id))load()}catch(e){flash(em(e))}};
+$("mad").onclick=async()=>{if(!A){pv("mad");return}try{if(await A.modsAdd(id))load()}catch(e){flash(em(e))}};
 const upd=async m=>{const u=(M[m.sha1]||{}).update;if(!u)return;await api.modsUpdate({id,file:m.file,url:u.url,filename:u.filename,sha1:u.sha1,sha512:u.sha512})};
 $("mup").onclick=async()=>{const b=$("mup"),todo=L.filter(m=>M[m.sha1]&&M[m.sha1].update);b.disabled=true;let n=0,bad=0;for(const m of todo){b.textContent=`Actualizando ${++n} de ${todo.length}…`;try{await upd(m)}catch{bad++}}b.disabled=false;await load();flash(bad?`${todo.length-bad} mods actualizados, ${bad} con error`:`${todo.length} mods actualizados`)};
 $("mls").onclick=async e=>{const b=e.target.closest("button[data-a]");if(!b)return;const r=b.closest(".mr"),m=L.find(x=>x.file===r.dataset.f);if(!m)return;
@@ -78,7 +78,7 @@ s.innerHTML=`<option value="">Automática (recomendada)</option>`+L.map((x,k)=>`
 $("osv").onclick=async()=>{const b=$("osv");b.disabled=true;const p={name:$("on").value.trim()||ins.name,icon:ic,color:col,ram:+$("orm").value,javaPath:$("oj").value.trim(),jvmPreset:$("ojp").value,gpu:$("ogp").value,tags:$("otg").value,note:$("ont").value.trim()};if(hasL&&$("olv"))p.loaderVersion=$("olv").value;
 try{await api.instUpdate(id,p);await loadI();closeModal();flash("Cambios guardados")}catch(e){b.disabled=false;flash(em(e))}};
 d.querySelector(".acts2").onclick=async e=>{const b=e.target.closest("button[data-a]");if(!b)return;const a=b.dataset.a;
-try{if(a==="fo"){if(A)A.instOpen(id,"");else flash("Vista previa: se abriría la carpeta de la instancia")}
+try{if(a==="fo"){if(A)A.instOpen(id,"");else pv("ifol")}
 else if(a==="dup"){b.disabled=true;b.textContent="Duplicando…";await api.instDup(id);await loadI();closeModal();flash("Instancia duplicada")}
 else if(a==="ex")openExport(id);else if(a==="bk")openBackups(id);else if(a==="wo")openWorlds(id);else if(a==="sh")openShots(id);
 else if(a==="del"){if(!confirm("¿Borrar «"+ins.name+"» con sus mundos, mods y copias de seguridad? No se puede deshacer."))return;await api.delInst(id);await loadI();closeModal();flash("Instancia borrada")}}
@@ -89,7 +89,7 @@ modal(hdr(ins,"Exportar «"+esc(ins.name)+"»","Para pasarla a otro PC o a otra 
 const T={mrpack:"Modpack de Modrinth (.mrpack): pesa poco; los mods se vuelven a descargar al importar. Los que no estén en Modrinth se incluyen dentro del archivo. Sirve también en otros launchers.",zip:"ZIP de Nova Launcher (.zip): lleva todo dentro, mods incluidos, y pesa más. Solo se puede importar en Nova Launcher."};
 const dr=()=>{chips($("ek"),[["mrpack","Modrinth (.mrpack)"],["zip","ZIP (.zip)"]],kind,k=>{kind=k;dr()});$("ekd").textContent=T[kind]};dr();
 $("eb").onclick=()=>openOpts(id);
-$("eg").onclick=async()=>{const b=$("eg");if(!A){closeModal();flash("Vista previa: en la app se guardaría un archivo ."+kind);return}b.disabled=true;b.textContent="Exportando…";
+$("eg").onclick=async()=>{const b=$("eg");if(!A){closeModal();pv("exp",kind);return}b.disabled=true;b.textContent="Exportando…";
 try{const r=await A.instExport({id,kind,worlds:$("ew").checked});if(r.canceled){b.disabled=false;b.textContent="Exportar";return}closeModal();flash("Exportada ✓"+(r.linked!=null?` · ${r.linked} mods enlazados, ${r.own} incluidos dentro`:""))}catch(e){b.disabled=false;b.textContent="Exportar";flash("No se pudo exportar: "+em(e))}}}
 // --- Copias de seguridad ---
 async function openBackups(id){const ins=I.find(x=>x.id===id);if(!ins)return;const api=A||DA;

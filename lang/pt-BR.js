@@ -963,4 +963,6 @@ window.LANGS["pt-BR"]={name:"Português (Brasil)",d:{
 "Lanzamiento cancelado":"Lançamento cancelado",
 "Revisando los mods…":"Revisando os mods…",
 "Se cortó la descarga: reintentando ({1} de {2})…":"O download foi interrompido: tentando de novo ({1} de {2})…",
-"Restos de instalaciones, de la preparación en segundo plano y descargas a medias de más de 2 días.":"Restos de instalações, do preparo em segundo plano e downloads incompletos com mais de 2 dias."}};
+"Restos de instalaciones, de la preparación en segundo plano y descargas a medias de más de 2 días.":"Restos de instalações, do preparo em segundo plano e downloads incompletos com mais de 2 dias.",
+"Caché de imágenes":"Cache de imagens",
+"Imágenes de mods y modpacks guardadas para verse al instante. Se vuelven a descargar al abrir el buscador.":"Imagens de mods e modpacks salvas para aparecerem na hora. Elas são baixadas de novo ao abrir a busca."}};

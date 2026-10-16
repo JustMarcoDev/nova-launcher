@@ -36,7 +36,7 @@ $("ver").innerHTML=list.map(v=>`<option ${v.id===sel.mc?"selected":""}>${v.id}</
 $("ver").onchange=e=>{const v=V.find(z=>z.id===e.target.value);pick(e.target.value,v?v.type:tf)};
 let vlim=150,rpK="",vsrc="demo",vt;
 const cnt=k=>k==="all"?V.length:V.filter(v=>v.type===k).length;
-function rv(more){if(!more)vlim=+cfg.listN||150;$("vinfo").textContent=A?(vsrc==="error"?"No se pudo cargar la lista oficial. Pulsa «Recargar lista».":V.length+" versiones · "+(vsrc==="cache"?"copia guardada (sin conexión)":"lista oficial de Mojang")):"Vista previa con "+V.length+" versiones de ejemplo. La app de escritorio carga todas.";chips($("tf2"),Object.entries(TN).map(([k,n])=>[k,`${n} (${cnt(k)})`]),tf,k=>{tf=k;rv()});const q=$("vq").value.toLowerCase().trim();
+function rv(more){if(!more)vlim=+cfg.listN||150;$("vinfo").textContent=A?(vsrc==="error"?"No se pudo cargar la lista oficial. Pulsa «Recargar lista».":V.length+" versiones · "+(vsrc==="cache"?"copia guardada (sin conexión)":"lista oficial de Mojang")):demoVers();chips($("tf2"),Object.entries(TN).map(([k,n])=>[k,`${n} (${cnt(k)})`]),tf,k=>{tf=k;rv()});const q=$("vq").value.toLowerCase().trim();
 const L=V.filter(v=>(tf==="all"||v.type===tf)&&v.id.toLowerCase().includes(q));
 $("vl").innerHTML=L.slice(0,vlim).map(v=>`<div class="row ${v.id===sel.mc?"on":""}" data-v="${v.id}" data-t="${v.type}"><span class="n">${v.id}</span>${tf==="all"?`<span class="s">${TN[v.type]||v.type}</span>`:""}<span class="s">${Object.keys(LD).filter(k=>LD[k](v.id)).join(" · ")}</span></div>`).join("")+(L.length>vlim?`<button class="btn" id="vm" style="margin-top:10px">Mostrar más (${L.length-vlim} restantes)</button>`:"")+(L.length?"":'<div style="color:var(--m)">Sin resultados</div>')}
 $("vl").onclick=e=>{if(e.target.id==="vm"){vlim+=250;rv(1);return}const r=e.target.closest(".row");if(r){pick(r.dataset.v,r.dataset.t);show("home")}};
@@ -48,13 +48,13 @@ if(r[1].value)LS.g=new Set(Object.keys(r[1].value.promos).map(k=>k.replace(/-(la
 if(r[2].value)LS.n=new Set(r[2].value.versions.flatMap(v=>{const p=v.split("."),a=+p[0],b=+p[1],c=parseInt(p[2])||0;return a<26?["1."+a+(b?"."+b:"")]:[a+"."+b,a+"."+b+"."+c]}));
 rpK="";rp();rv()}
 // Instancias (automáticas)
-async function loadI(){I=A?await A.insts():[{id:"d1",name:"Fabric 1.20.1",mc:"1.20.1",ld:"Fabric",type:"release",fav:true,tags:["Survival"],note:"Mundo con amigos, mods de optimización",playMs:18e6,lastPlayed:Date.now()-36e5},{id:"d2",name:"Vanilla 1.8.9",mc:"1.8.9",ld:"Vanilla",type:"release",tags:["Pruebas"],playMs:3e6,lastPlayed:Date.now()-864e5*3},{id:"d3",name:"Forge 1.12.2",mc:"1.12.2",ld:"Forge",type:"release",tags:["Survival","Pruebas"],note:"Modpack de magia",playMs:9e6,lastPlayed:Date.now()-864e5*9}];qi();ri()}
+async function loadI(){I=A?await A.insts():demoInsts();qi();ri()}
 async function ensure(){let i=(sel.inst&&I.find(x=>x.id===sel.inst&&x.mc===sel.mc&&x.ld===sel.ld))||I.find(x=>x.mc===sel.mc&&x.ld===sel.ld&&!x.novaPack&&!x.custom);if(!i&&A){i=await A.saveInst({name:`${sel.ld} ${sel.mc}`,mc:sel.mc,ld:sel.ld,type:sel.type});await loadI()}return i}
 function qi(){$("qi").innerHTML=I.length?[...I].sort((a,b)=>(!!b.fav-!!a.fav)||(b.lastPlayed||0)-(a.lastPlayed||0)).slice(0,6).map(i=>`<div class="row ${sel.inst?i.id===sel.inst:i.mc===sel.mc&&i.ld===sel.ld&&!i.novaPack&&!i.custom?"on":""}" data-i="${i.id}"><span class="n">${i.fav?"★ ":""}${i.name}</span><span class="s">${i.mc}</span></div>`).join(""):'<div style="color:var(--m)">Aún no hay instancias. Elige una versión y pulsa Lanzar juego: se crea sola.</div>';
 $("qi").querySelectorAll(".row").forEach(r=>r.onclick=()=>{const i=I.find(x=>x.id===r.dataset.i);pick(i.mc,i.type||"release",i.ld);sel.inst=i.id;save();qi()})}
 // Jugar
 $("go").onclick=()=>play();
-async function play(id){if(!A){$("st").textContent="Vista previa: instala la app de escritorio para jugar";return}$("go").disabled=true;try{const i=id?I.find(x=>x.id===id):await ensure();if(i)await launch({id:i.id})}finally{$("go").disabled=false}}
+async function play(id){if(!A){pvPlay();return}$("go").disabled=true;try{const i=id?I.find(x=>x.id===id):await ensure();if(i)await launch({id:i.id})}finally{$("go").disabled=false}}
 // Carga diferida: estos archivos (type="lazy" en index.html) solo se cargan la primera vez que se necesitan
 const LZ={},LOK={};
 function lazyLoad(n){return LZ[n]||(LZ[n]=new Promise((ok,no)=>{const el=document.querySelector('script[type="lazy"][src="js/'+n+'.js"],script[type="lazy"][data-f="js/'+n+'.js"]');if(!el){no(new Error("Falta "+n));return}

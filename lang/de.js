@@ -963,4 +963,6 @@ window.LANGS.de={name:"Deutsch",d:{
 "Lanzamiento cancelado":"Start abgebrochen",
 "Revisando los mods…":"Mods werden geprüft…",
 "Se cortó la descarga: reintentando ({1} de {2})…":"Der Download wurde unterbrochen: neuer Versuch ({1} von {2})…",
-"Restos de instalaciones, de la preparación en segundo plano y descargas a medias de más de 2 días.":"Reste von Installationen, der Vorbereitung im Hintergrund und unvollständige Downloads, die älter als 2 Tage sind."}};
+"Restos de instalaciones, de la preparación en segundo plano y descargas a medias de más de 2 días.":"Reste von Installationen, der Vorbereitung im Hintergrund und unvollständige Downloads, die älter als 2 Tage sind.",
+"Caché de imágenes":"Bildcache",
+"Imágenes de mods y modpacks guardadas para verse al instante. Se vuelven a descargar al abrir el buscador.":"Bilder von Mods und Modpacks, die gespeichert werden, damit sie sofort angezeigt werden. Sie werden beim Öffnen der Suche erneut heruntergeladen."}};

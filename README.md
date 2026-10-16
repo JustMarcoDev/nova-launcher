@@ -108,6 +108,18 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 
 ## Historial de actualizaciones
 
+### 0.2.14-beta.8 — Guardado seguro, caché de imágenes limitada y instalador más ligero
+
+**Añadido**
+- Caché de imágenes como apartado de la Limpieza de espacio (Ajustes → Juego), con su tamaño
+
+**Mejorado**
+- Los archivos de ajustes, instancias y ventana se guardan de forma segura: se escriben en un archivo temporal y se conserva una copia .bak; si uno se estropea, el launcher recupera la copia al abrir
+- La caché de imágenes se limpia sola al arrancar, en segundo plano: borra lo que lleva más de 30 días sin usarse y, si pasa de 100 MB, lo más antiguo hasta bajar de 80 MB
+- El instalador pesa menos: el código se minifica al compilar, la compresión es máxima y se quita un logo que la app no usa
+- El icono de la bandeja de Windows se ve nítido con cualquier escalado de pantalla (tray.ico con 5 tamaños)
+- El código de la vista previa del navegador va aparte (js/vista-previa.js) y no entra en el launcher instalado
+
 ### 0.2.14-beta.7 — Modo juego, mods revisados y descargas que continúan
 
 **Añadido**
