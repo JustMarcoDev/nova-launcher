@@ -108,6 +108,11 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 
 ## Historial de actualizaciones
 
+### 0.2.14-beta.10 — Menú de Nova dentro del juego
+
+**Añadido**
+- Menú de Nova dentro del juego (Ajustes → Juego, activado por defecto): un pack de recursos que se instala solo en cada instancia y se activa en options.txt. Pone un fondo espacial con agujero negro y textos de bienvenida de Nova en el menú principal de Minecraft, y el logo de Nova en las versiones hasta la 1.19.2. Si lo desactivas, el launcher lo quita de options.txt
+
 ### 0.2.14-beta.9 — Idioma en el asistente, color y versiones
 
 **Añadido**
@@ -116,6 +121,7 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 **Mejorado**
 - El color del launcher y el color personalizado ya coinciden: Ajustes se actualiza al cambiar el color desde el asistente, y el color personalizado se aplica mientras lo eliges
 - La lista de versiones empieza filtrada por Release
+- Arreglado el error «Cannot find latest.yml» al buscar actualizaciones: cada versión (también las beta) publica ahora latest.yml y el flujo lo comprueba antes de publicar
 
 **Quitado**
 - X, Discord y TikTok de la zona de redes del creador

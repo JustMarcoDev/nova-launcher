@@ -2,6 +2,8 @@
 // La clave es el texto en español tal como sale en la app; {1}, {2}… son partes variables (nombres, números).
 window.LANGS=window.LANGS||{};
 window.LANGS.en={name:"English (US)",d:{
+"Menú de Nova dentro del juego":"Nova menu inside the game",
+"Pone el fondo espacial, el logo y los textos de Nova en el menú principal de Minecraft (pack de recursos)":"Puts Nova's space background, logo and texts on Minecraft's main menu (resource pack)",
 "Elige el idioma del launcher. Se aplica al terminar el asistente.":"Choose the launcher language. It is applied when the wizard finishes.",
 "Repite los pasos: idioma, cuenta, RAM, tema y primera versión":"Repeat the steps: language, account, RAM, theme and first version",
 "Caché de imágenes":"Image cache",

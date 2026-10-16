@@ -55,6 +55,19 @@ jobs:
         run: |
           if [ "${{ steps.v.outputs.pre }}" = "true" ]; then TYPE=prerelease; else TYPE=release; fi
           npx electron-builder --win --publish always -c.publish.releaseType=$TYPE
+      - name: Comprobar que la release tiene latest.yml (lo necesita el actualizador del launcher)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="v${{ steps.v.outputs.version }}"
+          NAMES=$(gh release view "$TAG" --json assets -q '.assets[].name'); echo "$NAMES"
+          if ! echo "$NAMES" | grep -qx 'latest.yml'; then
+            # Las versiones beta pueden publicar solo beta.yml: se sube también como latest.yml
+            YML=$(ls dist/*.yml 2>/dev/null | head -1)
+            if [ -z "$YML" ]; then echo "::error::No hay ningún .yml de actualización en dist/"; exit 1; fi
+            cp "$YML" dist/latest.yml; gh release upload "$TAG" dist/latest.yml --clobber
+          fi
       - name: Poner las notas en la página de la versión
         shell: bash
         env:

@@ -342,6 +342,7 @@ ipcMain.handle('play', async (e, { id, server, world }) => {
     if (ins.ld === 'Forge' || ins.ld === 'NeoForge') o.version.custom = await forge(ins.ld, ins.mc, java, ins.loaderVersion);
     if (server && server.host) o.quickPlay = { type: modernQP(ins.mc) ? 'multiplayer' : 'legacy', identifier: server.host + (server.port && +server.port !== 25565 ? ':' + server.port : '') };
     if (world && !server && modernQP(ins.mc)) o.quickPlay = { type: 'singleplayer', identifier: String(world) };
+    try { novaPack(dir, ins.mc, cfg.novaPack !== false); } catch {}
     try { syncServers(dir, (cfg.myServers || []).filter(z => z && z.host).map(z => ({ name: String(z.name || z.host), ip: String(z.host) + (z.port && +z.port !== 25565 ? ':' + z.port : '') }))); } catch {}
     const l = new Client(), tail = [], lg = openLog(ins, java, ram), since = Date.now(); let t0 = 0;
     send('log', '── ' + ins.name + ' · Minecraft ' + ins.mc + ' · ' + (ins.ld || 'Vanilla') + ' · ' + (act.name) + ' ──\n');
@@ -1150,6 +1151,49 @@ const JVM_PRESETS = {
   tirones: ['-XX:+UseG1GC', '-XX:+ParallelRefProcEnabled', '-XX:MaxGCPauseMillis=200', '-XX:+UnlockExperimentalVMOptions', '-XX:+DisableExplicitGC', '-XX:G1NewSizePercent=30', '-XX:G1MaxNewSizePercent=40', '-XX:G1HeapRegionSize=8M', '-XX:G1ReservePercent=20', '-XX:G1HeapWastePercent=5', '-XX:G1MixedGCCountTarget=4', '-XX:InitiatingHeapOccupancyPercent=15', '-XX:G1MixedGCLiveThresholdPercent=90', '-XX:G1RSetUpdatingPauseTimePercent=5', '-XX:SurvivorRatio=32', '-XX:+PerfDisableSharedMem', '-XX:MaxTenuringThreshold=1']
 };
 const GPU_KEY = 'HKCU\\Software\\Microsoft\\DirectX\\UserGpuPreferences';
+// Pack de recursos «Nova»: fondo espacial, logo y textos de bienvenida en el menú principal de Minecraft.
+// Se copia a la carpeta resourcepacks de la instancia y se activa en options.txt (o se quita si el ajuste está desactivado).
+const PACK_NAME = 'Nova-Launcher';
+const PACK_FMT = [[[1, 6], 1], [[1, 8], 1], [[1, 9], 2], [[1, 11], 3], [[1, 13], 4], [[1, 15], 5], [[1, 16], 6], [[1, 17], 7], [[1, 18], 8], [[1, 19], 9], [[1, 19, 3], 12], [[1, 19, 4], 13], [[1, 20], 15], [[1, 20, 2], 18], [[1, 20, 3], 22], [[1, 20, 5], 32], [[1, 21], 34], [[1, 21, 2], 42], [[1, 21, 4], 46], [[1, 21, 5], 55], [[1, 21, 6], 63], [[1, 21, 7], 64], [[1, 21, 9], 69]];
+function packFormat(mc) {
+  const m = /^(\d+)\.(\d+)(?:\.(\d+))?/.exec(mc); if (!m) return 69;
+  const v = [+m[1], +m[2], +m[3] || 0]; let f = 1;
+  for (const [k, n] of PACK_FMT) { const a = [k[0], k[1], k[2] || 0]; if (v[0] > a[0] || (v[0] === a[0] && (v[1] > a[1] || (v[1] === a[1] && v[2] >= a[2])))) f = n; }
+  return f;
+}
+function copyTree(src, dst, skip) {
+  fs.mkdirSync(dst, { recursive: true });
+  for (const n of fs.readdirSync(src)) {
+    if (skip && skip.includes(n)) continue;
+    const s = path.join(src, n), d = path.join(dst, n);
+    if (fs.statSync(s).isDirectory()) copyTree(s, d, null); else fs.writeFileSync(d, fs.readFileSync(s));
+  }
+}
+function novaPack(dir, mc, on) {
+  if (/^[ab]\d/.test(mc)) return; // las betas y alfas antiguas no tienen packs de recursos
+  const m = /^1\.(\d+)(?:\.(\d+))?/.exec(mc), minor = m ? +m[1] : 99;
+  if (minor < 6) return;
+  const rp = path.join(dir, 'resourcepacks', PACK_NAME), optf = path.join(dir, 'options.txt'), entry = minor <= 12 ? PACK_NAME : 'file/' + PACK_NAME;
+  let txt = ''; try { txt = fs.readFileSync(optf, 'utf8'); } catch {}
+  const re = /^resourcePacks:(\[.*\])[ \t\r]*$/m, mm = re.exec(txt); let arr = null;
+  if (!mm && /^resourcePacks:/m.test(txt)) return; // línea que no se entiende: no se toca
+  if (mm) { try { arr = JSON.parse(mm[1]); } catch { return; } if (!Array.isArray(arr)) return; }
+  const has = !!arr && arr.includes(entry);
+  if (on) {
+    copyTree(path.join(__dirname, 'assets', 'nova-pack'), rp, ['_logo']);
+    fs.writeFileSync(path.join(rp, 'pack.mcmeta'), JSON.stringify({ pack: { pack_format: packFormat(mc), description: 'Nova Launcher · menú espacial', supported_formats: { min_inclusive: 1, max_inclusive: 999 } } }));
+    if (minor < 19 || (minor === 19 && (+m[2] || 0) <= 2)) { // el logo clásico (256x256) solo se conoce en estas versiones
+      const ld = path.join(rp, 'assets', 'minecraft', 'textures', 'gui', 'title'); fs.mkdirSync(ld, { recursive: true });
+      fs.writeFileSync(path.join(ld, 'minecraft.png'), fs.readFileSync(path.join(__dirname, 'assets', 'nova-pack', '_logo', 'minecraft.png')));
+    }
+    if (has) return;
+    const na = arr ? [...arr, entry] : (minor <= 12 ? [entry] : ['vanilla', entry]), line = 'resourcePacks:' + JSON.stringify(na);
+    txt = mm ? txt.replace(re, line) : (txt && !txt.endsWith('\n') ? txt + '\n' : txt) + line + '\n';
+    fs.mkdirSync(dir, { recursive: true }); fs.writeFileSync(optf, txt);
+  } else if (has) {
+    txt = txt.replace(re, 'resourcePacks:' + JSON.stringify(arr.filter(x => x !== entry))); fs.writeFileSync(optf, txt);
+  }
+}
 async function applyGpu(java, on) {
   if (process.platform !== 'win32' || !java) return;
   const exes = [java, java.replace(/java\.exe$/i, 'javaw.exe')].filter((v, i, a) => a.indexOf(v) === i), set = new Set(load().gpuSet || []);

@@ -967,4 +967,6 @@ window.LANGS.pt={name:"Português (Portugal)",d:{
 "Caché de imágenes":"Cache de imagens",
 "Imágenes de mods y modpacks guardadas para verse al instante. Se vuelven a descargar al abrir el buscador.":"Imagens de mods e modpacks guardadas para aparecerem na hora. Elas são transferidas de novo ao abrir a busca.",
 "Elige el idioma del launcher. Se aplica al terminar el asistente.":"Escolha o idioma do launcher. Ele é aplicado quando o assistente termina.",
-"Repite los pasos: idioma, cuenta, RAM, tema y primera versión":"Repita as etapas: idioma, conta, RAM, tema e primeira versão"}};
+"Repite los pasos: idioma, cuenta, RAM, tema y primera versión":"Repita as etapas: idioma, conta, RAM, tema e primeira versão",
+"Menú de Nova dentro del juego":"Menu da Nova dentro do jogo",
+"Pone el fondo espacial, el logo y los textos de Nova en el menú principal de Minecraft (pack de recursos)":"Coloca o fundo espacial, o logo e os textos da Nova no menu principal do Minecraft (pacote de recursos)"}};
