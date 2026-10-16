@@ -965,4 +965,6 @@ window.LANGS.it={name:"Italiano",d:{
 "Se cortó la descarga: reintentando ({1} de {2})…":"Download interrotto: nuovo tentativo ({1} di {2})…",
 "Restos de instalaciones, de la preparación en segundo plano y descargas a medias de más de 2 días.":"Resti di installazioni, della preparazione in background e download incompleti di oltre 2 giorni.",
 "Caché de imágenes":"Cache delle immagini",
-"Imágenes de mods y modpacks guardadas para verse al instante. Se vuelven a descargar al abrir el buscador.":"Immagini di mod e modpack salvate per vederle subito. Vengono scaricate di nuovo quando apri la ricerca."}};
+"Imágenes de mods y modpacks guardadas para verse al instante. Se vuelven a descargar al abrir el buscador.":"Immagini di mod e modpack salvate per vederle subito. Vengono scaricate di nuovo quando apri la ricerca.",
+"Elige el idioma del launcher. Se aplica al terminar el asistente.":"Scegli la lingua del launcher. Viene applicata al termine della procedura guidata.",
+"Repite los pasos: idioma, cuenta, RAM, tema y primera versión":"Ripeti i passaggi: lingua, account, RAM, tema e prima versione"}};

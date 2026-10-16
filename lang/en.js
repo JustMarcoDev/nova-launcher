@@ -2,6 +2,8 @@
 // La clave es el texto en español tal como sale en la app; {1}, {2}… son partes variables (nombres, números).
 window.LANGS=window.LANGS||{};
 window.LANGS.en={name:"English (US)",d:{
+"Elige el idioma del launcher. Se aplica al terminar el asistente.":"Choose the launcher language. It is applied when the wizard finishes.",
+"Repite los pasos: idioma, cuenta, RAM, tema y primera versión":"Repeat the steps: language, account, RAM, theme and first version",
 "Caché de imágenes":"Image cache",
 "Imágenes de mods y modpacks guardadas para verse al instante. Se vuelven a descargar al abrir el buscador.":"Mod and modpack images saved so they show up instantly. They are downloaded again when you open the search.",
 "Modo juego":"Game mode",

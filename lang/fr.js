@@ -965,4 +965,6 @@ window.LANGS.fr={name:"Français",d:{
 "Se cortó la descarga: reintentando ({1} de {2})…":"Le téléchargement a été interrompu : nouvelle tentative ({1} sur {2})…",
 "Restos de instalaciones, de la preparación en segundo plano y descargas a medias de más de 2 días.":"Restes d'installations, de la préparation en arrière-plan et téléchargements inachevés de plus de 2 jours.",
 "Caché de imágenes":"Cache des images",
-"Imágenes de mods y modpacks guardadas para verse al instante. Se vuelven a descargar al abrir el buscador.":"Images de mods et de modpacks enregistrées pour s'afficher instantanément. Elles sont retéléchargées à l'ouverture de la recherche."}};
+"Imágenes de mods y modpacks guardadas para verse al instante. Se vuelven a descargar al abrir el buscador.":"Images de mods et de modpacks enregistrées pour s'afficher instantanément. Elles sont retéléchargées à l'ouverture de la recherche.",
+"Elige el idioma del launcher. Se aplica al terminar el asistente.":"Choisissez la langue du launcher. Elle s'applique à la fin de l'assistant.",
+"Repite los pasos: idioma, cuenta, RAM, tema y primera versión":"Refaites les étapes : langue, compte, RAM, thème et première version"}};

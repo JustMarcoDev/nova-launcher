@@ -108,6 +108,18 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 
 ## Historial de actualizaciones
 
+### 0.2.14-beta.9 — Idioma en el asistente, color y versiones
+
+**Añadido**
+- Paso de idioma en el asistente de bienvenida cuando se repite desde Ajustes (el selector del primer arranque ya existía)
+
+**Mejorado**
+- El color del launcher y el color personalizado ya coinciden: Ajustes se actualiza al cambiar el color desde el asistente, y el color personalizado se aplica mientras lo eliges
+- La lista de versiones empieza filtrada por Release
+
+**Quitado**
+- X, Discord y TikTok de la zona de redes del creador
+
 ### 0.2.14-beta.8 — Guardado seguro, caché de imágenes limitada y instalador más ligero
 
 **Añadido**
