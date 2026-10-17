@@ -5,7 +5,7 @@ const BHM={dorado:[44,100],azul:[205,100],violeta:[268,95],rosa:[328,95],verde:[
 const FF=[["Segoe UI","sans-serif"],["Segoe UI Variable Text","sans-serif","Segoe UI Variable"],["Bahnschrift","sans-serif"],["Calibri","sans-serif"],["Arial","sans-serif"],["Tahoma","sans-serif"],["Verdana","sans-serif"],["Trebuchet MS","sans-serif"],["Century Gothic","sans-serif"],["Candara","sans-serif"],["Corbel","sans-serif"],["Franklin Gothic Medium","sans-serif"],["Ebrima","sans-serif"],["Nirmala UI","sans-serif"],["Gill Sans MT","sans-serif"],["Cambria","serif"],["Constantia","serif"],["Georgia","serif"],["Palatino Linotype","serif"],["Sitka Text","serif"],["Times New Roman","serif"],["Comic Sans MS","cursive"],["Impact","sans-serif"],["Consolas","monospace"],["Cascadia Code","monospace"],["Lucida Console","monospace"],["Courier New","monospace"]];
 const FONTS=Object.fromEntries(FF.map(([n,g,l])=>[l||n,`"${n}",${n==="Segoe UI"?"system-ui,":""}${g}`]));
 // --- Estado compartido (versión, sistema, fondo) ---
-let VER="0.2.14-beta.12",SYS={total:16},secNow="gen",BG="#080a0f",BHs=BHM.dorado,dirty=60,RUN=false;
+let VER="0.2.14-beta.13",SYS={total:16},secNow="gen",BG="#080a0f",BHs=BHM.dorado,dirty=60,RUN=false;
 // --- Ajustes guardados ---
 const rec=()=>Math.max(1,Math.floor(SYS.total/2));
 async function sv(c){cfg={...cfg,...c};if(A)await A.set(c);if(A&&c.dlLimit!==undefined)A.dqLimit(c.dlLimit);if(c.lang!==undefined)setTimeout(()=>langSync(c.lang),120);dirty=60}
@@ -24,7 +24,7 @@ sy.setProperty("--d",String({compacta:.78,normal:1,comoda:1.25}[cfg.density]||1)
 const ni=cfg.intro===false||!!cfg.rmotion;r.classList.toggle("ni",ni);if(ni){sy.setProperty("--base","0s");const i=$("intro");i&&i.remove()}
 const z=(cfg.tsize||100)/100;if(z!==lastZ){lastZ=z;if(A)A.zoom(z);else b.style.zoom=z}
 $("g2").classList.toggle("nonews",cfg.showNews===false);$("cardI").style.display=cfg.showInst===false?"none":"";$("cardS").style.display=cfg.showStatus===false?"none":"";$("wel").style.display=cfg.greet===false?"none":"";
-$("av").style.display=cfg.showAvatar===false?"none":"";if(cfg.showLog===false)$("log").style.display="none";
+$("av").style.display=cfg.showAvatar===false?"none":"";
 if(typeof NEWS!=="undefined"&&NEWS.length&&lastN!==(cfg.newsN||4))renderNews();
 BG=getComputedStyle(r).getPropertyValue("--bg").trim()||"#080a0f";BHs=BHM[cfg.bh]||BHM.dorado;
 if(cfg.stars!==lastSt){lastSt=cfg.stars;if(typeof rs==="function")rs()}

@@ -45,6 +45,7 @@ public class NovaTitleScreen extends Screen {
             // Sin Fabric API los recursos del mod no entran en el gestor de recursos: los registramos a mano.
             for (int i = 0; i < 6; i++) reg(mc, "textures/gui/panorama/panorama_" + i + ".png");
             reg(mc, "textures/gui/blackhole.png");
+            NovaGfx.ok = true;
             reg(mc, "textures/gui/mark.png");
             reg(mc, "textures/gui/icons.png");
         }
@@ -54,7 +55,9 @@ public class NovaTitleScreen extends Screen {
         try (java.io.InputStream in = NovaTitleScreen.class.getResourceAsStream("/assets/nova/" + path)) {
             if (in == null) return;
             net.minecraft.client.texture.NativeImage img = net.minecraft.client.texture.NativeImage.read(in);
-            mc.getTextureManager().registerTexture(Identifier.tryParse("nova:" + path), new net.minecraft.client.texture.NativeImageBackedTexture(img));
+            net.minecraft.client.texture.NativeImageBackedTexture tex = new net.minecraft.client.texture.NativeImageBackedTexture(img);
+            if (path.contains("blackhole") || path.contains("mark")) { try { tex.setFilter(true, false); } catch (Throwable ignored) { } }
+            mc.getTextureManager().registerTexture(Identifier.tryParse("nova:" + path), tex);
         } catch (Exception e) {
             // se queda con la textura de «no encontrada»
         }
@@ -71,9 +74,9 @@ public class NovaTitleScreen extends Screen {
     protected void init() {
         ensure(client);
         int cx = width / 2;
-        int bw = Math.min(200, width - 20), bh = 24, gap = 5;
-        int ly = Math.max(10, Math.min(34, height / 2 - 84));
-        top = ly + 74;
+        int bw = Math.min(170, width - 20), bh = 20, gap = 4;
+        int ly = ly();
+        top = ly + 54;
         int y = top;
         addDrawableChild(new NovaButton(cx - bw / 2, y, bw, bh, Text.translatable("menu.singleplayer"), -1, NovaButton.PRIMARY,
                 b -> client.setScreen(new SelectWorldScreen(this))));
@@ -82,9 +85,9 @@ public class NovaTitleScreen extends Screen {
             if (client.options.skipMultiplayerWarning) client.setScreen(new MultiplayerScreen(this));
             else client.setScreen(new MultiplayerWarningScreen(this));
         }));
-        y += bh + gap + 3;
+        y += bh + gap + 2;
         // fila de 5 botones: A ajustes · L idioma · N (reservado) · C realms · M launcher
-        int s = 24, g = 6, bx = cx - (5 * s + 4 * g) / 2;
+        int s = 20, g = 5, bx = cx - (5 * s + 4 * g) / 2;
         addDrawableChild(new NovaButton(bx, y, s, s, Text.empty(), NovaButton.I_GEAR, NovaButton.NORMAL,
                 b -> client.setScreen(new OptionsScreen(this, client.options))));
         addDrawableChild(new NovaButton(bx + (s + g), y, s, s, Text.empty(), NovaButton.I_GLOBE, NovaButton.NORMAL,
@@ -100,11 +103,26 @@ public class NovaTitleScreen extends Screen {
         }));
         // perfil (arriba izquierda)
         String name = client.getSession().getUsername();
-        addDrawableChild(new NovaButton(8, 8, 22, 22, Text.literal(name.isEmpty() ? "?" : name.substring(0, 1).toUpperCase()), -1, NovaButton.NORMAL, b -> {}));
-        int nw = Math.min(150, Math.max(70, textRenderer.getWidth(name) + 18));
-        addDrawableChild(new NovaButton(34, 8, nw, 22, Text.literal(name), -1, NovaButton.NORMAL, b -> {}));
+        addDrawableChild(new NovaButton(7, 7, 18, 18, Text.literal(name.isEmpty() ? "?" : name.substring(0, 1).toUpperCase()), -1, NovaButton.NORMAL, b -> {}));
+        int nw = Math.min(130, Math.max(60, textRenderer.getWidth(name) + 18));
+        addDrawableChild(new NovaButton(29, 7, nw, 18, Text.literal(name), -1, NovaButton.NORMAL, b -> {}));
         // cerrar el juego (arriba derecha)
-        addDrawableChild(new NovaButton(width - 30, 8, 22, 22, Text.empty(), NovaButton.I_CLOSE, NovaButton.DANGER, b -> client.scheduleStop()));
+        addDrawableChild(new NovaButton(width - 25, 7, 18, 18, Text.empty(), NovaButton.I_CLOSE, NovaButton.DANGER, b -> client.scheduleStop()));
+    }
+
+    int ly() { return Math.max(8, Math.min(26, height / 2 - 78)); }
+
+    void txt(DrawContext c, String str, int x, int y, float px, int argb, boolean bold, int anchor) {
+        if (NovaGfx.ok) {
+            try {
+                NovaGfx.Tex t = NovaGfx.text(client, str, px, argb, bold);
+                int dx = anchor == 1 ? -t.w() : anchor == 2 ? -t.w() / 2 : 0;
+                t.draw(c, x + dx, y, 1f);
+                return;
+            } catch (Throwable e) { NovaGfx.ok = false; }
+        }
+        int tw = textRenderer.getWidth(str);
+        c.drawText(textRenderer, str, anchor == 1 ? x - tw : anchor == 2 ? x - tw / 2 : x, y + 1, argb, true);
     }
 
     // 1.20.x: renderBackground(c); 1.21: renderBackground(c, mx, my, delta)
@@ -114,13 +132,13 @@ public class NovaTitleScreen extends Screen {
         float t = (Util.getMeasuringTimeMs() - born) / 1000f;
         cube.draw(client, (float) Math.sin(t * 0.2f) * 3f + 18f, -(t * 1.2f + (born % 360)), 1f);
         c.fillGradient(0, 0, width, height, 0x30000000, 0xA0000010);
-        // agujero negro de fondo, con una respiración muy leve
+        // agujero negro de fondo, grande y con una respiración muy leve
         float fade = Math.min(1f, t / 0.8f);
-        int dw = Math.min(width - 6, 400), dh = dw / 2;
-        int hx = (width - dw) / 2, hy = height / 2 - dh / 2 + (int) (Math.sin(t * 0.5f) * 2f) + 16;
+        int dw = Math.min((int) (width * 1.05f), (int) (height * 2.3f)), dh = dw / 2;
+        int hx = (width - dw) / 2, hy = height / 2 - dh / 2 + (int) (Math.sin(t * 0.5f) * 2f) + 4;
         com.mojang.blaze3d.systems.RenderSystem.enableBlend();
-        c.setShaderColor(1f, 1f, 1f, 0.85f * fade);
-        c.drawTexture(HOLE, hx, hy, dw, dh, 0, 0, 1024, 512, 1024, 512);
+        c.setShaderColor(1f, 1f, 1f, 0.95f * fade);
+        c.drawTexture(HOLE, hx, hy, dw, dh, 0, 0, 1536, 768, 1536, 768);
         c.setShaderColor(1f, 1f, 1f, 1f);
     }
 
@@ -128,20 +146,28 @@ public class NovaTitleScreen extends Screen {
     public void render(DrawContext c, int mx, int my, float delta) {
         super.render(c, mx, my, delta);   // fondo + botones
         float fade = Math.min(1f, (Util.getMeasuringTimeMs() - born) / 600f);
-        logo.draw(c, width, fade, Math.max(10, Math.min(34, height / 2 - 84)));
+        boolean drawn = false;
+        if (NovaGfx.ok) {
+            try {
+                NovaGfx.Tex wm = NovaGfx.wordmark(client, "JAVA EDITION");
+                wm.draw(c, (width - wm.w()) / 2, ly() - 4, fade);
+                drawn = true;
+            } catch (Throwable e) { NovaGfx.ok = false; }
+        }
+        if (!drawn) logo.draw(c, width, fade, ly());
 
         // abajo izquierda: versión
-        String v = (es ? "Versión: " : "Version: ") + mcVersion() + "/" + LOADER;
-        c.drawText(textRenderer, v, 8, height - 14, 0xB0FFFFFF, true);
+        txt(c, (es ? "Versión: " : "Version: ") + mcVersion() + "/" + LOADER, 7, height - 15, 7.5f, 0xB8FFFFFF, false, 0);
         // abajo derecha: logo de Nova Launcher, blanco y translúcido
         String n = "NOVA LAUNCHER";
-        int tw = textRenderer.getWidth(n), mx0 = width - 8 - tw - 4 - 14;
+        int tw = textRenderer.getWidth(n) * 3 / 4 + 2;
+        if (NovaGfx.ok) { try { tw = NovaGfx.text(client, n, 7.5f, 0xB8FFFFFF, true).w(); } catch (Throwable e) { NovaGfx.ok = false; } }
+        int mx0 = width - 7 - tw - 3 - 11;
         com.mojang.blaze3d.systems.RenderSystem.enableBlend();
         c.setShaderColor(1f, 1f, 1f, 0.7f);
-        c.drawTexture(MARK, mx0, height - 17, 14, 14, 0, 0, 64, 64, 64, 64);
+        c.drawTexture(MARK, mx0, height - 16, 11, 11, 0, 0, 64, 64, 64, 64);
         c.setShaderColor(1f, 1f, 1f, 1f);
-        c.drawText(textRenderer, n, width - 8 - tw, height - 14, 0xB0FFFFFF, true);
-        String na = "Not affiliated with Mojang or Microsoft";
-        c.drawText(textRenderer, na, (width - textRenderer.getWidth(na)) / 2, height - 10, 0x50FFFFFF, false);
+        txt(c, n, width - 7, height - 15, 7.5f, 0xB8FFFFFF, true, 1);
+        txt(c, "Not affiliated with Mojang or Microsoft", width / 2, height - 11, 6.5f, 0x58FFFFFF, false, 2);
     }
 }
