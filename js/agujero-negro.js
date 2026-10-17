@@ -28,7 +28,7 @@ let GM=false,RAF=0;
 function gameMode(on){const g=!!on&&cfg.gameMode!==false;if(g===GM)return;GM=g;document.documentElement.classList.toggle("gm",g);if(!g&&!RAF){dirty=60;RAF=requestAnimationFrame(frame)}}
 function frame(now){if(GM){RAF=0;return}RAF=requestAnimationFrame(frame);
 const q=Q[cfg.quality]||Q.alta,pg=RUN&&cfg.pauseGame!==false,cap=+cfg.fps||60;let f=q.f?Math.min(q.f,cap):0;if(pg&&f)f=Math.min(f,30);
-if(document.hidden)return;if(f&&A&&cfg.pauseBlur!==false&&!document.hasFocus())f=Math.min(f,15);
+if(document.hidden)return;if(f&&A&&cfg.pauseBlur!==false&&!document.hasFocus())f=Math.min(f,RUN?5:15);
 if(!f){if(dirty<=0)return}else{if(al<.02)f=Math.min(f,24);if(now-last<1000/f-3)return}
 last=now;dirty--;const k=f?60/f:0,sp=(cfg.rmotion?.15:1)*k*((cfg.bhSpeed==null?100:cfg.bhSpeed)/100);T+=.016*k;ang+=.0065*sp;
 if(hc--<=0||!HR){hc=15;HR=document.querySelector(".hero").getBoundingClientRect()}

@@ -21,7 +21,7 @@ public class NovaTitleScreen extends Screen {
     static final Identifier HOLE = Identifier.tryParse("nova:textures/gui/blackhole.png");
     static final Identifier MARK = Identifier.tryParse("nova:textures/gui/mark.png");
     static CubeMapRenderer cube;
-    static boolean loaded;
+    static boolean loaded, tested;
 
     static final String LOADER = System.getProperty("nova.loader", "Nova");
     static final String VERSION = System.getProperty("nova.version", FabricLoader.getInstance()
@@ -73,10 +73,14 @@ public class NovaTitleScreen extends Screen {
     @Override
     protected void init() {
         ensure(client);
+        if (System.getProperty("nova.selftest") != null && !tested) {
+            tested = true;
+            client.execute(() -> { client.setScreen(null); System.out.println("[NOVA-TEST] " + client.currentScreen.getClass().getName()); });
+        }
         int cx = width / 2;
         int bw = Math.min(170, width - 20), bh = 20, gap = 4;
         int ly = ly();
-        top = ly + 54;
+        top = ly + 56;
         int y = top;
         addDrawableChild(new NovaButton(cx - bw / 2, y, bw, bh, Text.translatable("menu.singleplayer"), -1, NovaButton.PRIMARY,
                 b -> client.setScreen(new SelectWorldScreen(this))));
@@ -149,7 +153,7 @@ public class NovaTitleScreen extends Screen {
         boolean drawn = false;
         if (NovaGfx.ok) {
             try {
-                NovaGfx.Tex wm = NovaGfx.wordmark(client, "JAVA EDITION");
+                NovaGfx.Tex wm = NovaGfx.logo(client, Math.min(150, width - 24));
                 wm.draw(c, (width - wm.w()) / 2, ly() - 4, fade);
                 drawn = true;
             } catch (Throwable e) { NovaGfx.ok = false; }

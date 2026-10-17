@@ -4,7 +4,7 @@ const { Client, Authenticator } = require('minecraft-launcher-core');
 const { Auth } = require('msmc');
 const root = path.join(app.getPath('appData'), '.nova');
 const cfgFile = path.join(root, 'config.json'), insFile = path.join(root, 'instances.json');
-const DEF = { username: 'Jugador', ram: 4, javaPath: '', width: 1280, height: 720, fullscreen: false, jvmArgs: '', closeOnLaunch: false, cfKey: '', ms: null };
+const DEF = { username: 'Jugador', ram: 4, javaPath: '', width: 1280, height: 720, fullscreen: false, jvmArgs: '', optimize: true, closeOnLaunch: false, cfKey: '', ms: null };
 const fsp = fs.promises, rmAsync = (p) => fsp.rm(p, { recursive: true, force: true });
 // Guardado seguro: se escribe en .tmp y se renombra; antes se guarda una copia .bak del archivo bueno. Si el archivo se estropea, rd recupera la copia.
 const rd = (f, d) => {
@@ -359,6 +359,7 @@ ipcMain.handle('play', async (e, { id, server, world }) => {
     const o = { authorization: auth, root, javaPath: java, version: { number: ins.mc, type: ins.type === 'release' ? 'release' : 'snapshot' },
       overrides: { gameDirectory: dir }, memory: { max: ram + 'G', min: '1G' },
       window: { width: cfg.width, height: cfg.height, fullscreen: cfg.fullscreen }, customArgs: [...cfg.jvmArgs.split(' ').filter(Boolean), ...(JVM_PRESETS[ins.jvmPreset] || [])] };
+    if (cfg.optimize !== false && !ins.jvmPreset && !/-XX:\+Use\w+GC|-XX:\+UseG1GC/.test(cfg.jvmArgs)) o.customArgs.push(...JVM_OPT);
     try { await applyGpu(java, ins.gpu === 'high'); } catch {}
     const nj = (!ins.ld || ins.ld === 'Vanilla' || ins.ld === 'Fabric') ? novaModJar(ins.mc) : null;
     let nova = false;
@@ -1174,6 +1175,11 @@ async function isOnline(force) {
   let v = true; try { const r = await fetch(MAN, { method: 'HEAD', signal: AbortSignal.timeout(5000) }); v = !!r && r.ok !== false; } catch { v = false; }
   onl = { t: Date.now(), v }; return v;
 }
+// Ajustes de Java «Optimizar el juego»: recolector G1 afinado para menos tirones y arranque más rápido
+const JVM_OPT = ['-XX:+UseG1GC', '-XX:+ParallelRefProcEnabled', '-XX:MaxGCPauseMillis=130', '-XX:+UnlockExperimentalVMOptions', '-XX:+DisableExplicitGC',
+  '-XX:G1NewSizePercent=28', '-XX:G1MaxNewSizePercent=45', '-XX:G1HeapRegionSize=16M', '-XX:G1ReservePercent=20', '-XX:G1HeapWastePercent=5',
+  '-XX:G1MixedGCCountTarget=4', '-XX:InitiatingHeapOccupancyPercent=15', '-XX:G1MixedGCLiveThresholdPercent=90', '-XX:G1RSetUpdatingPauseTimePercent=5',
+  '-XX:SurvivorRatio=32', '-XX:MaxTenuringThreshold=1', '-XX:+PerfDisableSharedMem', '-XX:+UseStringDeduplication', '-Xshare:auto', '-Dsun.java2d.noddraw=true'];
 const JVM_PRESETS = {
   rendimiento: ['-XX:+UseG1GC', '-XX:+UnlockExperimentalVMOptions', '-XX:+DisableExplicitGC', '-XX:+ParallelRefProcEnabled', '-XX:+UseStringDeduplication'],
   tirones: ['-XX:+UseG1GC', '-XX:+ParallelRefProcEnabled', '-XX:MaxGCPauseMillis=200', '-XX:+UnlockExperimentalVMOptions', '-XX:+DisableExplicitGC', '-XX:G1NewSizePercent=30', '-XX:G1MaxNewSizePercent=40', '-XX:G1HeapRegionSize=8M', '-XX:G1ReservePercent=20', '-XX:G1HeapWastePercent=5', '-XX:G1MixedGCCountTarget=4', '-XX:InitiatingHeapOccupancyPercent=15', '-XX:G1MixedGCLiveThresholdPercent=90', '-XX:G1RSetUpdatingPauseTimePercent=5', '-XX:SurvivorRatio=32', '-XX:+PerfDisableSharedMem', '-XX:MaxTenuringThreshold=1']
