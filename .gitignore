@@ -1,2 +1,11 @@
+mod/build/
+mod/.gradle/
+mod/run/
 node_modules/
 dist/
+out/
+*.exe
+
+dist/
+out/
+*.exe

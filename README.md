@@ -111,7 +111,7 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 ### 0.2.14-beta.10 — Menú de Nova dentro del juego
 
 **Añadido**
-- Menú de Nova dentro del juego (Ajustes → Juego, activado por defecto): un pack de recursos que se instala solo en cada instancia y se activa en options.txt. Pone un fondo espacial con agujero negro y textos de bienvenida de Nova en el menú principal de Minecraft, y el logo de Nova en las versiones hasta la 1.19.2. Si lo desactivas, el launcher lo quita de options.txt
+- Menú de Nova dentro del juego: un mod de Fabric incluido de fábrica que sustituye la pantalla de título de Minecraft por la de Nova (fondo espacial con agujero negro, logo, botones propios, tarjetas y barra de iconos). Es obligatorio y no se puede quitar. Las instancias Vanilla se lanzan con Fabric por debajo para poder cargarlo; si Fabric no se puede preparar, se juega en vanilla normal. De momento solo en Minecraft 1.21.1 y 1.20.1; Forge y NeoForge no lo llevan
 
 ### 0.2.14-beta.9 — Idioma en el asistente, color y versiones
 
