@@ -5,7 +5,7 @@ const PEX=[["gen","Cuentas de Minecraft"],["game","Memoria RAM"],["game","Diagn�
 function palItems(q){q=q.trim().toLowerCase();const o=[],m=s=>!q||String(s).toLowerCase().includes(q);
 Object.entries(PT).forEach(([p,n])=>{if(m(n))o.push({g:"Páginas",t:n,d:"Ir a esta pestaña",f:()=>show(p)})});
 if(q){V.filter(v=>v.id.toLowerCase().includes(q)).slice(0,6).forEach(v=>o.push({g:"Versiones",t:"Minecraft "+v.id,d:(TN[v.type]||v.type)+" · con "+sel.ld,f:()=>{pick(v.id,v.type);show("home")}}))}
-I.filter(i=>q?(m(i.name)||m(i.mc)||m(i.ld)):false).slice(0,5).forEach(i=>o.push({g:"Instancias",t:i.name,d:(i.ld||"Vanilla")+" "+i.mc,f:()=>{pick(i.mc,i.type||"release",i.ld);sel.inst=i.id;show("home");qi()}}));
+I.filter(i=>q?(m(i.name)||m(i.mc)||m(i.ld)):false).slice(0,5).forEach(i=>o.push({g:"Instancias",t:i.name,d:LDN(i.ld||"Vanilla")+" "+i.mc,f:()=>{pick(i.mc,i.type||"release",i.ld);sel.inst=i.id;show("home");qi()}}));
 if(q&&typeof SC!=="undefined"){const seen=new Set();[...SC.flatMap(s=>s.rows.filter(r=>r.t).map(r=>[s.id,r.t,r.d||""])),...PEX.map(x=>[x[0],x[1],""])].forEach(([s,t,d])=>{if((m(t)||m(d))&&!seen.has(s+t)){seen.add(s+t);o.push({g:"Ajustes",t,d:(SC.find(z=>z.id===s)||{}).n||"",f:()=>jumpSet(s,t)})}});}
 PM.forEach(t=>o.push({g:"Mods",t,d:"Buscar en Modrinth",f:()=>{lazyLoad("mods").then(()=>{kind="mod";cat="";$("q").value=t;show("mods")})}}));
 return o.slice(0,16)}
