@@ -72,6 +72,18 @@ public class NovaButton extends ButtonWidget {
         glow = hot ? Math.min(1f, glow + dt) : Math.max(0f, glow - dt);
 
         int x = getX(), y = getY(), w = getWidth(), h = getHeight();
+        if (NovaGfx.ok) {
+            try {
+                MinecraftClient m = MinecraftClient.getInstance();
+                String lab = getMessage().getString();
+                NovaGfx.Tex n = NovaGfx.button(m, w, h, lab, icon, style, false, active);
+                n.draw(c, x - 5, y - 5, 1f);
+                if (glow > 0.02f && active) NovaGfx.button(m, w, h, lab, icon, style, true, true).draw(c, x - 5, y - 5, glow);
+                return;
+            } catch (Throwable t) {
+                NovaGfx.ok = false;
+            }
+        }
         int acc = style == DANGER ? 0xFFFF4D5E : ACCENT;
         int r = style == PRIMARY ? 8 : Math.min(6, h / 3);
         if (glow > 0.02f) panel(c, x - 2, y - 2, w + 4, h + 4, r + 2, ((int) (0x38 * glow) << 24) | (acc & 0xFFFFFF), 0);

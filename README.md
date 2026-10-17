@@ -108,6 +108,13 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 
 ## Historial de actualizaciones
 
+### 0.2.14-beta.13 — Menú de Nova rediseñado y consola al jugar
+
+- Menú dentro del juego rediseñado: textos, iconos y botones más pequeños y redondos, con tipografía suave (sin estilo pixelado).
+- Agujero negro nuevo, más detallado y más grande.
+- Ajuste «Abrir la consola al jugar»: se abre la pestaña Consola al lanzar el juego.
+- Quitado el mini panel de consola que aparecía abajo a la derecha.
+
 ### 0.2.14-beta.12 — Fabric incluido y diagnóstico del menú
 
 **Mejorado**

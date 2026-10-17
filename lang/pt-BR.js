@@ -969,4 +969,6 @@ window.LANGS["pt-BR"]={name:"Português (Brasil)",d:{
 "Elige el idioma del launcher. Se aplica al terminar el asistente.":"Escolha o idioma do launcher. Ele é aplicado quando o assistente termina.",
 "Repite los pasos: idioma, cuenta, RAM, tema y primera versión":"Repita as etapas: idioma, conta, RAM, tema e primeira versão",
 "Menú de Nova dentro del juego":"Menu da Nova dentro do jogo",
-"Pone el fondo espacial, el logo y los textos de Nova en el menú principal de Minecraft (pack de recursos)":"Coloca o fundo espacial, o logo e os textos da Nova no menu principal do Minecraft (pacote de recursos)"}};
+"Pone el fondo espacial, el logo y los textos de Nova en el menú principal de Minecraft (pack de recursos)":"Coloca o fundo espacial, o logo e os textos da Nova no menu principal do Minecraft (pacote de recursos)",
+"Abrir la consola al jugar":"Abrir o console ao jogar",
+"Al lanzar Minecraft se abre la pestaña Consola con la salida del juego y el launcher no se esconde. Si lo desactivas, se esconde en la bandeja (Modo juego)":"Ao iniciar o Minecraft, a aba Console abre com a saída do jogo e o launcher fica visível. Se você desativar, ele se esconde na bandeja (Modo jogo)"}};
