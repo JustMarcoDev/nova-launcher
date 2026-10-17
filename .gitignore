@@ -5,7 +5,3 @@ node_modules/
 dist/
 out/
 *.exe
-
-dist/
-out/
-*.exe

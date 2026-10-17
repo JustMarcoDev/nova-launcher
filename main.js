@@ -342,7 +342,7 @@ ipcMain.handle('play', async (e, { id, server, world }) => {
     let nova = false;
     if (ins.ld === 'Fabric') { o.version.custom = await fabric(ins.mc, ins.loaderVersion); nova = !!nj; }
     else if (nj) { try { o.version.custom = await fabric(ins.mc); nova = true; } catch { send('log', 'Nova: no se pudo preparar Fabric; se juega en vanilla normal.\n'); } }
-    if (nova) o.customArgs.push('-Dfabric.addMods=' + nj, '-Dnova.version=' + app.getVersion(), ...(NOVA_DISCORD ? ['-Dnova.discord=' + NOVA_DISCORD] : []));
+    if (nova) o.customArgs.push('-Dfabric.addMods=' + nj, '-Dnova.version=' + app.getVersion(), '-Dnova.loader=' + (ins.ld === 'Fabric' ? 'Fabric' : 'Nova'));
     if (ins.ld === 'Forge' || ins.ld === 'NeoForge') o.version.custom = await forge(ins.ld, ins.mc, java, ins.loaderVersion);
     if (server && server.host) o.quickPlay = { type: modernQP(ins.mc) ? 'multiplayer' : 'legacy', identifier: server.host + (server.port && +server.port !== 25565 ? ':' + server.port : '') };
     if (world && !server && modernQP(ins.mc)) o.quickPlay = { type: 'singleplayer', identifier: String(world) };
@@ -350,7 +350,7 @@ ipcMain.handle('play', async (e, { id, server, world }) => {
     const l = new Client(), tail = [], lg = openLog(ins, java, ram), since = Date.now(); let t0 = 0;
     send('log', '── ' + ins.name + ' · Minecraft ' + ins.mc + ' · ' + (ins.ld || 'Vanilla') + ' · ' + (act.name) + ' ──\n');
     l.on('progress', p => send('progress', p));
-    l.on('data', d => { const t = String(d); try { lg.w.write(t.endsWith('\n') ? t : t + '\n'); } catch {} for (const ln of t.split(/\r?\n/)) if (ln) tail.push(ln); if (tail.length > 500) tail.splice(0, tail.length - 300); send('log', t); });
+    l.on('data', d => { const t = String(d); if (t.includes('[NOVA:SETTINGS]')) { try { if (win) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); send('nav', 'set'); } } catch {} } try { lg.w.write(t.endsWith('\n') ? t : t + '\n'); } catch {} for (const ln of t.split(/\r?\n/)) if (ln) tail.push(ln); if (tail.length > 500) tail.splice(0, tail.length - 300); send('log', t); });
     l.on('close', code => {
       running.delete(id); try { lg.w.end(); } catch {} if (t0) { const cur = li().find(i => i.id === id) || {}; upIns(id, { playMs: (cur.playMs || 0) + (Date.now() - t0), lastPlayed: Date.now() }); } discordSet(null); send('running', running.size ? 1 : 0); send('progress', null);
       const crashed = !!code && tail.length > 0;
@@ -1158,7 +1158,6 @@ const GPU_KEY = 'HKCU\\Software\\Microsoft\\DirectX\\UserGpuPreferences';
 // Se carga con -Dfabric.addMods, así que no aparece en la carpeta mods de la instancia ni se puede borrar desde ahí.
 // Vanilla se lanza a través de Fabric para poder cargarlo; si algo falla se juega en vanilla normal.
 const NOVA_MC = ['1.21.1', '1.20.1'];          // versiones de Minecraft con mod incluido
-const NOVA_DISCORD = '';             // invitación de Discord para el banner del menú (vacío = sin banner)
 function novaModJar(mc) {
   if (!NOVA_MC.includes(mc)) return null;
   const src = path.join(__dirname, 'assets', 'mods', 'nova-menu-' + mc + '.jar');

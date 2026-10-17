@@ -19,7 +19,7 @@ if(k==="r"){const r=$("wzr"),v=$("wzv"),u=()=>v.textContent=r.value+" GB";u();r.
 if(k==="c"){$("wzc").onclick=e=>{const s=e.target.closest(".sw2");if(!s)return;$("wzc").querySelectorAll(".sw2").forEach(x=>x.classList.toggle("on",x===s));sv({accent:s.dataset.v}).then(()=>{applyAp();syncSet()})};
 const t=()=>chips($("wzt"),Object.entries(themes),cfg.theme||"oscuro",k=>{sv({theme:k}).then(()=>{applyAp();syncSet();t()})});t()}
 if(k==="v"){const fill=()=>{const L=V.filter(v=>v.type==="release"&&LD[W.ld](v.id)).slice(0,80);if(!L.find(v=>v.id===W.mc)&&L.length)W.mc=L[0].id;$("wzs").innerHTML=L.map(v=>`<option ${v.id===W.mc?"selected":""}>${v.id}</option>`).join("")};
-const lc=()=>chips($("wzl"),Object.keys(LD).map(k=>[k,k]),W.ld,k=>{W.ld=k;lc();fill()});lc();fill();$("wzs").onchange=e=>{W.mc=e.target.value}}
+const lc=()=>chips($("wzl"),Object.keys(LD).map(k=>[k,LDN(k)]),W.ld,k=>{W.ld=k;lc();fill()});lc();fill();$("wzs").onchange=e=>{W.mc=e.target.value}}
 if($("wzp"))$("wzp").onclick=()=>{st--;draw()};if($("wzn"))$("wzn").onclick=()=>{st++;draw()};
 const fin=async go=>{pick(W.mc,"release",W.ld);const ch=withLang&&W.lang!==LCUR;await sv({setupDone:true});closeModal();syncSet();if(ch){await sv({lang:W.lang});return}flash("¡Listo! Ya puedes jugar");if(go&&A){show("home");play()}};
 if($("wzf"))$("wzf").onclick=()=>fin(false);if($("wzg"))$("wzg").onclick=()=>fin(true)};

@@ -9,7 +9,7 @@ function insOrder(L,sort){
 }
 function insRow(i){
   const ic=i.icon&&ICS.includes(i.icon)?i.icon:"box";
-  return `<div class="ir ${i.fav?"fav":""}" data-i="${esc(i.id)}" style="${i.color?"--ic:"+esc(i.color):""}"><button class="star ${i.fav?"on":""}" data-a="fav" type="button" title="${i.fav?"Quitar de favoritas":"Fijar arriba como favorita"}" aria-label="Favorita">${i.fav?"★":"☆"}</button><div class="iic">${IC(ic)}</div><div class="im"><div class="t"><span class="tn">${esc(i.name)}</span>${(i.tags||[]).map(t=>`<span class="etq" data-t="${esc(t)}">${esc(t)}</span>`).join("")}</div><div class="s">${esc(i.ld||"Vanilla")} · ${esc(i.mc)}${i.ram?" · "+i.ram+" GB":""}</div>${i.note?`<div class="nt">${esc(i.note)}</div>`:""}</div><div class="ip s">${esc(plLine(i))}</div><div class="a"><button class="btn pr sm" data-a="play">Jugar</button><button class="btn sm" data-a="mods">Mods</button><button class="btn sm" data-a="shots">Capturas</button><button class="btn sm" data-a="opt">Opciones</button></div></div>`;
+  return `<div class="ir ${i.fav?"fav":""}" data-i="${esc(i.id)}" style="${i.color?"--ic:"+esc(i.color):""}"><button class="star ${i.fav?"on":""}" data-a="fav" type="button" title="${i.fav?"Quitar de favoritas":"Fijar arriba como favorita"}" aria-label="Favorita">${i.fav?"★":"☆"}</button><div class="iic">${IC(ic)}</div><div class="im"><div class="t"><span class="tn">${esc(i.name)}</span>${(i.tags||[]).map(t=>`<span class="etq" data-t="${esc(t)}">${esc(t)}</span>`).join("")}</div><div class="s">${esc(LDN(i.ld||"Vanilla"))} · ${esc(i.mc)}${i.ram?" · "+i.ram+" GB":""}</div>${i.note?`<div class="nt">${esc(i.note)}</div>`:""}</div><div class="ip s">${esc(plLine(i))}</div><div class="a"><button class="btn pr sm" data-a="play">Jugar</button><button class="btn sm" data-a="mods">Mods</button><button class="btn sm" data-a="shots">Capturas</button><button class="btn sm" data-a="opt">Opciones</button></div></div>`;
 }
 function ri(){
   const sort=cfg.instSort||"last",tags=[...new Set(I.flatMap(i=>i.tags||[]))].sort((a,b)=>a.localeCompare(b));
@@ -57,7 +57,7 @@ load()}
 // --- Opciones de la instancia ---
 async function openOpts(id){const ins=I.find(x=>x.id===id);if(!ins)return;const api=A||DA;let tot=16;try{tot=(await api.sys()).total||16}catch{}
 let ic=ins.icon&&ICS.includes(ins.icon)?ins.icon:"box",col=ins.color||"";const hasL=ins.ld&&ins.ld!=="Vanilla";
-const d=modal(hdr(ins,"Opciones de la instancia",esc(ins.ld||"Vanilla")+" · "+esc(ins.mc))+`<div class="fr"><label>Nombre</label><input id="on" type="text" maxlength="40" value="${esc(ins.name)}"></div>
+const d=modal(hdr(ins,"Opciones de la instancia",esc(LDN(ins.ld||"Vanilla"))+" · "+esc(ins.mc))+`<div class="fr"><label>Nombre</label><input id="on" type="text" maxlength="40" value="${esc(ins.name)}"></div>
 <div class="fr"><label>Icono</label><div class="icp" id="oic">${ICS.map(n=>`<button class="ib ${n===ic?"on":""}" data-i="${n}" type="button">${IC(n)}</button>`).join("")}</div></div>
 <div class="fr"><label>Color</label><div class="cs2" id="ocl"><div class="sw2 ${col?"":"on"}" data-c="" style="background:var(--ac)" title="Color del launcher"></div>${ICOL.map(c=>`<div class="sw2 ${col===c?"on":""}" data-c="${c}" style="background:${c}"></div>`).join("")}</div></div>
 <div class="fr"><label>Memoria RAM</label><div class="rr"><input type="range" id="orm" min="0" max="${Math.max(2,Math.min(32,tot))}" step="1" value="${ins.ram||0}"><b id="orv"></b></div></div>
