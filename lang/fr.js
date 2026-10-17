@@ -971,4 +971,6 @@ window.LANGS.fr={name:"Français",d:{
 "Menú de Nova dentro del juego":"Menu Nova dans le jeu",
 "Pone el fondo espacial, el logo y los textos de Nova en el menú principal de Minecraft (pack de recursos)":"Place le fond spatial, le logo et les textes de Nova dans le menu principal de Minecraft (pack de ressources)",
 "Abrir la consola al jugar":"Ouvrir la console en jouant",
-"Al lanzar Minecraft se abre la pestaña Consola con la salida del juego y el launcher no se esconde. Si lo desactivas, se esconde en la bandeja (Modo juego)":"Au lancement de Minecraft, l'onglet Console s'ouvre avec la sortie du jeu et le launcher reste visible. Si vous le désactivez, il se cache dans la zone de notification (Mode jeu)"}};
+"Al lanzar Minecraft se abre la pestaña Consola con la salida del juego y el launcher no se esconde. Si lo desactivas, se esconde en la bandeja (Modo juego)":"Au lancement de Minecraft, l'onglet Console s'ouvre avec la sortie du jeu et le launcher reste visible. Si vous le désactivez, il se cache dans la zone de notification (Mode jeu)",
+"Optimizar el juego":"Optimiser le jeu",
+"Aplica ajustes de Java para menos tirones y un arranque más fluido (recolector G1 afinado). Se desactiva si eliges un ajuste de Java propio en la instancia":"Applique des réglages Java pour moins de saccades et un démarrage plus fluide (collecteur G1 optimisé). Ignoré si vous choisissez un réglage Java personnalisé dans l'instance"}};

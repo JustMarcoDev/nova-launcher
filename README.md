@@ -108,6 +108,13 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 
 ## Historial de actualizaciones
 
+### 0.2.14-beta.14 — Logo oficial, menú minimalista y más rendimiento
+
+- Menú del juego con el logo de Minecraft Java Edition y botones minimalistas, centrados, cuadrados con esquinas redondeadas.
+- Al salir de Singleplayer vuelve el menú de Nova (antes salía el normal).
+- Ajuste «Optimizar el juego»: argumentos de Java (G1 afinado) para menos tirones.
+- El launcher reduce su consumo mientras el juego está en segundo plano.
+
 ### 0.2.14-beta.13 — Menú de Nova rediseñado y consola al jugar
 
 - Menú dentro del juego rediseñado: textos, iconos y botones más pequeños y redondos, con tipografía suave (sin estilo pixelado).
