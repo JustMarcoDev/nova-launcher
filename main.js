@@ -31,6 +31,12 @@ if (!single) app.quit();
 else app.on('second-instance', () => { if (win) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); } });
 const send = (c, d) => win && win.webContents.send(c, d);
 const UA = () => 'NovaLauncher/' + app.getVersion() + ' (github.com/JustMarcoDev/nova-launcher)';
+// Los fallos de red de Node dicen solo «fetch failed»: se completa con el servidor al que no se pudo llegar
+const rawFetch = globalThis.fetch;
+globalThis.fetch = async (u, o) => {
+  try { return await rawFetch(u, o); }
+  catch (e) { if (e && e.message === 'fetch failed') { let h = ''; try { h = new URL(String(u && u.href || u)).host; } catch {} const c = e.cause && (e.cause.code || e.cause.message); e.message = 'No se pudo conectar con ' + (h || 'el servidor') + (c ? ' (' + c + ')' : ''); } throw e; }
+};
 const get = async (u, t = 'json', h = {}) => { const r = await fetch(u, { signal: AbortSignal.timeout(t === 'arrayBuffer' ? 600000 : 30000), headers: { 'User-Agent': UA(), ...h } }); if (!r.ok) throw new Error('HTTP ' + r.status); return r[t](); };
 const run = (cmd, args, opt = {}) => new Promise((res, rej) => execFile(cmd, args, { maxBuffer: 1e8, ...opt }, e => e ? rej(e) : res()));
 
@@ -269,10 +275,26 @@ async function loaderPick(ld, mc, want) {
   const L = await loaderList(ld, mc); if (!L.length) throw new Error(ld + ' no soporta ' + mc);
   return (L.find(x => x.stable) || L[0]).v;
 }
+// Fabric incluido en el instalador (assets/fabric): el menú de Nova arranca sin descargar nada de Fabric.
+function fabricBundled(mc) {
+  try {
+    const pf = path.join(__dirname, 'assets', 'fabric', mc + '.json'); if (!fs.existsSync(pf)) return null;
+    const prof = JSON.parse(fs.readFileSync(pf, 'utf8')), id = prof.id, vf = path.join(root, 'versions', id, id + '.json');
+    for (const l of prof.libraries || []) {
+      const [g, n, v] = String(l.name).split(':'), rel = g.replace(/\./g, '/') + '/' + n + '/' + v + '/' + n + '-' + v + '.jar';
+      const src = path.join(__dirname, 'assets', 'fabric', 'libraries', rel), dst = path.join(root, 'libraries', rel);
+      if (!fs.existsSync(src)) return null;
+      const ok = fs.existsSync(dst) && fs.statSync(dst).size === fs.statSync(src).size;
+      if (!ok) { fs.mkdirSync(path.dirname(dst), { recursive: true }); fs.writeFileSync(dst, fs.readFileSync(src)); }
+    }
+    if (!fs.existsSync(vf)) { fs.mkdirSync(path.dirname(vf), { recursive: true }); fs.writeFileSync(vf, JSON.stringify(prof)); }
+    return id;
+  } catch { return null; }
+}
 async function fabric(mc, want) {
   send('status', 'Preparando Fabric…');
   let lv; try { lv = await loaderPick('Fabric', mc, want); }
-  catch (x) { const vd = path.join(root, 'versions'), have = fs.existsSync(vd) && fs.readdirSync(vd).find(d => d.startsWith('fabric-loader-') && d.endsWith('-' + mc)); if (have) return have; throw x; }
+  catch (x) { const vd = path.join(root, 'versions'), have = fs.existsSync(vd) && fs.readdirSync(vd).find(d => d.startsWith('fabric-loader-') && d.endsWith('-' + mc)); if (have) return have; const b = fabricBundled(mc); if (b) return b; throw x; }
   const id = `fabric-loader-${lv}-${mc}`, f = path.join(root, 'versions', id, id + '.json');
   if (!fs.existsSync(f)) { fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, await get(`https://meta.fabricmc.net/v2/versions/loader/${mc}/${lv}/profile/json`, 'text')); }
   return id;
@@ -341,7 +363,7 @@ ipcMain.handle('play', async (e, { id, server, world }) => {
     const nj = (!ins.ld || ins.ld === 'Vanilla' || ins.ld === 'Fabric') ? novaModJar(ins.mc) : null;
     let nova = false;
     if (ins.ld === 'Fabric') { o.version.custom = await fabric(ins.mc, ins.loaderVersion); nova = !!nj; }
-    else if (nj) { try { o.version.custom = await fabric(ins.mc); nova = true; } catch { send('log', 'Nova: no se pudo preparar Fabric; se juega en vanilla normal.\n'); } }
+    else if (nj) { try { o.version.custom = fabricBundled(ins.mc) || await fabric(ins.mc); nova = true; } catch { send('log', 'Nova: no se pudo preparar Fabric; se juega en vanilla normal.\n'); } }
     if (nova) o.customArgs.push('-Dfabric.addMods=' + nj, '-Dnova.version=' + app.getVersion(), '-Dnova.loader=' + (ins.ld === 'Fabric' ? 'Fabric' : 'Nova'));
     if (ins.ld === 'Forge' || ins.ld === 'NeoForge') o.version.custom = await forge(ins.ld, ins.mc, java, ins.loaderVersion);
     if (server && server.host) o.quickPlay = { type: modernQP(ins.mc) ? 'multiplayer' : 'legacy', identifier: server.host + (server.port && +server.port !== 25565 ? ':' + server.port : '') };
