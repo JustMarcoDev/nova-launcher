@@ -108,13 +108,19 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 
 ## Historial de actualizaciones
 
+### 0.2.14-beta.12 — Fabric incluido y diagnóstico del menú
+
+**Mejorado**
+- Fabric va incluido en el instalador (Minecraft 1.21.1 y 1.20.1): el menú de Nova arranca sin descargar nada de Fabric, también con bloqueos de red
+- Los fallos de conexión indican con qué servidor no se pudo conectar, en lugar de «fetch failed»
+- La consola del juego explica si el menú de Nova está activo o por qué no (versión no compatible, Forge/NeoForge…)
+
 ### 0.2.14-beta.11 — Menú de Nova rediseñado y versión Nova
 
 **Añadido**
 - Pantalla de título de Nova rediseñada: logo de Minecraft Java Edition, agujero negro de fondo, botones Singleplayer y Multiplayer redondos con toque espacial, perfil de Nova Launcher arriba a la izquierda, X roja para cerrar el juego, versión abajo a la izquierda y logo de Nova Launcher abajo a la derecha
 - Fila de cinco botones: A (ajustes de Minecraft), L (idioma), N (candado, reservado), C (Minecraft Realms) y M (abre los ajustes del launcher desde el juego)
 - «Vanilla» pasa a llamarse «Nova»: la misma versión de Minecraft con el menú y las mejoras de Nova (internamente sigue usando Fabric)
-- Fabric va incluido en el instalador: el menú de Nova arranca sin descargar nada de Fabric (también con bloqueos de red); los fallos de conexión ahora indican con qué servidor no se pudo conectar
 
 ### 0.2.14-beta.10 — Menú de Nova dentro del juego
 
