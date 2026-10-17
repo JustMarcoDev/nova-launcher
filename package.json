@@ -54,7 +54,8 @@
       "!*.bat",
       "!README.md",
       "!assets/discord-logo.png",
-      "!js/vista-previa.js"
+      "!js/vista-previa.js",
+      "!mod/**"
     ]
   }
 }

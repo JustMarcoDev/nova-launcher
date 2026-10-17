@@ -1,0 +1,25 @@
+plugins {
+    id 'fabric-loom' version '1.11.8'
+}
+version = project.mod_version
+group = 'dev.astrion.nova'
+base { archivesName = 'nova-menu-' + project.mc }
+
+repositories { mavenCentral() }
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.mc}"
+    mappings "net.fabricmc:yarn:${project.yarn}:v2"
+    modImplementation "net.fabricmc:fabric-loader:${project.loader}"
+}
+
+processResources {
+    inputs.property 'version', project.version
+    inputs.property 'mc', project.mc
+    filesMatching('fabric.mod.json') { expand 'version': project.version, 'mc': project.mc }
+}
+
+tasks.withType(JavaCompile).configureEach { options.release = 17 }
+java { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
+jar { from('LICENSE') { rename { "${it}_${project.archivesBaseName}" } } }
+
