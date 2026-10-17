@@ -114,6 +114,7 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 - Pantalla de título de Nova rediseñada: logo de Minecraft Java Edition, agujero negro de fondo, botones Singleplayer y Multiplayer redondos con toque espacial, perfil de Nova Launcher arriba a la izquierda, X roja para cerrar el juego, versión abajo a la izquierda y logo de Nova Launcher abajo a la derecha
 - Fila de cinco botones: A (ajustes de Minecraft), L (idioma), N (candado, reservado), C (Minecraft Realms) y M (abre los ajustes del launcher desde el juego)
 - «Vanilla» pasa a llamarse «Nova»: la misma versión de Minecraft con el menú y las mejoras de Nova (internamente sigue usando Fabric)
+- Fabric va incluido en el instalador: el menú de Nova arranca sin descargar nada de Fabric (también con bloqueos de red); los fallos de conexión ahora indican con qué servidor no se pudo conectar
 
 ### 0.2.14-beta.10 — Menú de Nova dentro del juego
 
