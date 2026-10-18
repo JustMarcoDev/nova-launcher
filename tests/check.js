@@ -52,5 +52,17 @@ if (/No hay una entrada/.test(nt)) bad('el README no tiene la entrada de la vers
 const ver = (rd('js/base.js').match(/let VER="([^"]+)"/) || [])[1];
 if (ver !== pkg.version) bad('VER en js/base.js (' + ver + ') no coincide con package.json (' + pkg.version + ')');
 
+// Menú de Nova: versiones de mod/versions.txt = NOVA_MC de main.js, con su .jar; vídeo de fondo y avisos de licencias presentes
+{
+  const vs = rd('mod/versions.txt').split(/\r?\n/).filter(l => l.trim() && !l.startsWith('#')).map(l => l.split(/\s+/)[0]);
+  const nm = (main.match(/const NOVA_MC = \[([^\]]*)\]/) || [, ''])[1].split(',').map(x => x.replace(/['"\s]/g, '')).filter(Boolean);
+  if (vs.join() !== nm.join()) bad('mod/versions.txt (' + vs.join() + ') no coincide con NOVA_MC de main.js (' + nm.join() + ')');
+  for (const v of vs) if (!fs.existsSync(path.join(root, 'assets/mods/nova-menu-' + v + '.jar'))) bad('falta assets/mods/nova-menu-' + v + '.jar');
+  const bg = path.join(root, 'assets/nova-bg.nvb');
+  if (!fs.existsSync(bg) || fs.readFileSync(bg).subarray(0, 4).toString() !== 'NVB1') bad('assets/nova-bg.nvb falta o no es un vídeo NVB1');
+  if (!fs.existsSync(path.join(root, 'THIRD-PARTY-NOTICES.txt'))) bad('falta THIRD-PARTY-NOTICES.txt');
+  console.log('menú de Nova: ' + vs.join(', ') + ' · vídeo y licencias presentes');
+}
+
 if (fails.length) { console.log('\nFALLOS (' + fails.length + '):'); fails.forEach(f => console.log(' ✕ ' + f)); process.exit(1); }
 console.log('Revisión estática correcta · versión ' + pkg.version);

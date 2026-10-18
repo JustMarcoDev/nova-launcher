@@ -5,7 +5,7 @@ const BHM={dorado:[44,100],azul:[205,100],violeta:[268,95],rosa:[328,95],verde:[
 const FF=[["Segoe UI","sans-serif"],["Segoe UI Variable Text","sans-serif","Segoe UI Variable"],["Bahnschrift","sans-serif"],["Calibri","sans-serif"],["Arial","sans-serif"],["Tahoma","sans-serif"],["Verdana","sans-serif"],["Trebuchet MS","sans-serif"],["Century Gothic","sans-serif"],["Candara","sans-serif"],["Corbel","sans-serif"],["Franklin Gothic Medium","sans-serif"],["Ebrima","sans-serif"],["Nirmala UI","sans-serif"],["Gill Sans MT","sans-serif"],["Cambria","serif"],["Constantia","serif"],["Georgia","serif"],["Palatino Linotype","serif"],["Sitka Text","serif"],["Times New Roman","serif"],["Comic Sans MS","cursive"],["Impact","sans-serif"],["Consolas","monospace"],["Cascadia Code","monospace"],["Lucida Console","monospace"],["Courier New","monospace"]];
 const FONTS=Object.fromEntries(FF.map(([n,g,l])=>[l||n,`"${n}",${n==="Segoe UI"?"system-ui,":""}${g}`]));
 // --- Estado compartido (versión, sistema, fondo) ---
-let VER="0.2.14-beta.14",SYS={total:16},secNow="gen",BG="#080a0f",BHs=BHM.dorado,dirty=60,RUN=false;
+let VER="0.2.14-beta.15",SYS={total:16},secNow="gen",BG="#080a0f",BHs=BHM.dorado,dirty=60,RUN=false;
 // --- Ajustes guardados ---
 const rec=()=>Math.max(1,Math.floor(SYS.total/2));
 async function sv(c){cfg={...cfg,...c};if(A)await A.set(c);if(A&&c.dlLimit!==undefined)A.dqLimit(c.dlLimit);if(c.lang!==undefined)setTimeout(()=>langSync(c.lang),120);dirty=60}
@@ -79,7 +79,9 @@ function conAdd(t){for(const ln of String(t).split(/\r?\n/)){if(!ln.trim())conti
 // --- Peticiones a Modrinth y CurseForge ---
 const H=(u,h)=>A.http({url:u,headers:h}),enc=x=>encodeURIComponent(JSON.stringify(x));
 // --- Jugar: antes de abrir Minecraft se revisan los mods de la instancia (si el ajuste está activado) ---
+let SHIFT=false;addEventListener("click",e=>{SHIFT=!!e.shiftKey},true);
 async function launch(o){
+  if(SHIFT){o={...o,safe:true};SHIFT=false}
   if(A&&A.modsPrecheck&&cfg.modCheck!==false){
     for(let k=0;k<3;k++){
       let r=null;try{r=await A.modsPrecheck({id:o.id})}catch{}

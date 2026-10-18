@@ -136,6 +136,11 @@ ipcMain.handle('versions', async () => {
   throw err;
 });
 ipcMain.handle('ver', () => app.getVersion());
+// Avisos de licencias de terceros: se copia a la carpeta de datos (no se puede abrir desde app.asar) y se abre
+ipcMain.handle('notices', async () => {
+  try { const dst = path.join(root, 'THIRD-PARTY-NOTICES.txt'); fs.mkdirSync(root, { recursive: true }); fs.writeFileSync(dst, fs.readFileSync(path.join(__dirname, 'THIRD-PARTY-NOTICES.txt'))); return !(await shell.openPath(dst)); }
+  catch { return false; }
+});
 ipcMain.handle('upd:get', () => upd);
 ipcMain.handle('discord:get', () => dsc);
 ipcMain.handle('cache:clear', async () => { try { await win.webContents.session.clearCache(); fs.rmSync(path.join(root, 'versions_cache.json'), { force: true }); await rmAsync(imgDir()); } catch {} return true; });
@@ -343,7 +348,7 @@ function reportCrash(ins, code, tail, file, since) {
 ipcMain.handle('log:open', (e, f) => { const p = path.resolve(String(f || '')); if (p.startsWith(root + path.sep) && fs.existsSync(p)) { shell.showItemInFolder(p); return true; } return false; });
 ipcMain.handle('logs:folder', () => { const d = path.join(root, 'logs'); fs.mkdirSync(d, { recursive: true }); return shell.openPath(d); });
 
-ipcMain.handle('play', async (e, { id, server, world }) => {
+ipcMain.handle('play', async (e, { id, server, world, safe }) => {
   const cfg = load(), ins = li().find(i => i.id === id);
   try {
     if (!ins) throw new Error('Instancia no encontrada');
@@ -361,14 +366,17 @@ ipcMain.handle('play', async (e, { id, server, world }) => {
       window: { width: cfg.width, height: cfg.height, fullscreen: cfg.fullscreen }, customArgs: [...cfg.jvmArgs.split(' ').filter(Boolean), ...(JVM_PRESETS[ins.jvmPreset] || [])] };
     if (cfg.optimize !== false && !ins.jvmPreset && !/-XX:\+Use\w+GC|-XX:\+UseG1GC/.test(cfg.jvmArgs)) o.customArgs.push(...JVM_OPT);
     try { await applyGpu(java, ins.gpu === 'high'); } catch {}
-    const nj = (!ins.ld || ins.ld === 'Vanilla' || ins.ld === 'Fabric') ? novaModJar(ins.mc) : null;
+    const noNova = !!(safe || ins.noNova);   // modo seguro: sin el menú de Nova (Shift al lanzar o ajuste de la instancia)
+    const nj = (!noNova && (!ins.ld || ins.ld === 'Vanilla' || ins.ld === 'Fabric')) ? novaModJar(ins.mc) : null;
     let nova = false;
     if (ins.ld === 'Fabric') { o.version.custom = await fabric(ins.mc, ins.loaderVersion); nova = !!nj; }
+    else if (noNova) { /* vanilla puro, sin Fabric */ }
     else if (nj) { try { o.version.custom = fabricBundled(ins.mc) || await fabric(ins.mc); nova = true; } catch { send('log', 'Nova: no se pudo preparar Fabric; se juega en vanilla normal.\n'); } }
-    let novaMsg = nova ? 'Nova: menú de Nova activado (Fabric incluido en el launcher).\n'
+    let novaMsg = noNova ? 'Nova: modo seguro, se juega sin el menú de Nova' + (ins.ld === 'Fabric' ? ' (Fabric normal).\n' : ' (Minecraft normal).\n')
+      : nova ? 'Nova: menú de Nova activado (Fabric incluido en el launcher).\n'
       : (!ins.ld || ins.ld === 'Vanilla' || ins.ld === 'Fabric') ? (NOVA_MC.includes(ins.mc) ? 'Nova: el menú de Nova no se pudo activar; se juega con el menú normal.\n' : 'Nova: el menú de Nova solo está disponible en Minecraft ' + NOVA_MC.join(' y ') + '; esta versión usa el menú normal.\n')
       : 'Nova: el menú de Nova solo está disponible en Nova y Fabric; ' + ins.ld + ' usa el menú normal.\n';
-    if (nova) o.customArgs.push('-Dfabric.addMods=' + nj, '-Dnova.version=' + app.getVersion(), '-Dnova.loader=' + (ins.ld === 'Fabric' ? 'Fabric' : 'Nova'));
+    if (nova) o.customArgs.push('-Dnova.bg=' + (novaBg() || ''), '-Dfabric.addMods=' + nj, '-Dnova.version=' + app.getVersion(), '-Dnova.loader=' + (ins.ld === 'Fabric' ? 'Fabric' : 'Nova'));
     if (ins.ld === 'Forge' || ins.ld === 'NeoForge') o.version.custom = await forge(ins.ld, ins.mc, java, ins.loaderVersion);
     if (server && server.host) o.quickPlay = { type: modernQP(ins.mc) ? 'multiplayer' : 'legacy', identifier: server.host + (server.port && +server.port !== 25565 ? ':' + server.port : '') };
     if (world && !server && modernQP(ins.mc)) o.quickPlay = { type: 'singleplayer', identifier: String(world) };
@@ -623,6 +631,7 @@ ipcMain.handle('inst:update', (e, { id, patch }) => {
   if ('loaderVersion' in q) p.loaderVersion = String(q.loaderVersion || '').trim();
   if ('gpu' in q) p.gpu = q.gpu === 'high' ? 'high' : '';
   if ('jvmPreset' in q) p.jvmPreset = ['rendimiento', 'tirones'].includes(q.jvmPreset) ? q.jvmPreset : '';
+  if ('noNova' in q) p.noNova = !!q.noNova;
   if ('fav' in q) p.fav = !!q.fav;
   if ('note' in q) p.note = String(q.note || '').slice(0, 600);
   if ('tags' in q) p.tags = [...new Set((Array.isArray(q.tags) ? q.tags : String(q.tags || '').split(',')).map(t => String(t).trim().replace(/\s+/g, ' ').slice(0, 24)).filter(Boolean))].slice(0, 8);
@@ -1189,6 +1198,17 @@ const GPU_KEY = 'HKCU\\Software\\Microsoft\\DirectX\\UserGpuPreferences';
 // Se carga con -Dfabric.addMods, así que no aparece en la carpeta mods de la instancia ni se puede borrar desde ahí.
 // Vanilla se lanza a través de Fabric para poder cargarlo; si algo falla se juega en vanilla normal.
 const NOVA_MC = ['1.21.1', '1.20.1'];          // versiones de Minecraft con mod incluido
+// Vídeo de fondo del menú de Nova (frames JPEG empaquetados): fuera del jar para que el mod pese poco
+function novaBg() {
+  const src = path.join(__dirname, 'assets', 'nova-bg.nvb');
+  if (!fs.existsSync(src)) return null;
+  const dst = path.join(root, 'nova', 'nova-bg.nvb');
+  try {
+    const a = fs.statSync(src), b = fs.existsSync(dst) ? fs.statSync(dst) : null;
+    if (!b || b.size !== a.size) { fs.mkdirSync(path.dirname(dst), { recursive: true }); fs.writeFileSync(dst, fs.readFileSync(src)); }
+  } catch { return null; }
+  return dst;
+}
 function novaModJar(mc) {
   if (!NOVA_MC.includes(mc)) return null;
   const src = path.join(__dirname, 'assets', 'mods', 'nova-menu-' + mc + '.jar');
