@@ -1,0 +1,3 @@
+# Versiones de Minecraft con menú de Nova: "<minecraft> <yarn>". El workflow "Crear version" compila una por línea.
+1.21.1 1.21.1+build.3
+1.20.1 1.20.1+build.10
