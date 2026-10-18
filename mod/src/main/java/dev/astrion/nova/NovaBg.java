@@ -30,9 +30,19 @@ final class NovaBg {
 
     static void start(MinecraftClient mc) {
         if (tried) return;
+        NovaSettings.load();
+        start(mc, NovaSettings.bgPath());
+    }
+
+    /** Cambia el fondo al momento (sin reiniciar el juego). Ruta vacía = fondo oscuro sin vídeo. */
+    static void switchTo(MinecraftClient mc, String path) {
+        stop(mc);
+        start(mc, path);
+    }
+
+    private static void start(MinecraftClient mc, String p) {
         tried = true;
-        String p = System.getProperty("nova.bg", "");
-        if (p.isEmpty()) return;
+        if (p == null || p.isEmpty()) return;
         try {
             RandomAccessFile f = new RandomAccessFile(p, "r");
             byte[] head = new byte[16];
@@ -40,7 +50,7 @@ final class NovaBg {
             ByteBuffer b = ByteBuffer.wrap(head).order(ByteOrder.LITTLE_ENDIAN);
             if (b.getInt() != 0x3142564E) { f.close(); return; }   // «NVB1»
             n = b.getInt(); fps = b.getShort() & 0xFFFF; w = b.getShort() & 0xFFFF; h = b.getShort() & 0xFFFF;
-            if (n < 2 || fps < 1 || w < 16 || h < 16) { f.close(); return; }
+            if (n < 1 || fps < 1 || w < 16 || h < 16) { f.close(); return; }
             byte[] idx = new byte[4 * (n + 1)];
             f.readFully(idx);
             ByteBuffer ib = ByteBuffer.wrap(idx).order(ByteOrder.LITTLE_ENDIAN);

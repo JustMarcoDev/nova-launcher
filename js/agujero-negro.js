@@ -23,12 +23,12 @@ l.fillStyle=ag;l.beginPath();l.arc(0,0,rr,0,6.283);l.fill();
 const S=K*Rb,sp=[0,1.2,.55,.25];l.save();l.scale(1,SQ);SPR.forEach((im,i)=>{l.save();l.rotate(ang*sp[i]);l.drawImage(im,-S,-S,2*S,2*S);l.restore()});l.restore();l.restore();
 l.setTransform(1,0,0,1,0,0);l.globalCompositeOperation="destination-in";const gr=l.createLinearGradient(0,0,DLw,0);gr.addColorStop(0,"rgba(0,0,0,.4)");gr.addColorStop(.5,"rgba(0,0,0,.85)");gr.addColorStop(1,"rgba(0,0,0,1)");l.fillStyle=gr;l.fillRect(0,0,DLw,DLh);
 x.globalCompositeOperation="lighter";x.globalAlpha=al;x.drawImage(DL,cx-DLw/2,cy-DLh/2)}
-// Modo juego: con Minecraft abierto el bucle de dibujo se detiene por completo (no baja a pocos FPS: se para)
+// Modo juego: con Minecraft abierto las animaciones siguen, pero a pocos FPS para dejar la potencia al juego
 let GM=false,RAF=0;
-function gameMode(on){const g=!!on&&cfg.gameMode!==false;if(g===GM)return;GM=g;document.documentElement.classList.toggle("gm",g);if(!g&&!RAF){dirty=60;RAF=requestAnimationFrame(frame)}}
-function frame(now){if(GM){RAF=0;return}RAF=requestAnimationFrame(frame);
-const q=Q[cfg.quality]||Q.alta,pg=RUN&&cfg.pauseGame!==false,cap=+cfg.fps||60;let f=q.f?Math.min(q.f,cap):0;if(pg&&f)f=Math.min(f,30);
-if(document.hidden)return;if(f&&A&&cfg.pauseBlur!==false&&!document.hasFocus())f=Math.min(f,RUN?5:15);
+function gameMode(on){const g=!!on&&cfg.gameMode!==false;if(g===GM)return;GM=g;document.documentElement.classList.toggle("gm",g);if(!RAF){dirty=60;RAF=requestAnimationFrame(frame)}}
+function frame(now){RAF=requestAnimationFrame(frame);
+const q=Q[cfg.quality]||Q.alta,pg=RUN&&cfg.pauseGame!==false,cap=+cfg.fps||60;let f=q.f?Math.min(q.f,cap):0;if(pg&&f)f=Math.min(f,30);if(GM&&f)f=Math.min(f,document.hasFocus()?24:12);
+if(document.hidden)return;if(f&&A&&cfg.pauseBlur!==false&&!document.hasFocus())f=Math.min(f,RUN?12:15);
 if(!f){if(dirty<=0)return}else{if(al<.02)f=Math.min(f,24);if(now-last<1000/f-3)return}
 last=now;dirty--;const k=f?60/f:0,sp=(cfg.rmotion?.15:1)*k*((cfg.bhSpeed==null?100:cfg.bhSpeed)/100);T+=.016*k;ang+=.0065*sp;
 if(hc--<=0||!HR){hc=15;HR=document.querySelector(".hero").getBoundingClientRect()}

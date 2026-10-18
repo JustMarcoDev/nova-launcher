@@ -119,6 +119,13 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 
 ## Historial de actualizaciones
 
+### 0.2.14-beta.18 — Menú de Nova renovado dentro del juego
+
+- Añadido: panel de perfil con tu skin, tu nombre y si la cuenta es Premium o no; panel de Nova para cambiar el fondo, el color de los botones y añadir tu propia foto o vídeo (el launcher lo convierte); ayuda con título y descripción corta en cada botón.
+- Iconos nuevos: persona (Un jugador), dos personas (Multijugador), planeta Tierra (Idioma) y cubo (Realms).
+- Mejorado: botones del inicio más pequeños y centrados con la tipografía Poppins; botón de cerrar más pequeño; el aviso de abajo indica que Nova no está afiliado, respaldado ni distribuido por Mojang o Microsoft.
+- Arreglado: con el juego abierto las animaciones del launcher ya no se cortan.
+
 ### 0.2.14-beta.17 — Interfaz visible al jugar y instalador preparado para firma
 
 - Arreglado: al abrir Minecraft el launcher se quedaba solo con el fondo (interfaz invisible). El Modo juego pausaba las animaciones de entrada y los paneles se quedaban transparentes; ahora las animaciones terminan al instante.

@@ -17,8 +17,14 @@ public final class NovaGfx {
     public static boolean ok = true;
     static final Map<String, Tex> CACHE = new HashMap<>();
     static Font bold, reg;
-    static BufferedImage icons;
     static int lastScale = -1, seq;
+    static int accent = 0xFF8B6CFF;
+
+    /** Cambia el color de acento: las texturas se recrean con el nuevo color. */
+    public static void setAccent(int argb) { if (argb != accent) { accent = argb; lastScale = -1; } }
+    static int shade(int argb, float k, int alpha) {
+        return (alpha << 24) | (Math.min(255, Math.round(((argb >> 16) & 255) * k)) << 16) | (Math.min(255, Math.round(((argb >> 8) & 255) * k)) << 8) | Math.min(255, Math.round((argb & 255) * k));
+    }
 
     public static final class Tex {
         final Identifier id; final int pw, ph, gw, gh;
@@ -30,6 +36,13 @@ public final class NovaGfx {
             com.mojang.blaze3d.systems.RenderSystem.enableBlend();
             c.setShaderColor(1f, 1f, 1f, Math.min(1f, alpha));
             c.drawTexture(id, x, y, gw, gh, 0, 0, pw, ph, pw, ph);
+            c.setShaderColor(1f, 1f, 1f, 1f);
+        }
+        /** Dibuja la textura a otro tamaño (en píxeles de interfaz). */
+        public void drawSized(DrawContext c, int x, int y, int w, int h, float alpha) {
+            com.mojang.blaze3d.systems.RenderSystem.enableBlend();
+            c.setShaderColor(1f, 1f, 1f, Math.min(1f, alpha));
+            c.drawTexture(id, x, y, w, h, 0, 0, pw, ph, pw, ph);
             c.setShaderColor(1f, 1f, 1f, 1f);
         }
     }
@@ -80,7 +93,9 @@ public final class NovaGfx {
     static Color col(int argb) { return new Color(argb, true); }
     static Color a(int argb, float k) { return new Color((argb >> 16) & 255, (argb >> 8) & 255, argb & 255, Math.max(0, Math.min(255, Math.round(((argb >>> 24) & 255) * k)))); }
 
-    static Tex upload(MinecraftClient mc, String key, BufferedImage im, int sc) {
+    static Tex upload(MinecraftClient mc, String key, BufferedImage im, int sc) { return upload(mc, key, im, sc, true); }
+
+    static Tex upload(MinecraftClient mc, String key, BufferedImage im, int sc, boolean smooth) {
         int w = im.getWidth(), h = im.getHeight();
         NativeImage ni = new NativeImage(NativeImage.Format.RGBA, w, h, false);
         for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) {
@@ -88,7 +103,7 @@ public final class NovaGfx {
             ni.setColor(x, y, (p & 0xFF00FF00) | ((p >> 16) & 255) | ((p & 255) << 16));   // -> ABGR
         }
         NativeImageBackedTexture t = new NativeImageBackedTexture(ni);
-        try { t.setFilter(true, false); } catch (Throwable ignored) { }
+        if (smooth) { try { t.setFilter(true, false); } catch (Throwable ignored) { } }
         Identifier id = Identifier.tryParse("nova:gfx/g" + (seq++));
         mc.getTextureManager().registerTexture(id, t);
         Tex r = new Tex(id, w, h, sc);
@@ -96,41 +111,145 @@ public final class NovaGfx {
         return r;
     }
 
-    static BufferedImage icons() {
-        if (icons == null) {
-            try (InputStream in = NovaGfx.class.getResourceAsStream("/assets/nova/textures/gui/icons.png")) { icons = javax.imageio.ImageIO.read(in); }
-            catch (Exception e) { icons = new BufferedImage(384, 32, BufferedImage.TYPE_INT_ARGB); }
-        }
-        return icons;
+    public static final int I_USER = 0, I_GEAR = 1, I_CLOSE = 2, I_EARTH = 6, I_NOVA = 8, I_LOCK = 9, I_REALMS = 10, I_USERS = 11, I_CHECK = 12, I_PLUS = 13, I_HEAD = 14;
+
+    static void person(Graphics2D g, double cx, double top, double s) {
+        g.fill(new Ellipse2D.Double(cx - 0.17 * s, top, 0.34 * s, 0.34 * s));
+        Area body = new Area(new Ellipse2D.Double(cx - 0.36 * s, top + 0.40 * s, 0.72 * s, 0.9 * s));
+        body.intersect(new Area(new Rectangle2D.Double(cx - s, top, 2 * s, 0.86 * s)));
+        g.fill(body);
     }
 
-    /** Dibuja un icono del strip (32 px por casilla) teñido y suavizado. */
+    /** Iconos vectoriales (nada de imágenes): se dibujan suaves a cualquier tamaño. */
     static void icon(Graphics2D g, int idx, double x, double y, double size, int argb) {
         int n = Math.max(2, (int) Math.ceil(size));
         BufferedImage t = new BufferedImage(n, n, BufferedImage.TYPE_INT_ARGB);
         Graphics2D q = g2(t);
-        // reducción en dos pasos para que quede suave
-        q.drawImage(icons().getSubimage(idx * 32, 0, 32, 32), 0, 0, n, n, null);
-        q.setComposite(AlphaComposite.SrcIn);
+        q.scale(n, n);
         q.setColor(col(argb));
-        q.fillRect(0, 0, n, n);
+        switch (idx) {
+            case I_USER: person(q, 0.5, 0.1, 0.8); break;
+            case I_USERS: {
+                person(q, 0.3, 0.2, 0.62);
+                q.setComposite(AlphaComposite.Clear);   // pequeño hueco para que se distingan las dos siluetas
+                q.setStroke(new BasicStroke(0.07f));
+                Area f = new Area(new Ellipse2D.Double(0.68 - 0.17 * 0.78, 0.08, 0.34 * 0.78, 0.34 * 0.78));
+                Area fb = new Area(new Ellipse2D.Double(0.68 - 0.36 * 0.78, 0.08 + 0.40 * 0.78, 0.72 * 0.78, 0.9 * 0.78));
+                fb.intersect(new Area(new Rectangle2D.Double(-1, 0, 3, 0.08 + 0.86 * 0.78)));
+                f.add(fb);
+                q.fill(f); q.draw(f);
+                q.setComposite(AlphaComposite.SrcOver);
+                q.setColor(col(argb));
+                person(q, 0.68, 0.08, 0.78);
+                break;
+            }
+            case I_GEAR: {
+                Area a = new Area(new Ellipse2D.Double(0.23, 0.23, 0.54, 0.54));
+                for (int i = 0; i < 8; i++) a.add(new Area(AffineTransform.getRotateInstance(i * Math.PI / 4, 0.5, 0.5).createTransformedShape(new RoundRectangle2D.Double(0.5 - 0.075, 0.07, 0.15, 0.22, 0.05, 0.05))));
+                a.subtract(new Area(new Ellipse2D.Double(0.5 - 0.13, 0.5 - 0.13, 0.26, 0.26)));
+                q.fill(a);
+                break;
+            }
+            case I_LOCK: {
+                q.fill(new RoundRectangle2D.Double(0.2, 0.46, 0.6, 0.42, 0.12, 0.12));
+                q.setStroke(new BasicStroke(0.09f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                q.draw(new Arc2D.Double(0.32, 0.13, 0.36, 0.40, 0, 180, Arc2D.OPEN));
+                q.draw(new Line2D.Double(0.32, 0.33, 0.32, 0.48));
+                q.draw(new Line2D.Double(0.68, 0.33, 0.68, 0.48));
+                break;
+            }
+            case I_CLOSE: {
+                q.setStroke(new BasicStroke(0.13f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                q.draw(new Line2D.Double(0.27, 0.27, 0.73, 0.73));
+                q.draw(new Line2D.Double(0.73, 0.27, 0.27, 0.73));
+                break;
+            }
+            case I_CHECK: {
+                q.setStroke(new BasicStroke(0.14f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                Path2D p = new Path2D.Double();
+                p.moveTo(0.22, 0.54); p.lineTo(0.43, 0.74); p.lineTo(0.78, 0.28);
+                q.draw(p);
+                break;
+            }
+            case I_PLUS: {
+                q.setStroke(new BasicStroke(0.14f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                q.draw(new Line2D.Double(0.5, 0.2, 0.5, 0.8));
+                q.draw(new Line2D.Double(0.2, 0.5, 0.8, 0.5));
+                break;
+            }
+            case I_REALMS: {   // cubo (un mundo)
+                int al = (argb >>> 24);
+                Path2D top = new Path2D.Double(), left = new Path2D.Double(), right = new Path2D.Double();
+                top.moveTo(0.5, 0.08); top.lineTo(0.88, 0.29); top.lineTo(0.5, 0.5); top.lineTo(0.12, 0.29); top.closePath();
+                left.moveTo(0.12, 0.34); left.lineTo(0.48, 0.55); left.lineTo(0.48, 0.94); left.lineTo(0.12, 0.73); left.closePath();
+                right.moveTo(0.88, 0.34); right.lineTo(0.52, 0.55); right.lineTo(0.52, 0.94); right.lineTo(0.88, 0.73); right.closePath();
+                q.setColor(a(argb, 1f)); q.fill(top);
+                q.setColor(a(argb, 0.55f)); q.fill(left);
+                q.setColor(a(argb, 0.8f)); q.fill(right);
+                break;
+            }
+            case I_NOVA: {   // agujero negro: disco y anillo inclinado
+                AffineTransform old = q.getTransform();
+                q.rotate(-0.42, 0.5, 0.5);
+                q.setStroke(new BasicStroke(0.085f));
+                q.draw(new Ellipse2D.Double(0.04, 0.5 - 0.16, 0.92, 0.32));
+                q.setTransform(old);
+                q.fill(new Ellipse2D.Double(0.5 - 0.2, 0.5 - 0.2, 0.4, 0.4));
+                break;
+            }
+            case I_EARTH: {   // planeta Tierra (con color propio; solo usa la transparencia del tinte)
+                float al = ((argb >>> 24) & 255) / 255f;
+                Ellipse2D globe = new Ellipse2D.Double(0.04, 0.04, 0.92, 0.92);
+                q.setComposite(AlphaComposite.SrcOver.derive(al));
+                q.setPaint(new GradientPaint(0.25f, 0.1f, new Color(0x5BB4FF), 0.8f, 0.95f, new Color(0x1649B0)));
+                q.fill(globe);
+                q.setClip(globe);
+                q.setColor(new Color(0x56C46A));
+                Path2D am = new Path2D.Double();
+                am.moveTo(0.22, 0.17); am.lineTo(0.40, 0.12); am.lineTo(0.47, 0.24); am.lineTo(0.40, 0.36); am.lineTo(0.52, 0.47);
+                am.lineTo(0.45, 0.60); am.lineTo(0.35, 0.67); am.lineTo(0.31, 0.86); am.lineTo(0.21, 0.75); am.lineTo(0.24, 0.56);
+                am.lineTo(0.10, 0.45); am.lineTo(0.14, 0.28); am.closePath();
+                q.fill(am);
+                Path2D af = new Path2D.Double();
+                af.moveTo(0.60, 0.20); af.lineTo(0.78, 0.17); af.lineTo(0.88, 0.32); af.lineTo(0.74, 0.42); af.lineTo(0.84, 0.58);
+                af.lineTo(0.70, 0.80); af.lineTo(0.60, 0.70); af.lineTo(0.58, 0.50); af.lineTo(0.52, 0.34); af.closePath();
+                q.fill(af);
+                q.setColor(new Color(255, 255, 255, 60));
+                q.fill(new Ellipse2D.Double(0.12, 0.08, 0.5, 0.34));
+                q.setClip(null);
+                q.setStroke(new BasicStroke(0.04f));
+                q.setColor(new Color(190, 225, 255, 150));
+                q.draw(globe);
+                break;
+            }
+            case I_HEAD: {
+                java.awt.image.BufferedImage h = NovaSkin.head;
+                if (h == null) { person(q, 0.5, 0.1, 0.8); break; }
+                q.scale(1.0 / n, 1.0 / n);
+                q.setClip(new RoundRectangle2D.Double(0, 0, n, n, n * 0.28, n * 0.28));
+                q.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+                q.drawImage(h, 0, 0, n, n, null);
+                break;
+            }
+            default: break;
+        }
         q.dispose();
         g.drawImage(t, (int) Math.round(x), (int) Math.round(y), null);
     }
 
     public static Tex button(MinecraftClient mc, int w, int h, String label, int icon, int style, boolean hot, boolean enabled) {
         int s = begin(mc);
-        String key = "b|" + w + "x" + h + "|" + label + "|" + icon + "|" + style + "|" + hot + "|" + enabled;
+        String key = "b|" + w + "x" + h + "|" + label + "|" + icon + "|" + style + "|" + hot + "|" + enabled + "|" + accent + (icon == I_HEAD && NovaSkin.head != null ? "|skin" : "");
         Tex c = CACHE.get(key);
         if (c != null) return c;
         int m = 5;   // margen para el brillo exterior
         int W = (w + 2 * m) * s, H = (h + 2 * m) * s;
         BufferedImage im = new BufferedImage(W, H, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = g2(im);
-        boolean danger = style == NovaButton.DANGER, primary = style == NovaButton.PRIMARY;
-        int acc = danger ? 0xFFFF4D5E : 0xFF8B6CFF;
+        boolean danger = style == NovaButton.DANGER, primary = style == NovaButton.PRIMARY || style == NovaButton.SELECTED;
+        int acc = danger ? 0xFFFF4D5E : accent;
         double bx = m * s, by = m * s, bw = w * s, bh = h * s;
-        double rr = Math.min(3.5 * s, bh / 2);   // cuadrado con esquinas redondeadas
+        double rr = Math.min(3.2 * s, bh / 2);   // cuadrado con esquinas redondeadas
         if (hot && enabled) {   // resplandor suave de acento
             for (int i = 4 * s; i >= 1; i -= Math.max(1, s / 2)) {
                 float k = 1f - (float) i / (4 * s);
@@ -142,8 +261,11 @@ public final class NovaGfx {
         int f1, f2, b1, b2;   // relleno arriba/abajo y borde arriba/abajo
         if (!enabled) { f1 = 0x50141428; f2 = 0x500A0A18; b1 = 0x30FFFFFF; b2 = 0x14FFFFFF; }
         else if (danger) { f1 = hot ? 0xD8601A2C : 0xB0301020; f2 = hot ? 0xD8381020 : 0xB0180810; b1 = hot ? 0xFFFF8A96 : 0x80FF7A86; b2 = hot ? 0xFFFF4D5E : 0x40FF4D5E; }
-        else if (primary) { f1 = hot ? 0xE0463A9C : 0xC02C2472; f2 = hot ? 0xE0281F66 : 0xC0161040; b1 = hot ? 0xFFC8B8FF : 0x90A794FF; b2 = hot ? 0xFF8B6CFF : 0x508B6CFF; }
-        else { f1 = hot ? 0xD83A3086 : 0xA02A2260; f2 = hot ? 0xD8201A58 : 0xA0100E28; b1 = hot ? 0xFFC8B8FF : 0x60FFFFFF; b2 = hot ? 0xFF8B6CFF : 0x28FFFFFF; }
+        else if (primary) {
+            f1 = shade(acc, hot ? 0.46f : 0.34f, hot ? 0xE0 : 0xC0); f2 = shade(acc, hot ? 0.24f : 0.15f, hot ? 0xE0 : 0xC0);
+            b1 = style == NovaButton.SELECTED ? shade(acc, 1.15f, 0xFF) : shade(acc, hot ? 1.3f : 1.1f, hot ? 0xFF : 0x90); b2 = shade(acc, 1f, hot || style == NovaButton.SELECTED ? 0xFF : 0x50);
+        }
+        else { f1 = shade(acc, hot ? 0.40f : 0.28f, hot ? 0xD8 : 0xA0); f2 = shade(acc, hot ? 0.21f : 0.12f, hot ? 0xD8 : 0xA0); b1 = hot ? shade(acc, 1.3f, 0xFF) : 0x60FFFFFF; b2 = hot ? shade(acc, 1f, 0xFF) : 0x28FFFFFF; }
         g.setPaint(new GradientPaint(0, (float) by, col(f1), 0, (float) (by + bh), col(f2)));
         g.fill(box);
         // reflejo sutil en la mitad superior
@@ -158,22 +280,171 @@ public final class NovaGfx {
         double o = sw / 2;
         g.draw(new RoundRectangle2D.Double(bx + o, by + o, bw - 2 * o, bh - 2 * o, 2 * rr - sw, 2 * rr - sw));
 
-        int txt = !enabled ? 0xFF9A9AB8 : danger ? (hot ? 0xFFFFFFFF : 0xFFFF9AA4) : (hot ? 0xFFFFFFFF : 0xFFE2E2F6);
-        double fpx = Math.max(6.5, Math.min(h * 0.44, 8.2)) * s;
-        Font f = fontFor(label, true, (float) fpx);
+        int txt = !enabled ? 0xFF9A9AB8 : danger ? (hot ? 0xFFFFFFFF : 0xFFFF9AA4) : (hot || style == NovaButton.SELECTED ? 0xFFFFFFFF : 0xFFE2E2F6);
+        double fpx = Math.max(6.2, Math.min(h * 0.42, 7.4)) * s;
+        Font f = fontFor(label, false, (float) fpx);
         g.setFont(f);
         FontMetrics fm = g.getFontMetrics();
         double tw = label.isEmpty() ? 0 : fm.getStringBounds(label, g).getWidth();
-        double isz = icon >= 0 ? (label.isEmpty() ? Math.min(h * 0.58, 10.5) : 8) * s : 0;
-        double gap = icon >= 0 && tw > 0 ? 4 * s : 0;
+        double isz = icon >= 0 ? (label.isEmpty() ? Math.min(h * 0.62, 10.5) : Math.min(h * 0.58, 8.5)) * s : 0;
+        double gap = icon >= 0 && tw > 0 ? 3.5 * s : 0;
         double x0 = bx + (bw - (isz + gap + tw)) / 2;
-        if (icon >= 0) icon(g, icon, x0, by + (bh - isz) / 2, isz, txt);
+        if (icon >= 0) icon(g, icon, x0, by + (bh - isz) / 2, isz, icon == I_EARTH ? (enabled ? 0xFFFFFFFF : 0x70FFFFFF) : txt);
         if (tw > 0) {
             g.setColor(col(txt));
             g.drawString(label, (float) (x0 + isz + gap), (float) (by + (bh - fm.getHeight()) / 2 + fm.getAscent()));
         }
         g.dispose();
         return upload(mc, key, im, s);
+    }
+
+    /** Muestra de color (círculo) para elegir el color de los botones. */
+    public static Tex swatch(MinecraftClient mc, int d, int rgb, boolean selected, boolean hot) {
+        int s = begin(mc);
+        String key = "s|" + d + "|" + rgb + "|" + selected + "|" + hot;
+        Tex c = CACHE.get(key);
+        if (c != null) return c;
+        int m = 4;
+        int W = (d + 2 * m) * s;
+        BufferedImage im = new BufferedImage(W, W, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = g2(im);
+        double cx = W / 2.0, r = d * s / 2.0 - (selected ? 1.6 * s : 0.4 * s);
+        if (hot || selected) {
+            for (int i = 3 * s; i >= 1; i -= Math.max(1, s / 2)) {
+                float k = 1f - (float) i / (3 * s);
+                g.setColor(a(rgb, (selected ? 0.20f : 0.14f) * k * k));
+                g.fill(new Ellipse2D.Double(cx - d * s / 2.0 - i, cx - d * s / 2.0 - i, d * s + 2 * i, d * s + 2 * i));
+            }
+        }
+        g.setPaint(new GradientPaint(0, (float) (cx - r), col(shade(rgb, 1.15f, 255)), 0, (float) (cx + r), col(shade(rgb, 0.7f, 255))));
+        g.fill(new Ellipse2D.Double(cx - r, cx - r, 2 * r, 2 * r));
+        if (selected) {
+            g.setStroke(new BasicStroke(Math.max(1f, 0.8f * s)));
+            g.setColor(new Color(255, 255, 255, 235));
+            double R = d * s / 2.0 - 0.5 * s;
+            g.draw(new Ellipse2D.Double(cx - R, cx - R, 2 * R, 2 * R));
+        }
+        g.dispose();
+        return upload(mc, key, im, s);
+    }
+
+    /** Fondo de un panel (cristal oscuro con borde de acento y sombra suave). */
+    public static Tex panel(MinecraftClient mc, int w, int h) {
+        int s = begin(mc);
+        String key = "p|" + w + "x" + h + "|" + accent;
+        Tex c = CACHE.get(key);
+        if (c != null) return c;
+        int m = 8;
+        BufferedImage im = new BufferedImage((w + 2 * m) * s, (h + 2 * m) * s, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = g2(im);
+        double bx = m * s, by = m * s, bw = w * s, bh = h * s, rr = 6 * s;
+        for (int i = m * s - 1; i >= 1; i -= Math.max(1, s / 2)) {
+            float k = 1f - (float) i / (m * s);
+            g.setColor(new Color(0, 0, 0, Math.round(70 * k * k)));
+            g.fill(new RoundRectangle2D.Double(bx - i, by - i + 2 * s, bw + 2 * i, bh + 2 * i, 2 * rr + i, 2 * rr + i));
+        }
+        Shape box = new RoundRectangle2D.Double(bx, by, bw, bh, 2 * rr, 2 * rr);
+        g.setPaint(new GradientPaint(0, (float) by, col(shade(accent, 0.20f, 0xF0)), 0, (float) (by + bh), col(shade(accent, 0.07f, 0xF2))));
+        g.fill(box);
+        Shape old = g.getClip();
+        g.setClip(box);
+        g.setPaint(new GradientPaint(0, (float) by, new Color(255, 255, 255, 26), 0, (float) (by + bh * 0.35), new Color(255, 255, 255, 0)));
+        g.fill(new Rectangle2D.Double(bx, by, bw, bh * 0.35));
+        g.setClip(old);
+        float sw = Math.max(1f, s * 0.7f);
+        g.setStroke(new BasicStroke(sw));
+        g.setPaint(new GradientPaint(0, (float) by, col(shade(accent, 1.2f, 0xB0)), 0, (float) (by + bh), col(shade(accent, 0.8f, 0x40))));
+        g.draw(new RoundRectangle2D.Double(bx + sw / 2, by + sw / 2, bw - sw, bh - sw, 2 * rr - sw, 2 * rr - sw));
+        g.dispose();
+        return upload(mc, key, im, s);
+    }
+
+    /** Etiqueta redondeada pequeña (p. ej. «Premium»). */
+    public static Tex pill(MinecraftClient mc, String label, int rgb, int icon) {
+        int s = begin(mc);
+        String key = "q|" + label + "|" + rgb + "|" + icon;
+        Tex c = CACHE.get(key);
+        if (c != null) return c;
+        float px = 6.3f * s;
+        BufferedImage probe = new BufferedImage(2, 2, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D pg = g2(probe);
+        pg.setFont(fontFor(label, true, px));
+        FontMetrics fm = pg.getFontMetrics();
+        double tw = fm.getStringBounds(label, pg).getWidth();
+        pg.dispose();
+        double isz = icon >= 0 ? 7 * s : 0, pad = 5 * s, gap = icon >= 0 ? 2.5 * s : 0;
+        int W = (int) Math.ceil(tw + isz + gap + 2 * pad) + 2, H = 12 * s;
+        BufferedImage im = new BufferedImage(W, H, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = g2(im);
+        float sw = Math.max(1f, 0.7f * s);
+        Shape box = new RoundRectangle2D.Double(sw / 2, sw / 2, W - sw, H - sw, H - sw, H - sw);
+        g.setColor(a(0xFF000000 | rgb, 0.20f));
+        g.fill(box);
+        g.setStroke(new BasicStroke(sw));
+        g.setColor(a(0xFF000000 | rgb, 0.85f));
+        g.draw(box);
+        double x0 = pad;
+        if (icon >= 0) { icon(g, icon, x0, (H - isz) / 2, isz, 0xFF000000 | rgb); x0 += isz + gap; }
+        g.setFont(fontFor(label, true, px));
+        g.setColor(col(0xFF000000 | rgb));
+        g.drawString(label, (float) x0, (float) ((H - fm.getHeight()) / 2.0 + fm.getAscent()));
+        g.dispose();
+        return upload(mc, key, im, s);
+    }
+
+    /** Globo de ayuda: título y descripción corta. */
+    public static Tex tooltip(MinecraftClient mc, String title, String desc) {
+        int s = begin(mc);
+        String key = "tt|" + title + "|" + desc + "|" + accent;
+        Tex c = CACHE.get(key);
+        if (c != null) return c;
+        float p1 = 6.8f * s, p2 = 6.0f * s;
+        BufferedImage probe = new BufferedImage(2, 2, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D pg = g2(probe);
+        pg.setFont(fontFor(title, true, p1));
+        FontMetrics f1 = pg.getFontMetrics();
+        double w1 = f1.getStringBounds(title, pg).getWidth();
+        pg.setFont(fontFor(desc, false, p2));
+        FontMetrics f2 = pg.getFontMetrics();
+        double w2 = desc.isEmpty() ? 0 : f2.getStringBounds(desc, pg).getWidth();
+        pg.dispose();
+        int m = 5, pad = 5 * s;
+        double cw = Math.max(w1, w2), ch = f1.getHeight() + (desc.isEmpty() ? 0 : f2.getHeight() + 1 * s);
+        int bw = (int) Math.ceil(cw + 2 * pad), bh = (int) Math.ceil(ch + 2 * 3.5 * s);
+        BufferedImage im = new BufferedImage(bw + 2 * m * s, bh + 2 * m * s, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = g2(im);
+        double bx = m * s, by = m * s, rr = 3.2 * s;
+        for (int i = m * s - 1; i >= 1; i -= Math.max(1, s / 2)) {
+            float k = 1f - (float) i / (m * s);
+            g.setColor(new Color(0, 0, 0, Math.round(60 * k * k)));
+            g.fill(new RoundRectangle2D.Double(bx - i, by - i + s, bw + 2 * i, bh + 2 * i, 2 * rr + i, 2 * rr + i));
+        }
+        Shape box = new RoundRectangle2D.Double(bx, by, bw, bh, 2 * rr, 2 * rr);
+        g.setPaint(new GradientPaint(0, (float) by, col(shade(accent, 0.22f, 0xF4)), 0, (float) (by + bh), col(shade(accent, 0.09f, 0xF4))));
+        g.fill(box);
+        float sw = Math.max(1f, 0.7f * s);
+        g.setStroke(new BasicStroke(sw));
+        g.setColor(col(shade(accent, 1.1f, 0xB0)));
+        g.draw(new RoundRectangle2D.Double(bx + sw / 2, by + sw / 2, bw - sw, bh - sw, 2 * rr - sw, 2 * rr - sw));
+        g.setFont(fontFor(title, true, p1));
+        g.setColor(col(0xFFFFFFFF));
+        double ty = by + 3.5 * s;
+        g.drawString(title, (float) (bx + pad), (float) (ty + f1.getAscent()));
+        if (!desc.isEmpty()) {
+            g.setFont(fontFor(desc, false, p2));
+            g.setColor(col(0xFFB8B8D8));
+            g.drawString(desc, (float) (bx + pad), (float) (ty + f1.getHeight() + 1 * s + f2.getAscent()));
+        }
+        g.dispose();
+        return upload(mc, key, im, s);
+    }
+
+    /** Figura de la skin (de frente), con píxeles nítidos. */
+    public static Tex skin(MinecraftClient mc, BufferedImage src, String key) {
+        begin(mc);
+        Tex c = CACHE.get(key);
+        if (c != null) return c;
+        return upload(mc, key, src, 1, false);
     }
 
     public static Tex text(MinecraftClient mc, String str, float px, int argb, boolean b) {
