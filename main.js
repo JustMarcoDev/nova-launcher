@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell, dialog, Tray, Menu, Notification, clipboard, nativeImage, safeStorage, screen, protocol } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, dialog, Notification, clipboard, nativeImage, safeStorage, screen, protocol } = require('electron');
 const path = require('path'), fs = require('fs'), os = require('os'), crypto = require('crypto'), net = require('net'), dns = require('dns').promises, { pathToFileURL } = require('url'), { execFile } = require('child_process');
 const { Client, Authenticator } = require('minecraft-launcher-core');
 const { Auth } = require('msmc');
@@ -124,7 +124,7 @@ ipcMain.handle('sys', () => ({ total: Math.max(1, Math.round(os.totalmem() / 107
 ipcMain.handle('zoom', (e, f) => { win.webContents.setZoomFactor(Math.min(1.6, Math.max(0.7, +f || 1))); });
 ipcMain.handle('cfg:set', (e, c) => { wr(cfgFile, { ...load(), ...c }); if (updater && 'autoDownload' in c) updater.autoDownload = c.autoDownload !== false; if ('discord' in c || 'discordId' in c) discordInit(); if ('tray' in c) trayInit(); if ('channel' in c && updater) { updater.allowPrerelease = c.channel === 'beta'; updater.checkForUpdates().catch(() => {}); } return true; });
 ipcMain.handle('folder', () => { fs.mkdirSync(root, { recursive: true }); return shell.openPath(root); });
-ipcMain.on('win', (e, a) => a === 'min' ? (tray || (load().tray !== false && trayInit()) ? win.hide() : win.minimize()) : a === 'max' ? (win.isMaximized() ? win.unmaximize() : win.maximize()) : win.close());
+ipcMain.on('win', (e, a) => a === 'min' ? win.minimize() : a === 'max' ? (win.isMaximized() ? win.unmaximize() : win.maximize()) : win.close());
 const vcache = path.join(root, 'versions_cache.json');
 ipcMain.handle('versions', async () => {
   let err;
@@ -363,8 +363,8 @@ ipcMain.handle('play', async (e, { id, server, world, safe }) => {
     const ram = +ins.ram > 0 ? +ins.ram : cfg.ram, java = await javaFor(ins.mc, { javaPath: ins.javaPath || cfg.javaPath });
     const o = { authorization: auth, root, javaPath: java, version: { number: ins.mc, type: ins.type === 'release' ? 'release' : 'snapshot' },
       overrides: { gameDirectory: dir }, memory: { max: ram + 'G', min: '1G' },
-      window: { width: cfg.width, height: cfg.height, fullscreen: cfg.fullscreen }, customArgs: [...cfg.jvmArgs.split(' ').filter(Boolean), ...(JVM_PRESETS[ins.jvmPreset] || [])] };
-    if (cfg.optimize !== false && !ins.jvmPreset && !/-XX:\+Use\w+GC|-XX:\+UseG1GC/.test(cfg.jvmArgs)) o.customArgs.push(...JVM_OPT);
+      window: { width: cfg.width, height: cfg.height, fullscreen: cfg.fullscreen }, customArgs: [...(JVM_PRESETS[ins.jvmPreset] || [])] };
+    if (cfg.optimize !== false && !ins.jvmPreset) o.customArgs.push(...JVM_OPT);
     try { await applyGpu(java, ins.gpu === 'high'); } catch {}
     const noNova = !!(safe || ins.noNova);   // modo seguro: sin el menú de Nova (Shift al lanzar o ajuste de la instancia)
     const nj = (!noNova && (!ins.ld || ins.ld === 'Vanilla' || ins.ld === 'Fabric')) ? novaModJar(ins.mc) : null;
@@ -389,7 +389,7 @@ ipcMain.handle('play', async (e, { id, server, world, safe }) => {
       running.delete(id); try { lg.w.end(); } catch {} if (t0) { const cur = li().find(i => i.id === id) || {}; upIns(id, { playMs: (cur.playMs || 0) + (Date.now() - t0), lastPlayed: Date.now() }); } discordSet(null); send('running', running.size ? 1 : 0); send('progress', null);
       const crashed = !!code && tail.length > 0;
       send('status', crashed ? 'Minecraft se cerró con un error' : 'Minecraft cerrado');
-      if ((running.size === 0 && cfg.reopen !== false) || crashed) { if (win.isMinimized()) win.restore(); win.show(); }
+      if (running.size === 0 || crashed) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); }
       if (crashed) { reportCrash(ins, code, tail, lg.f, since - 5000); notify('Minecraft se cerró con un error', diagnose(tail).t); }
     });
     discordSet({ details: 'Preparando Minecraft ' + ins.mc, state: (ins.ld || 'Vanilla') + ' · Nova Launcher', startTimestamp: Date.now() });
@@ -440,7 +440,7 @@ function discordInit() {
   discordStop();
   const c = load();
   if (c.discord === false) return setDsc({ s: 'off' });
-  const id = String(c.discordId || DISCORD_CLIENT_ID || '').trim();
+  const id = DISCORD_CLIENT_ID;   // fijo: ya no hace falta crear una aplicación de Discord
   if (!/^\d{15,25}$/.test(id)) return setDsc({ s: 'noid' });
   let RPC; try { RPC = require('discord-rpc'); } catch { return setDsc({ s: 'error', msg: 'Módulo de Discord no disponible' }); }
   setDsc({ s: 'connecting' });
@@ -826,31 +826,16 @@ ipcMain.handle('acc:switch', (e, id) => { const st = accState(); if (!st.a.some(
 ipcMain.handle('acc:remove', (e, id) => { const st = accState(); if (st.a.length <= 1) throw new Error('Debe quedar al menos una cuenta'); const a = st.a.filter(x => x.id !== id); saveAcc(a, st.act.id === id ? a[0].id : st.act.id); return accOut(); });
 
 // ---- Bandeja de Windows y notificaciones ----
-let tray = null, trayImg = null;
-// En Windows se carga tray.ico tal cual (5 tamaños) para que el sistema elija el que mejor encaja con el escalado de pantalla; tray.png queda como alternativa
-let trayIco = false;
-const trayIcon = () => {
-  if (!trayImg) {
-    if (process.platform === 'win32') { try { const i = nativeImage.createFromPath(path.join(__dirname, 'assets', 'tray.ico')); if (i && !i.isEmpty()) { trayImg = i; trayIco = true; } } catch {} }
-    if (!trayImg) { try { trayImg = nativeImage.createFromPath(path.join(__dirname, 'assets', 'tray.png')); } catch {} }
-  }
-  if (!trayImg || trayImg.isEmpty()) return null;
-  return trayIco ? trayImg : trayImg.resize({ width: 16, height: 16 });
-};
-function trayInit() {
-  if (load().tray === false) { if (tray) { try { tray.destroy(); } catch {} tray = null; } return false; }
-  if (tray) return true;
-  const ic = trayIcon(); if (!ic) return false;
-  try {
-    tray = new Tray(ic); tray.setToolTip('Nova Launcher');
-    const show = () => { if (!win) return; win.show(); if (win.isMinimized()) win.restore(); win.focus(); };
-    tray.on('click', show);
-    tray.setContextMenu(Menu.buildFromTemplate([{ label: 'Abrir Nova Launcher', click: show }, { type: 'separator' }, { label: 'Salir', click: () => app.quit() }]));
-    return true;
-  } catch { tray = null; return false; }
-}
-// Modo juego: al abrirse Minecraft el launcher se esconde en la bandeja (o se minimiza si la bandeja está desactivada)
-function gameHide() { try { if (!win) return; if (trayInit()) win.hide(); else win.minimize(); } catch {} }
+// Sin icono junto al reloj: el launcher se minimiza a la barra de tareas y nunca se esconde. trayInit se deja para las llamadas existentes.
+const tray = null;
+let trayImg = null;
+// Icono de la app para los avisos de Windows (tray.ico en Windows; tray.png como alternativa)
+try {
+  if (process.platform === 'win32') { const i = nativeImage.createFromPath(path.join(__dirname, 'assets', 'tray.ico')); if (i && !i.isEmpty()) trayImg = i; }
+  if (!trayImg) trayImg = nativeImage.createFromPath(path.join(__dirname, 'assets', 'tray.png'));
+} catch {}
+function trayInit() { return false; }
+function gameHide() { try { if (win) win.minimize(); } catch {} }
 function notify(title, body) {
   try {
     if (load().notify === false || !Notification.isSupported()) return;

@@ -109,7 +109,7 @@ public class NovaTitleScreen extends Screen {
         addDrawableChild(new NovaButton(width - 23, 7, 16, 16, Text.empty(), NovaButton.I_CLOSE, NovaButton.DANGER, b -> client.scheduleStop()));
     }
 
-    int ly() { return Math.max(8, Math.min(34, height / 2 - 58)); }
+    int ly() { return Math.max(8, Math.min(46, height / 2 - 46)); }
 
     void txt(DrawContext c, String str, int x, int y, float px, int argb, boolean bold, int anchor) {
         if (NovaGfx.ok) {

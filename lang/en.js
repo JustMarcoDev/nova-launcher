@@ -2,6 +2,8 @@
 // La clave es el texto en español tal como sale en la app; {1}, {2}… son partes variables (nombres, números).
 window.LANGS=window.LANGS||{};
 window.LANGS.en={name:"English (US)",d:{
+"Al lanzar Minecraft se abre la pestaña Consola con la salida del juego y el launcher no se esconde. Si lo desactivas, se minimiza mientras juegas (Modo juego)":"When Minecraft starts, the Console tab opens with the game's output and the launcher stays visible. If you turn it off, it minimizes while you play (Game mode)",
+"Al lanzar Minecraft, el launcher para las animaciones y se minimiza para dejar toda la potencia al juego":"When Minecraft starts, the launcher stops its animations and minimizes to leave all the power to the game",
 "Menú de Nova":"Nova menu",
 "Activado":"Enabled",
 "Jugar sin el menú de Nova":"Play without the Nova menu",

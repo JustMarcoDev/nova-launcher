@@ -978,4 +978,6 @@ window.LANGS.de={name:"Deutsch",d:{
 "Activado":"Aktiviert",
 "Jugar sin el menú de Nova":"Ohne das Nova-Menü spielen",
 "Salida rápida si el menú da problemas con un mod o servidor. También puedes mantener Mayús al pulsar Jugar.":"Schneller Ausweg, falls das Menü Probleme mit einer Mod oder einem Server macht. Du kannst auch beim Klick auf Spielen die Umschalttaste gedrückt halten.",
-"Licencias de terceros":"Lizenzen von Drittanbietern"}};
+"Licencias de terceros":"Lizenzen von Drittanbietern",
+"Al lanzar Minecraft se abre la pestaña Consola con la salida del juego y el launcher no se esconde. Si lo desactivas, se minimiza mientras juegas (Modo juego)":"Beim Start von Minecraft öffnet sich der Reiter Konsole mit der Spielausgabe und der Launcher bleibt sichtbar. Wenn du das ausschaltest, wird er während des Spielens minimiert (Spielmodus)",
+"Al lanzar Minecraft, el launcher para las animaciones y se minimiza para dejar toda la potencia al juego":"Beim Start von Minecraft stoppt der Launcher seine Animationen und wird minimiert, damit das Spiel die volle Leistung bekommt"}};

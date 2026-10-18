@@ -108,6 +108,12 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 
 ## Historial de actualizaciones
 
+### 0.2.14-beta.16 — Vídeo en 1080p y ajustes más simples
+
+- Vídeo de fondo del menú del juego en 1920×1080 (15 fps, unos 30 MB), con el logo y los botones un poco más abajo.
+- Arreglado: el launcher se congelaba al abrir el juego con la consola abierta (se repintaban miles de líneas); ahora solo se añaden las nuevas.
+- Ajustes más cortos: quitados «ID de aplicación de Discord» (se usa uno fijo), «Argumentos JVM», «Volver a mostrar el launcher al cerrar el juego» (siempre reaparece), «Icono junto al reloj de Windows» (al minimizar se minimiza, no se cierra) y «Mostrar el saludo» (siempre se muestra).
+
 ### 0.2.14-beta.15 — Vídeo de fondo, modo seguro y mod más ligero
 
 - El menú de Nova usa un vídeo de agujero negro en bucle como fondo (quitados el agujero negro y las estrellas anteriores).
