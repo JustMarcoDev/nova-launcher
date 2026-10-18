@@ -2,263 +2,7 @@
 <html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Nova Launcher</title>
-<style>
-:root{--bg:#080a0f;--p:#0f1219;--p2:#151923;--l:rgba(255,255,255,.07);--tx:#eef1f8;--m:#8a92a6;--ac:#2ee06f;--ac2:color-mix(in srgb,var(--ac) 62%,#000)}
-*{box-sizing:border-box;margin:0}html,body{height:100%}
-body{background:var(--bg);color:var(--tx);font:13px/1.45 "Segoe UI",system-ui,sans-serif;overflow:hidden;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-#cv{position:fixed;inset:0;z-index:0}
-.ic{width:22px;height:22px;flex:none}
-.tb{position:relative;z-index:3;height:40px;display:flex;align-items:center;gap:10px;padding:0 6px 0 14px;-webkit-app-region:drag;background:rgba(8,10,15,.8);border-bottom:1px solid var(--l)}
-.tb .ic{color:var(--ac);width:18px;height:18px}.tb b{font-weight:700}.tb .cr{color:var(--m)}
-.sp{flex:1}.tb button,.tb .pl{-webkit-app-region:no-drag}
-.pl{display:flex;align-items:center;gap:8px;padding:4px 12px 4px 5px;border-radius:calc(9px*var(--rs,1));background:var(--p2);border:1px solid var(--l)}
-.pl img{width:22px;height:22px;border-radius:calc(5px*var(--rs,1));image-rendering:pixelated}
-.run{color:var(--m);font-size:12px;padding:0 8px}.run i{display:inline-block;width:7px;height:7px;border-radius:50%;background:#555;margin-right:6px}.run.on i{background:var(--ac);box-shadow:0 0 8px var(--ac)}
-.wb{all:unset;cursor:pointer;width:38px;text-align:center;color:var(--m);line-height:30px;border-radius:calc(6px*var(--rs,1))}.wb:hover{background:var(--p2);color:#fff}
-.app{position:relative;z-index:1;flex:1;display:flex;min-height:0}
-nav{width:var(--nw,76px);display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 0;background:rgba(10,12,18,.85);border-right:1px solid var(--l)}
-nav button{all:unset;cursor:pointer;width:48px;height:48px;display:grid;place-items:center;border-radius:calc(14px*var(--rs,1));color:#7e869b;transition:.18s}
-nav button:hover{color:#fff;background:var(--p2);transform:translateY(-1px)}
-nav button.on{color:var(--ac);background:linear-gradient(135deg,color-mix(in srgb,var(--ac) 20%,transparent),transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ac) 35%,transparent)}
-nav .sp{flex:1}
-main{flex:1;min-width:0;position:relative}
-.pg{display:none;position:absolute;inset:0;overflow:auto;padding:calc(22px*var(--d,1)) calc(26px*var(--d,1))}.pg.on{display:block;animation:in .25s}
-@keyframes in{from{opacity:0;transform:translateY(6px)}}
-.wel{font-size:15px;color:var(--m);margin-bottom:14px}.wel b{color:var(--tx)}
-.grid2{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:18px}
-@media(max-width:1000px){.grid2{grid-template-columns:1fr}}
-.hero{position:relative;height:290px;border-radius:calc(20px*var(--rs,1));border:1px solid var(--l);overflow:visible;background:radial-gradient(ellipse at 50% 120%,color-mix(in srgb,var(--ac) 16%,transparent),transparent 60%),radial-gradient(ellipse at 80% 0,rgba(90,110,255,.18),transparent 55%),linear-gradient(#0c0f18,#080a10);display:flex;align-items:center;justify-content:center}
-.astro,.rocket{position:absolute;image-rendering:pixelated;filter:drop-shadow(0 12px 18px rgba(0,0,0,.6))}
-.astro{left:8%;top:26%;width:130px;animation:fl 6s ease-in-out infinite}
-.rocket{right:9%;top:18%;width:96px;transform:rotate(35deg);animation:fl2 5s ease-in-out infinite}
-@keyframes fl{50%{transform:translateY(-14px) rotate(-4deg)}}@keyframes fl2{50%{transform:translateY(-12px) rotate(35deg) translateX(6px)}}
-.launch{position:relative;display:flex;width:340px;height:76px;border-radius:calc(14px*var(--rs,1));background:linear-gradient(180deg,var(--ac),var(--ac2));box-shadow:0 0 0 1px rgba(255,255,255,.18) inset,0 10px 40px color-mix(in srgb,var(--ac) 40%,transparent);transition:.2s}
-.launch:hover{transform:translateY(-2px) scale(1.02);filter:brightness(1.08)}
-.lb{all:unset;cursor:pointer;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#04140a;font-weight:800}
-.lb b{font-size:21px;letter-spacing:.04em}.lb span{font-size:12px;font-weight:600;opacity:.8}.lb:disabled{opacity:.6;cursor:wait}
-.cp{all:unset;cursor:pointer;width:42px;display:grid;place-items:center;color:#04140a;border-left:1px solid rgba(0,0,0,.2)}
-.pop{display:none;position:absolute;top:calc(100% + 10px);left:50%;transform:translateX(-50%);width:380px;z-index:20;background:var(--p);border:1px solid var(--l);border-radius:calc(14px*var(--rs,1));padding:16px;box-shadow:0 20px 60px #000c;color:var(--tx)}.pop.on{display:block}
-label{display:block;color:var(--m);font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin:10px 0 6px}label:first-child{margin-top:0}
-.hst{position:absolute;left:20px;right:20px;bottom:14px;color:var(--m);font-size:12px;text-align:center}
-.hst i{display:block;height:4px;border-radius:calc(4px*var(--rs,1));background:var(--l);margin-top:6px;overflow:hidden}.hst b{display:block;height:100%;width:0;background:var(--ac);transition:width .2s}
-h3{font-size:15px;margin:22px 0 12px;display:flex;justify-content:space-between;align-items:baseline}h3 small{color:var(--m);font-weight:400}
-.news{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
-.nc{height:150px;border-radius:calc(16px*var(--rs,1));border:1px solid var(--l);background-size:cover;background-position:center;display:flex;align-items:flex-end;padding:14px;transition:.2s}.nc:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--ac) 50%,transparent)}
-.nc p{color:#c3c9d8;font-size:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.g0{background-image:linear-gradient(135deg,#1d3a2a,#0c1a14)}.g1{background-image:linear-gradient(135deg,#2a2150,#100c24)}.g2{background-image:linear-gradient(135deg,#17335a,#0a1428)}.g3{background-image:linear-gradient(135deg,#4a2420,#1c0f0d)}
-.card{background:var(--p);border:1px solid var(--l);border-radius:calc(16px*var(--rs,1));padding:16px;margin-bottom:14px}
-.card h4{font-size:12px;color:var(--m);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
-.row{display:flex;align-items:center;gap:10px;padding:calc(9px*var(--d,1)) 10px;border-radius:calc(10px*var(--rs,1));cursor:pointer;transition:.15s}.row:hover{background:var(--p2)}
-.row.on{background:var(--p2);box-shadow:inset 3px 0 var(--ac)}.row .n{flex:1;font-weight:600}.row .s{color:var(--m);font-size:12px}
-.kv{display:flex;justify-content:space-between;padding:5px 0;color:var(--m)}.kv b{color:var(--tx);font-weight:600}
-.chips{display:flex;gap:6px;flex-wrap:wrap}
-.chip{all:unset;cursor:pointer;padding:6px 13px;border-radius:calc(99px*var(--rs,1));background:var(--p2);border:1px solid var(--l);color:var(--m);transition:.15s}
-.chip:hover{color:#fff}.chip.on{background:var(--ac);border-color:var(--ac);color:#04140a;font-weight:700}.chip.dis{opacity:.3;pointer-events:none}
-input,select{background:var(--p2);color:var(--tx);border:1px solid var(--l);border-radius:calc(10px*var(--rs,1));padding:10px 12px;font:inherit;outline:0;width:100%}
-input:focus,select:focus{border-color:var(--ac)}input[type=checkbox]{width:auto}input[type=range]{padding:0;accent-color:var(--ac)}
-h2{font-size:22px;margin-bottom:16px}
-.btn{all:unset;cursor:pointer;padding:9px 16px;border-radius:calc(10px*var(--rs,1));background:var(--p2);border:1px solid var(--l);font-weight:600}.btn:hover{border-color:var(--ac)}
-.btn.pr{background:var(--ac);color:#04140a;border-color:var(--ac)}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
-.mod,.ins{display:flex;gap:12px;padding:14px;border-radius:calc(14px*var(--rs,1));background:var(--p);border:1px solid var(--l)}
-.mod img,.mod .ph{width:48px;height:48px;border-radius:calc(11px*var(--rs,1));background:var(--p2);flex:none}
-.mod p{color:var(--m);font-size:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.mod button{all:unset;cursor:pointer;color:var(--ac);font-weight:700;margin-top:4px}
-.ins{flex-direction:column}.ins .t{font-size:15px;font-weight:700}.ins .a{display:flex;gap:8px;margin-top:6px}
-.f{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:13px 0;border-bottom:1px solid var(--l);max-width:640px}
-.f span{color:var(--m);font-size:12px;display:block}.f input[type=text],.f input[type=number]{width:210px}
-.sw{width:26px;height:26px;border-radius:50%;cursor:pointer;border:2px solid transparent}.sw.on{border-color:#fff}
-#log{position:fixed;right:12px;bottom:12px;width:340px;max-height:26vh;overflow:auto;font:11px monospace;color:var(--m);display:none;background:var(--p);padding:8px;border-radius:calc(8px*var(--rs,1));z-index:9;white-space:pre-wrap}
-
-.lgm{width:22px!important;height:22px!important;color:inherit!important}
-#intro{position:fixed;inset:0;z-index:100;pointer-events:none;overflow:hidden;background:radial-gradient(circle at 50% 46%,#10131c,#030406 72%);display:flex;flex-direction:column;align-items:center;justify-content:center;animation:iout 1s 3.3s cubic-bezier(.7,0,.2,1) forwards}
-#intro .rg{position:absolute;left:50%;top:46%;width:170px;height:170px;margin:-85px 0 0 -85px;border-radius:50%;border:1.5px solid var(--ac);opacity:0;animation:ring 2.2s cubic-bezier(.16,1,.3,1) infinite}
-#intro .r2{animation-delay:.55s}#intro .r3{animation-delay:1.1s}
-#intro .ib{position:relative;width:160px;height:160px;animation:lgin 1.5s cubic-bezier(.16,1,.3,1) both,pulse 2.6s 1.5s ease-in-out infinite;filter:drop-shadow(0 0 34px color-mix(in srgb,var(--ac) 60%,transparent))}
-#intro .ib svg{width:100%;height:100%}
-#intro .wm{display:flex;margin-top:26px;font-size:34px;font-weight:800;letter-spacing:.3em;padding-left:.3em}
-#intro .wm span{animation:ltr 1s cubic-bezier(.16,1,.3,1) both;animation-delay:calc(.9s + var(--k)*.13s)}
-#intro .sb{margin-top:8px;font-size:11px;font-weight:600;letter-spacing:.8em;padding-left:.8em;color:var(--m);animation:fadeUp .9s 1.8s both}
-#intro .ld{position:absolute;bottom:14%;width:220px;height:3px;border-radius:calc(3px*var(--rs,1));background:rgba(255,255,255,.08);overflow:hidden}
-#intro .ld i{display:block;height:100%;width:0;background:linear-gradient(90deg,transparent,var(--ac));box-shadow:0 0 12px var(--ac)}
-@keyframes ring{from{transform:scale(.25);opacity:.8}to{transform:scale(6);opacity:0}}
-@keyframes lgin{from{opacity:0;transform:scale(.2) rotate(-120deg)}60%{transform:scale(1.08) rotate(6deg)}}
-@keyframes ltr{from{opacity:0;transform:translateY(28px) scale(1.2);filter:blur(12px)}}
-@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}}
-@keyframes load{to{width:100%}}
-@keyframes pulse{50%{transform:scale(1.05)}}
-@keyframes iout{to{opacity:0;visibility:hidden;transform:scale(1.15)}}
-.tb,.app{animation:appin 1.1s 3.2s cubic-bezier(.16,1,.3,1) backwards}
-@keyframes appin{from{opacity:0;transform:translateY(14px)}}
-.pg.on{animation:in2 .55s cubic-bezier(.16,1,.3,1)}
-@keyframes in2{from{opacity:0;transform:translateY(16px) scale(.985);}}
-.rise>*{animation:rise .65s cubic-bezier(.16,1,.3,1) backwards;animation-delay:calc(var(--base,0s) + var(--i,0)*60ms + .1s)}
-@keyframes rise{from{opacity:0;transform:translateY(18px) scale(.97)}}
-.hero{background:none;border:0;height:380px;align-items:flex-end;padding-bottom:46px;margin-bottom:6px}
-.hst{bottom:10px}
-.launch{transition:transform .4s cubic-bezier(.16,1,.3,1),filter .3s;animation:glow 3.4s ease-in-out infinite}
-.launch:hover{transform:translateY(-3px) scale(1.03)}.launch:active{transform:scale(.98)}
-.launch::after{content:"";position:absolute;inset:0;border-radius:calc(14px*var(--rs,1));pointer-events:none;background:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.38) 50%,transparent 65%);background-size:250% 100%;animation:shine 4.5s ease-in-out infinite}
-@keyframes glow{50%{box-shadow:0 0 0 1px rgba(255,255,255,.18) inset,0 10px 64px color-mix(in srgb,var(--ac) 65%,transparent)}}
-@keyframes shine{0%,55%{background-position:150% 0}100%{background-position:-50% 0}}
-.pop{display:block;visibility:hidden;opacity:0;transform:translateX(-50%) translateY(-10px) scale(.96);transition:.28s cubic-bezier(.16,1,.3,1)}
-.pop.on{visibility:visible;opacity:1;transform:translateX(-50%) scale(1)}
-.hst i b{transition:width .6s cubic-bezier(.16,1,.3,1)}
-.chip,.btn,.row,.nc,.card{transition:background-color .25s,color .25s,border-color .25s,transform .25s cubic-bezier(.16,1,.3,1),box-shadow .25s,opacity .25s}
-.card{background-color:color-mix(in srgb,var(--p) var(--pa,60%),transparent);backdrop-filter:blur(var(--bl,12px))}.mod,.ins{background-color:color-mix(in srgb,var(--p) var(--pa2,74%),transparent)}
-nav,.tb{backdrop-filter:blur(var(--bl,12px))}
-
-html[data-th=negro]{--bg:#000;--p:#07080b;--p2:#0d0f14}
-html[data-th=medianoche]{--bg:#060a18;--p:#0c1226;--p2:#131b36}
-html[data-th=violeta]{--bg:#0b0613;--p:#140c22;--p2:#1c1131}
-.bold,.bold *{font-weight:700!important}
-.hc{--l:rgba(255,255,255,.32);--m:#c9cfdd}
-.rm *,.rm *::after{animation:none!important;transition:none!important}.rm .card,.rm nav,.rm .tb{backdrop-filter:none}
-.ni #intro{display:none}.ni .tb,.ni .app{animation:none}
-.sg{display:grid;grid-template-columns:210px 1fr;gap:24px;max-width:1000px}
-@media(max-width:760px){.sg{grid-template-columns:1fr}}
-.sn{display:flex;flex-direction:column;gap:6px;position:sticky;top:0;align-self:start}
-.sn button{all:unset;cursor:pointer;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:calc(14px*var(--rs,1));color:var(--m);transition:.2s}
-.sn button:hover{background:var(--p2);color:var(--tx)}
-.sn button.on{background:linear-gradient(90deg,color-mix(in srgb,var(--ac) 24%,transparent),transparent);color:var(--tx);box-shadow:inset 3px 0 var(--ac)}
-.sn .ic{width:20px;height:20px}.sn button.on .ic{color:var(--ac)}
-.sc>section{display:none}.sc>section.on{display:block;animation:in2 .4s cubic-bezier(.16,1,.3,1)}
-.o{display:flex;align-items:center;gap:14px;padding:calc(14px*var(--d,1)) 16px;border-radius:calc(18px*var(--rs,1));background:color-mix(in srgb,var(--p) var(--pa2,74%),transparent);border:1px solid var(--l);margin-bottom:10px}
-.o:hover{border-color:color-mix(in srgb,var(--ac) 30%,var(--l))}
-.oi{width:44px;height:44px;border-radius:calc(13px*var(--rs,1));display:grid;place-items:center;flex:none;color:var(--ac);background:linear-gradient(135deg,color-mix(in srgb,var(--ac) 24%,transparent),color-mix(in srgb,var(--ac) 5%,transparent));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ac) 30%,transparent),0 6px 18px color-mix(in srgb,var(--ac) 10%,transparent)}
-.ot{flex:1;min-width:0}.ot b{display:block}.ot span{color:var(--m);font-size:12px}
-.o input[type=text],.o input[type=number],.o select{width:220px}
-.tg{position:relative;width:48px;height:27px;flex:none}.tg input{position:absolute;opacity:0;inset:0;width:100%;height:100%;cursor:pointer;margin:0;z-index:1}
-.tg i{position:absolute;inset:0;border-radius:calc(99px*var(--rs,1));background:var(--p2);border:1px solid var(--l);transition:.25s}
-.tg i::after{content:"";position:absolute;left:3px;top:3px;width:19px;height:19px;border-radius:50%;background:#fff;transition:transform .3s cubic-bezier(.16,1,.3,1)}
-.tg input:checked+i{background:var(--ac);border-color:var(--ac);box-shadow:0 0 14px color-mix(in srgb,var(--ac) 50%,transparent)}.tg input:checked+i::after{transform:translateX(21px)}
-.cs{display:flex;gap:9px;flex-wrap:wrap;justify-content:flex-end;max-width:300px}
-.sw2{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;box-shadow:0 0 0 1px rgba(255,255,255,.18);transition:transform .2s,box-shadow .2s}.sw2:hover{transform:scale(1.15)}.sw2.on{border-color:#fff;box-shadow:0 0 16px currentColor}
-input[type=range]{-webkit-appearance:none;appearance:none;height:6px;border-radius:calc(6px*var(--rs,1));background:var(--p2);padding:0}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--ac);box-shadow:0 0 12px var(--ac);cursor:pointer}
-.rg2{position:relative;margin-top:12px}.rg2 input{width:100%}.rg2 .mk{position:absolute;top:12px;width:2px;height:10px;background:var(--ac);transform:translateX(-1px);border-radius:calc(2px*var(--rs,1))}
-.rv{display:flex;align-items:center;gap:8px;flex-direction:column}.rv b{font-size:22px}
-.warn{color:#ffb24d;font-size:12px;margin:0 0 0 58px}
-.pop{background:linear-gradient(#151a26,#0f1219);border-radius:calc(18px*var(--rs,1));border-color:color-mix(in srgb,var(--ac) 25%,var(--l));box-shadow:0 24px 70px #000d,0 0 44px color-mix(in srgb,var(--ac) 14%,transparent)}
-.pop label{color:var(--ac)}
-.cp svg{transition:transform .3s cubic-bezier(.16,1,.3,1)}.pop.on~*,.launch:has(.pop.on) .cp svg{transform:rotate(180deg)}
-
-html[data-th=carbon]{--bg:#0e0f12;--p:#16181d;--p2:#1e2128}
-html[data-th=oceano]{--bg:#04121a;--p:#081c28;--p2:#0e2736}
-html[data-th=bosque]{--bg:#06120b;--p:#0b1c12;--p2:#112a1b}
-html[data-th=vino]{--bg:#140609;--p:#200c12;--p2:#2e121b}
-.fo :focus-visible{outline:2px solid var(--ac);outline-offset:2px}
-.ng .card,.ng nav,.ng .tb{backdrop-filter:none!important}
-.row{content-visibility:auto;contain-intrinsic-size:auto 40px}
-.nonews{grid-template-columns:1fr!important}.nonews #newsBox{display:none}
-.vi{display:flex;align-items:center;gap:12px;margin:-6px 0 14px;color:var(--m)}
-#intro .pc{position:absolute;bottom:calc(14% - 36px);font-size:14px;font-weight:700;letter-spacing:.22em;padding-left:.22em;color:var(--tx);font-variant-numeric:tabular-nums;animation:fadeUp .6s .3s both}
-.cl{max-height:360px;overflow:auto;padding-right:6px}
-.cv h5{font-size:14px;margin:12px 0 4px}.cv h5 small{color:var(--ac);font-weight:700}
-.ct{font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin:6px 0 2px;font-weight:700}
-.ct.a{color:#3ee08a}.ct.m{color:#4fa8ff}.ct.q{color:#ff7b7b}
-.cv ul{margin:0 0 6px 18px;color:var(--m)}
-
-/* 0.2.5 */
-.hero{height:clamp(240px,38vh,360px);padding-bottom:36px;margin-bottom:6px}
-.hst{bottom:6px}
-.launch{width:min(410px,92%);height:74px;border-radius:calc(22px*var(--rs,1));background:linear-gradient(180deg,color-mix(in srgb,var(--ac) 100%,#fff 12%),var(--ac2) 85%);box-shadow:0 0 0 1px rgba(255,255,255,.28) inset,0 -10px 18px rgba(0,0,0,.14) inset,0 14px 44px color-mix(in srgb,var(--ac) 46%,transparent)}
-.launch::after{border-radius:calc(22px*var(--rs,1))}
-.lb{flex-direction:row;justify-content:flex-start;gap:14px;padding:0 10px 0 14px}
-.pi{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;flex:none;background:rgba(4,20,10,.82);color:var(--ac);box-shadow:0 0 0 1px rgba(255,255,255,.14) inset,0 4px 14px rgba(0,0,0,.35);transition:transform .35s cubic-bezier(.16,1,.3,1)}
-.pi svg{width:22px;height:22px;margin-left:2px}
-.launch:hover .pi{transform:scale(1.1)}
-.lt{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:0}
-.lt b{font-size:20px;letter-spacing:.06em;line-height:1}.lt span{font-size:12px;font-weight:700;opacity:.72;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:230px}
-.cp{width:54px;margin:8px 8px 8px 0;border-left:0;border-radius:calc(14px*var(--rs,1));background:rgba(4,20,10,.2);box-shadow:0 0 0 1px rgba(0,0,0,.14) inset;transition:background .2s}
-.cp:hover{background:rgba(4,20,10,.34)}.cp svg{width:22px;height:22px;stroke-width:3}
-#g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 18px;align-items:start}
-#newsBox{grid-column:1/-1;margin-bottom:16px}
-#cards{display:contents}
-.nc{height:112px}
-.news{grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
-.nonews #cardI,.nonews #cardS{grid-column:auto}
-.wel{margin-bottom:8px}
-.ub{display:none;align-items:center;gap:14px;padding:12px 16px;margin-bottom:12px;border-radius:calc(16px*var(--rs,1));border:1px solid color-mix(in srgb,var(--ac) 40%,transparent);background:linear-gradient(90deg,color-mix(in srgb,var(--ac) 16%,transparent),color-mix(in srgb,var(--p) 70%,transparent));backdrop-filter:blur(var(--bl,12px))}
-.ub.on{display:flex;animation:fadeUp .5s both}
-.ub .ui{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--ac);color:#04140a;flex:none}
-.ub .ut{flex:1;min-width:0}.ub .ut b{display:block;font-size:14px}.ub .ut span{font-size:12px;color:var(--m)}
-.ub .bar{height:5px;border-radius:calc(5px*var(--rs,1));background:rgba(255,255,255,.1);margin-top:7px;overflow:hidden;display:none}.ub .bar i{display:block;height:100%;width:0;background:var(--ac);transition:width .3s}.ub.dl .bar{display:block}
-.upp{display:none;align-items:center;gap:6px;cursor:pointer;margin-right:8px;padding:4px 12px;font-size:12px;font-weight:700;border-radius:calc(99px*var(--rs,1));color:var(--ac);border:1px solid color-mix(in srgb,var(--ac) 45%,transparent);background:color-mix(in srgb,var(--ac) 12%,transparent);-webkit-app-region:no-drag}
-.upp.on{display:inline-flex}.upp.rdy{background:var(--ac);color:#04140a;animation:glow 2.4s ease-in-out infinite}
-.btn:disabled{opacity:.5;cursor:default}
-.soc{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
-.sk{all:unset;cursor:pointer;display:flex;align-items:center;gap:14px;padding:16px;border-radius:calc(18px*var(--rs,1));border:1px solid var(--l);background:color-mix(in srgb,var(--p) var(--pa2,74%),transparent);transition:.25s cubic-bezier(.16,1,.3,1)}
-.sk:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--ac) 50%,transparent)}
-.sk .si{width:44px;height:44px;border-radius:calc(14px*var(--rs,1));display:grid;place-items:center;background:color-mix(in srgb,var(--ac) 14%,transparent);color:var(--ac);flex:none}
-.sk b{display:block}.sk span{font-size:12px;color:var(--m)}
-.sk.off{cursor:default;opacity:.62}.sk.off:hover{transform:none;border-color:var(--l)}
-.cre{display:flex;align-items:center;gap:16px;padding:20px;margin-bottom:18px;border-radius:calc(20px*var(--rs,1));border:1px solid var(--l);background:linear-gradient(120deg,color-mix(in srgb,var(--ac) 12%,transparent),color-mix(in srgb,var(--p) 60%,transparent))}
-.cre .lg{width:56px;height:56px;color:var(--ac)}.cre p{color:var(--m);margin:2px 0 0;font-size:13px}
-
-/* 0.2.6 */
-.o:has(.cs){flex-wrap:wrap}.o:has(.cs) .ot{flex:1 1 calc(100% - 60px)}.o:has(.cs) .cs{flex:1 1 100%;padding-left:58px;display:flex;gap:10px;flex-wrap:wrap}
-.o:has(.chips .chip:nth-child(5)){flex-wrap:wrap}
-.o:has(.chips .chip:nth-child(5)) .ot{flex:1 1 calc(100% - 60px)}
-.o:has(.chips .chip:nth-child(5)) .chips{flex:1 1 100%;padding-left:58px}
-.launch{border-radius:calc(22px*var(--rs,1));background:linear-gradient(180deg,color-mix(in srgb,var(--ac) 26%,#0d1017),color-mix(in srgb,var(--ac) 10%,#06070b));backdrop-filter:blur(14px);box-shadow:0 0 0 1.5px color-mix(in srgb,var(--ac) 75%,transparent) inset,0 1px 0 rgba(255,255,255,.22) inset,0 16px 46px color-mix(in srgb,var(--ac) 32%,transparent)}
-.launch:hover{filter:none;box-shadow:0 0 0 1.5px var(--ac) inset,0 1px 0 rgba(255,255,255,.3) inset,0 18px 56px color-mix(in srgb,var(--ac) 48%,transparent)}
-.launch::after{background:linear-gradient(110deg,transparent 38%,color-mix(in srgb,var(--ac) 30%,#fff 10%) 50%,transparent 62%);background-size:250% 100%;opacity:.5}
-.lb{padding:0 10px 0 12px}
-.pi{position:relative;width:50px;height:50px;background:linear-gradient(145deg,color-mix(in srgb,var(--ac) 100%,#fff 18%),var(--ac2));color:#06130b;box-shadow:0 0 0 1px rgba(255,255,255,.3) inset,0 6px 20px color-mix(in srgb,var(--ac) 55%,transparent)}
-.pi::before{content:"";position:absolute;inset:-5px;border-radius:50%;border:1.5px solid var(--ac);opacity:0;animation:pring 2.8s ease-out infinite}
-@keyframes pring{0%{transform:scale(.85);opacity:.7}70%,100%{transform:scale(1.25);opacity:0}}
-.pi svg{width:22px;height:22px}
-.lt b{color:#fff;font-size:20px;text-shadow:0 2px 12px color-mix(in srgb,var(--ac) 60%,transparent)}
-.lt span{color:color-mix(in srgb,var(--ac) 55%,#fff);opacity:.95;font-weight:600}
-.cp{width:52px;margin:9px 9px 9px 0;color:var(--ac);background:rgba(255,255,255,.07);box-shadow:0 0 0 1px rgba(255,255,255,.12) inset;border-radius:calc(15px*var(--rs,1))}
-.cp:hover{background:color-mix(in srgb,var(--ac) 24%,transparent);box-shadow:0 0 0 1px var(--ac) inset}
-.cp svg{width:22px;height:22px;stroke-width:3}
-.sk{--b:var(--ac);opacity:0;animation:skin .6s calc(var(--i,0)*70ms + 80ms) cubic-bezier(.16,1,.3,1) forwards}
-.sk.off{animation:skin .6s calc(var(--i,0)*70ms + 80ms) cubic-bezier(.16,1,.3,1) forwards;animation-fill-mode:forwards}
-@keyframes skin{from{opacity:0;transform:translateY(16px) scale(.94)}to{opacity:1;transform:none}}
-@keyframes skf{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
-.sk .si{color:var(--b);background:color-mix(in srgb,var(--b) 16%,transparent);box-shadow:0 0 0 1px color-mix(in srgb,var(--b) 30%,transparent) inset;transition:.35s cubic-bezier(.16,1,.3,1)}
-.sk .si svg{width:24px;height:24px;animation:skf 3.6s calc(var(--i,0)*.35s) ease-in-out infinite;transition:transform .35s cubic-bezier(.34,1.56,.64,1)}
-.sk:hover .si{background:var(--b);color:#fff;box-shadow:0 0 26px color-mix(in srgb,var(--b) 65%,transparent);transform:rotate(-6deg) scale(1.1)}
-.sk:hover .si svg{animation:none;transform:scale(1.12)}
-.sk.off:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--b) 45%,transparent)}
-.sk.off{opacity:.92}.sk em{font-style:normal;display:inline-block;margin-top:3px;padding:1px 8px;border-radius:calc(99px*var(--rs,1));font-size:11px;color:var(--b);background:color-mix(in srgb,var(--b) 14%,transparent)}
-.rm .sk,.rm .sk .si svg,.rm .pi::before{animation:none!important;opacity:1}
-
-/* 0.2.7 */
-.m2 .tg span{display:inline-block;height:auto;line-height:1.5;padding:1px 9px}
-nav button{position:relative}
-nav button.bd::after{content:"";position:absolute;top:8px;right:8px;width:10px;height:10px;border-radius:50%;background:#ff4d6d;box-shadow:0 0 0 2px #0a0c12;animation:bdp 1.8s ease-in-out infinite}
-@keyframes bdp{50%{transform:scale(1.25)}}
-.ub{padding:14px 18px;border-width:1.5px;box-shadow:0 10px 36px color-mix(in srgb,var(--ac) 16%,transparent)}
-.ub .ut b{font-size:15px;display:flex;align-items:center;gap:8px}
-.ub .ut b em{font-style:normal;display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:calc(99px*var(--rs,1));background:#ff4d6d;color:#fff;font-size:12px}
-.ub.rdy .ut b em{background:var(--ac);color:#04140a}
-.ub .btn{background:var(--ac);color:#04140a;border-color:transparent;font-weight:800;padding:10px 18px}.ub .btn:disabled{background:var(--p2);color:var(--tx)}
-#um{position:fixed;inset:0;z-index:60;display:none;place-items:center;background:rgba(3,4,8,.62);backdrop-filter:blur(6px)}
-#um.on{display:grid;animation:fadeUp .35s both}
-#um .mc2{width:min(420px,92vw);padding:26px;border-radius:calc(22px*var(--rs,1));background:linear-gradient(#151a26,#0f1219);border:1px solid color-mix(in srgb,var(--ac) 35%,var(--l));box-shadow:0 30px 90px #000d,0 0 60px color-mix(in srgb,var(--ac) 18%,transparent);text-align:center}
-#um .mc2 .ui{width:56px;height:56px;margin:0 auto 12px;border-radius:50%;display:grid;place-items:center;background:var(--ac);color:#04140a}
-#um h3{margin:0 0 6px;font-size:19px}#um p{color:var(--m);margin:0 0 16px;font-size:13px}
-#um .bar{height:6px;border-radius:calc(6px*var(--rs,1));background:rgba(255,255,255,.1);overflow:hidden;margin:-4px 0 16px;display:none}#um.dl .bar{display:block}#um .bar i{display:block;height:100%;width:0;background:var(--ac);transition:width .3s}
-#um .row2{display:flex;gap:10px;justify-content:center}
-#um .btn.pr{background:var(--ac);color:#04140a;border-color:transparent;font-weight:800}#um .btn:disabled{opacity:.6}
-.mt{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
-.mt input{flex:1 1 260px;max-width:440px}.mt select{width:190px}
-.mcat{margin:2px 0 12px}
-.chip.dis{opacity:.5}
-.mg2{grid-template-columns:repeat(auto-fill,minmax(270px,1fr))}
-.m2{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:calc(16px*var(--rs,1));background:color-mix(in srgb,var(--p) var(--pa2,74%),transparent);border:1px solid var(--l);transition:.25s cubic-bezier(.16,1,.3,1)}
-.m2:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--ac) 45%,transparent)}
-.m2 .h{display:flex;gap:12px;align-items:center}
-.m2 img,.m2 .ph{width:52px;height:52px;border-radius:calc(13px*var(--rs,1));background:var(--p2);flex:none;object-fit:cover}
-.m2 b{display:block;line-height:1.2}.m2 small{color:var(--m)}
-.m2 p{margin:0;color:var(--m);font-size:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.6em}
-.m2 .mm{display:flex;gap:12px;color:var(--m);font-size:12px;align-items:center;flex-wrap:wrap}.m2 .mm svg{width:13px;height:13px;vertical-align:-2px;margin-right:3px}
-.m2 .tg{display:flex;gap:5px;flex-wrap:wrap}.m2 .tg span{font-size:11px;padding:2px 8px;border-radius:calc(99px*var(--rs,1));background:color-mix(in srgb,var(--ac) 12%,transparent);color:var(--ac)}
-.m2 .btn{text-align:center;margin-top:auto}.m2 .btn.ok{border-color:var(--ac);color:var(--ac)}
-</style></head><body>
+<link rel="stylesheet" href="css/style.css"></head><body>
 <svg width="0" height="0" style="position:absolute"><defs>
 <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".45" style="stop-color:var(--ac,#2ee06f)"/><stop offset="1" stop-color="#7a5cff"/></linearGradient>
 <symbol id="logo" viewBox="0 0 120 120"><g transform="rotate(-18 60 60)"><ellipse cx="60" cy="60" rx="54" ry="14" fill="none" stroke="url(#lg)" stroke-width="5" opacity=".85"/></g><circle cx="60" cy="60" r="28" fill="#000" stroke="url(#lg)" stroke-width="2.6"/><path d="M30 52A33 33 0 0 1 90 52" fill="none" stroke="#fff" stroke-width="1.6" opacity=".7"/><g transform="rotate(-18 60 60)"><path d="M6 60A54 14 0 0 0 114 60" fill="none" stroke="url(#lg)" stroke-width="5.5" stroke-linecap="round"/></g><path d="M98 12l2.4 6.6 6.6 2.4-6.6 2.4-2.4 6.6-2.4-6.6-6.6-2.4 6.6-2.4z" fill="#fff"/></symbol>
@@ -295,322 +39,70 @@ nav button.bd::after{content:"";position:absolute;top:8px;right:8px;width:10px;h
 <symbol id="b-x" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></symbol>
 <symbol id="b-discord" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></symbol>
 <symbol id="b-github" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></symbol>
+<symbol id="i-server" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="7" rx="2" fill="currentColor" fill-opacity=".1"/><rect x="3" y="13" width="18" height="7" rx="2" fill="currentColor" fill-opacity=".1"/><path d="M7 7.5h.01M7 16.5h.01M11 7.5h6M11 16.5h6"/></symbol>
 <symbol id="i-rocket" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c3 2 5 6 5 10l-2 3H9l-2-3c0-4 2-8 5-10z"/><circle cx="12" cy="9" r="1.6"/><path d="M9 15l-3 3 3 1M15 15l3 3-3 1M12 17v4"/></symbol>
 <symbol id="i-game" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="11" rx="5"/><path d="M7 10v5M4.5 12.5h5"/><circle cx="16" cy="11.2" r="1"/><circle cx="18.5" cy="13.8" r="1"/></symbol>
-<symbol id="i-puzzle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h4v2a1.5 1.5 0 003 0V3h4a1 1 0 011 1v4h-2a1.5 1.5 0 000 3h2v9a1 1 0 01-1 1H5a1 1 0 01-1-1v-5h2a1.5 1.5 0 000-3H4V4a1 1 0 011-1z"/></symbol>
+<symbol id="i-puzzle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path fill="currentColor" fill-opacity=".14" d="M20.5 11H19V7a2 2 0 00-2-2h-4V3.5a2.5 2.5 0 00-5 0V5H4a2 2 0 00-2 2v3.8h1.5a2.7 2.7 0 010 5.4H2V20a2 2 0 002 2h3.8v-1.5a2.7 2.7 0 015.4 0V22H17a2 2 0 002-2v-4h1.5a2.5 2.5 0 000-5z"/></symbol>
 <symbol id="i-box" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l9-4 9 4v10l-9 4-9-4V7z"/><path d="M3 7l9 4 9-4M12 11v10"/></symbol>
 <symbol id="i-gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M18.60 9.67L21.47 9.88L21.47 14.12L18.60 14.33L18.32 15.02L20.19 17.20L17.20 20.19L15.02 18.32L14.33 18.60L14.12 21.47L9.88 21.47L9.67 18.60L8.98 18.32L6.80 20.19L3.81 17.20L5.68 15.02L5.40 14.33L2.53 14.12L2.53 9.88L5.40 9.67L5.68 8.98L3.81 6.80L6.80 3.81L8.98 5.68L9.67 5.40L9.88 2.53L14.12 2.53L14.33 5.40L15.02 5.68L17.20 3.81L20.19 6.80L18.32 8.98Z"/><circle cx="12" cy="12" r="3.1"/></symbol>
 <symbol id="i-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></symbol>
+<symbol id="i-term" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M7 9l3 3-3 3M13 15h4"/></symbol>
 </defs></svg>
 <video id="bgv" src="assets/blackhole.mp4" muted loop autoplay playsinline style="display:none;position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:0" onloadeddata="this.style.display='block';document.getElementById('cv').style.display='none'" onerror="this.remove()"></video>
 <canvas id="cv"></canvas>
-<div id="intro"><i class="rg"></i><i class="rg r2"></i><i class="rg r3"></i><div class="ib"><svg viewBox="0 0 120 120"><use href="#logo"/></svg></div><div class="wm"><span style="--k:0">N</span><span style="--k:1">O</span><span style="--k:2">V</span><span style="--k:3">A</span></div><div class="sb">LAUNCHER</div><div class="ld"><i></i></div><div class="pc" id="ipc">0%</div></div>
+<div id="intro"><i class="rg"></i><i class="rg r2"></i><i class="rg r3"></i><div class="ib"><svg viewBox="0 0 120 120"><use href="#logo"/></svg></div><div class="wm"><span style="--k:0">N</span><span style="--k:1">O</span><span style="--k:2">V</span><span style="--k:3">A</span></div><div class="sb">LAUNCHER</div><div class="ld"><i></i></div><div class="pc" id="ipc">0%</div><div class="lg2"><b>Un proyecto dirigido por <span>Astrion Studio</span></b><p>© 2026 Astrion Studio. Todos los derechos reservados.</p><p>Nova Launcher es un proyecto independiente y no tiene ninguna relación con Mojang Studios ni con Microsoft.<br>Minecraft es una marca registrada de Mojang Studios. No es un producto oficial de Minecraft.</p></div></div>
 <div class="tb"><svg class="ic lgm"><use href="#logo"/></svg><b>Nova Launcher</b><span class="cr">›</span><span class="cr" id="pt">Launchpad</span><div class="sp"></div>
-<div class="upp" id="up" title="Actualización"><svg class="ic" style="width:14px;height:14px"><use href="#i-dl"/></svg><span id="upt"></span></div><div class="pl"><img id="av" alt=""><b id="un"></b></div><div class="run" id="rn"><i></i><span>0 instancias en ejecución</span></div>
+<div class="upp" id="up" title="Actualización"><svg class="ic" style="width:14px;height:14px"><use href="#i-dl"/></svg><span id="upt"></span></div><button class="pl" id="plb" aria-haspopup="true" title="Cambiar de cuenta"><img id="av" alt=""><b id="un"></b><svg class="ic"><use href="#i-down"/></svg></button><div class="run" id="rn"><i></i><span>0 instancias en ejecución</span></div>
 <button class="wb" onclick="A&&A.win('min')">—</button><button class="wb" onclick="A&&A.win('max')">▢</button><button class="wb" onclick="A&&A.win('x')">✕</button></div>
 <div class="app">
-<nav><button class="on" data-p="home" title="Inicio"><svg class="ic"><use href="#i-rocket"/></svg></button><button data-p="vers" title="Versiones"><svg class="ic"><use href="#i-game"/></svg></button><button data-p="mods" title="Mods"><svg class="ic"><use href="#i-puzzle"/></svg></button><button data-p="inst" title="Instancias"><svg class="ic"><use href="#i-box"/></svg></button><button data-p="soc" title="Redes"><svg class="ic"><use href="#i-heart"/></svg></button><div class="sp"></div><button data-p="set" title="Ajustes"><svg class="ic"><use href="#i-gear"/></svg></button></nav>
+<nav><button class="on" data-p="home" title="Inicio"><svg class="ic"><use href="#i-rocket"/></svg></button><button data-p="vers" title="Versiones"><svg class="ic"><use href="#i-game"/></svg></button><button data-p="mods" title="Mods"><svg class="ic"><use href="#i-puzzle"/></svg></button><button data-p="srv" title="Servidores"><svg class="ic"><use href="#i-server"/></svg></button><button data-p="inst" title="Instancias"><svg class="ic"><use href="#i-box"/></svg></button><button data-p="con" title="Consola"><svg class="ic"><use href="#i-term"/></svg></button><button data-p="soc" title="Redes"><svg class="ic"><use href="#i-heart"/></svg></button><div class="sp"></div><button data-p="set" title="Ajustes"><svg class="ic"><use href="#i-gear"/></svg></button></nav>
 <main>
 <div id="home" class="pg on"><div class="ub" id="ub"><div class="ui"><svg class="ic"><use href="#i-dl"/></svg></div><div class="ut"><b id="ubt"></b><span id="ubs"></span><div class="bar"><i id="ubp"></i></div></div><button class="btn" id="ubb"></button></div><div class="wel" id="wel">Bienvenido de nuevo, Astronauta <b id="hn"></b></div>
 <div class="hero">
 <div class="launch"><button class="lb" id="go"><span class="pi"><svg class="ic"><use href="#i-play"/></svg></span><span class="lt"><b>LANZAR JUEGO</b><span id="gs"></span></span></button><button class="cp" id="cp"><svg class="ic"><use href="#i-down"/></svg></button>
 <div class="pop" id="pop"><label>Cargador</label><div class="chips" id="ld"></div><label>Tipo de versión</label><div class="chips" id="tf"></div><label>Versión</label><select id="ver"></select></div></div>
-<div class="hst"><span id="st"></span><i><b id="pb"></b></i></div></div>
+<div class="hst"><span id="st" aria-live="polite"></span><i><b id="pb"></b></i></div></div>
+<button class="cont" id="cont" type="button" hidden><span class="pi"><svg class="ic"><use href="#i-play"/></svg></span><span class="ct2"><b>Continuar</b><span id="cons"></span></span></button>
 <div class="grid2" id="g2"><div id="newsBox"><h3>Últimas novedades <small id="nsrc"></small></h3><div class="news" id="nw"></div></div>
 <div id="cards"><div class="card" id="cardI"><h4>Tus instancias</h4><div id="qi"></div></div>
-<div class="card" id="cardS"><h4>Estado</h4><div class="kv">Cuenta<b id="k1"></b></div><div class="kv">Memoria<b id="k2"></b></div><div class="kv">Java<b id="k3"></b></div><div class="kv">Versión del launcher<b id="k4">0.2.7</b></div></div></div></div></div>
+<div class="card" id="cardS"><h4>Estado</h4><div class="kv">Cuenta<b id="k1"></b></div><div class="kv">Memoria<b id="k2"></b></div><div class="kv">Java<b id="k3"></b></div><div class="kv">Tiempo jugado<b id="k5"></b></div><div class="kv">Versión del launcher<b id="k4">0.2.14-beta.15</b></div></div></div></div></div>
 
 <div id="vers" class="pg"><h2>Versiones</h2><div class="vi"><span id="vinfo"></span><button class="btn" id="vre">Recargar lista</button></div><div class="chips" id="tf2" style="margin-bottom:12px"></div><input id="vq" placeholder="Buscar versión…" style="max-width:340px;margin-bottom:14px"><div id="vl"></div></div>
-<div id="inst" class="pg"><h2>Instancias</h2><p style="color:var(--m);margin-bottom:14px">Se crean solas al jugar una versión. Cada una tiene sus propios mundos y mods.</p><div class="grid" id="il"></div></div>
+<div id="srv" class="pg"><h2>Servidores</h2><p class="sub">Los más populares. Pulsa <b>Unirse</b> y el launcher abre Minecraft y entra solo al servidor.</p>
+<h3 class="shd">Mis servidores</h3><p class="sub" style="margin-top:-6px">Añade el tuyo con su dirección: sale con ping y jugadores, y también en la lista de servidores dentro de Minecraft.</p><form class="msf" id="msf" autocomplete="off"><input id="msn" type="text" maxlength="30" placeholder="Nombre (opcional)"><input id="msh" type="text" maxlength="260" placeholder="Dirección, ej. play.miservidor.net o 1.2.3.4:25566"><button class="btn pr" type="submit">Añadir</button></form><div class="msg" id="msg"></div><div class="grid sg2" id="ml"></div><h3 class="shd">Populares</h3><div class="grid sg2" id="sl"></div>
+</div>
+<div id="inst" class="pg"><div class="ihd"><div><h2>Instancias</h2><p>Se crean solas al jugar una versión. Cada una tiene sus propios mundos y mods.</p></div><div class="ba"><button class="btn" id="ish">Capturas</button><button class="btn" id="imo2">Otros launchers</button><button class="btn" id="imp">Importar</button><button class="btn" id="ifo">Abrir carpeta</button></div></div><div class="itb"><input id="iq" type="text" placeholder="Buscar instancia…" autocomplete="off"><div class="chips" id="iso"></div><div class="chips" id="itg"></div></div><div class="ilist" id="il"></div></div>
+<div id="con" class="pg"><div class="ihd"><div><h2>Consola</h2><p>Lo que escribe Minecraft mientras juegas. Errores en rojo, avisos en amarillo.</p></div><div class="ba"><button class="btn" id="cpy">Copiar</button><button class="btn" id="csv">Guardar…</button><button class="btn" id="ccl">Limpiar</button></div></div><div class="cbar"><input id="cq" type="text" placeholder="Buscar en la consola…"><div class="chips" id="clv"></div><label class="cau"><input type="checkbox" id="cau" checked> Seguir al final</label></div><div class="cov" id="cov"></div></div>
 <div id="mods" class="pg"><h2>Mods y Modpacks</h2><div class="mt"><div class="chips" id="mk"></div><div class="chips" id="mc"></div></div>
 <div class="mt"><input id="q" placeholder="Buscar mods, modpacks, shaders…"><select id="mo"></select><div class="chips" id="mcp"></div></div>
 <div class="chips mcat" id="mcat"></div><div id="mi" style="color:var(--m);margin:4px 0 14px"></div><div class="grid mg2" id="mg"></div>
 <div style="text-align:center;margin:18px 0 8px"><button class="btn" id="mmore" style="display:none">Cargar más</button></div></div>
 <div id="soc" class="pg"><h2>Redes</h2><div class="cre"><svg class="lg"><use href="#logo"/></svg><div><b style="font-size:18px">Creador de Nova Launcher</b><p>Sigue al creador para ver novedades, avances y próximas versiones.</p></div></div><div class="soc" id="sg"></div></div>
 <div id="set" class="pg"><h2>Ajustes</h2><div class="sg"><div class="sn" id="sn"></div><div id="sc" class="sc"></div></div></div>
-</main></div><div id="um"><div class="mc2"><div class="ui"><svg class="ic" style="width:26px;height:26px"><use href="#i-dl"/></svg></div><h3 id="umt"></h3><p id="ums"></p><div class="bar"><i id="ump"></i></div><div class="row2"><button class="btn pr" id="umb"></button><button class="btn" id="uml">Más tarde</button></div></div></div><div id="log"></div>
-<script>
-const A=window.api||null,$=id=>document.getElementById(id);
-const DEMO=[["1.21.1","release"],["1.20.1","release"],["1.16.5","release"],["1.12.2","release"],["1.8.9","release"],["25w02a","snapshot"],["b1.7.3","old_beta"],["a1.2.6","old_alpha"]].map(([id,type])=>({id,type}));
-const ord=v=>v.replace(/^[ab]/,"").split(".").map(Number),gte=(v,m)=>{const a=ord(v),b=ord(m);for(let i=0;i<3;i++){const x=a[i]||0,y=b[i]||0;if(x!==y)return x>y}return true};
-let LS={f:null,g:null,n:null};
-const LD={Vanilla:()=>true,Fabric:v=>LS.f?LS.f.has(v):(/^\d/.test(v)&&gte(v,"1.14")),Forge:v=>/^\d/.test(v)&&gte(v,"1.12")&&(LS.g?LS.g.has(v):true),NeoForge:v=>LS.n?LS.n.has(v):(/^\d/.test(v)&&gte(v,"1.20.2"))};
-const TN={all:"Todas",release:"Release",snapshot:"Snapshot",old_beta:"Beta",old_alpha:"Alpha"},PT={home:"Launchpad",vers:"Versiones",mods:"Mods",inst:"Instancias",set:"Ajustes",soc:"Redes"};
-const ACC={"#2ee06f":"Verde","#4f8cff":"Azul","#8b5cff":"Violeta","#22d3ee":"Cian","#ff5fa8":"Rosa","#ff4d4d":"Rojo","#ff9f2e":"Naranja","#ffd93d":"Amarillo","#f2f4f8":"Blanco"};
-let V=DEMO,sel={mc:"1.21.1",ld:"Vanilla",type:"release"},tf="release",I=[],cfg={username:"Jugador",ram:4,javaPath:"",width:1280,height:720,fullscreen:false,jvmArgs:"",closeOnLaunch:false,cfKey:"",accent:"#2ee06f",theme:"oscuro",bh:"dorado",font:"Segoe UI",tsize:100,bold:false,contrast:false,rmotion:false,quality:"alta",pauseGame:true,intro:true,ramSet:false,fontCustom:"",radius:100,panelAlpha:60,glassBlur:12,density:"normal",navW:76,focusRing:false,lsp:0,lh:145,showLog:true,reopen:true,autoUpdate:true,autoDownload:true,discord:true,discordId:"",bhSize:100,bhSpeed:100,bhTilt:-6,stars:100,bhLens:true,bhBloom:true,bhOther:true,greet:true,showNews:true,showInst:true,showStatus:true,showAvatar:true,newsN:4,fps:60,pauseBlur:true};
-const chips=(el,items,on,fn)=>{el.innerHTML=items.map(([k,n,d])=>`<button class="chip ${k===on?"on":""} ${d?"dis":""}" data-k="${k}">${n}</button>`).join("");el.querySelectorAll("button").forEach(b=>b.onclick=e=>{e.stopPropagation();fn(b.dataset.k)})};
-// Navegación
-document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>show(b.dataset.p));
-function show(p){document.querySelectorAll(".pg,nav button").forEach(e=>e.classList.remove("on"));$(p).classList.add("on");document.querySelector(`nav [data-p=${p}]`).classList.add("on");$("pt").textContent=PT[p];$("pop").classList.remove("on");dirty=60;HR=null;if(p==="set")setTimeout(renderU,0);if(p==="vers")rv();if(p==="inst")ri();if(p==="mods"){mchips();mods()}}
-// Selección de versión (sin crear instancias a mano)
-const save=()=>sv({last:sel});
-function head(){$("gs").textContent=`Minecraft ${sel.mc} con ${sel.ld}`;const n=cfg.ms?cfg.ms.name:cfg.username;$("hn").textContent=$("un").textContent=n;$("av").src="https://minotar.net/avatar/"+encodeURIComponent(n)+"/44";$("av").onerror=()=>$("av").style.display="none";
-$("k1").textContent=cfg.ms?"Microsoft":"Offline";$("k2").textContent=cfg.ram+" GB";$("k3").textContent=cfg.javaPath?"Personalizado":"Automático";$("k4").textContent=VER;rp();qi()}
-function pick(mc,type,ld){sel.mc=mc;sel.type=type;if(ld)sel.ld=ld;if(!LD[sel.ld](mc))sel.ld="Vanilla";if(tf!=="all")tf=type;head();save()}
-$("cp").onclick=e=>{e.stopPropagation();$("pop").classList.toggle("on")};document.addEventListener("click",e=>{if(!e.target.closest(".pop"))$("pop").classList.remove("on")});
-$("pop").onclick=e=>e.stopPropagation();
-function rp(){chips($("ld"),Object.keys(LD).map(k=>[k,k,!LD[k](sel.mc)]),sel.ld,k=>{sel.ld=k;head();save()});
-chips($("tf"),Object.entries(TN),tf,k=>{tf=k;rp()});
-const key=tf+"|"+sel.ld+"|"+sel.mc+"|"+V.length+"|"+(LS.f?1:0)+(LS.g?1:0)+(LS.n?1:0);if(key===rpK)return;rpK=key;
-let list=V.filter(v=>(tf==="all"||v.type===tf)&&LD[sel.ld](v.id));if(!list.find(v=>v.id===sel.mc))list.unshift({id:sel.mc,type:sel.type});
-$("ver").innerHTML=list.map(v=>`<option ${v.id===sel.mc?"selected":""}>${v.id}</option>`).join("");}
-$("ver").onchange=e=>{const v=V.find(z=>z.id===e.target.value);pick(e.target.value,v?v.type:tf)};
-let vlim=150,rpK="",vsrc="demo",vt;
-const cnt=k=>k==="all"?V.length:V.filter(v=>v.type===k).length;
-function rv(more){if(!more)vlim=150;$("vinfo").textContent=A?(vsrc==="error"?"No se pudo cargar la lista oficial. Pulsa «Recargar lista».":V.length+" versiones · "+(vsrc==="cache"?"copia guardada (sin conexión)":"lista oficial de Mojang")):"Vista previa con "+V.length+" versiones de ejemplo. La app de escritorio carga todas.";chips($("tf2"),Object.entries(TN).map(([k,n])=>[k,`${n} (${cnt(k)})`]),tf,k=>{tf=k;rv()});const q=$("vq").value.toLowerCase().trim();
-const L=V.filter(v=>(tf==="all"||v.type===tf)&&v.id.toLowerCase().includes(q));
-$("vl").innerHTML=L.slice(0,vlim).map(v=>`<div class="row ${v.id===sel.mc?"on":""}" data-v="${v.id}" data-t="${v.type}"><span class="n">${v.id}</span>${tf==="all"?`<span class="s">${TN[v.type]||v.type}</span>`:""}<span class="s">${Object.keys(LD).filter(k=>LD[k](v.id)).join(" · ")}</span></div>`).join("")+(L.length>vlim?`<button class="btn" id="vm" style="margin-top:10px">Mostrar más (${L.length-vlim} restantes)</button>`:"")+(L.length?"":'<div style="color:var(--m)">Sin resultados</div>')}
-$("vl").onclick=e=>{if(e.target.id==="vm"){vlim+=250;rv(1);return}const r=e.target.closest(".row");if(r){pick(r.dataset.v,r.dataset.t);show("home")}};
-$("vq").oninput=()=>{clearTimeout(vt);vt=setTimeout(()=>rv(),120)};
-$("vre").onclick=async()=>{if(!A)return;$("vinfo").textContent="Cargando…";try{const r=await A.versions(true);V=r.v||r;vsrc=r.src||"mojang"}catch{vsrc="error"}rpK="";rp();rv();loadLoaders()};
-async function loadLoaders(){const r=await Promise.allSettled([H("https://meta.fabricmc.net/v2/versions/game"),H("https://files.minecraftforge.net/net/minecraftforge/forge/promotions_slim.json"),H("https://maven.neoforged.net/api/maven/versions/releases/net/neoforged/neoforge")]);
-if(r[0].value)LS.f=new Set(r[0].value.map(v=>v.version));
-if(r[1].value)LS.g=new Set(Object.keys(r[1].value.promos).map(k=>k.replace(/-(latest|recommended)$/,"")));
-if(r[2].value)LS.n=new Set(r[2].value.versions.flatMap(v=>{const p=v.split("."),a=+p[0],b=+p[1],c=parseInt(p[2])||0;return a<26?["1."+a+(b?"."+b:"")]:[a+"."+b,a+"."+b+"."+c]}));
-rpK="";rp();rv()}
-// Instancias (automáticas)
-async function loadI(){I=A?await A.insts():[{id:"d1",name:"Fabric 1.20.1",mc:"1.20.1",ld:"Fabric",type:"release"},{id:"d2",name:"Vanilla 1.8.9",mc:"1.8.9",ld:"Vanilla",type:"release"}];qi();ri()}
-async function ensure(){let i=I.find(x=>x.mc===sel.mc&&x.ld===sel.ld);if(!i&&A){i=await A.saveInst({name:`${sel.ld} ${sel.mc}`,mc:sel.mc,ld:sel.ld,type:sel.type});await loadI()}return i}
-function qi(){$("qi").innerHTML=I.length?I.slice(0,6).map(i=>`<div class="row ${i.mc===sel.mc&&i.ld===sel.ld?"on":""}" data-i="${i.id}"><span class="n">${i.name}</span><span class="s">${i.mc}</span></div>`).join(""):'<div style="color:var(--m)">Aún no hay instancias. Elige una versión y pulsa Lanzar juego: se crea sola.</div>';
-$("qi").querySelectorAll(".row").forEach(r=>r.onclick=()=>{const i=I.find(x=>x.id===r.dataset.i);pick(i.mc,i.type||"release",i.ld)})}
-function ri(){$("il").innerHTML=I.length?I.map(i=>`<div class="ins"><div class="t">${i.name}</div><div style="color:var(--m)">${i.ld} · ${i.mc}</div><div class="a"><button class="btn pr" data-p="${i.id}">Jugar</button><button class="btn" data-d="${i.id}">Borrar</button></div></div>`).join(""):'<div style="color:var(--m)">Todavía no tienes instancias.</div>';
-$("il").querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>{const i=I.find(x=>x.id===b.dataset.p);pick(i.mc,i.type||"release",i.ld);show("home");play()});
-$("il").querySelectorAll("[data-d]").forEach(b=>b.onclick=async()=>{if(A&&confirm("¿Borrar la instancia con sus mundos y mods?")){await A.delInst(b.dataset.d);loadI()}})}
-// Jugar
-$("go").onclick=()=>play();
-async function play(){if(!A){$("st").textContent="Vista previa: instala la app de escritorio para jugar";return}$("go").disabled=true;try{const i=await ensure();await A.play({id:i.id})}finally{$("go").disabled=false}}
-// Ajustes
-const IC=n=>`<svg class="ic"><use href="#i-${n}"/></svg>`;
-const BHM={dorado:[44,100],azul:[205,100],violeta:[268,95],rosa:[328,95],verde:[140,90],rojo:[4,100],blanco:[0,0]},BHC={dorado:"#ffb347",azul:"#4fa8ff",violeta:"#9d6bff",rosa:"#ff6bb5",verde:"#3ee08a",rojo:"#ff5252",blanco:"#f4f6fa"},BHN={dorado:"Dorado",azul:"Azul",violeta:"Violeta",rosa:"Rosa",verde:"Verde",rojo:"Rojo",blanco:"Blanco"};
-const FF=[["Segoe UI","sans-serif"],["Segoe UI Variable Text","sans-serif","Segoe UI Variable"],["Bahnschrift","sans-serif"],["Calibri","sans-serif"],["Arial","sans-serif"],["Tahoma","sans-serif"],["Verdana","sans-serif"],["Trebuchet MS","sans-serif"],["Century Gothic","sans-serif"],["Candara","sans-serif"],["Corbel","sans-serif"],["Franklin Gothic Medium","sans-serif"],["Ebrima","sans-serif"],["Nirmala UI","sans-serif"],["Gill Sans MT","sans-serif"],["Cambria","serif"],["Constantia","serif"],["Georgia","serif"],["Palatino Linotype","serif"],["Sitka Text","serif"],["Times New Roman","serif"],["Comic Sans MS","cursive"],["Impact","sans-serif"],["Consolas","monospace"],["Cascadia Code","monospace"],["Lucida Console","monospace"],["Courier New","monospace"]];
-const FONTS=Object.fromEntries(FF.map(([n,g,l])=>[l||n,`"${n}",${n==="Segoe UI"?"system-ui,":""}${g}`]));
-let VER="0.2.7",SYS={total:16},secNow="gen",BG="#080a0f",BHs=BHM.dorado,dirty=60,RUN=false;
-const CLH="<div class=\"cv\"><h5>0.2.7 <small>actual</small> · Discord para todos, mods y modpacks, aviso de actualización</h5><div class=\"ct a\">Añadido</div><ul><li>Discord: al tener Discord y el launcher abiertos a la vez, tu perfil muestra «Nova Launcher» con el logo, la versión del launcher y, al jugar, la versión de Minecraft con el tiempo de partida; se conecta solo aunque abras Discord después</li><li>Botón «Descargar Nova Launcher» en la actividad de Discord para que tus amigos lo instalen</li><li>Mods y Modpacks: pestañas para Mods, Modpacks, Shaders y Texturas, orden por descargas, seguidos, nuevos o actualizados, 20 categorías, botón «Cargar más» y contador de resultados</li><li>Los mods instalan solos sus dependencias obligatorias (por ejemplo Fabric API)</li><li>Los modpacks de Modrinth ya no se limitan a la versión elegida en la portada: se muestran todos y se crea una instancia propia</li><li>Shaders y texturas se guardan en la carpeta correcta de la instancia</li><li>Aviso «1 actualización pendiente» en la pantalla principal, ventana emergente al abrir, punto rojo en el menú y botón «Actualizar ahora» que descarga e instala de una vez</li><li>Acceso directo del escritorio: se crea al actualizar si no existía y hay un botón en Ajustes → Acerca de para crearlo cuando quieras</li><li>Icono propio (el logo de la app) para el .exe, el instalador y el acceso directo</li></ul><div class=\"ct m\">Mejorado</div><ul><li>El launcher busca actualizaciones nada más abrir y cada vez que vuelves a la ventana</li><li>Búsqueda de mods con tarjetas más completas: autor, descargas, seguidores, categorías y versiones</li></ul></div><div class=\"cv\"><h5>0.2.6 <small></small> · Discord, logos oficiales y botón de lanzar nuevo</h5><div class=\"ct a\">Añadido</div><ul><li>Integración con Discord: tu perfil muestra «Jugando a Minecraft 1.21.1» (con la versión, el cargador y el tiempo) y «En el launcher» cuando estás en el launcher</li><li>Ajustes de Discord: activar o desactivar, ID de aplicación y estado de la conexión en directo</li><li>El instalador crea el acceso directo en el escritorio (también al actualizar desde el launcher)</li></ul><div class=\"ct m\">Mejorado</div><ul><li>Botón de lanzar rediseñado: cristal oscuro con borde del color de acento, icono de play con brillo y flecha de versiones mejor integrada</li><li>Redes: logos oficiales (YouTube, Twitch, TikTok, Instagram, X, Discord y GitHub) con animación de entrada, flotado suave y efecto al pasar el ratón; siguen en «Próximamente»</li><li>Ajustes de apariencia: las opciones con muchas casillas (como el tema de fondo) pasan a una segunda línea y ya no se comprimen</li></ul></div><div class=\"cv\"><h5>0.2.5 <small></small> · Actualizar desde el propio launcher, portada nueva y redes</h5><div class=\"ct a\">Añadido</div><ul><li>Actualización desde el launcher: aviso en la portada y en la barra superior, botón «Descargar», barra de progreso y botón «Reiniciar e instalar»</li><li>Tus mundos, mods, instancias y ajustes se conservan al actualizar (viven fuera de la carpeta de instalación)</li><li>Ajuste «Descargar actualizaciones automáticamente» (si lo apagas, tú decides cuándo descargar)</li><li>Sección «Redes» con las redes sociales del creador (por ahora vacías, listas para añadir los enlaces)</li></ul><div class=\"ct m\">Mejorado</div><ul><li>Botón de lanzar rediseñado: icono de play, texto más claro y flecha de versiones como segmento propio con animación</li><li>Portada compacta: las novedades se ven sin tener que bajar</li><li>Acerca de: muestra el estado de la actualización en directo</li><li>Texto de los ajustes de actualización más claro</li></ul></div><div class=\"cv\"><h5>0.2.4 <small></small> · Ajustes, versiones y agujero negro (incluye todas las correcciones)</h5><div class=\"ct a\">Añadido</div><ul><li>Ajustes por apartados: Cuenta, Juego, Apariencia, Fondo, Interfaz, Accesibilidad, Rendimiento y Acerca de</li><li>Detección de la RAM del PC: el deslizador tiene como tope tu memoria total y recomienda el 50%</li><li>Colores del launcher (9) y color personalizado libre; 8 temas de fondo</li><li>Personalización del agujero negro: color, tamaño, velocidad, inclinación, cantidad de estrellas, lente gravitacional, resplandor y mostrarlo o no en otras pestañas</li><li>Interfaz a tu gusto: redondeo de esquinas, transparencia y desenfoque de los paneles, densidad, ancho de la barra lateral, y mostrar u ocultar saludo, skin, novedades, instancias y estado</li><li>26 tipografías, más una casilla para escribir cualquier fuente instalada; tamaño de texto, negrita, espaciado de letras e interlineado</li><li>Accesibilidad: alto contraste, resaltar el foco del teclado y reducir animaciones</li><li>Rendimiento: calidad del fondo, límite de FPS, ahorro mientras juegas y pausa cuando la ventana no tiene el foco</li><li>Porcentaje de carga (0% a 100%) en la animación de entrada</li><li>Todas las versiones oficiales de Minecraft (release, snapshot, beta y alpha) con filtro «Todas», contador, búsqueda y botón «Recargar lista»</li><li>Copia local de la lista de versiones para que aparezcan también sin conexión</li><li>Compatibilidad de Fabric, Forge y NeoForge leída de sus listas oficiales (incluida la numeración nueva de NeoForge)</li><li>Botón «Buscar actualizaciones», interruptor de actualización automática y versión real instalada en la tarjeta Estado</li><li>Opciones de juego: volver a mostrar el launcher al cerrar Minecraft y mostrar u ocultar el registro del juego</li><li>Botón para restablecer la personalización y este historial dentro de la app</li></ul><div class=\"ct m\">Mejorado</div><ul><li>Agujero negro: disco con anillos y gas, arco de luz sobre la sombra, anillo de fotones y estrellas deformadas por la gravedad</li><li>Animación de entrada: ondas de luz, letras que aparecen una a una y barra de carga</li><li>Icono de ajustes: ahora es un engranaje</li><li>Optimización: fondo dibujado con imágenes precalculadas, 30 o 60 FPS a elegir, pausa si el launcher está minimizado, sin foco o con Minecraft abierto</li><li>Optimización: listas largas de versiones con renderizado diferido, búsqueda con retardo y selector de la portada que no se reconstruye sin necesidad</li><li>Optimización: ventana sin parpadeo blanco al abrir y una sola instancia del launcher a la vez</li><li>Iconos de los ajustes rediseñados</li></ul></div><div class=\"cv\"><h5>0.2.3 <small></small> · Agujero negro e intro</h5><div class=\"ct a\">Añadido</div><ul><li>Agujero negro animado como fondo de todo el launcher</li><li>Animación de entrada con logo</li><li>Animaciones de entrada y de aparición de paneles</li><li>Logo del launcher (opción A: Horizonte)</li></ul><div class=\"ct m\">Mejorado</div><ul><li>Botón de lanzar con brillo y efecto al pasar el ratón</li><li>Barra de progreso más suave</li><li>Paneles con efecto cristal</li></ul><div class=\"ct q\">Quitado</div><ul><li>Astronauta y cohete de la portada</li></ul></div><div class=\"cv\"><h5>0.2.2 <small></small> · Rediseño de la portada</h5><div class=\"ct a\">Añadido</div><ul><li>Portada inspirada en Lunar Client con botón grande de lanzar</li><li>Instancias automáticas: se crean solas al jugar una versión</li><li>Iconos propios en lugar de emojis</li><li>Color de acento a elegir</li><li>Novedades oficiales de Mojang en la portada</li><li>Indicador de instancias en ejecución y skin en la barra superior</li></ul><div class=\"ct m\">Mejorado</div><ul><li>Diseño general mucho más pulido</li></ul><div class=\"ct q\">Quitado</div><ul><li>Crear instancias a mano como paso obligatorio</li></ul></div><div class=\"cv\"><h5>0.2.0 <small></small> · Instalador y cuentas</h5><div class=\"ct a\">Añadido</div><ul><li>Instalador de Windows con carpeta de instalación a elegir</li><li>Inicio de sesión con Microsoft además del modo offline</li><li>Descarga automática del Java correcto para cada versión</li><li>Instancias separadas con sus propios mundos y mods</li><li>Mods de Modrinth y CurseForge, y modpacks de Modrinth</li><li>Actualizaciones automáticas desde GitHub Releases</li></ul></div><div class=\"cv\"><h5>0.1.0 <small></small> · Primera versión</h5><div class=\"ct a\">Añadido</div><ul><li>Lanzamiento de Minecraft Vanilla, Fabric, Forge y NeoForge</li><li>Lista de versiones de Mojang</li><li>Búsqueda e instalación de mods de Modrinth</li><li>Ajustes básicos: usuario, RAM, Java, resolución y argumentos JVM</li></ul></div>";
-const RESET={accent:"#2ee06f",theme:"oscuro",radius:100,panelAlpha:60,glassBlur:12,density:"normal",navW:76,bh:"dorado",bhSize:100,bhSpeed:100,bhTilt:-6,stars:100,bhLens:true,bhBloom:true,bhOther:true,greet:true,showAvatar:true,showNews:true,newsN:4,showInst:true,showStatus:true,font:"Segoe UI",fontCustom:"",tsize:100,lsp:0,lh:145,bold:false,contrast:false,focusRing:false,rmotion:false};
-const RG=(k,t,d,i,min,max,st,u)=>({k,t,d,i,type:"range",min,max,st,u}),TG=(k,t,d,i)=>({k,t,d,i,type:"bool"});
-const SC=[
-{id:"gen",n:"Cuenta",i:"user",rows:[{c:"acct"},{k:"username",t:"Nombre de usuario",d:"Se usa en modo offline",i:"user",type:"text"},TG("discord","Mostrar en Discord a qué juegas","Tu perfil enseña «Jugando a Minecraft» con la versión y el tiempo","users"),{k:"discordId",t:"ID de aplicación de Discord",d:"Se crea gratis en discord.com/developers (mira el README)",i:"key",type:"text"},{c:"dsc"},{k:"cfKey",t:"Clave API de CurseForge",d:"Opcional, para buscar mods allí",i:"key",type:"text"}]},
-{id:"game",n:"Juego",i:"cup",rows:[{c:"ram"},{k:"javaPath",t:"Ruta de Java",d:"Vacío = Java automático",i:"cup",type:"text"},{c:"res"},TG("fullscreen","Pantalla completa","Abrir Minecraft a pantalla completa","monitor"),{k:"jvmArgs",t:"Argumentos JVM",d:"Ej: -XX:+UseG1GC",i:"sliders",type:"text"},TG("closeOnLaunch","Ocultar el launcher al jugar","Libera recursos mientras juegas","rocket"),TG("reopen","Volver a mostrar el launcher al cerrar el juego","Solo si lo ocultaste al jugar","rocket"),TG("showLog","Mostrar el registro del juego","Panel con la salida de Minecraft","sliders"),{c:"folder"}]},
-{id:"apar",n:"Apariencia",i:"palette",rows:[{k:"accent",t:"Color del launcher",d:"Botones, iconos y detalles",i:"palette",type:"sw",o:Object.fromEntries(Object.keys(ACC).map(k=>[k,k])),n:ACC},{k:"accent",t:"Color personalizado",d:"Elige cualquier color",i:"palette",type:"color"},{k:"theme",t:"Tema de fondo",d:"Color base de las ventanas",i:"contrast",type:"chips",o:{oscuro:"Oscuro",negro:"Negro",carbon:"Carbón",medianoche:"Medianoche",oceano:"Océano",bosque:"Bosque",violeta:"Violeta",vino:"Vino"}},RG("radius","Redondeo de esquinas","0% = esquinas rectas","layout",0,160,10),RG("panelAlpha","Transparencia de los paneles","Más bajo = más cristal","contrast",30,100,5),RG("glassBlur","Desenfoque del cristal","0 = desactivado (más rápido)","bolt",0,30,2,"px"),{k:"density",t:"Densidad",d:"Espacio entre elementos",i:"layout",type:"chips",o:{compacta:"Compacta",normal:"Normal",comoda:"Cómoda"}},RG("navW","Ancho de la barra lateral","","layout",60,110,2,"px")]},
-{id:"bg",n:"Fondo",i:"orbit",rows:[{k:"bh",t:"Color del agujero negro",d:"Borde y disco de acreción",i:"orbit",type:"sw",o:BHC,n:BHN},RG("bhSize","Tamaño","Del agujero negro","orbit",60,130,5),RG("bhSpeed","Velocidad del disco","0% = detenido","orbit",0,200,10),RG("bhTilt","Inclinación del disco","En grados","orbit",-30,30,1,"°"),RG("stars","Cantidad de estrellas","","orbit",0,200,10),TG("bhLens","Distorsión de las estrellas","Efecto de lente gravitacional","orbit"),TG("bhBloom","Resplandor","Brillo suave alrededor","orbit"),TG("bhOther","Mostrar en las demás pestañas","Más tenue, a un lado","orbit")]},
-{id:"ui",n:"Interfaz",i:"layout",rows:[TG("greet","Mostrar el saludo","Bienvenido de nuevo…","layout"),TG("showAvatar","Mostrar tu skin arriba","Pequeño avatar junto al nombre","user"),TG("showNews","Mostrar las novedades","Noticias oficiales de Mojang","layout"),{k:"newsN",t:"Cantidad de novedades",d:"Tarjetas visibles",i:"layout",type:"chips",o:{2:"2",4:"4",6:"6",8:"8"}},TG("showInst","Mostrar tus instancias","Tarjeta de la portada","layout"),TG("showStatus","Mostrar la tarjeta de estado","Cuenta, memoria, Java y versión","layout")]},
-{id:"acc",n:"Accesibilidad",i:"eye",rows:[{k:"font",t:"Tipografía",d:"Fuente de todo el launcher",i:"type",type:"select",o:FONTS},{k:"fontCustom",t:"Otra tipografía",d:"Nombre de cualquier fuente instalada (opcional)",i:"type",type:"text"},RG("tsize","Tamaño de texto e interfaz","Escala todo el launcher","type",85,140,5),RG("lsp","Espaciado de letras","","type",-1,4,.5,"px"),RG("lh","Interlineado","","type",120,200,5),TG("bold","Texto en negrita","Más grueso y legible","type"),TG("contrast","Alto contraste","Bordes y textos más marcados","contrast"),TG("focusRing","Resaltar el foco del teclado","Marco visible al navegar con Tab","eye"),TG("rmotion","Reducir animaciones","Menos movimiento y sin intro","eye")]},
-{id:"perf",n:"Rendimiento",i:"bolt",rows:[{k:"quality",t:"Calidad del fondo animado",d:"Más baja = menos uso de CPU y GPU",i:"bolt",type:"chips",o:{alta:"Alta",media:"Media",baja:"Baja",off:"Estático"}},{k:"fps",t:"Límite de FPS del fondo",d:"30 gasta menos batería",i:"bolt",type:"chips",o:{30:"30",60:"60"}},TG("pauseGame","Ahorrar recursos mientras juegas","Baja los efectos con Minecraft abierto","bolt"),TG("pauseBlur","Pausar si la ventana no tiene el foco","Ahorra CPU y GPU en segundo plano","bolt"),TG("intro","Animación de entrada","Mostrar la intro al abrir","rocket"),TG("autoUpdate","Buscar actualizaciones al abrir","Comprueba si hay una versión nueva al iniciar y cada hora","refresh"),TG("autoDownload","Descargar actualizaciones automáticamente","Si lo apagas, tú decides cuándo descargar","refresh")]},
-{id:"about",n:"Acerca de",i:"info",rows:[{c:"about"},{c:"lnk"},{c:"reset"}]}];
-const O=(i,t,d,c)=>`<div class="o"><div class="oi">${IC(i)}</div><div class="ot"><b>${t}</b><span>${d}</span></div>${c}</div>`;
-const rec=()=>Math.max(1,Math.floor(SYS.total/2));
-async function sv(c){cfg={...cfg,...c};if(A)await A.set(c);dirty=60}
-async function rc(){cfg={...cfg,...await A.cfg()}}
-async function ramInit(){if(!cfg.ramSet)await sv({ram:rec(),ramSet:true});else if(cfg.ram>SYS.total)await sv({ram:SYS.total})}
-function ramRow(){const m=SYS.total,r=rec(),f=m>1?(r-1)/(m-1):0;return `<div class="o" style="flex-wrap:wrap"><div class="oi">${IC("chip")}</div><div class="ot"><b>Memoria RAM</b><span>Tu PC tiene ${m} GB · recomendado: ${r} GB (50%)</span><div class="rg2"><input type="range" id="s_ram" data-k="ram" min="1" max="${m}" step="1" value="${cfg.ram}"><i class="mk" style="left:calc(${f*100}% + ${9-18*f}px)"></i></div></div><div class="rv"><b id="rv">${cfg.ram} GB</b><button class="btn" id="rrec">Usar recomendado</button></div><div class="warn" id="rw" style="flex-basis:100%"></div></div>`}
-function ramUi(v){$("rv").textContent=v+" GB";$("rw").textContent=v>SYS.total*.75?"Es más del 75% de tu RAM: el PC y el juego pueden ir peor.":v<2?"Con menos de 2 GB Minecraft puede ir muy justo.":""}
-function row(r){
-if(r.c==="ram")return ramRow();
-if(r.c==="res")return O("monitor","Resolución","Ancho × Alto",`<div style="display:flex;gap:8px;align-items:center"><input type="number" data-k="width" value="${cfg.width}" style="width:92px">×<input type="number" data-k="height" value="${cfg.height}" style="width:92px"></div>`);
-if(r.c==="acct")return O("user","Cuenta de Minecraft",cfg.ms?"Microsoft: "+cfg.ms.name:"Offline ("+cfg.username+")",`<button class="btn" id="ms">${cfg.ms?"Cerrar sesión":"Iniciar sesión con Microsoft"}</button>`);
-if(r.c==="dsc")return O("users","Estado de Discord",`<span id="dscm">${dlabel()}</span>`,"");
-if(r.c==="lnk")return O("rocket","Acceso directo del escritorio","Crea el icono de Nova Launcher en tu escritorio",`<button class="btn" id="lnk">Crear acceso directo</button>`);
-if(r.c==="folder")return O("folder","Carpeta del juego","Mundos, mods e instancias",`<button class="btn" id="of">Abrir</button>`);
-if(r.c==="about")return O("info","Nova Launcher","Versión "+VER+" · "+I.length+" instancias",`<span id="upm" style="color:var(--m);font-size:12px;margin-right:10px"></span><button class="btn" id="chk">Buscar actualizaciones</button>`)+`<div class="o" style="display:block"><b style="display:block;margin-bottom:6px">Historial de actualizaciones</b><div class="cl">${CLH}</div></div>`;
-if(r.c==="reset")return O("refresh","Restablecer la personalización","Apariencia, fondo, interfaz y accesibilidad",`<button class="btn" id="rst">Restablecer</button>`);
-const v=cfg[r.k];let c="";
-if(r.type==="text")c=`<input type="text" data-k="${r.k}" value="${v||""}">`;
-else if(r.type==="bool")c=`<label class="tg"><input type="checkbox" data-k="${r.k}" ${v?"checked":""}><i></i></label>`;
-else if(r.type==="chips")c=`<div class="chips" data-k="${r.k}">${Object.entries(r.o).map(([k,n])=>`<button class="chip ${k===String(v)?"on":""}" data-v="${k}">${n}</button>`).join("")}</div>`;
-else if(r.type==="sw")c=`<div class="cs" data-k="${r.k}">${Object.entries(r.o).map(([k,col])=>`<div class="sw2 ${k===v?"on":""}" style="background:${col};color:${col}" title="${r.n[k]||k}" data-v="${k}"></div>`).join("")}</div>`;
-else if(r.type==="color")c=`<input type="color" data-k="${r.k}" value="${v||"#2ee06f"}" style="width:56px;height:36px;padding:2px;cursor:pointer">`;
-else if(r.type==="select")c=`<select data-k="${r.k}">${Object.keys(r.o).map(k=>`<option ${k===v?"selected":""}>${k}</option>`).join("")}</select>`;
-else if(r.type==="range"){const u=r.u===undefined?"%":r.u;c=`<div style="display:flex;gap:10px;align-items:center"><input type="range" data-k="${r.k}" data-u="${u}" min="${r.min}" max="${r.max}" step="${r.st}" value="${v}" style="width:150px"><b style="min-width:56px;text-align:right">${v}${u}</b></div>`}
-return O(r.i,r.t,r.d||"",c)}
-function buildSet(){const y=$("set").scrollTop;
-$("sn").innerHTML=SC.map(s=>`<button data-s="${s.id}" class="${s.id===secNow?"on":""}">${IC(s.i)}${s.n}</button>`).join("");
-$("sc").innerHTML=SC.map(s=>`<section data-s="${s.id}" class="${s.id===secNow?"on":""}">${s.rows.map(row).join("")}</section>`).join("");
-$("sn").querySelectorAll("button").forEach(b=>b.onclick=()=>{secNow=b.dataset.s;document.querySelectorAll("#sn button,#sc>section").forEach(e=>e.classList.toggle("on",e.dataset.s===secNow))});
-if($("rw"))ramUi(cfg.ram);$("set").scrollTop=y}
-$("sc").addEventListener("change",e=>{const t=e.target,k=t.dataset.k;if(!k)return;const v=t.type==="checkbox"?t.checked:(t.type==="number"||t.type==="range")?+t.value:t.value;sv({[k]:v}).then(()=>{applyAp();if(["username","ram","javaPath"].includes(k))head();if(k==="accent")buildSet()})});
-$("sc").addEventListener("input",e=>{const t=e.target;if(t.type!=="range")return;if(t.id==="s_ram")ramUi(+t.value);else{t.nextElementSibling.textContent=t.value+(t.dataset.u||"");cfg[t.dataset.k]=+t.value;applyAp()}});
-$("sc").addEventListener("click",e=>{const el=e.target.closest("[data-v]");if(el&&el.parentElement.dataset.k){const k=el.parentElement.dataset.k,raw=el.dataset.v,val=/^-?\d+$/.test(raw)?+raw:raw;el.parentElement.querySelectorAll("[data-v]").forEach(x=>x.classList.toggle("on",x===el));sv({[k]:val}).then(()=>{applyAp();if(k==="accent")buildSet()})}
-const id=e.target.id;if(id==="ms")msClick();if(id==="of"&&A)A.folder();
-if(id==="rrec"){const r=rec();$("s_ram").value=r;ramUi(r);sv({ram:r,ramSet:true}).then(head)}
-if(id==="rst"&&confirm("¿Restablecer toda la personalización a los valores de fábrica?"))sv(RESET).then(()=>{buildSet();applyAp();head()});
-if(id==="chk")updAction();if(id==="lnk"){const b=e.target;if(!A||!A.shortcut){b.textContent="Solo en la app instalada";return}A.shortcut().then(ok=>b.textContent=ok?"Creado ✓":"No se pudo crear")}});
-let lastZ=0,lastSt=-1,lastN=0;
-function applyAp(){const r=document.documentElement,b=document.body,sy=r.style;
-sy.setProperty("--ac",cfg.accent||"#2ee06f");r.dataset.th=cfg.theme||"oscuro";
-const fam=(cfg.fontCustom||"").replace(/[^\w \-.]/g,"").trim();b.style.fontFamily=(fam?`"${fam}",`:"")+(FONTS[cfg.font]||FONTS["Segoe UI"]);
-b.style.letterSpacing=(+cfg.lsp||0)+"px";b.style.lineHeight=String((+cfg.lh||145)/100);
-b.classList.toggle("bold",!!cfg.bold);b.classList.toggle("hc",!!cfg.contrast);b.classList.toggle("fo",!!cfg.focusRing);r.classList.toggle("rm",!!cfg.rmotion);
-const pa=cfg.panelAlpha==null?60:+cfg.panelAlpha,bl=cfg.glassBlur==null?12:+cfg.glassBlur;
-sy.setProperty("--rs",String((cfg.radius==null?100:+cfg.radius)/100));sy.setProperty("--pa",pa+"%");sy.setProperty("--pa2",Math.min(100,pa+14)+"%");sy.setProperty("--bl",bl+"px");r.classList.toggle("ng",bl===0);
-sy.setProperty("--d",String({compacta:.78,normal:1,comoda:1.25}[cfg.density]||1));sy.setProperty("--nw",(cfg.navW||76)+"px");
-const ni=cfg.intro===false||!!cfg.rmotion;r.classList.toggle("ni",ni);if(ni){sy.setProperty("--base","0s");const i=$("intro");i&&i.remove()}
-const z=(cfg.tsize||100)/100;if(z!==lastZ){lastZ=z;if(A)A.zoom(z);else b.style.zoom=z}
-$("g2").classList.toggle("nonews",cfg.showNews===false);$("cardI").style.display=cfg.showInst===false?"none":"";$("cardS").style.display=cfg.showStatus===false?"none":"";$("wel").style.display=cfg.greet===false?"none":"";
-$("av").style.display=cfg.showAvatar===false?"none":"";if(cfg.showLog===false)$("log").style.display="none";
-if(typeof NEWS!=="undefined"&&NEWS.length&&lastN!==(cfg.newsN||4))renderNews();
-BG=getComputedStyle(r).getPropertyValue("--bg").trim()||"#080a0f";BHs=BHM[cfg.bh]||BHM.dorado;
-if(cfg.stars!==lastSt){lastSt=cfg.stars;if(typeof rs==="function")rs()}
-dirty=60}
-function fillCfg(){buildSet();applyAp()}
-function acc(){head();buildSet()}
-async function msClick(){if(!A)return;if(cfg.ms){await A.set({ms:null});cfg.ms=null}else{await A.login();await rc()}acc()}
-// Mods
-let mt,src="modrinth",kind="mod",cat="",sort="relevance",off=0,total=0,MH=[];const cmp={mod:true,modpack:false,shader:true,resourcepack:true};
-const H=(u,h)=>A.http({url:u,headers:h}),CL={Fabric:4,Forge:1,NeoForge:6},enc=x=>encodeURIComponent(JSON.stringify(x));
-const KINDS=[["mod","Mods"],["modpack","Modpacks"],["shader","Shaders"],["resourcepack","Texturas"]],SORTS=[["relevance","Relevancia"],["downloads","Más descargados"],["follows","Más seguidos"],["newest","Más nuevos"],["updated","Actualizados"]];
-const CATS={mod:[["optimization","Optimización"],["technology","Tecnología"],["magic","Magia"],["adventure","Aventura"],["utility","Utilidad"],["decoration","Decoración"],["storage","Almacenamiento"],["mobs","Mobs"],["equipment","Equipo"],["worldgen","Mundo"],["library","Librerías"],["food","Comida"],["game-mechanics","Mecánicas"],["transportation","Transporte"],["social","Social"],["management","Gestión"],["economy","Economía"],["minigame","Minijuegos"],["cursed","Locuras"]],
-modpack:[["adventure","Aventura"],["technology","Tecnología"],["magic","Magia"],["optimization","Optimización"],["lightweight","Ligeros"],["quests","Misiones"],["multiplayer","Multijugador"],["challenging","Difíciles"],["kitchen-sink","De todo"],["combat","Combate"],["exploration","Exploración"]],
-shader:[["realistic","Realistas"],["fantasy","Fantasía"],["cartoon","Cartoon"],["vanilla-like","Estilo vanilla"],["semi-realistic","Semi-realistas"],["potato","Poco consumo"],["high","Alto rendimiento"]],
-resourcepack:[["16x","16x"],["32x","32x"],["64x","64x"],["128x","128x o más"],["realistic","Realistas"],["fantasy","Fantasía"],["cartoon","Cartoon"],["vanilla-like","Estilo vanilla"],["themed","Temáticos"],["utility","Utilidad"]]};
-const CTX=Object.fromEntries(Object.values(CATS).flat());
-const fmtN=n=>n>=1e6?(n/1e6).toFixed(1).replace(".0","")+" M":n>=1e3?(n/1e3).toFixed(n>=1e4?0:1).replace(".0","")+" k":String(n||0);
-const DM={mod:[["Sodium","Motor de render que multiplica los FPS","jellysquid3",98e5,41e3,["optimization"]],["Lithium","Optimiza la lógica del juego sin cambiar nada","jellysquid3",7e6,3e4,["optimization"]],["Fabric API","Biblioteca base para casi todos los mods Fabric","modmuss50",9e7,31e3,["library"]],["Iris Shaders","Shaders modernos compatibles con Sodium","coderbot",2e7,18e3,["decoration"]],["Mod Menu","Lista y configura tus mods desde el menú","Prospector",3e7,9e3,["utility"]],["Create","Máquinas, engranajes y automatización","simibubi",2e7,25e3,["technology"]],["Xaero's Minimap","Minimapa con waypoints y cadenas","xaero96",3e7,8e3,["utility"]],["Just Enough Items","Recetas y objetos al alcance","mezz",2e8,15e3,["utility"]],["Farmer's Delight","Cocina y agricultura ampliada","vectorwing",9e6,12e3,["food"]],["Ender IO","Tecnología y logística","Team",5e6,4e3,["technology"]],["Botania","Magia basada en flores","Vazkii",8e6,6e3,["magic"]],["Waystones","Teletransportes entre mundos","BlayTheNinth",9e6,7e3,["adventure"]]],
-modpack:[["Fabulously Optimized","Rendimiento y calidad, listo para jugar","robotkoer",5e6,12e3,["optimization"],["1.21.1"]],["Better Minecraft","Vanilla+ con cientos de mejoras","Better",3e6,6e3,["adventure"],["1.20.1"]],["Create: Above and Beyond","Progresión con Create","simibubi",1e6,4e3,["technology"],["1.18.2"]],["Simply Optimized","Mínimo consumo, máximos FPS","Simply",2e6,5e3,["lightweight"],["1.21.1"]],["Cobblemon Pack","Atrapa criaturas en Minecraft","Cobble",4e6,9e3,["adventure"],["1.21.1"]],["Adrenaline","Optimización agresiva para PCs modestos","Adrenaline",9e5,3e3,["optimization"],["1.20.4"]]],
-shader:[["Complementary Reimagined","Shaders bonitos y rápidos","EminGT",9e6,11e3,["semi-realistic"]],["BSL Shaders","Clásicos y muy personalizables","CaptTatsu",7e6,9e3,["realistic"]],["Photon","Iluminación y sombras suaves","sixthsurge",1e6,3e3,["fantasy"]]],
-resourcepack:[["Faithful 32x","Texturas vanilla al doble de resolución","Faithful",8e6,10e3,["32x"]],["Fresh Animations","Mobs con animaciones nuevas","Fresh",7e6,9e3,["vanilla-like"]],["Bare Bones","Texturas simples y suaves","Bare",6e6,7e3,["16x"]]]};
-$("q").oninput=()=>{clearTimeout(mt);mt=setTimeout(()=>mods(),350)};$("mo").onchange=e=>{sort=e.target.value;mods()};$("mmore").onclick=()=>mods(true);
-function mchips(){chips($("mk"),KINDS,kind,k=>{kind=k;cat="";if(kind!=="mod"&&src==="cf"&&kind==="modpack"){}mchips();mods()});
-chips($("mc"),[["modrinth","Modrinth"],["cf","CurseForge"]],src,k=>{src=k;mchips();mods()});
-$("mo").innerHTML=SORTS.map(([k,n])=>`<option value="${k}"${k===sort?" selected":""}>${n}</option>`).join("");
-const cm=$("mcp");chips(cm,[["c",cmp[kind]?"Solo compatibles con "+sel.mc:"Todas las versiones"]],cmp[kind]?"c":"",()=>{cmp[kind]=!cmp[kind];mchips();mods()});
-chips($("mcat"),[["","Todas"],...CATS[kind]],cat,k=>{cat=k;mchips();mods()})}
-const CFC={mod:6,modpack:4471,shader:6552,resourcepack:12},DIR={mod:"mods",shader:"shaderpacks",resourcepack:"resourcepacks"};
-async function mods(more){
-if(!more){off=0;MH=[];$("mg").innerHTML=""}
-const q=$("q").value.trim(),t=sel;
-if(!A){let L=DM[kind].map(([t2,d,a,dl,fl,c,v],i)=>({id:"d"+i,t:t2,d,a,dl,fl,c,v})).filter(h=>(!q||h.t.toLowerCase().includes(q.toLowerCase()))&&(!cat||h.c.includes(cat)));MH=L;total=L.length;$("mi").textContent="Vista previa con datos de ejemplo · en la app se busca en Modrinth (miles de resultados)";drawMods();return}
-$("mi").textContent="Buscando…";const my=++mySeq;
-try{let hits,tot;
-if(src==="modrinth"){const f=[["project_type:"+kind]];if(cmp[kind])f.push(["versions:"+t.mc]);if(kind==="mod"&&cmp[kind]&&t.ld!=="Vanilla")f.push(["categories:"+t.ld.toLowerCase()]);if(cat)f.push(["categories:"+cat]);
-const idx=sort==="relevance"&&!q?"downloads":sort;
-const r=await H(`https://api.modrinth.com/v2/search?limit=30&offset=${off}&index=${idx}&query=${encodeURIComponent(q)}&facets=${enc(f)}`);
-hits=r.hits.map(h=>({id:h.project_id,slug:h.slug,t:h.title,d:h.description,i:h.icon_url,a:h.author,dl:h.downloads,fl:h.follows,v:h.versions,c:h.display_categories||h.categories||[]}));tot=r.total_hits}
-else{if(!cfg.cfKey){$("mi").textContent="Pon tu clave de CurseForge en Ajustes → Cuenta, o usa Modrinth (no necesita clave).";return}
-const sf={relevance:2,downloads:6,follows:2,newest:11,updated:3}[sort]||2;
-const r=await H(`https://api.curseforge.com/v1/mods/search?gameId=432&classId=${CFC[kind]}&pageSize=30&index=${off}&sortField=${sf}&sortOrder=desc&searchFilter=${encodeURIComponent(q)}${cmp[kind]?"&gameVersion="+t.mc:""}${kind==="mod"&&cmp[kind]&&CL[t.ld]?"&modLoaderType="+CL[t.ld]:""}`,{"x-api-key":cfg.cfKey});
-hits=r.data.map(h=>({id:h.id,cf:1,t:h.name,d:h.summary,i:h.logo&&h.logo.thumbnailUrl,a:(h.authors&&h.authors[0]&&h.authors[0].name)||"",dl:h.downloadCount,fl:h.thumbsUpCount,c:[],link:h.links&&h.links.websiteUrl}));tot=r.pagination&&r.pagination.totalCount||hits.length}
-if(my!==mySeq)return;MH=MH.concat(hits);off=MH.length;total=tot;drawMods(hits.length)}catch(e){$("mi").textContent="Error de conexión: "+e.message}}
-let mySeq=0;
-function drawMods(){const lst=MH;$("mi").textContent=(A?`${total.toLocaleString("es")} resultados`+(cmp[kind]?` para ${kind==="mod"&&sel.ld!=="Vanilla"?sel.ld+" ":""}${sel.mc}`:""):$("mi").textContent);if(A&&!lst.length)$("mi").textContent="Sin resultados. Prueba otra categoría o quita el filtro de versión.";
-$("mg").innerHTML=lst.map((h,k)=>`<div class="m2"><div class="h">${h.i?`<img src="${h.i}" loading="lazy" onerror="this.outerHTML='<div class=ph></div>'">`:'<div class="ph"></div>'}<div><b>${h.t}</b><small>${h.a?"por "+h.a:""}</small></div></div><p>${h.d||""}</p><div class="mm"><span>${IC("dl")}${fmtN(h.dl)}</span><span>${IC("heart")}${fmtN(h.fl)}</span>${h.v&&h.v.length?`<span>MC ${h.v[h.v.length-1]}</span>`:""}</div><div class="tg">${(h.c||[]).slice(0,3).map(c=>`<span>${CTX[c]||c}</span>`).join("")}</div><button class="btn" data-k="${k}">${kind==="modpack"?(h.cf?"Ver en CurseForge":"Crear instancia"):"Instalar"}</button></div>`).join("");
-$("mg").querySelectorAll("button").forEach(b=>b.onclick=()=>inst(b,MH[+b.dataset.k]));
-$("mmore").style.display=A&&MH.length<total?"inline-block":"none"}
-async function inst(b,h){const t=sel,L=b.textContent;b.disabled=true;b.textContent="Instalando…";
-const fail=m=>{b.textContent=m;b.disabled=false;setTimeout(()=>b.textContent=L,3500)};
-try{
-if(!A){setTimeout(()=>{b.textContent=kind==="modpack"?"Instancia creada ✓":"Instalado ✓";b.classList.add("ok")},700);return}
-if(kind==="modpack"){if(h.cf){A.open&&h.link&&A.open(h.link);b.disabled=false;b.textContent=L;return}await A.pack(h.id);await loadI();b.textContent="Instancia creada ✓";b.classList.add("ok");return}
-if(kind==="mod"&&t.ld==="Vanilla")return fail("Elige Fabric, Forge o NeoForge");
-const i=await ensure(),dir=DIR[kind];
-if(h.cf){const r=(await H(`https://api.curseforge.com/v1/mods/${h.id}/files?gameVersion=${t.mc}${kind==="mod"&&CL[t.ld]?"&modLoaderType="+CL[t.ld]:""}`,{"x-api-key":cfg.cfKey})).data[0];if(!r||!r.downloadUrl)return fail("Descarga no permitida");await A.mod({url:r.downloadUrl,name:r.fileName,inst:i&&i.id,dir})}
-else{const done=new Set();
-const mr=async(pid,lvl)=>{if(done.has(pid))return;done.add(pid);const qs=[`game_versions=${enc([t.mc])}`];if(kind==="mod")qs.push(`loaders=${enc([t.ld.toLowerCase()])}`);
-const v=await H(`https://api.modrinth.com/v2/project/${pid}/version?`+qs.join("&"));if(!v.length)throw new Error("nover");
-const f=v[0].files.find(x=>x.primary)||v[0].files[0];await A.mod({url:f.url,name:f.filename,inst:i&&i.id,dir});
-if(kind==="mod"&&lvl<1)for(const d of v[0].dependencies||[])if(d.dependency_type==="required"&&d.project_id)await mr(d.project_id,lvl+1).catch(()=>{})};
-await mr(h.id,0)}
-b.textContent="Instalado ✓";b.classList.add("ok");b.disabled=false}catch(e){fail(e&&e.message==="nover"?"Sin versión para "+t.mc:"Error")}}
-// Novedades
-async function news(){let it=[];try{if(A){const r=await A.http({url:"https://launchercontent.mojang.com/v2/javaPatchNotes.json"}),B="https://launchercontent.mojang.com";
-it=(r.entries||[]).sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,12).map(e=>({t:(e.type==="release"?"Minecraft ":"Snapshot ")+e.version,d:e.shortText||"",i:e.image&&e.image.url?(/^http/.test(e.image.url)?e.image.url:B+(e.image.url[0]==="/"?"":"/")+e.image.url):""}));if(it.length)$("nsrc").textContent="Mojang"}}catch{}
-if(!it.length)it=[{t:"Nova Launcher 0.2.7",d:"Discord para todos, más mods y modpacks y aviso de actualización."},{t:"Java automático",d:"Cada versión usa el Java correcto sin que hagas nada."},{t:"Mods y modpacks",d:"Modrinth y CurseForge en un solo sitio."},{t:"Actualizaciones",d:"El launcher se actualiza solo desde GitHub."}];
-NEWS=it;renderNews()}
-let NEWS=[];
-function renderNews(){lastN=cfg.newsN||4;$("nw").innerHTML=NEWS.slice(0,lastN).map((n,i)=>`<div class="nc g${i%4}" style="${n.i?`background-image:linear-gradient(transparent 25%,#000d),url('${n.i}')`:""}"><div><b>${n.t}</b><p>${n.d}</p></div></div>`).join("")}
-// Eventos
-if(A){A.on("upd:state",setU);A.on("discord:state",setD);A.on("status",t=>$("st").textContent=t);A.on("progress",p=>{$("pb").style.width=p&&p.total?Math.round(p.task/p.total*100)+"%":"0"});
-A.on("running",n=>{RUN=!!n;dirty=40;const r=$("rn");r.classList.toggle("on",!!n);r.querySelector("span").textContent=n?"1 instancia en ejecución":"0 instancias en ejecución"});
-A.on("log",t=>{if(cfg.showLog===false)return;const l=$("log");l.style.display="block";l.textContent=(l.textContent+t).slice(-12000);l.scrollTop=1e9})}
-const ob=new MutationObserver(m=>m.forEach(r=>[...r.target.children].forEach((c,i)=>c.style.setProperty("--i",Math.min(i,14)))));
-["nw","qi","il","mg","vl"].forEach(id=>{$(id).classList.add("rise");ob.observe($(id),{childList:true})});
-document.documentElement.style.setProperty("--base","3.3s");setTimeout(()=>{document.documentElement.style.setProperty("--base","0s");const i=$("intro");i&&i.remove()},4600);
-(()=>{const bar=document.querySelector("#intro .ld i"),pc=$("ipc");if(!bar||!pc)return;const t0=performance.now()+300,DUR=2700;
-(function f(n){const p=Math.max(0,Math.min(1,(n-t0)/DUR)),e=p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2;bar.style.width=(e*100).toFixed(1)+"%";pc.textContent=Math.round(e*100)+"%";if(p<1&&pc.isConnected)requestAnimationFrame(f)})(performance.now())})();
-(async()=>{if(A){cfg={...cfg,...await A.cfg()};try{SYS=await A.sys()}catch{}try{const r=await A.versions();V=r.v||r;vsrc=r.src||"mojang"}catch{vsrc="error"}try{VER=await A.ver()}catch{}try{setU(await A.updGet())}catch{}try{setD(await A.discordGet())}catch{}if(cfg.last)sel=cfg.last;tf="all"}await ramInit();if(A)loadLoaders();fillCfg();mchips();acc();rv();await loadI();head();news()})();
-
-// ===== Actualizaciones (0.2.5) =====
-let U={s:"idle"},demoT=null;
-const fmtB=b=>b>1048576?(b/1048576).toFixed(1)+" MB/s":Math.round(b/1024)+" KB/s";
-function ulabel(){const v=U.v?" "+U.v:"";switch(U.s){case"checking":return"Buscando actualizaciones…";case"available":return"Nueva versión"+v+" disponible";case"downloading":return"Descargando"+v+"… "+Math.round(U.p||0)+"%";case"ready":return"Versión"+v+" lista para instalar";case"none":return"Estás al día ✓ (versión "+VER+")";case"error":return"No se pudo comprobar"+(U.msg?": "+U.msg:"");case"dev":return"Solo funciona en la app instalada";default:return"Versión "+VER}}
-let CH=false,umSeen="";
-function renderU(){const s=U.s,act=s==="available"||s==="downloading"||s==="ready",ub=$("ub"),up=$("up"),um=$("um"),v=U.v?" "+U.v:"",pc=Math.round(U.p||0);
-ub.classList.toggle("on",act);ub.classList.toggle("dl",s==="downloading");ub.classList.toggle("rdy",s==="ready");up.classList.toggle("on",act);up.classList.toggle("rdy",s==="ready");um.classList.toggle("dl",s==="downloading");
-document.querySelectorAll("nav [data-p=home],nav [data-p=set]").forEach(b=>b.classList.toggle("bd",act));
-if(act){const T=s==="ready"?"Actualización lista para instalar":"1 actualización pendiente",S=s==="ready"?"La versión"+v+" ya está descargada. Reinicia para instalarla; tus mundos, mods y ajustes se conservan.":s==="downloading"?"Descargando la versión"+v+"… "+pc+"%"+(U.bps?" · "+fmtB(U.bps):""):"Nova Launcher"+v+" está disponible. Tus mundos, mods y ajustes se conservan.",B=s==="ready"?"Reiniciar e instalar":s==="downloading"?"Descargando… "+pc+"%":"Actualizar ahora";
-$("ubt").innerHTML=(s==="ready"?"":"<em>1</em>")+T.replace("1 actualización pendiente","actualización pendiente");$("ubs").textContent=S;$("ubp").style.width=(s==="ready"?100:pc)+"%";
-const b=$("ubb");b.textContent=B;b.disabled=s==="downloading";
-$("umt").textContent=T;$("ums").textContent=S;$("ump").style.width=(s==="ready"?100:pc)+"%";const mb=$("umb");mb.textContent=B;mb.disabled=s==="downloading";
-$("upt").textContent=s==="ready"?"Reiniciar e instalar":s==="downloading"?pc+"%":"1 actualización";
-const key=U.v||"x";if(umSeen!==key){umSeen=key;setTimeout(()=>{if(U.s==="available"||U.s==="downloading"||U.s==="ready")um.classList.add("on")},Math.max(300,5300-performance.now()))}}
-else um.classList.remove("on");
-const mm=$("upm");if(mm)mm.textContent=ulabel();const c=$("chk");if(c){c.disabled=s==="checking"||s==="downloading";c.textContent=s==="available"?"Actualizar ahora":s==="ready"?"Reiniciar e instalar":s==="checking"?"Buscando…":"Buscar actualizaciones"}}
-function setU(o){U=o||{s:"idle"};renderU();if(CH&&U.s==="ready"){CH=false;setTimeout(()=>A&&A.updInstall(),600)}}
-async function updAction(){const s=U.s;if(s==="available"||s==="downloading")CH=true;
-if(!A){demoUpd(s);return}
-try{if(s==="available")setU(await A.updDownload());else if(s==="ready")A.updInstall();else if(s!=="downloading"){setU({s:"checking"});setU(await A.updCheck())}}catch(e){setU({s:"error"})}}
-function demoUpd(s){clearInterval(demoT);
-if(s==="ready"){setU({s:"none"});return}
-if(s==="available"){let p=0;demoT=setInterval(()=>{p+=7+Math.random()*9;if(p>=100){clearInterval(demoT);setU({s:"ready",v:"0.2.6 (simulación)"})}else setU({s:"downloading",v:"0.2.6 (simulación)",p,bps:2400000+Math.random()*900000})},320);return}
-setU({s:"checking"});demoT=setTimeout(()=>setU({s:"available",v:"0.2.6 (simulación)"}),1200)}
-$("ubb").onclick=updAction;$("umb").onclick=()=>{updAction();if(U.s==="ready")return};$("uml").onclick=()=>$("um").classList.remove("on");$("up").onclick=()=>{show("home");updAction()};
-
-// ===== Discord (0.2.6) =====
-let DS={s:"off"};
-function dlabel(){switch(DS.s){case"on":return"Conectado"+(DS.user?" como "+DS.user:"")+" ✓";case"connecting":return"Conectando…";case"noid":return"Falta el ID de aplicación";case"error":return(DS.msg||"No se pudo conectar")+" · reintentando";default:return A?"Desactivado":"Solo funciona en la app instalada"}}
-function setD(o){DS=o||{s:"off"};const m=$("dscm");if(m)m.textContent=dlabel()}
-// ===== Redes del creador =====
-// Para activar una red, pon su enlace en "u" (por ejemplo u:"https://www.youtube.com/@tucanal"). Si está vacío se muestra como «Próximamente».
-const SOC=[{n:"YouTube",i:"b-youtube",c:"#FF0033",u:""},{n:"Twitch",i:"b-twitch",c:"#9146FF",u:""},{n:"TikTok",i:"b-tiktok",c:"#25F4EE",u:""},{n:"Instagram",i:"b-instagram",c:"#E4405F",u:""},{n:"X (Twitter)",i:"b-x",c:"#E7E9EA",u:""},{n:"Discord",i:"b-discord",c:"#5865F2",u:""},{n:"GitHub",i:"b-github",c:"#C9D1D9",u:""},{n:"Web",i:"i-globe",c:"#4FA8FF",u:""}];
-function renderSoc(){$("sg").innerHTML=SOC.map((r,k)=>`<button class="sk${r.u?"":" off"}" data-k="${k}" style="--i:${k};--b:${r.c}"><div class="si"><svg class="ic"><use href="#${r.i}"/></svg></div><div><b>${r.n}</b>${r.u?"<span>Abrir</span>":"<em>Próximamente</em>"}</div></button>`).join("");
-$("sg").querySelectorAll(".sk").forEach(b=>b.onclick=()=>{const r=SOC[b.dataset.k];if(!r.u)return;A&&A.open?A.open(r.u):window.open(r.u,"_blank")})}
-renderSoc();
-setTimeout(()=>{if(!A&&U.s==="idle")demoUpd("idle")},9000);
-// Agujero negro (animación en bucle)
-const cv=$("cv"),x=cv.getContext("2d",{alpha:false}),rnd=Math.random,K=6.35,SQ=.18,DLw=1400,DLh=480;
-let W,HT,ST=[],cx=0,cy=0,R=50,al=1,T=0,ang=0,last=0,HR=null,hc=0,b1,b2,c1,c2,SPR=null,spK="",C8=[],FOC=document.hasFocus();
-addEventListener("focus",()=>{FOC=true;dirty=30});addEventListener("blur",()=>{FOC=false});
-const Q={alta:{n:900,f:60,b:1},media:{n:380,f:60,b:0},baja:{n:0,f:30,b:0},off:{n:500,f:0,b:0}};
-const DL=document.createElement("canvas");DL.width=DLw;DL.height=DLh;const lc=DL.getContext("2d");
-const D=Array.from({length:900},()=>{const r=1.4+Math.pow(rnd(),1.6)*4.9,t=(r-1.4)/4.9;return{r,t,b:Math.min(7,(t*8)|0),a:rnd()*6.283,z:rnd()-.5,s:rnd()*.6+.7}});
-const rs=()=>{W=cv.width=innerWidth;HT=cv.height=innerHeight;const n=Math.round(320*((cfg.stars==null?100:cfg.stars)/100));ST=Array.from({length:n},()=>({x:rnd()*W,y:rnd()*HT,r:rnd()*1.1+.2,p:rnd()*6.3}));b1=document.createElement("canvas");b1.width=(W>>2)||1;b1.height=(HT>>2)||1;b2=document.createElement("canvas");b2.width=(W>>3)||1;b2.height=(HT>>3)||1;c1=b1.getContext("2d");c2=b2.getContext("2d");HR=null;dirty=60};
-addEventListener("resize",rs);rs();
-function mkSpr(h,s){const S=512,m=S/2,mk=()=>{const c=document.createElement("canvas");c.width=c.height=S;return c},P=[];
-const base=mk(),g=base.getContext("2d"),rg=g.createRadialGradient(m,m,0,m,m,m);
-rg.addColorStop(.19,`hsla(${h+8},${s}%,96%,0)`);rg.addColorStop(.212,`hsla(${h+8},${s}%,96%,.95)`);rg.addColorStop(.3,`hsla(${h},${s}%,72%,.72)`);rg.addColorStop(.5,`hsla(${h-14},${s}%,52%,.38)`);rg.addColorStop(.8,`hsla(${h-26},${s}%,36%,.13)`);rg.addColorStop(1,`hsla(${h-30},${s}%,30%,0)`);
-g.fillStyle=rg;g.fillRect(0,0,S,S);P.push(base);
-[[.212,.4,170],[.4,.65,260],[.65,1,320]].forEach(([a,b,n])=>{const c=mk(),q=c.getContext("2d");q.globalCompositeOperation="lighter";
-for(let i=0;i<n;i++){const f=a+rnd()*(b-a),r=m*f*.995,t=(f-.212)/.788;q.strokeStyle=`hsla(${h-t*28},${s}%,${92-t*44}%,${(.1+rnd()*.28)*(1-t*.75)})`;q.lineWidth=.7+rnd()*(1+t*1.8);const st=rnd()*6.283;q.beginPath();q.arc(m,m,r,st,st+.08+rnd()*.7);q.stroke()}P.push(c)});
-return P}
-function half(front,tl,Rb,h0,s0){const l=lc;l.setTransform(1,0,0,1,0,0);l.globalCompositeOperation="source-over";l.clearRect(0,0,DLw,DLh);
-l.translate(DLw/2,DLh/2);l.rotate(tl);l.save();l.beginPath();l.rect(-DLw,front?0:-DLh,2*DLw,DLh);l.clip();
-const rr=Rb*(front?1.5:1.95),ag=l.createRadialGradient(0,0,Rb*.98,0,0,rr),u=front?.35:1;
-ag.addColorStop(0,`hsla(${h0+8},${s0}%,97%,${.95*u})`);ag.addColorStop(.1,`hsla(${h0+6},${s0}%,86%,${.7*u})`);ag.addColorStop(.35,`hsla(${h0-6},${s0}%,62%,${.36*u})`);ag.addColorStop(1,`hsla(${h0-20},${s0}%,45%,0)`);
-l.fillStyle=ag;l.beginPath();l.arc(0,0,rr,0,6.283);l.fill();
-const S=K*Rb,sp=[0,1.2,.55,.25];l.save();l.scale(1,SQ);SPR.forEach((im,i)=>{l.save();l.rotate(ang*sp[i]);l.drawImage(im,-S,-S,2*S,2*S);l.restore()});l.restore();l.restore();
-l.setTransform(1,0,0,1,0,0);l.globalCompositeOperation="destination-in";const gr=l.createLinearGradient(0,0,DLw,0);gr.addColorStop(0,"rgba(0,0,0,.4)");gr.addColorStop(.5,"rgba(0,0,0,.85)");gr.addColorStop(1,"rgba(0,0,0,1)");l.fillStyle=gr;l.fillRect(0,0,DLw,DLh);
-x.globalCompositeOperation="lighter";x.globalAlpha=al;x.drawImage(DL,cx-DLw/2,cy-DLh/2)}
-function frame(now){requestAnimationFrame(frame);
-const q=Q[cfg.quality]||Q.alta,pg=RUN&&cfg.pauseGame!==false,cap=+cfg.fps||60;let f=q.f?Math.min(q.f,cap):0;if(pg&&f)f=Math.min(f,20);
-if(document.hidden||(A&&cfg.pauseBlur!==false&&!FOC))return;
-if(!f){if(dirty<=0)return}else{if(al<.02)f=Math.min(f,24);if(now-last<1000/f-3)return}
-last=now;dirty--;const k=f?60/f:0,sp=(cfg.rmotion?.15:1)*k*((cfg.bhSpeed==null?100:cfg.bhSpeed)/100);T+=.016*k;ang+=.0065*sp;
-if(hc--<=0||!HR){hc=15;HR=document.querySelector(".hero").getBoundingClientRect()}
-const sz=(cfg.bhSize||100)/100,hm=$("home").classList.contains("on");let tx,ty,tr,ta;
-if(hm&&HR.height){tx=HR.left+HR.width/2;ty=HR.top+HR.height*.38;tr=Math.min(HR.height*.145,72)*sz;ta=1}else{tx=W*.72;ty=HT*.52;tr=Math.min(HT*.1,50)*sz;ta=cfg.bhOther===false?0:.38}
-if(!cx){cx=tx;cy=ty;R=tr}cx+=(tx-cx)*.07;cy+=(ty-cy)*.07;R+=(tr-R)*.07;al+=(ta-al)*.06;
-const vis=al>.02,Rb=Math.min(75*sz,R*(1+.012*Math.sin(T*.8))),h0=BHs[0],s0=BHs[1],tl=(cfg.bhTilt==null?-6:cfg.bhTilt)*Math.PI/180+.025*Math.sin(T*.25),ct=Math.cos(tl),st=Math.sin(tl),key=h0+","+s0;
-if(spK!==key){SPR=mkSpr(h0,s0);spK=key;C8=Array.from({length:8},(_,j)=>`hsl(${h0-j*3.5},${s0}%,${92-j*6}%)`)}
-x.globalCompositeOperation="source-over";x.globalAlpha=1;x.fillStyle=BG;x.fillRect(0,0,W,HT);
-x.fillStyle="#fff";const te=Rb*1.7,lens=vis&&cfg.bhLens!==false;
-for(const s of ST){let px=s.x,py=s.y,m=1;if(lens){const dx=px-cx,dy=py-cy,d=Math.hypot(dx,dy)||1;if(d<Rb*14){const dd=(d+Math.sqrt(d*d+4*te*te))/2;px=cx+dx/d*dd;py=cy+dy/d*dd;m=Math.min(2.2,dd/d)}}x.globalAlpha=(.2+.22*Math.sin(T*1.1+s.p))*(.5+.5*al)*(1+(m-1)*.3);x.fillRect(px,py,s.r*m,s.r*m)}
-if(vis){x.globalCompositeOperation="lighter";
-const g=x.createRadialGradient(cx,cy,Rb*.9,cx,cy,Rb*7.5);g.addColorStop(0,`hsla(${h0},${s0}%,55%,${.26*al})`);g.addColorStop(.4,`hsla(${h0-12},${s0}%,40%,${.07*al})`);g.addColorStop(1,`hsla(${h0},${s0}%,40%,0)`);x.globalAlpha=1;x.fillStyle=g;x.fillRect(0,0,W,HT);
-half(false,tl,Rb,h0,s0);
-x.globalCompositeOperation="source-over";x.globalAlpha=1;x.fillStyle="#000";x.beginPath();x.arc(cx,cy,Rb,0,6.283);x.fill();
-x.globalCompositeOperation="lighter";x.beginPath();x.arc(cx,cy,Rb*1.015,0,6.283);
-x.strokeStyle=`hsla(${h0+6},${s0}%,80%,${.2*al})`;x.lineWidth=6;x.stroke();x.strokeStyle=`hsla(${h0+6},${s0}%,92%,${.95*al})`;x.lineWidth=1.6;x.stroke();
-half(true,tl,Rb,h0,s0);
-const n=q.n;for(let i=0;i<n;i++){const p=D[i];p.a+=p.s*.02/Math.pow(p.r,1.4)*sp;const c=Math.cos(p.a),s=Math.sin(p.a),rr=p.r*Rb,ux=c*rr,uy=s*rr*SQ+p.z*rr*.035,px=cx+ux*ct-uy*st,py=cy+ux*st+uy*ct;if(s<0&&Math.hypot(px-cx,py-cy)<Rb)continue;x.fillStyle=C8[p.b];x.globalAlpha=(1-p.t)*(.3+.7*(.5+.5*c))*.8*al;const z=1+(1-p.t)*1.4;x.fillRect(px,py,z,z)}
-if(q.b&&cfg.bhBloom!==false&&!pg){c1.drawImage(cv,0,0,b1.width,b1.height);c2.drawImage(b1,0,0,b2.width,b2.height);x.globalCompositeOperation="lighter";x.globalAlpha=.6;x.drawImage(b2,0,0,W,HT);x.globalAlpha=.4;x.drawImage(b1,0,0,W,HT)}}}
-requestAnimationFrame(frame);
-</script></body></html>
+</main></div><svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><filter id="cb-p"><feColorMatrix type="matrix" values="0.567 0.433 0 0 0  0.558 0.442 0 0 0  0 0.242 0.758 0 0  0 0 0 1 0"/></filter><filter id="cb-d"><feColorMatrix type="matrix" values="0.625 0.375 0 0 0  0.7 0.3 0 0 0  0 0.3 0.7 0 0  0 0 0 1 0"/></filter><filter id="cb-t"><feColorMatrix type="matrix" values="0.95 0.05 0 0 0  0 0.433 0.567 0 0  0 0.475 0.525 0 0  0 0 0 1 0"/></filter></defs></svg>
+<div id="acm"></div><div id="pal"><div class="palb"><input id="pq" type="text" placeholder="Busca versiones, mods, instancias o ajustes…" autocomplete="off"><div id="pr"></div><div class="palf">↑ ↓ moverse · Enter abrir · Esc cerrar</div></div></div><div id="mdl"><div class="md"></div></div><div id="ft" role="status"></div><div id="ac" role="alert"><div><b>Actualización lista</b><span id="acs"></span></div><button class="btn pr" id="aci">Instalar ya</button><button class="btn" id="acx">Cancelar</button></div><div id="um"><div class="mc2"><div class="ui"><svg class="ic" style="width:26px;height:26px"><use href="#i-dl"/></svg></div><h3 id="umt"></h3><p id="ums"></p><div class="bar"><i id="ump"></i></div><div class="row2"><button class="btn pr" id="umb"></button><button class="btn" id="uml">Más tarde</button></div></div></div>
+<script src="js/idioma.js"></script>
+<script src="js/idioma-inicio.js"></script>
+<script src="js/nucleo.js"></script>
+<script src="js/base.js"></script>
+<script>if(!window.api)document.write('<script src="js/vista-previa.js"><\/script>')</script>
+<script type="lazy" src="js/ajustes.js"></script>
+<script type="lazy" src="js/mods.js"></script>
+<script src="js/portada.js"></script>
+<script src="js/actualizaciones.js"></script>
+<script type="lazy" src="js/servidores.js"></script>
+<script type="lazy" src="js/instancias.js"></script>
+<script type="lazy" src="js/social.js"></script>
+<script src="js/cuentas.js"></script>
+<script type="lazy" src="js/consola.js"></script>
+<script src="js/herramientas.js"></script>
+<script type="lazy" src="js/asistente.js"></script>
+<script type="lazy" src="js/buscador.js"></script>
+<script src="js/agujero-negro.js"></script>
+<script src="js/descargas.js"></script>
+<script src="js/extras.js"></script>
+<script src="js/preparar.js"></script>
+<script type="lazy" src="js/limpieza.js"></script>
+<script type="lazy" src="js/revision.js"></script>
+<script src="js/inicio.js"></script>
+</body></html>
