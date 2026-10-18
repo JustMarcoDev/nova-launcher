@@ -376,7 +376,7 @@ ipcMain.handle('play', async (e, { id, server, world, safe }) => {
       : nova ? 'Nova: menú de Nova activado (Fabric incluido en el launcher).\n'
       : (!ins.ld || ins.ld === 'Vanilla' || ins.ld === 'Fabric') ? (NOVA_MC.includes(ins.mc) ? 'Nova: el menú de Nova no se pudo activar; se juega con el menú normal.\n' : 'Nova: el menú de Nova solo está disponible en Minecraft ' + NOVA_MC.join(' y ') + '; esta versión usa el menú normal.\n')
       : 'Nova: el menú de Nova solo está disponible en Nova y Fabric; ' + ins.ld + ' usa el menú normal.\n';
-    if (nova) o.customArgs.push('-Dnova.bg=' + (novaBg() || ''), '-Dfabric.addMods=' + nj, '-Dnova.version=' + app.getVersion(), '-Dnova.loader=' + (ins.ld === 'Fabric' ? 'Fabric' : 'Nova'));
+    if (nova) o.customArgs.push('-Dnova.dir=' + novaDir(), '-Dnova.skin=' + (await novaSkin(act.name)), '-Dnova.premium=' + (act.type === 'microsoft' ? '1' : '0'), '-Dnova.user=' + act.name, '-Dnova.bg=' + (novaBg() || ''), '-Dfabric.addMods=' + nj, '-Dnova.version=' + app.getVersion(), '-Dnova.loader=' + (ins.ld === 'Fabric' ? 'Fabric' : 'Nova'));
     if (ins.ld === 'Forge' || ins.ld === 'NeoForge') o.version.custom = await forge(ins.ld, ins.mc, java, ins.loaderVersion);
     if (server && server.host) o.quickPlay = { type: modernQP(ins.mc) ? 'multiplayer' : 'legacy', identifier: server.host + (server.port && +server.port !== 25565 ? ':' + server.port : '') };
     if (world && !server && modernQP(ins.mc)) o.quickPlay = { type: 'singleplayer', identifier: String(world) };
@@ -384,7 +384,7 @@ ipcMain.handle('play', async (e, { id, server, world, safe }) => {
     const l = new Client(), tail = [], lg = openLog(ins, java, ram), since = Date.now(); let t0 = 0;
     send('log', '── ' + ins.name + ' · Minecraft ' + ins.mc + ' · ' + (ins.ld || 'Vanilla') + ' · ' + (act.name) + ' ──\n'); send('log', novaMsg);
     l.on('progress', p => send('progress', p));
-    l.on('data', d => { const t = String(d); if (t.includes('[NOVA:SETTINGS]')) { try { if (win) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); send('nav', 'set'); } } catch {} } try { lg.w.write(t.endsWith('\n') ? t : t + '\n'); } catch {} for (const ln of t.split(/\r?\n/)) if (ln) tail.push(ln); if (tail.length > 500) tail.splice(0, tail.length - 300); send('log', t); });
+    l.on('data', d => { const t = String(d); if (t.includes('[NOVA:PICKBG]')) novaPickBg(); if (t.includes('[NOVA:SETTINGS]')) { try { if (win) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); send('nav', 'set'); } } catch {} } try { lg.w.write(t.endsWith('\n') ? t : t + '\n'); } catch {} for (const ln of t.split(/\r?\n/)) if (ln) tail.push(ln); if (tail.length > 500) tail.splice(0, tail.length - 300); send('log', t); });
     l.on('close', code => {
       running.delete(id); try { lg.w.end(); } catch {} if (t0) { const cur = li().find(i => i.id === id) || {}; upIns(id, { playMs: (cur.playMs || 0) + (Date.now() - t0), lastPlayed: Date.now() }); } discordSet(null); send('running', running.size ? 1 : 0); send('progress', null);
       const crashed = !!code && tail.length > 0;
@@ -1184,6 +1184,38 @@ const GPU_KEY = 'HKCU\\Software\\Microsoft\\DirectX\\UserGpuPreferences';
 // Vanilla se lanza a través de Fabric para poder cargarlo; si algo falla se juega en vanilla normal.
 const NOVA_MC = ['1.21.1', '1.20.1'];          // versiones de Minecraft con mod incluido
 // Vídeo de fondo del menú de Nova (frames JPEG empaquetados): fuera del jar para que el mod pese poco
+// ---- Menú de Nova dentro del juego: carpeta de datos, skin del jugador y fondo personalizado ----
+function novaDir() { const d = path.join(root, 'nova'); try { fs.mkdirSync(d, { recursive: true }); } catch {} return d; }
+// Descarga la skin (si hay internet, con tiempo límite). Si falla se usa la última guardada; si no hay ninguna, va vacío.
+async function novaSkin(name) {
+  const dst = path.join(novaDir(), 'skin.png');
+  try {
+    const buf = await new Promise((ok, no) => {
+      const rq = require('https').get('https://minotar.net/skin/' + encodeURIComponent(name) + '.png', { timeout: 4000 }, r => {
+        if (r.statusCode !== 200) { r.resume(); return no(new Error('http ' + r.statusCode)); }
+        const c = []; r.on('data', x => c.push(x)); r.on('end', () => ok(Buffer.concat(c))); r.on('error', no);
+      });
+      rq.on('timeout', () => rq.destroy(new Error('timeout'))); rq.on('error', no);
+    });
+    if (buf.length > 100 && buf.length < 200000 && buf.slice(1, 4).toString() === 'PNG') fs.writeFileSync(dst, buf);
+  } catch {}
+  return fs.existsSync(dst) ? dst : '';
+}
+let PICKING = false;
+function novaState(o) { try { fs.writeFileSync(path.join(novaDir(), 'custom.json'), JSON.stringify(o)); } catch {} }
+async function novaPickBg() {
+  if (PICKING) return; PICKING = true;
+  try {
+    const r = await dialog.showOpenDialog(win || undefined, { title: 'Fondo personalizado para el menú de Nova', properties: ['openFile'], filters: [{ name: 'Imagen o vídeo', extensions: ['png', 'jpg', 'jpeg', 'webp', 'bmp', 'gif', 'mp4', 'm4v', 'mov', 'webm', 'mkv'] }] });
+    if (r.canceled || !r.filePaths[0]) return;
+    const f = r.filePaths[0], out = path.join(novaDir(), 'custom.nvb'), nvb = require('./nvb');
+    novaState({ state: 'working', progress: 0, name: path.basename(f) });
+    try {
+      const x = await nvb.convert(f, out, { onProgress: p => novaState({ state: 'working', progress: p, name: path.basename(f) }) });
+      novaState({ state: 'ready', name: path.basename(f), n: x.n, at: Date.now() });
+    } catch (e) { novaState({ state: 'error', error: String(e && e.message || e).slice(0, 160) }); }
+  } finally { PICKING = false; }
+}
 function novaBg() {
   const src = path.join(__dirname, 'assets', 'nova-bg.nvb');
   if (!fs.existsSync(src)) return null;

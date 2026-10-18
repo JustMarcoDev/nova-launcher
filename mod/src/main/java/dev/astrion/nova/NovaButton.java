@@ -4,18 +4,20 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
 
 /** Botón de Nova: cristal oscuro con borde de acento, esquinas redondeadas y brillo animado. */
 public class NovaButton extends ButtonWidget {
     static final int ACCENT = 0xFF8B6CFF;
-    static final Identifier ICONS = Identifier.tryParse("nova:textures/gui/icons.png");
-    static final int NORMAL = 0, PRIMARY = 1, DANGER = 2;
-    public static final int I_USER = 0, I_GEAR = 1, I_CLOSE = 2, I_GLOBE = 6, I_NOVA = 8, I_LOCK = 9, I_SQUARE = 10;
+    static final int NORMAL = 0, PRIMARY = 1, DANGER = 2, SELECTED = 3;
 
     private final int icon;
-    private final int style;
+    private int style;
+    /** Color de la muestra (0 = botón normal). */
+    int swatch;
+    boolean swatchOn;
+    /** Texto del globo de ayuda al pasar el cursor (título y descripción de pocas palabras). */
+    String tipTitle = "", tipDesc = "";
     private float glow;
     private long last = Util.getMeasuringTimeMs();
 
@@ -53,13 +55,9 @@ public class NovaButton extends ButtonWidget {
         }
     }
 
-    static void icon(DrawContext c, int idx, int x, int y, int size, int argb) {
-        float a = ((argb >> 24) & 255) / 255f;
-        com.mojang.blaze3d.systems.RenderSystem.enableBlend();
-        c.setShaderColor(((argb >> 16) & 255) / 255f, ((argb >> 8) & 255) / 255f, (argb & 255) / 255f, a);
-        c.drawTexture(ICONS, x, y, size, size, idx * 32, 0, 32, 32, 384, 32);
-        c.setShaderColor(1f, 1f, 1f, 1f);
-    }
+    public NovaButton tip(String title, String desc) { tipTitle = title; tipDesc = desc; return this; }
+    public NovaButton style(int st) { style = st; return this; }
+    public NovaButton swatch(int rgb, boolean on) { swatch = rgb; swatchOn = on; return this; }
 
     // 1.20.x usa renderButton y 1.21 renderWidget: se declaran las dos (sin @Override) y cada versión llama a la suya
     public void renderButton(DrawContext c, int mx, int my, float delta) { renderWidget(c, mx, my, delta); }
@@ -72,6 +70,17 @@ public class NovaButton extends ButtonWidget {
         glow = hot ? Math.min(1f, glow + dt) : Math.max(0f, glow - dt);
 
         int x = getX(), y = getY(), w = getWidth(), h = getHeight();
+        if (swatch != 0 && NovaGfx.ok) {
+            try {
+                MinecraftClient m = MinecraftClient.getInstance();
+                int d = Math.min(w, h);
+                NovaGfx.swatch(m, d, swatch, swatchOn, false).draw(c, x - 4, y - 4, 1f);
+                if (glow > 0.02f) NovaGfx.swatch(m, d, swatch, swatchOn, true).draw(c, x - 4, y - 4, glow);
+                return;
+            } catch (Throwable t) {
+                NovaGfx.ok = false;
+            }
+        }
         if (NovaGfx.ok) {
             try {
                 MinecraftClient m = MinecraftClient.getInstance();
@@ -84,7 +93,8 @@ public class NovaButton extends ButtonWidget {
                 NovaGfx.ok = false;
             }
         }
-        int acc = style == DANGER ? 0xFFFF4D5E : ACCENT;
+        int acc = style == DANGER ? 0xFFFF4D5E : NovaGfx.accent;
+        if (swatch != 0) { panel(c, x, y, w, h, Math.min(w, h) / 2, 0xFF000000 | swatch, swatchOn ? 0xFFFFFFFF : 0); return; }
         int r = style == PRIMARY ? 8 : Math.min(6, h / 3);
         if (glow > 0.02f) panel(c, x - 2, y - 2, w + 4, h + 4, r + 2, ((int) (0x38 * glow) << 24) | (acc & 0xFFFFFF), 0);
         int baseFill = style == DANGER ? 0xC0200A14 : style == PRIMARY ? 0xC4140F2E : 0xB80E0C20;
@@ -98,10 +108,7 @@ public class NovaButton extends ButtonWidget {
         int col = !active ? 0xFF6A6A80 : style == DANGER ? mix(0xFFFF7A86, 0xFFFFFFFF, glow) : mix(0xFFD8D8F0, 0xFFFFFFFF, glow);
         MinecraftClient mc = MinecraftClient.getInstance();
         int tw = mc.textRenderer.getWidth(getMessage());
-        int isz = icon >= 0 ? (tw == 0 ? Math.min(12, h - 8) : 10) : 0;
-        int gap = icon >= 0 && tw > 0 ? 5 : 0;
-        int cx = x + (w - (isz + gap + tw)) / 2;
-        if (icon >= 0) icon(c, icon, cx, y + (h - isz) / 2, isz, col);
-        if (tw > 0) c.drawText(mc.textRenderer, getMessage(), cx + isz + gap, y + (h - 8) / 2 + 1, col, style != NORMAL || active);
+        int cx = x + (w - tw) / 2;
+        if (tw > 0) c.drawText(mc.textRenderer, getMessage(), cx, y + (h - 8) / 2 + 1, col, style != NORMAL || active);
     }
 }

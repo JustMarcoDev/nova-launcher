@@ -15,13 +15,13 @@ const w = dom.window, sleep = ms => new Promise(r => setTimeout(r, ms));
   w.document.querySelector('nav [data-p=home]').click();
   w.dispatchEvent(Object.assign(new w.KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true })));
   await sleep(100);
-  // Modo juego: con Minecraft abierto el fondo se detiene y vuelve al cerrarlo; con el ajuste apagado todo sigue igual
+  // Modo juego: con Minecraft abierto el fondo sigue animado (a pocos fps); con el ajuste apagado todo sigue igual
   {
     const gm = () => w.document.documentElement.classList.contains('gm');
     if (typeof EV.running !== 'function') errors.push('Modo juego: la interfaz no escucha el aviso «running»');
     else {
-      EV.running(1); if (!gm() || w.eval('RAF') !== 0 && w.eval('GM') !== true) errors.push('Modo juego: no paró las animaciones al abrirse Minecraft');
-      await sleep(80); if (w.eval('RAF') !== 0) errors.push('Modo juego: el bucle de dibujo sigue activo');
+      EV.running(1); if (!gm() || w.eval('GM') !== true) errors.push('Modo juego: no se activó al abrirse Minecraft');
+      await sleep(80); if (!w.eval('RAF')) errors.push('Modo juego: el bucle de dibujo se paró (las animaciones deben seguir)');
       EV.running(0); await sleep(80); if (gm() || !w.eval('RAF')) errors.push('Modo juego: no reanudó las animaciones al cerrarse Minecraft');
       w.eval('cfg.gameMode=false'); EV.running(1); if (gm()) errors.push('Modo juego: se activó con el ajuste apagado'); EV.running(0); w.eval('cfg.gameMode=true');
     }
