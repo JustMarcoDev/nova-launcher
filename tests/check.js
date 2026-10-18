@@ -64,5 +64,13 @@ if (ver !== pkg.version) bad('VER en js/base.js (' + ver + ') no coincide con pa
   console.log('menú de Nova: ' + vs.join(', ') + ' · vídeo y licencias presentes');
 }
 
+// Modo juego: pausar las animaciones dejaba la interfaz invisible (las de entrada se quedaban en opacity 0)
+{
+  const css = rd('css/style.css');
+  if (/\.gm[^{]*\{[^}]*animation-play-state\s*:\s*paused/.test(css)) bad('css: el modo juego (.gm) no debe pausar animaciones (la interfaz se queda invisible); haz que terminen al instante');
+  const wf = rd('.github/workflows/release.yml');
+  if (!/signAndEditExecutable=true/.test(wf) || !/CSC_LINK/.test(wf)) bad('release.yml: falta escribir los datos del .exe y la firma opcional (CSC_LINK)');
+}
+
 if (fails.length) { console.log('\nFALLOS (' + fails.length + '):'); fails.forEach(f => console.log(' ✕ ' + f)); process.exit(1); }
 console.log('Revisión estática correcta · versión ' + pkg.version);

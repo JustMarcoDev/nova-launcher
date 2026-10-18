@@ -71,9 +71,19 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Firma de código (opcional): si existen estos secretos, el instalador y la app salen firmados y Windows SmartScreen no avisa.
+          # CSC_LINK = el certificado .pfx en base64; CSC_KEY_PASSWORD = su contraseña. Mira «Firma del instalador» en el README.
+          CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
         run: |
           if [ "${{ steps.v.outputs.pre }}" = "true" ]; then TYPE=prerelease; else TYPE=release; fi
-          npx electron-builder --win --publish always -c.publish.releaseType=$TYPE
+          if [ -n "$CSC_LINK" ]; then echo "Firmando con el certificado de los secretos"; else echo "::warning::Sin certificado de firma: Windows SmartScreen avisará al instalar (mira el README)"; unset CSC_LINK CSC_KEY_PASSWORD; fi
+          # En el CI se escriben los datos del .exe (nombre, versión, empresa) y, si hay certificado, se firma
+          npx electron-builder --win --publish always -c.win.signAndEditExecutable=true -c.publish.releaseType=$TYPE
+      - name: Mostrar si el instalador está firmado
+        shell: pwsh
+        run: |
+          Get-ChildItem dist -Filter *.exe | ForEach-Object { $s = Get-AuthenticodeSignature $_.FullName; Write-Host ($_.Name + ' -> ' + $s.Status + ' ' + $s.SignerCertificate.Subject) }
       - name: Comprobar que la release tiene latest.yml (lo necesita el actualizador del launcher)
         shell: bash
         env:

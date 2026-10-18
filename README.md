@@ -98,6 +98,17 @@ La pestaña **Servidores** (Alt + 4) muestra servidores conocidos con jugadores 
 - **Idiomas.** El español es la base. Hay seis: `es` (España), `es-419` (Latinoamérica, solo cambia las palabras distintas), `en`, `fr`, `de`, `it` y `pt`. Las traducciones están escritas con IA y no las ha revisado nadie nativo: si ves algo raro, corrígelo en su archivo de `lang/`. Cada idioma es un archivo en `lang/` (mira `lang/en.js`): la clave es el texto en español y el valor su traducción; `{1}`, `{2}`… son partes variables. Para añadir uno, copia `lang/en.js`, cambia `en` por su código, traduce y enlázalo en `index.html` antes de `js/idioma.js`. Lo que no esté traducido se ve en español.
 - **Descargas.** El cuadro de pausa, cancelar y límite controla lo que descarga el propio launcher (Java, mods, modpacks, instaladores). Los archivos del juego que baja Minecraft por su cuenta no pasan por él.
 
+## Firma del instalador (evitar el aviso de Windows)
+
+Windows SmartScreen avisa de cualquier instalador **sin firma digital** de un editor poco conocido; el aviso desaparece con un **certificado de firma de código**, no con cambios en el programa. Sin él, cada versión nueva vuelve a empezar de cero y avisa.
+
+1. Consigue un certificado de firma de código (por ejemplo Certum «Open Source Code Signing», SSL.com, Sectigo o DigiCert; los EV quitan el aviso al instante, los normales lo quitan al ganar reputación).
+2. Pasa el `.pfx` a base64 (PowerShell: `[Convert]::ToBase64String([IO.File]::ReadAllBytes("certificado.pfx")) | Set-Clipboard`).
+3. En GitHub: Settings → Secrets and variables → Actions → New repository secret: `WIN_CSC_LINK` (el base64) y `WIN_CSC_KEY_PASSWORD` (la contraseña).
+4. Ejecuta «Crear version»: el workflow firma el instalador solo y muestra la firma en el log. Sin los secretos publica sin firmar y lo avisa.
+
+Mientras tanto, a quien le salga el aviso: **Más información → Ejecutar de todas formas**. Si Windows Defender lo marca como virus, se puede enviar el archivo como falso positivo en https://www.microsoft.com/wdsi/filesubmission.
+
 ## Aviso legal
 
 Nova Launcher es un proyecto independiente de **Astrion Studio**. © 2026 Astrion Studio. No está afiliado, aprobado ni patrocinado por Mojang Studios ni por Microsoft. Minecraft es una marca registrada de Mojang Studios.
@@ -107,6 +118,11 @@ Nova Launcher es un proyecto independiente de **Astrion Studio**. © 2026 Astrio
 Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión del launcher, para saber de un vistazo qué se ha **añadido**, qué se ha **mejorado** y qué se ha **quitado**. Cada vez que se publique una versión nueva hay que añadir una entrada al principio de la lista de abajo. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**.
 
 ## Historial de actualizaciones
+
+### 0.2.14-beta.17 — Interfaz visible al jugar y instalador preparado para firma
+
+- Arreglado: al abrir Minecraft el launcher se quedaba solo con el fondo (interfaz invisible). El Modo juego pausaba las animaciones de entrada y los paneles se quedaban transparentes; ahora las animaciones terminan al instante.
+- El instalador sale con los datos del programa (nombre, versión, empresa) y, si hay un certificado de código configurado, firmado. Si Windows muestra «Windows protegió su PC»: **Más información → Ejecutar de todas formas**.
 
 ### 0.2.14-beta.16 — Vídeo en 1080p y ajustes más simples
 
