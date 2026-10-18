@@ -978,4 +978,6 @@ window.LANGS.pt={name:"Português (Portugal)",d:{
 "Activado":"Ativado",
 "Jugar sin el menú de Nova":"Jogar sem o menu do Nova",
 "Salida rápida si el menú da problemas con un mod o servidor. También puedes mantener Mayús al pulsar Jugar.":"Saída rápida se o menu causar problemas com um mod ou servidor. O utilizador também pode segurar Shift ao clicar em Jogar.",
-"Licencias de terceros":"Licenças de terceiros"}};
+"Licencias de terceros":"Licenças de terceiros",
+"Al lanzar Minecraft se abre la pestaña Consola con la salida del juego y el launcher no se esconde. Si lo desactivas, se minimiza mientras juegas (Modo juego)":"Ao iniciar o Minecraft, a aba Console abre com a saída do jogo e o launcher continua visível. Se desativar, ele é minimizado enquanto joga (Modo jogo)",
+"Al lanzar Minecraft, el launcher para las animaciones y se minimiza para dejar toda la potencia al juego":"Ao iniciar o Minecraft, o launcher para as animações e é minimizado para deixar toda a potência para o jogo"}};

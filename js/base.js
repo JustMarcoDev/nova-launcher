@@ -5,7 +5,7 @@ const BHM={dorado:[44,100],azul:[205,100],violeta:[268,95],rosa:[328,95],verde:[
 const FF=[["Segoe UI","sans-serif"],["Segoe UI Variable Text","sans-serif","Segoe UI Variable"],["Bahnschrift","sans-serif"],["Calibri","sans-serif"],["Arial","sans-serif"],["Tahoma","sans-serif"],["Verdana","sans-serif"],["Trebuchet MS","sans-serif"],["Century Gothic","sans-serif"],["Candara","sans-serif"],["Corbel","sans-serif"],["Franklin Gothic Medium","sans-serif"],["Ebrima","sans-serif"],["Nirmala UI","sans-serif"],["Gill Sans MT","sans-serif"],["Cambria","serif"],["Constantia","serif"],["Georgia","serif"],["Palatino Linotype","serif"],["Sitka Text","serif"],["Times New Roman","serif"],["Comic Sans MS","cursive"],["Impact","sans-serif"],["Consolas","monospace"],["Cascadia Code","monospace"],["Lucida Console","monospace"],["Courier New","monospace"]];
 const FONTS=Object.fromEntries(FF.map(([n,g,l])=>[l||n,`"${n}",${n==="Segoe UI"?"system-ui,":""}${g}`]));
 // --- Estado compartido (versión, sistema, fondo) ---
-let VER="0.2.14-beta.15",SYS={total:16},secNow="gen",BG="#080a0f",BHs=BHM.dorado,dirty=60,RUN=false;
+let VER="0.2.14-beta.16",SYS={total:16},secNow="gen",BG="#080a0f",BHs=BHM.dorado,dirty=60,RUN=false;
 // --- Ajustes guardados ---
 const rec=()=>Math.max(1,Math.floor(SYS.total/2));
 async function sv(c){cfg={...cfg,...c};if(A)await A.set(c);if(A&&c.dlLimit!==undefined)A.dqLimit(c.dlLimit);if(c.lang!==undefined)setTimeout(()=>langSync(c.lang),120);dirty=60}
@@ -23,7 +23,7 @@ sy.setProperty("--rs",String((cfg.radius==null?100:+cfg.radius)/100));sy.setProp
 sy.setProperty("--d",String({compacta:.78,normal:1,comoda:1.25}[cfg.density]||1));sy.setProperty("--nw",(cfg.navLabels?Math.max(104,cfg.navW||76):(cfg.navW||76))+"px");
 const ni=cfg.intro===false||!!cfg.rmotion;r.classList.toggle("ni",ni);if(ni){sy.setProperty("--base","0s");const i=$("intro");i&&i.remove()}
 const z=(cfg.tsize||100)/100;if(z!==lastZ){lastZ=z;if(A)A.zoom(z);else b.style.zoom=z}
-$("g2").classList.toggle("nonews",cfg.showNews===false);$("cardI").style.display=cfg.showInst===false?"none":"";$("cardS").style.display=cfg.showStatus===false?"none":"";$("wel").style.display=cfg.greet===false?"none":"";
+$("g2").classList.toggle("nonews",cfg.showNews===false);$("cardI").style.display=cfg.showInst===false?"none":"";$("cardS").style.display=cfg.showStatus===false?"none":"";$("wel").style.display="";
 $("av").style.display=cfg.showAvatar===false?"none":"";
 if(typeof NEWS!=="undefined"&&NEWS.length&&lastN!==(cfg.newsN||4))renderNews();
 BG=getComputedStyle(r).getPropertyValue("--bg").trim()||"#080a0f";BHs=BHM[cfg.bh]||BHM.dorado;
@@ -73,9 +73,9 @@ function setD(o){DS=o||{s:"off"};const m=$("dscm");if(m)m.textContent=dlabel()}
 let SST={};
 const fmtP=n=>n>=1e3?(n/1e3).toFixed(n>=1e4?0:1).replace(".0","")+" k":String(n||0);
 // --- Consola (se guarda la salida aunque la pestaña aún no se haya abierto) ---
-const CON=[];let cT=0;
+const CON=[];let cT=0,conN=0;
 const conLevel=t=>{if(/^── /.test(t))return"s";if(/^\s+at\s|^Caused by|^\s*\.\.\. \d+ more/.test(t))return"e";if(/\b(ERROR|FATAL|SEVERE)\b|Exception|\bCrash/i.test(t))return"e";if(/\bWARN(ING)?\b/i.test(t))return"w";if(/\b(DEBUG|TRACE)\b/.test(t))return"d";return"i"};
-function conAdd(t){for(const ln of String(t).split(/\r?\n/)){if(!ln.trim())continue;const l=conLevel(ln);CON.push({t:ln,l});}if(CON.length>5000)CON.splice(0,CON.length-4500);if($("con").classList.contains("on")&&!cT&&typeof conDraw==="function")cT=setTimeout(()=>{cT=0;conDraw()},120)}
+function conAdd(t){for(const ln of String(t).split(/\r?\n/)){if(!ln.trim())continue;const l=conLevel(ln);CON.push({t:ln,l,n:++conN});}if(CON.length>5000)CON.splice(0,CON.length-4500);if($("con").classList.contains("on")&&!cT&&typeof conDraw==="function")cT=setTimeout(()=>{cT=0;typeof conTick==="function"?conTick():conDraw()},250)}
 // --- Peticiones a Modrinth y CurseForge ---
 const H=(u,h)=>A.http({url:u,headers:h}),enc=x=>encodeURIComponent(JSON.stringify(x));
 // --- Jugar: antes de abrir Minecraft se revisan los mods de la instancia (si el ajuste está activado) ---

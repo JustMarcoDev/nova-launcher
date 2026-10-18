@@ -18,11 +18,11 @@ import net.minecraft.util.Util;
 final class NovaBg {
     static final Identifier ID = Identifier.tryParse("nova:bg/video");
     private static boolean tried, ready;
-    private static byte[] data;
+    private static RandomAccessFile file;
     private static int n, fps, w, h;
     private static int[] off;
     private static NativeImageBackedTexture tex;
-    private static volatile int[] pending;
+    private static volatile NativeImage pending;
     private static volatile boolean stop;
     private static Thread worker;
     private static boolean shown;
@@ -33,16 +33,20 @@ final class NovaBg {
         tried = true;
         String p = System.getProperty("nova.bg", "");
         if (p.isEmpty()) return;
-        try (RandomAccessFile f = new RandomAccessFile(p, "r")) {
-            byte[] all = new byte[(int) f.length()];
-            f.readFully(all);
-            ByteBuffer b = ByteBuffer.wrap(all).order(ByteOrder.LITTLE_ENDIAN);
-            if (b.getInt() != 0x3142564E) return;   // «NVB1»
-            n = b.getInt(); fps = b.getShort() & 0xFFFF; w = b.getShort() & 0xFFFF; h = b.getShort() & 0xFFFF; b.getShort();
-            if (n < 2 || fps < 1 || w < 16 || h < 16) return;
+        try {
+            RandomAccessFile f = new RandomAccessFile(p, "r");
+            byte[] head = new byte[16];
+            f.readFully(head);
+            ByteBuffer b = ByteBuffer.wrap(head).order(ByteOrder.LITTLE_ENDIAN);
+            if (b.getInt() != 0x3142564E) { f.close(); return; }   // «NVB1»
+            n = b.getInt(); fps = b.getShort() & 0xFFFF; w = b.getShort() & 0xFFFF; h = b.getShort() & 0xFFFF;
+            if (n < 2 || fps < 1 || w < 16 || h < 16) { f.close(); return; }
+            byte[] idx = new byte[4 * (n + 1)];
+            f.readFully(idx);
+            ByteBuffer ib = ByteBuffer.wrap(idx).order(ByteOrder.LITTLE_ENDIAN);
             off = new int[n + 1];
-            for (int i = 0; i <= n; i++) off[i] = b.getInt();
-            data = all;
+            for (int i = 0; i <= n; i++) off[i] = ib.getInt();
+            file = f;   // los fotogramas se leen del disco según toca: no se carga el archivo entero en memoria
             NativeImage img = new NativeImage(NativeImage.Format.RGBA, w, h, false);
             for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) img.setColor(x, y, 0xFF140A08);   // ABGR: azul oscuro
             tex = new NativeImageBackedTexture(img);
@@ -61,16 +65,33 @@ final class NovaBg {
 
     private static void run() {
         int last = -1;
+        byte[] buf = new byte[1 << 20];
         while (!stop) {
             try {
                 int idx = (int) (((Util.getMeasuringTimeMs() - t0) * fps / 1000L) % n);
                 if (idx != last && pending == null) {
-                    java.awt.image.BufferedImage im = javax.imageio.ImageIO.read(new java.io.ByteArrayInputStream(data, off[idx], off[idx + 1] - off[idx]));
-                    int[] px = im.getRGB(0, 0, w, h, null, 0, w);
-                    pending = px;
+                    int len = off[idx + 1] - off[idx];
+                    if (len > buf.length) buf = new byte[len];
+                    file.seek(off[idx]);
+                    file.readFully(buf, 0, len);
+                    java.awt.image.BufferedImage im = javax.imageio.ImageIO.read(new java.io.ByteArrayInputStream(buf, 0, len));
+                    NativeImage ni = new NativeImage(NativeImage.Format.RGBA, w, h, false);
+                    if (im.getRaster().getDataBuffer() instanceof java.awt.image.DataBufferByte && im.getType() == java.awt.image.BufferedImage.TYPE_3BYTE_BGR) {
+                        byte[] d = ((java.awt.image.DataBufferByte) im.getRaster().getDataBuffer()).getData();
+                        int k = 0;
+                        for (int y = 0; y < h; y++) for (int x = 0; x < w; x++, k += 3)
+                            ni.setColor(x, y, 0xFF000000 | ((d[k] & 255) << 16) | ((d[k + 1] & 255) << 8) | (d[k + 2] & 255));
+                    } else {
+                        for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) {
+                            int p = im.getRGB(x, y);
+                            ni.setColor(x, y, 0xFF000000 | ((p & 255) << 16) | (p & 0xFF00) | ((p >> 16) & 255));
+                        }
+                    }
+                    if (stop) { ni.close(); return; }
+                    pending = ni;
                     last = idx;
                 }
-                Thread.sleep(8);
+                Thread.sleep(6);
             } catch (InterruptedException e) {
                 return;
             } catch (Throwable e) {
@@ -82,21 +103,12 @@ final class NovaBg {
     /** Dibuja el vídeo cubriendo toda la pantalla (recortando lo que sobre). Devuelve false si no hay vídeo. */
     static boolean draw(DrawContext c, int sw, int sh, float alpha) {
         if (!ready) return false;
-        int[] px = pending;
-        if (px != null) {
+        NativeImage ni = pending;
+        if (ni != null) {
             pending = null;
-            NativeImage img = tex.getImage();
-            if (img != null) {
-                for (int y = 0; y < h; y++) {
-                    int r = y * w;
-                    for (int x = 0; x < w; x++) {
-                        int p = px[r + x];
-                        img.setColor(x, y, 0xFF000000 | ((p & 255) << 16) | (p & 0xFF00) | ((p >> 16) & 255));
-                    }
-                }
-                tex.upload();
-                shown = true;
-            }
+            tex.setImage(ni);   // cierra la imagen anterior
+            tex.upload();
+            shown = true;
         }
         if (!shown) return true;
         float ar = (float) sw / sh, vr = (float) w / h;
@@ -113,10 +125,15 @@ final class NovaBg {
 
     static void stop(MinecraftClient mc) {
         stop = true;
-        if (worker != null) worker.interrupt();
+        Thread t = worker;
         worker = null;
+        if (t != null) { t.interrupt(); try { t.join(300); } catch (InterruptedException ignored) { } }
+        NativeImage left = pending;
+        pending = null;
+        if (left != null) { try { left.close(); } catch (Throwable ignored) { } }
         if (ready) { try { mc.getTextureManager().destroyTexture(ID); } catch (Throwable ignored) { } }
-        ready = false; shown = false; pending = null; data = null; off = null; tex = null;
+        try { if (file != null) file.close(); } catch (Throwable ignored) { }
+        file = null; off = null; tex = null; ready = false; shown = false;
         tried = false;
     }
 }
