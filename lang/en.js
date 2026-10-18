@@ -2,6 +2,11 @@
 // La clave es el texto en español tal como sale en la app; {1}, {2}… son partes variables (nombres, números).
 window.LANGS=window.LANGS||{};
 window.LANGS.en={name:"English (US)",d:{
+"Menú de Nova":"Nova menu",
+"Activado":"Enabled",
+"Jugar sin el menú de Nova":"Play without the Nova menu",
+"Salida rápida si el menú da problemas con un mod o servidor. También puedes mantener Mayús al pulsar Jugar.":"Quick way out if the menu causes problems with a mod or server. You can also hold Shift when pressing Play.",
+"Licencias de terceros":"Third-party licenses",
 "Optimizar el juego":"Optimize the game",
 "Aplica ajustes de Java para menos tirones y un arranque más fluido (recolector G1 afinado). Se desactiva si eliges un ajuste de Java propio en la instancia":"Applies Java settings for fewer stutters and a smoother start (tuned G1 collector). It is skipped if you pick your own Java preset in the instance",
 "Abrir la consola al jugar":"Open the console when playing",

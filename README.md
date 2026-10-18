@@ -108,6 +108,14 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 
 ## Historial de actualizaciones
 
+### 0.2.14-beta.15 — Vídeo de fondo, modo seguro y mod más ligero
+
+- El menú de Nova usa un vídeo de agujero negro en bucle como fondo (quitados el agujero negro y las estrellas anteriores).
+- Botones más pequeños y cuidados; textos de abajo más pequeños; el menú usa el logo del propio Minecraft.
+- Modo seguro: «Jugar sin el menú de Nova» por instancia, o Mayús al pulsar Jugar.
+- Licencias de terceros: `THIRD-PARTY-NOTICES.txt` y enlace en Ajustes → Acerca de.
+- El mod pesa unos 80 KB (fuentes recortadas, sin imágenes grandes) y «Crear version» lo compila desde `mod/` (versiones en `mod/versions.txt`).
+
 ### 0.2.14-beta.14 — Logo oficial, menú minimalista y más rendimiento
 
 - Menú del juego con el logo de Minecraft Java Edition y botones minimalistas, centrados, cuadrados con esquinas redondeadas.

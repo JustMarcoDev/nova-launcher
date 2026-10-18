@@ -973,4 +973,9 @@ window.LANGS.pt={name:"Português (Portugal)",d:{
 "Abrir la consola al jugar":"Abrir o console ao jogar",
 "Al lanzar Minecraft se abre la pestaña Consola con la salida del juego y el launcher no se esconde. Si lo desactivas, se esconde en la bandeja (Modo juego)":"Ao iniciar o Minecraft, a aba Console abre com a saída do jogo e o launcher fica visível. Se desativar, ele esconde-se na bandeja (Modo jogo)",
 "Optimizar el juego":"Otimizar o jogo",
-"Aplica ajustes de Java para menos tirones y un arranque más fluido (recolector G1 afinado). Se desactiva si eliges un ajuste de Java propio en la instancia":"Aplica ajustes de Java para menos engasgos e um arranque mais fluido (coletor G1 otimizado). É ignorado se escolher um ajuste de Java próprio na instância"}};
+"Aplica ajustes de Java para menos tirones y un arranque más fluido (recolector G1 afinado). Se desactiva si eliges un ajuste de Java propio en la instancia":"Aplica ajustes de Java para menos engasgos e um arranque mais fluido (coletor G1 otimizado). É ignorado se escolher um ajuste de Java próprio na instância",
+"Menú de Nova":"Menu do Nova",
+"Activado":"Ativado",
+"Jugar sin el menú de Nova":"Jogar sem o menu do Nova",
+"Salida rápida si el menú da problemas con un mod o servidor. También puedes mantener Mayús al pulsar Jugar.":"Saída rápida se o menu causar problemas com um mod ou servidor. O utilizador também pode segurar Shift ao clicar em Jogar.",
+"Licencias de terceros":"Licenças de terceiros"}};
