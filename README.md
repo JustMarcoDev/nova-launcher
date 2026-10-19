@@ -119,6 +119,10 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 
 ## Historial de actualizaciones
 
+### 0.2.14-beta.22 — Fondo Nebulosa
+
+- Mod: nuevo fondo animado integrado «Nebulosa» (vídeo en bucle, 1080p, 15 fps, igual que el agujero negro).
+
 ### 0.2.14-beta.21 — Perfil obligatorio
 
 - Launcher: al entrar por primera vez hay que crear un perfil (offline o Microsoft).
