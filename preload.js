@@ -1,3 +1,4 @@
+// Puente seguro entre la interfaz y main.js: solo expone window.api con las funciones que la interfaz puede pedir.
 const { contextBridge, ipcRenderer: r, webUtils } = require('electron');
 contextBridge.exposeInMainWorld('api', {
   cfg: () => r.invoke('cfg:get'), set: c => r.invoke('cfg:set', c),

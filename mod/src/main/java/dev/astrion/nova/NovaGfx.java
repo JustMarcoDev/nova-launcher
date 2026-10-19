@@ -26,6 +26,12 @@ public final class NovaGfx {
         return (alpha << 24) | (Math.min(255, Math.round(((argb >> 16) & 255) * k)) << 16) | (Math.min(255, Math.round(((argb >> 8) & 255) * k)) << 8) | Math.min(255, Math.round((argb & 255) * k));
     }
 
+    /** Mezcla dos colores: k = cuánto del segundo (0 → solo el primero, 1 → solo el segundo). */
+    static int mix(int a, int b, float k) {
+        int r = Math.round(((a >> 16) & 255) * (1 - k) + ((b >> 16) & 255) * k), gg = Math.round(((a >> 8) & 255) * (1 - k) + ((b >> 8) & 255) * k), bl = Math.round((a & 255) * (1 - k) + (b & 255) * k);
+        return 0xFF000000 | (r << 16) | (gg << 8) | bl;
+    }
+
     public static final class Tex {
         final Identifier id; final int pw, ph, gw, gh;
         Tex(Identifier id, int pw, int ph, int sc) { this.id = id; this.pw = pw; this.ph = ph; this.gw = pw / sc; this.gh = ph / sc; }
@@ -188,25 +194,31 @@ public final class NovaGfx {
                 q.setColor(a(argb, 0.8f)); q.fill(right);
                 break;
             }
-            case I_NOVA: {   // agujero negro: dos brazos en espiral que caen hacia el centro
-                q.setStroke(new BasicStroke(0.09f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-                for (int arm = 0; arm < 2; arm++) {
-                    Path2D sp = new Path2D.Double();
-                    for (int i = 0; i <= 40; i++) {
-                        double u = i / 40.0, ang = arm * Math.PI + u * 4.3 + 0.3, r = 0.45 - 0.33 * u;
-                        double px = 0.5 + Math.cos(ang) * r, py = 0.5 + Math.sin(ang) * r;
-                        if (i == 0) sp.moveTo(px, py); else sp.lineTo(px, py);
-                    }
-                    q.draw(sp);
-                }
-                q.fill(new Ellipse2D.Double(0.5 - 0.075, 0.5 - 0.075, 0.15, 0.15));
+            case I_NOVA: {   // agujero negro (tipo «Gargantúa»): sombra oscura, anillo grueso de luz y una fina banda de materia que lo cruza
+                q.setStroke(new BasicStroke(0.13f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                q.draw(new Ellipse2D.Double(0.5 - 0.3, 0.5 - 0.3, 0.6, 0.6));                  // anillo de fotones
+                AffineTransform tilt = AffineTransform.getRotateInstance(-0.2, 0.5, 0.5);
+                q.fill(tilt.createTransformedShape(new Ellipse2D.Double(0.01, 0.5 - 0.045, 0.98, 0.09)));   // banda que atraviesa el agujero
                 break;
             }
-            case I_EARTH: {   // planeta Tierra en línea (mismo estilo que el resto de iconos)
-                q.setStroke(new BasicStroke(0.085f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-                q.draw(new Ellipse2D.Double(0.12, 0.12, 0.76, 0.76));
-                q.draw(new Ellipse2D.Double(0.32, 0.12, 0.36, 0.76));      // meridiano
-                q.draw(new Line2D.Double(0.12, 0.5, 0.88, 0.5));            // ecuador
+            case I_EARTH: {   // planeta Tierra: contorno y continentes macizos, separados entre sí
+                q.setStroke(new BasicStroke(0.07f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                q.draw(new Ellipse2D.Double(0.1, 0.1, 0.8, 0.8));
+                Shape old = q.getClip();
+                q.clip(new Ellipse2D.Double(0.135, 0.135, 0.73, 0.73));
+                double[][][] land = {
+                    {{0.10, 0.30}, {0.26, 0.18}, {0.42, 0.20}, {0.44, 0.32}, {0.36, 0.42}, {0.40, 0.52}, {0.48, 0.58}, {0.44, 0.72}, {0.36, 0.90}, {0.30, 0.70}, {0.28, 0.52}, {0.20, 0.42}},   // América
+                    {{0.52, 0.14}, {0.66, 0.14}, {0.70, 0.28}, {0.60, 0.34}, {0.52, 0.30}},                                                                                             // Europa
+                    {{0.50, 0.40}, {0.66, 0.38}, {0.78, 0.48}, {0.70, 0.64}, {0.62, 0.86}, {0.54, 0.74}, {0.50, 0.56}},                                                                 // África
+                    {{0.74, 0.20}, {0.92, 0.22}, {0.92, 0.46}, {0.84, 0.50}, {0.76, 0.36}}                                                                                              // Asia
+                };
+                for (double[][] poly : land) {
+                    Path2D p = new Path2D.Double();
+                    for (int i = 0; i < poly.length; i++) { if (i == 0) p.moveTo(poly[i][0], poly[i][1]); else p.lineTo(poly[i][0], poly[i][1]); }
+                    p.closePath();
+                    q.fill(p);
+                }
+                q.setClip(old);
                 break;
             }
             case I_EDIT: {
@@ -308,7 +320,9 @@ public final class NovaGfx {
         double isz = icon >= 0 ? (label.isEmpty() ? Math.min(h * 0.62, 10.5) : Math.min(h * 0.58, 8.5)) * s : 0;
         double gap = icon >= 0 && tw > 0 ? 3.5 * s : 0;
         double x0 = bx + (bw - (isz + gap + tw)) / 2;
-        if (icon >= 0) icon(g, icon, x0, by + (bh - isz) / 2, isz, txt);
+        // la Tierra y el agujero negro son blancos con un toque del color de acento elegido en los ajustes
+        int ink = enabled && (icon == I_EARTH || icon == I_NOVA) ? mix(accent, 0xFFFFFFFF, 0.62f) : txt;
+        if (icon >= 0) icon(g, icon, x0, by + (bh - isz) / 2, isz, ink);
         if (tw > 0) {
             g.setColor(col(txt));
             g.drawString(label, (float) (x0 + isz + gap), (float) (by + (bh - fm.getHeight()) / 2 + fm.getAscent()));
