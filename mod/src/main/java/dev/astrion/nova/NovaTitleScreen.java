@@ -35,8 +35,6 @@ public class NovaTitleScreen extends Screen {
     private final java.util.List<Object[]> labels = new java.util.ArrayList<>();   // {texto, x, y, px, argb, negrita, ancla}
     private NovaButton hoverBtn;
     private long hoverSince, lastPoll;
-    private String lastState = "";
-    private boolean lastHas;
 
     public NovaTitleScreen() {
         super(Text.literal("Nova"));
@@ -118,8 +116,8 @@ public class NovaTitleScreen extends Screen {
         }).tip(es ? "Menú de Nova" : "Nova menu", es ? "Fondo, colores y más" : "Background, colors and more"));
         // perfil (arriba izquierda)
         String name = client.getSession().getUsername();
-        int nw = Math.max(46, Math.min(130, (int) (name.length() * 4.3) + 26));
-        addDrawableChild(new NovaButton(6, 6, nw, 14, Text.literal(name), NovaGfx.I_HEAD, panel == 1 ? NovaButton.SELECTED : NovaButton.NORMAL, b -> {
+        int nw = Math.max(40, Math.min(120, (int) (name.length() * 3.9) + 20));
+        addDrawableChild(new NovaButton(6, 6, nw, 12, Text.literal(name), NovaGfx.I_HEAD, panel == 1 ? NovaButton.SELECTED : NovaButton.NORMAL, b -> {
             panel = panel == 1 ? 0 : 1;
             clearAndInit();
         }).tip(es ? "Perfil" : "Profile", es ? "Tu skin y tu cuenta" : "Your skin and account"));
@@ -181,52 +179,100 @@ public class NovaTitleScreen extends Screen {
         NovaButton.panel(c, px, py, pw, ph, 6, 0xF010102A, 0xFF4A3C8C);
     }
 
-    // ---------------------------------------------------------------- panel de Nova
+    // ---------------------------------------------------------------- panel de Nova (centrado, sobre todo lo demás)
+    private String editing;            // archivo cuyo nombre se está editando
+    private final StringBuilder buf = new StringBuilder();
+    private String confirmDel;         // archivo pendiente de confirmar el borrado
+    private int scroll;
+    private String sig = "";
+    private final java.util.Set<String> known = new java.util.HashSet<>();
+
     void buildNova() {
-        pw = 150;
-        px = Math.min(width - pw - 6, Math.max(width / 2 + 62 + 8, 0)); px = Math.min(px, width - pw - 2); py = 24;
-        ph = 119 + 18 * NovaSettings.BGS.length;
+        java.util.List<NovaBgs.Entry> L = NovaBgs.list(es);
+        int fixed = 8 + 12 + 10 + 18 + 10 + 11 + 20 + 15 + 8;
+        int maxRows = Math.max(2, Math.min(6, (height - 20 - fixed) / 17));
+        scroll = Math.max(0, Math.min(scroll, Math.max(0, L.size() - maxRows)));
+        int rows = Math.min(maxRows, L.size());
+        pw = Math.min(262, width - 16);
+        ph = fixed + rows * 17 + (L.size() > rows ? 0 : 0);
+        px = (width - pw) / 2; py = Math.max(6, (height - ph) / 2);
+        final int phF = ph;
         addDrawable((c, mx, my, d) -> {
+            c.fill(0, 0, width, height, 0xA0020208);   // atenúa lo de detrás: el panel va por encima de todo
             drawPanelBg(c);
-            for (Object[] l : labels) {
-                if ((int) l[6] == 3) {
-                    String st = statusText();
-                    if (!st.isEmpty()) txt(c, st, (int) l[1], (int) l[2], 5.8f, "error".equals(NovaSettings.customState) ? 0xFFFF8A96 : 0xFFB8B8D8, false, 0);
-                } else txt(c, (String) l[0], (int) l[1], (int) l[2], (float) l[3], (int) l[4], (boolean) l[5], 0);
-            }
+            for (Object[] l : labels) txt(c, (String) l[0], (int) l[1], (int) l[2], (float) l[3], (int) l[4], (boolean) l[5], (int) l[6]);
         });
-        int x = px + 8, w = pw - 16, y = py + 9;
+        int x = px + 8, w = pw - 16, y = py + 8;
         labels.add(new Object[] { es ? "Menú de Nova" : "Nova menu", x, y, 8.6f, 0xFFFFFFFF, true, 0 });
-        y += 15;
+        labels.add(new Object[] { es ? "Pulsa Esc para cerrar" : "Press Esc to close", px + pw - 8, y + 2, 5.6f, 0xFF7C7CA0, false, 1 });
+        y += 12;
         labels.add(new Object[] { es ? "FONDO" : "BACKGROUND", x, y, 5.6f, 0xFF9A9AC0, true, 0 });
-        y += 9;
-        for (NovaSettings.Bg bg : NovaSettings.BGS) {
-            boolean sel = bg.id.equals(NovaSettings.bg);
-            boolean avail = bg.file == null || bg.file.isEmpty() || (bg.id.equals("custom") ? NovaSettings.hasCustom() : new java.io.File(NovaSettings.DIR, bg.file).isFile());
-            NovaButton b = new NovaButton(x, y, w, 15, Text.literal(es ? bg.es : bg.en), sel ? NovaGfx.I_CHECK : -1, sel ? NovaButton.SELECTED : NovaButton.NORMAL, bb -> {
-                NovaSettings.bg = bg.id;
+        if (L.size() > rows) labels.add(new Object[] { (scroll + 1) + "–" + (scroll + rows) + " / " + L.size() + (es ? "  ·  rueda del ratón" : "  ·  mouse wheel"), px + pw - 8, y, 5.6f, 0xFF7C7CA0, false, 1 });
+        y += 10;
+        int ib = 15, gap = 2;
+        for (int i = scroll; i < scroll + rows; i++) {
+            NovaBgs.Entry e = L.get(i);
+            boolean sel = e.id.equals(NovaSettings.bg);
+            boolean mine = e.file != null;
+            if (mine && e.file.equals(confirmDel)) {
+                labels.add(new Object[] { (es ? "¿Eliminar «" : "Delete \"") + shorten(e.name, 24) + (es ? "»?" : "\"?"), x + 2, y + 4, 6.4f, 0xFFFF9AA4, false, 0 });
+                final String f = e.file;
+                addDrawableChild(new NovaButton(x + w - 2 * ib - gap - 36, y, 36 + ib, ib, Text.literal(es ? "Sí, eliminar" : "Yes, delete"), NovaGfx.I_TRASH, NovaButton.DANGER, b -> {
+                    boolean wasSel = NovaSettings.bg.equals("f:" + f);
+                    NovaBgs.delete(f); confirmDel = null;
+                    if (wasSel) { NovaSettings.bg = "hole"; NovaSettings.save(); NovaBg.switchTo(client, NovaSettings.bgPath()); }
+                    clearAndInit();
+                }).tip(es ? "Eliminar" : "Delete", es ? "Borra la foto o el vídeo" : "Deletes the photo or video"));
+                addDrawableChild(new NovaButton(x + w - ib, y, ib, ib, Text.empty(), NovaGfx.I_CLOSE, NovaButton.NORMAL, b -> { confirmDel = null; clearAndInit(); })
+                        .tip(es ? "Cancelar" : "Cancel", es ? "No borrar nada" : "Keep it"));
+                y += 17; continue;
+            }
+            int reserve = mine ? 3 * (ib + gap) : 0;
+            if (mine && e.file.equals(editing)) {
+                addDrawableChild(new NovaButton(x, y, w - ib - gap, ib, Text.literal(buf + "|"), -1, NovaButton.SELECTED, b -> {})
+                        .tip(es ? "Nuevo nombre" : "New name", es ? "Escribe y pulsa Intro" : "Type and press Enter"));
+                final String f = e.file;
+                addDrawableChild(new NovaButton(x + w - ib, y, ib, ib, Text.empty(), NovaGfx.I_CHECK, NovaButton.PRIMARY, b -> commitName(f))
+                        .tip(es ? "Guardar nombre" : "Save name", es ? "Confirma el nombre" : "Confirms the name"));
+                y += 17; continue;
+            }
+            String label = e.name;
+            if (!e.ready) label += e.error ? (es ? "  (error)" : "  (error)") : "  " + Math.round(e.progress * 100) + "%";
+            NovaButton b = new NovaButton(x, y, w - reserve, ib, Text.literal(label), sel ? NovaGfx.I_CHECK : -1, sel ? NovaButton.SELECTED : NovaButton.NORMAL, bb -> {
+                NovaSettings.bg = e.id;
                 NovaSettings.save();
                 NovaBg.switchTo(client, NovaSettings.bgPath());
                 clearAndInit();
             });
-            b.active = avail;
-            b.tip(es ? bg.es : bg.en, avail ? (es ? "Usar este fondo" : "Use this background") : (es ? "Añade una foto o vídeo" : "Add a photo or video"));
+            b.active = e.ready;
+            b.tip(shorten(e.name, 26), e.ready ? (es ? "Usar este fondo" : "Use this background") : e.error ? (es ? "No se pudo convertir" : "Could not convert") : (es ? "Preparando el fondo…" : "Preparing…"));
             addDrawableChild(b);
-            y += 18;
+            if (mine) {
+                final String f = e.file; final String nm = e.name;
+                int bx = x + w - 3 * ib - 2 * gap;
+                addDrawableChild(new NovaButton(bx, y, ib, ib, Text.empty(), NovaGfx.I_EDIT, NovaButton.NORMAL, bb -> { editing = f; buf.setLength(0); buf.append(nm); confirmDel = null; clearAndInit(); })
+                        .tip(es ? "Cambiar nombre" : "Rename", es ? "Ponle el nombre que quieras" : "Give it any name"));
+                addDrawableChild(new NovaButton(bx + ib + gap, y, ib, ib, Text.empty(), NovaGfx.I_SWAP, NovaButton.NORMAL, bb -> System.out.println("[NOVA:PICKBG:" + f + "]"))
+                        .tip(es ? "Cambiar archivo" : "Replace file", es ? "Elige otra foto o vídeo" : "Pick another photo or video"));
+                addDrawableChild(new NovaButton(bx + 2 * (ib + gap), y, ib, ib, Text.empty(), NovaGfx.I_TRASH, NovaButton.NORMAL, bb -> { confirmDel = f; editing = null; clearAndInit(); })
+                        .tip(es ? "Eliminar" : "Delete", es ? "Borra la foto o el vídeo" : "Deletes the photo or video"));
+            }
+            y += 17;
         }
-        NovaButton add = new NovaButton(x, y, w, 15, Text.literal(es ? "Añadir foto o vídeo" : "Add photo or video"), NovaGfx.I_PLUS, NovaButton.NORMAL, b -> {
-            NovaSettings.customState = "working";
-            NovaSettings.customProgress = 0f;
-            System.out.println("[NOVA:PICKBG]");
-        });
-        add.active = !NovaSettings.DIR.isEmpty() && !"working".equals(NovaSettings.customState);
-        add.tip(es ? "Fondo personalizado" : "Custom background", es ? "Elige una imagen o vídeo" : "Pick an image or video");
+        int half = (w - gap) / 2;
+        NovaButton add = new NovaButton(x, y, half, ib, Text.literal(es ? "Añadir" : "Add"), NovaGfx.I_PLUS, NovaButton.NORMAL, b -> System.out.println("[NOVA:PICKBG]"));
+        add.active = !NovaSettings.DIR.isEmpty();
+        add.tip(es ? "Añadir foto o vídeo" : "Add photo or video", es ? "Elige un archivo de tu PC" : "Pick a file from your PC");
         addDrawableChild(add);
-        y += 18;
-        labels.add(new Object[] { "", x, y, 5.6f, 0xFFB8B8D8, false, 3 });   // estado de la conversión (se dibuja aparte)
-        y += 12;
+        NovaButton open = new NovaButton(x + half + gap, y, w - half - gap, ib, Text.literal(es ? "Abrir carpeta" : "Open folder"), NovaGfx.I_FOLDER, NovaButton.NORMAL, b -> System.out.println("[NOVA:OPENDIR]"));
+        open.active = !NovaSettings.DIR.isEmpty();
+        open.tip(es ? "Carpeta de fondos" : "Backgrounds folder", es ? "Arrastra aquí tus fotos" : "Drop your photos here");
+        addDrawableChild(open);
+        y += ib + 3;
+        labels.add(new Object[] { es ? "Arrastra fotos o vídeos a la carpeta y aparecen aquí" : "Drop photos or videos in the folder and they show up here", x, y, 5.4f, 0xFF7C7CA0, false, 0 });
+        y += 11;
         labels.add(new Object[] { es ? "COLOR DE LOS BOTONES" : "BUTTON COLOR", x, y, 5.6f, 0xFF9A9AC0, true, 0 });
-        y += 10;
+        y += 9;
         int n = NovaSettings.COLORS.length, d = 14, sp = (w - n * d) / (n - 1);
         for (int i = 0; i < n; i++) {
             final int col = NovaSettings.COLORS[i];
@@ -240,39 +286,49 @@ public class NovaTitleScreen extends Screen {
             sw.tip(es ? "Color de acento" : "Accent color", es ? "Cambia el color de los botones" : "Changes the button color");
             addDrawableChild(sw);
         }
-        y += d + 8;
-        addDrawableChild(new NovaButton(x, y, w, 15, Text.literal(es ? "Ajustes del launcher" : "Launcher settings"), NovaGfx.I_GEAR, NovaButton.NORMAL, b -> System.out.println("[NOVA:SETTINGS]"))
+        y += d + 5;
+        addDrawableChild(new NovaButton(x, y, w, ib, Text.literal(es ? "Ajustes del launcher" : "Launcher settings"), NovaGfx.I_GEAR, NovaButton.NORMAL, b -> System.out.println("[NOVA:SETTINGS]"))
                 .tip(es ? "Ajustes del launcher" : "Launcher settings", es ? "Abre Nova Launcher" : "Opens Nova Launcher"));
-        lastState = NovaSettings.customState;
-        lastHas = NovaSettings.hasCustom();
+        ph = (y + ib + 8) - py;
+        sig = NovaBgs.signature();
+        known.clear();
+        for (NovaBgs.Entry e : L) if (e.ready) known.add(e.id);
     }
 
-    String statusText() {
-        String st = NovaSettings.customState;
-        if ("working".equals(st)) return (es ? "Convirtiendo… " : "Converting… ") + Math.round(NovaSettings.customProgress * 100) + "%";
-        if ("error".equals(st)) { String e = NovaSettings.customError; return e.length() > 44 ? e.substring(0, 43) + "…" : e; }
-        if ("ready".equals(st) && NovaSettings.hasCustom()) return es ? "Tu fondo está listo" : "Your background is ready";
-        return "";
+    static String shorten(String s, int n) { return s.length() <= n ? s : s.substring(0, n - 1) + "…"; }
+
+    void commitName(String file) {
+        NovaBgs.rename(file, buf.toString());
+        editing = null; buf.setLength(0);
+        clearAndInit();
     }
 
-    /** Mientras el panel está abierto, sigue el estado de la conversión que hace el launcher. */
+    /** Mientras el panel está abierto, sigue la carpeta de fondos y la conversión que hace el launcher. */
     void poll() {
         long now = Util.getMeasuringTimeMs();
-        if (panel != 2 || now - lastPoll < 400) return;
+        if (panel != 2 || editing != null || now - lastPoll < 700) return;
         lastPoll = now;
-        String before = NovaSettings.customState;
-        long at = NovaSettings.customAt;
-        NovaSettings.pollCustom();
-        if ("ready".equals(NovaSettings.customState) && (!"ready".equals(before) || NovaSettings.customAt != at)) {
-            NovaSettings.bg = "custom";
-            NovaSettings.save();
-            NovaBg.switchTo(client, NovaSettings.bgPath());
-            clearAndInit();
-        } else if (!NovaSettings.customState.equals(lastState) || NovaSettings.hasCustom() != lastHas) clearAndInit();
+        String s = NovaBgs.signature();
+        if (s.equals(sig)) return;
+        // un fondo nuevo que acaba de quedar listo se activa solo
+        for (NovaBgs.Entry e : NovaBgs.list(es)) {
+            if (e.ready && !e.builtin && !known.contains(e.id) && !known.isEmpty()) {
+                NovaSettings.bg = e.id; NovaSettings.save(); NovaBg.switchTo(client, NovaSettings.bgPath());
+                break;
+            }
+        }
+        clearAndInit();
     }
+
+    boolean inPanel(double mx, double my) { return mx >= px - 2 && mx <= px + pw + 2 && my >= py - 2 && my <= py + ph + 2; }
 
     @Override
     public boolean mouseClicked(double mx, double my, int button) {
+        if (panel == 2) {   // el panel de Nova es modal: un clic fuera solo lo cierra
+            if (inPanel(mx, my)) { super.mouseClicked(mx, my, button); return true; }
+            panel = 0; editing = null; confirmDel = null; clearAndInit();
+            return true;
+        }
         if (super.mouseClicked(mx, my, button)) return true;
         if (panel != 0 && !(mx >= px && mx <= px + pw && my >= py && my <= py + ph)) { panel = 0; clearAndInit(); return true; }
         return false;
@@ -280,8 +336,37 @@ public class NovaTitleScreen extends Screen {
 
     @Override
     public boolean keyPressed(int key, int scan, int mods) {
-        if (key == 256 && panel != 0) { panel = 0; clearAndInit(); return true; }
+        if (editing != null) {
+            if (key == 257 || key == 335) { commitName(editing); return true; }
+            if (key == 256) { editing = null; clearAndInit(); return true; }
+            if (key == 259) { if (buf.length() > 0) buf.setLength(buf.length() - 1); clearAndInit(); return true; }
+            return true;
+        }
+        if (key == 256 && panel != 0) { panel = 0; confirmDel = null; clearAndInit(); return true; }
         return super.keyPressed(key, scan, mods);
+    }
+
+    @Override
+    public boolean charTyped(char chr, int mods) {
+        if (editing != null) {
+            if (chr >= 32 && chr != 127 && buf.length() < 28) { buf.append(chr); clearAndInit(); }
+            return true;
+        }
+        return super.charTyped(chr, mods);
+    }
+
+    // 1.20.1 usa (x, y, delta) y 1.21 (x, y, horizontal, vertical): se declaran las dos sin @Override
+    public boolean mouseScrolled(double mx, double my, double amount) { return wheel(mx, my, amount); }
+    public boolean mouseScrolled(double mx, double my, double h, double v) { return wheel(mx, my, v); }
+
+    private boolean wheel(double mx, double my, double amount) {
+        if (panel != 2 || !inPanel(mx, my)) return false;
+        int total = NovaBgs.list(es).size();
+        int ns = scroll + (amount < 0 ? 1 : -1);
+        if (ns < 0 || ns > Math.max(0, total - 1)) return true;
+        scroll = ns;
+        clearAndInit();
+        return true;
     }
 
     int ly() { return Math.max(26, (height - 104) / 2 - 2); }
@@ -325,7 +410,7 @@ public class NovaTitleScreen extends Screen {
         net.minecraft.client.util.math.MatrixStack ms = c.getMatrices();
         ms.push();
         ms.scale(k, k, 1f);
-        logo.draw(c, (int) (width / k), fade, (int) (ly() / k));
+        if (panel != 2) logo.draw(c, (int) (width / k), fade, (int) (ly() / k));   // el panel de Nova va por encima de todo
         ms.pop();
 
         // abajo izquierda: versión
@@ -347,7 +432,7 @@ public class NovaTitleScreen extends Screen {
     void tooltip(DrawContext c) {
         NovaButton h = null;
         for (net.minecraft.client.gui.Element e : children()) {
-            if (e instanceof NovaButton nb && !nb.tipTitle.isEmpty() && nb.isHovered()) { h = nb; break; }
+            if (e instanceof NovaButton nb && !nb.tipTitle.isEmpty() && nb.isHovered() && (panel != 2 || inPanel(nb.getX() + 1, nb.getY() + 1))) { h = nb; break; }
         }
         String demo = System.getProperty("nova.tipdemo", "");   // solo para pruebas: fuerza un tooltip sin ratón
         if (!demo.isEmpty()) { int k = 0; for (net.minecraft.client.gui.Element e : children()) if (e instanceof NovaButton nb && !nb.tipTitle.isEmpty() && k++ == Integer.parseInt(demo)) h = nb; }

@@ -75,7 +75,7 @@ async function convert(file, out, opts = {}) {
     hdr.writeUInt32LE(off, 16 + 4 * r.n);
     const t = out + '.tmp';
     fs.writeFileSync(t, Buffer.concat([hdr, ...fr]));
-    fs.renameSync(t, out);
+    try { fs.renameSync(t, out); } catch (e) { fs.copyFileSync(t, out); try { fs.unlinkSync(t); } catch {} }
     return { n: r.n, w: o.w, h: o.h, fps: r.fps, bytes: off };
   } finally {
     jobs.delete(id);

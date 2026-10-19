@@ -12,11 +12,34 @@ const rd = (f, d) => {
   try { return JSON.parse(raw); } catch {}
   try { const v = JSON.parse(fs.readFileSync(f + '.bak')); try { fs.writeFileSync(f, JSON.stringify(v, null, 1)); } catch {} return v; } catch { return d; }
 };
+// Mover/renombrar archivos en Windows: el antivirus o el indexador a veces bloquean un instante el archivo recién escrito (EPERM/EBUSY/EACCES).
+// Se reintenta unas veces y, si sigue bloqueado, se copia y se borra el original.
+const LOCKED = e => e && ['EPERM', 'EBUSY', 'EACCES', 'ENOTEMPTY'].includes(e.code);
+const mvSync = (a, b) => {
+  for (let i = 0; ; i++) {
+    try { return fs.renameSync(a, b); }
+    catch (e) {
+      if (!LOCKED(e)) throw e;
+      if (i >= 6) { fs.copyFileSync(a, b); try { fs.unlinkSync(a); } catch {} return; }
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 80 * (i + 1));
+    }
+  }
+};
+const mv = async (a, b) => {
+  for (let i = 0; ; i++) {
+    try { return await fs.promises.rename(a, b); }
+    catch (e) {
+      if (!LOCKED(e)) throw e;
+      if (i >= 8) { await fs.promises.copyFile(a, b); try { await fs.promises.unlink(a); } catch {} return; }
+      await new Promise(r => setTimeout(r, 120 * (i + 1)));
+    }
+  }
+};
 const wr = (f, d) => {
   fs.mkdirSync(path.dirname(f), { recursive: true });
   const txt = JSON.stringify(d, null, 1), tmp = f + '.tmp';
   try { JSON.parse(fs.readFileSync(f)); fs.copyFileSync(f, f + '.bak'); } catch {}
-  try { fs.writeFileSync(tmp, txt); fs.renameSync(tmp, f); }
+  try { fs.writeFileSync(tmp, txt); mvSync(tmp, f); }
   catch (e) { try { fs.rmSync(tmp, { force: true }); } catch {} fs.writeFileSync(f, txt); }
 };
 const load = () => ({ ...DEF, ...rd(cfgFile, {}) }), li = () => rd(insFile, []);
@@ -26,6 +49,8 @@ if (rd(cfgFile, {}).hwaccel === false) app.disableHardwareAcceleration();
 const MAN = 'https://launchermeta.mojang.com/mc/game/version_manifest_v2.json';
 let win, updater = null;
 if (process.platform === 'win32') app.setAppUserModelId('com.nova.launcher');
+// En Linux/Chromebook el AppImage no puede usar el sandbox de Chromium (necesita permisos de root); la app solo abre contenido propio
+if (process.platform === 'linux' && app.commandLine) app.commandLine.appendSwitch('no-sandbox');
 const single = app.requestSingleInstanceLock();
 if (!single) app.quit();
 else app.on('second-instance', () => { if (win) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); } });
@@ -255,11 +280,13 @@ async function javaFor(mc, cfg) {
     send('status', 'Sin conexión: se usa el Java ya instalado (' + major + ')');
   }
   const d = path.join(root, 'java', String(major));
-  const find = () => fs.existsSync(d) && fs.readdirSync(d).map(x => path.join(d, x, 'bin', 'java.exe')).find(fs.existsSync);
+  const find = () => fs.existsSync(d) && fs.readdirSync(d).flatMap(x => [path.join(d, x, 'bin', 'java.exe'), path.join(d, x, 'bin', 'java')]).find(fs.existsSync);
   let j = find(); if (j) return j;
   send('status', `Descargando Java ${major}…`); fs.mkdirSync(d, { recursive: true });
-  const z = path.join(d, 'j.zip');
-  await dl(`https://api.adoptium.net/v3/binary/latest/${major}/ga/windows/x64/jre/hotspot/normal/eclipse`, z);
+  // Java de Adoptium según el sistema (Windows, Linux/Chromebook o Mac) y la arquitectura (x64 o ARM)
+  const osn = process.platform === 'win32' ? 'windows' : process.platform === 'darwin' ? 'mac' : 'linux', arch = process.arch === 'arm64' ? 'aarch64' : 'x64';
+  const z = path.join(d, process.platform === 'win32' ? 'j.zip' : 'j.tar.gz');
+  await dl(`https://api.adoptium.net/v3/binary/latest/${major}/ga/${osn}/${arch}/jre/hotspot/normal/eclipse`, z);
   await run('tar', ['-xf', z, '-C', d]); fs.unlinkSync(z);
   j = find(); if (!j) throw new Error('No se pudo instalar Java ' + major); return j;
 }
@@ -376,6 +403,7 @@ ipcMain.handle('play', async (e, { id, server, world, safe }) => {
       : nova ? 'Nova: menú de Nova activado (Fabric incluido en el launcher).\n'
       : (!ins.ld || ins.ld === 'Vanilla' || ins.ld === 'Fabric') ? (NOVA_MC.includes(ins.mc) ? 'Nova: el menú de Nova no se pudo activar; se juega con el menú normal.\n' : 'Nova: el menú de Nova solo está disponible en Minecraft ' + NOVA_MC.join(' y ') + '; esta versión usa el menú normal.\n')
       : 'Nova: el menú de Nova solo está disponible en Nova y Fabric; ' + ins.ld + ' usa el menú normal.\n';
+    if (nova) { fondosScan().catch(() => {}); fondosWatch(); }
     if (nova) o.customArgs.push('-Dnova.dir=' + novaDir(), '-Dnova.skin=' + (await novaSkin(act.name)), '-Dnova.premium=' + (act.type === 'microsoft' ? '1' : '0'), '-Dnova.user=' + act.name, '-Dnova.bg=' + (novaBg() || ''), '-Dfabric.addMods=' + nj, '-Dnova.version=' + app.getVersion(), '-Dnova.loader=' + (ins.ld === 'Fabric' ? 'Fabric' : 'Nova'));
     if (ins.ld === 'Forge' || ins.ld === 'NeoForge') o.version.custom = await forge(ins.ld, ins.mc, java, ins.loaderVersion);
     if (server && server.host) o.quickPlay = { type: modernQP(ins.mc) ? 'multiplayer' : 'legacy', identifier: server.host + (server.port && +server.port !== 25565 ? ':' + server.port : '') };
@@ -384,7 +412,7 @@ ipcMain.handle('play', async (e, { id, server, world, safe }) => {
     const l = new Client(), tail = [], lg = openLog(ins, java, ram), since = Date.now(); let t0 = 0;
     send('log', '── ' + ins.name + ' · Minecraft ' + ins.mc + ' · ' + (ins.ld || 'Vanilla') + ' · ' + (act.name) + ' ──\n'); send('log', novaMsg);
     l.on('progress', p => send('progress', p));
-    l.on('data', d => { const t = String(d); if (t.includes('[NOVA:PICKBG]')) novaPickBg(); if (t.includes('[NOVA:SETTINGS]')) { try { if (win) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); send('nav', 'set'); } } catch {} } try { lg.w.write(t.endsWith('\n') ? t : t + '\n'); } catch {} for (const ln of t.split(/\r?\n/)) if (ln) tail.push(ln); if (tail.length > 500) tail.splice(0, tail.length - 300); send('log', t); });
+    l.on('data', d => { const t = String(d); { const pk = t.match(/\[NOVA:PICKBG(?::([^\]]+))?\]/); if (pk) novaPickBg(pk[1]); if (t.includes('[NOVA:OPENDIR]')) shell.openPath(fondosDir()); } if (t.includes('[NOVA:SETTINGS]')) { try { if (win) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); send('nav', 'set'); } } catch {} } try { lg.w.write(t.endsWith('\n') ? t : t + '\n'); } catch {} for (const ln of t.split(/\r?\n/)) if (ln) tail.push(ln); if (tail.length > 500) tail.splice(0, tail.length - 300); send('log', t); });
     l.on('close', code => {
       running.delete(id); try { lg.w.end(); } catch {} if (t0) { const cur = li().find(i => i.id === id) || {}; upIns(id, { playMs: (cur.playMs || 0) + (Date.now() - t0), lastPlayed: Date.now() }); } discordSet(null); send('running', running.size ? 1 : 0); send('progress', null);
       const crashed = !!code && tail.length > 0;
@@ -581,7 +609,7 @@ async function dl(urls, dest, o = {}) {
             const n = await fetchPart(u, part, o);
             const want = String(o.sha512 || o.sha1 || '').toLowerCase();
             if (want && await hashFile(part, o.sha512 ? 'sha512' : 'sha1') !== want) { await clean(); err = new Error('hash'); if (z === 0) continue; bad.add(u); break; } // huella distinta: una vez más desde cero
-            await rmQ(metaOf(part)); await fs.promises.rename(part, dest); return n;
+            await rmQ(metaOf(part)); await mv(part, dest); return n;
           } catch (e) { if (e.cancel) throw e; err = e; if (e.http >= 400 && e.http < 500 && e.http !== 408 && e.http !== 429) bad.add(u); break; }
         }
       }
@@ -680,7 +708,7 @@ ipcMain.handle('mods:check', async (e, { id, hashes }) => {
 });
 ipcMain.handle('mods:toggle', (e, { id, file }) => {
   const p = modFile(id, file), n = /\.disabled$/i.test(p) ? p.replace(/\.disabled$/i, '') : p + '.disabled';
-  if (fs.existsSync(n)) throw new Error('Ya existe un archivo con ese nombre'); fs.renameSync(p, n); return path.basename(n);
+  if (fs.existsSync(n)) throw new Error('Ya existe un archivo con ese nombre'); mvSync(p, n); return path.basename(n);
 });
 ipcMain.handle('mods:remove', (e, { id, file }) => { fs.rmSync(modFile(id, file), { force: true }); return true; });
 ipcMain.handle('mods:update', async (e, { id, file, url, filename, sha1, sha512 }) => {
@@ -1201,20 +1229,72 @@ async function novaSkin(name) {
   } catch {}
   return fs.existsSync(dst) ? dst : '';
 }
-let PICKING = false;
-function novaState(o) { try { fs.writeFileSync(path.join(novaDir(), 'custom.json'), JSON.stringify(o)); } catch {} }
-async function novaPickBg() {
-  if (PICKING) return; PICKING = true;
+// ---- Fondos propios del menú de Nova: todo lo que haya en la carpeta «fondos» se convierte y aparece en el menú del juego ----
+const MEDIA = /\.(png|jpe?g|webp|bmp|gif|mp4|m4v|mov|webm|mkv)$/i, IMGEXT = /\.(png|jpe?g|webp|bmp|gif)$/i;
+const fondosDir = () => { const d = path.join(novaDir(), 'fondos'); try { fs.mkdirSync(d, { recursive: true }); } catch {} return d; };
+const fondosCache = () => { const d = path.join(novaDir(), 'cache'); try { fs.mkdirSync(d, { recursive: true }); } catch {} return d; };
+const fondosJson = (n, o) => { const f = path.join(novaDir(), n); if (o === undefined) { try { return JSON.parse(fs.readFileSync(f, 'utf8')); } catch { return {}; } } try { fs.writeFileSync(f, JSON.stringify(o)); } catch {} };
+let FQ = [], FCUR = '', FBUSY = false, FTIMER = null; const FFAIL = new Map();
+async function fondosRun() {
+  if (FBUSY) return; FBUSY = true;
   try {
-    const r = await dialog.showOpenDialog(win || undefined, { title: 'Fondo personalizado para el menú de Nova', properties: ['openFile'], filters: [{ name: 'Imagen o vídeo', extensions: ['png', 'jpg', 'jpeg', 'webp', 'bmp', 'gif', 'mp4', 'm4v', 'mov', 'webm', 'mkv'] }] });
-    if (r.canceled || !r.filePaths[0]) return;
-    const f = r.filePaths[0], out = path.join(novaDir(), 'custom.nvb'), nvb = require('./nvb');
-    novaState({ state: 'working', progress: 0, name: path.basename(f) });
-    try {
-      const x = await nvb.convert(f, out, { onProgress: p => novaState({ state: 'working', progress: p, name: path.basename(f) }) });
-      novaState({ state: 'ready', name: path.basename(f), n: x.n, at: Date.now() });
-    } catch (e) { novaState({ state: 'error', error: String(e && e.message || e).slice(0, 160) }); }
-  } finally { PICKING = false; }
+    while (FQ.length) {
+      const f = FQ.shift(), src = path.join(fondosDir(), f); FCUR = f;
+      let st; try { st = fs.statSync(src); } catch { continue; }
+      const setS = o => { const m = fondosJson('fondos-estado.json'); if (o) m[f] = o; else delete m[f]; fondosJson('fondos-estado.json', m); };
+      try {
+        const img = IMGEXT.test(f);
+        await require('./nvb').convert(src, path.join(fondosCache(), f + '.nvb'), img ? { w: 1920, h: 1080, q: 0.85 } : { onProgress: p => setS({ state: 'working', progress: p }) });
+        setS(null);
+      } catch (e) { FFAIL.set(f, st.mtimeMs); setS({ state: 'error', error: String(e && e.message || e).slice(0, 120) }); }
+    }
+  } finally { FCUR = ''; FBUSY = false; }
+}
+// Busca fotos y vídeos nuevos (o cambiados) y los pone en cola; quita las copias de lo que ya no existe
+async function fondosScan() {
+  const dir = fondosDir(), cache = fondosCache();
+  let files = []; try { files = fs.readdirSync(dir).filter(f => MEDIA.test(f)); } catch {}
+  try { for (const c of fs.readdirSync(cache)) if (c.endsWith('.nvb') && !files.includes(c.slice(0, -4))) fs.unlinkSync(path.join(cache, c)); } catch {}
+  const est = fondosJson('fondos-estado.json'); let dirty = false;
+  for (const k of Object.keys(est)) if (!files.includes(k)) { delete est[k]; dirty = true; }
+  for (const f of files) {
+    let st; try { st = fs.statSync(path.join(dir, f)); } catch { continue; }
+    if (!st.isFile() || !st.size || Date.now() - st.mtimeMs < 1500) continue;   // vacío o todavía copiándose
+    let ok = false; try { const c = fs.statSync(path.join(cache, f + '.nvb')); ok = c.size > 32 && c.mtimeMs >= st.mtimeMs; } catch {}
+    if (ok || FQ.includes(f) || FCUR === f || FFAIL.get(f) === st.mtimeMs) continue;
+    FQ.push(f); est[f] = { state: 'working', progress: 0 }; dirty = true;
+  }
+  if (dirty) fondosJson('fondos-estado.json', est);
+  fondosRun();
+}
+function fondosWatch() { if (!FTIMER) FTIMER = setInterval(() => { if (running.size > 0) fondosScan().catch(() => {}); }, 2500); }
+let PICKING = false;
+async function novaPickBg(target) {
+  if (PICKING) return; PICKING = true;
+  const wasMin = !!(win && win.isMinimized());
+  try {
+    if (win) { if (wasMin) win.restore(); win.show(); win.focus(); }
+    const r = await dialog.showOpenDialog(win || undefined, { title: 'Fondo para el menú de Nova', properties: target ? ['openFile'] : ['openFile', 'multiSelections'], filters: [{ name: 'Imagen o vídeo', extensions: ['png', 'jpg', 'jpeg', 'webp', 'bmp', 'gif', 'mp4', 'm4v', 'mov', 'webm', 'mkv'] }] });
+    if (r.canceled || !r.filePaths.length) return;
+    const dir = fondosDir(), names = fondosJson('nombres.json');
+    for (const p of r.filePaths) {
+      if (!MEDIA.test(p)) continue;
+      const ext = path.extname(p);
+      let dest;
+      if (target) {   // «cambiar»: mismo nombre, otro archivo
+        const old = path.basename(target), base = path.basename(old, path.extname(old));
+        dest = base + ext;
+        if (dest !== old) { try { fs.unlinkSync(path.join(dir, old)); } catch {} try { fs.unlinkSync(path.join(fondosCache(), old + '.nvb')); } catch {} if (names[old] !== undefined) { names[dest] = names[old]; delete names[old]; } }
+      } else {
+        const base = path.basename(p, ext); dest = base + ext;
+        for (let i = 2; fs.existsSync(path.join(dir, dest)); i++) dest = base + ' (' + i + ')' + ext;
+      }
+      fs.copyFileSync(p, path.join(dir, dest));
+      FFAIL.delete(dest);
+    }
+    fondosJson('nombres.json', names);
+    setTimeout(() => fondosScan().catch(() => {}), 1700);
+  } catch {} finally { PICKING = false; if (wasMin && win) { try { win.minimize(); } catch {} } }
 }
 function novaBg() {
   const src = path.join(__dirname, 'assets', 'nova-bg.nvb');
