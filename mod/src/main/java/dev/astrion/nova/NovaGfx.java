@@ -201,24 +201,26 @@ public final class NovaGfx {
                 q.fill(tilt.createTransformedShape(new Ellipse2D.Double(0.01, 0.5 - 0.045, 0.98, 0.09)));   // banda que atraviesa el agujero
                 break;
             }
-            case I_EARTH: {   // planeta Tierra: contorno y continentes macizos, separados entre sí
-                q.setStroke(new BasicStroke(0.07f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-                q.draw(new Ellipse2D.Double(0.1, 0.1, 0.8, 0.8));
-                Shape old = q.getClip();
-                q.clip(new Ellipse2D.Double(0.135, 0.135, 0.73, 0.73));
-                double[][][] land = {
-                    {{0.10, 0.30}, {0.26, 0.18}, {0.42, 0.20}, {0.44, 0.32}, {0.36, 0.42}, {0.40, 0.52}, {0.48, 0.58}, {0.44, 0.72}, {0.36, 0.90}, {0.30, 0.70}, {0.28, 0.52}, {0.20, 0.42}},   // América
-                    {{0.52, 0.14}, {0.66, 0.14}, {0.70, 0.28}, {0.60, 0.34}, {0.52, 0.30}},                                                                                             // Europa
-                    {{0.50, 0.40}, {0.66, 0.38}, {0.78, 0.48}, {0.70, 0.64}, {0.62, 0.86}, {0.54, 0.74}, {0.50, 0.56}},                                                                 // África
-                    {{0.74, 0.20}, {0.92, 0.22}, {0.92, 0.46}, {0.84, 0.50}, {0.76, 0.36}}                                                                                              // Asia
-                };
-                for (double[][] poly : land) {
-                    Path2D p = new Path2D.Double();
-                    for (int i = 0; i < poly.length; i++) { if (i == 0) p.moveTo(poly[i][0], poly[i][1]); else p.lineTo(poly[i][0], poly[i][1]); }
-                    p.closePath();
-                    q.fill(p);
-                }
-                q.setClip(old);
+            case I_EARTH: {   // idiomas: icono de «traducir» (un carácter chino y una A sobre dos placas que se solapan)
+                RoundRectangle2D back = new RoundRectangle2D.Double(0.06, 0.06, 0.56, 0.56, 0.12, 0.12);
+                RoundRectangle2D front = new RoundRectangle2D.Double(0.38, 0.38, 0.56, 0.56, 0.12, 0.12);
+                q.fill(back);
+                q.setComposite(AlphaComposite.Clear);                      // hueco entre las dos placas
+                q.fill(new RoundRectangle2D.Double(0.33, 0.33, 0.66, 0.66, 0.17, 0.17));
+                q.setStroke(new BasicStroke(0.055f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                q.draw(new Line2D.Double(0.17, 0.25, 0.50, 0.25));        // 文: raya de arriba
+                q.draw(new Line2D.Double(0.34, 0.15, 0.34, 0.25));        //     punto
+                q.draw(new Line2D.Double(0.27, 0.30, 0.43, 0.50));        //     cruce
+                q.draw(new Line2D.Double(0.41, 0.30, 0.25, 0.50));
+                q.setComposite(AlphaComposite.SrcOver);
+                q.fill(front);
+                q.setComposite(AlphaComposite.Clear);
+                q.setStroke(new BasicStroke(0.06f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                Path2D aa = new Path2D.Double();                           // A
+                aa.moveTo(0.55, 0.82); aa.lineTo(0.66, 0.52); aa.lineTo(0.77, 0.82);
+                q.draw(aa);
+                q.draw(new Line2D.Double(0.59, 0.72, 0.73, 0.72));
+                q.setComposite(AlphaComposite.SrcOver);
                 break;
             }
             case I_EDIT: {
@@ -320,9 +322,8 @@ public final class NovaGfx {
         double isz = icon >= 0 ? (label.isEmpty() ? Math.min(h * 0.62, 10.5) : Math.min(h * 0.58, 8.5)) * s : 0;
         double gap = icon >= 0 && tw > 0 ? 3.5 * s : 0;
         double x0 = bx + (bw - (isz + gap + tw)) / 2;
-        // la Tierra y el agujero negro son blancos con un toque del color de acento elegido en los ajustes
-        int ink = enabled && (icon == I_EARTH || icon == I_NOVA) ? mix(accent, 0xFFFFFFFF, 0.62f) : txt;
-        if (icon >= 0) icon(g, icon, x0, by + (bh - isz) / 2, isz, ink);
+        // los iconos son siempre blancos: no cambian con el color de acento elegido en los ajustes
+        if (icon >= 0) icon(g, icon, x0, by + (bh - isz) / 2, isz, txt);
         if (tw > 0) {
             g.setColor(col(txt));
             g.drawString(label, (float) (x0 + isz + gap), (float) (by + (bh - fm.getHeight()) / 2 + fm.getAscent()));
