@@ -111,7 +111,7 @@ public final class NovaGfx {
         return r;
     }
 
-    public static final int I_USER = 0, I_GEAR = 1, I_CLOSE = 2, I_EARTH = 6, I_NOVA = 8, I_LOCK = 9, I_REALMS = 10, I_USERS = 11, I_CHECK = 12, I_PLUS = 13, I_HEAD = 14;
+    public static final int I_USER = 0, I_GEAR = 1, I_CLOSE = 2, I_EARTH = 6, I_NOVA = 8, I_LOCK = 9, I_REALMS = 10, I_USERS = 11, I_CHECK = 12, I_PLUS = 13, I_HEAD = 14, I_EDIT = 15, I_SWAP = 16, I_TRASH = 17, I_FOLDER = 18;
 
     static void person(Graphics2D g, double cx, double top, double s) {
         g.fill(new Ellipse2D.Double(cx - 0.17 * s, top, 0.34 * s, 0.34 * s));
@@ -188,38 +188,57 @@ public final class NovaGfx {
                 q.setColor(a(argb, 0.8f)); q.fill(right);
                 break;
             }
-            case I_NOVA: {   // agujero negro: disco y anillo inclinado
-                AffineTransform old = q.getTransform();
-                q.rotate(-0.42, 0.5, 0.5);
-                q.setStroke(new BasicStroke(0.085f));
-                q.draw(new Ellipse2D.Double(0.04, 0.5 - 0.16, 0.92, 0.32));
-                q.setTransform(old);
-                q.fill(new Ellipse2D.Double(0.5 - 0.2, 0.5 - 0.2, 0.4, 0.4));
+            case I_NOVA: {   // agujero negro: dos brazos en espiral que caen hacia el centro
+                q.setStroke(new BasicStroke(0.09f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                for (int arm = 0; arm < 2; arm++) {
+                    Path2D sp = new Path2D.Double();
+                    for (int i = 0; i <= 40; i++) {
+                        double u = i / 40.0, ang = arm * Math.PI + u * 4.3 + 0.3, r = 0.45 - 0.33 * u;
+                        double px = 0.5 + Math.cos(ang) * r, py = 0.5 + Math.sin(ang) * r;
+                        if (i == 0) sp.moveTo(px, py); else sp.lineTo(px, py);
+                    }
+                    q.draw(sp);
+                }
+                q.fill(new Ellipse2D.Double(0.5 - 0.075, 0.5 - 0.075, 0.15, 0.15));
                 break;
             }
-            case I_EARTH: {   // planeta Tierra (con color propio; solo usa la transparencia del tinte)
-                float al = ((argb >>> 24) & 255) / 255f;
-                Ellipse2D globe = new Ellipse2D.Double(0.04, 0.04, 0.92, 0.92);
-                q.setComposite(AlphaComposite.SrcOver.derive(al));
-                q.setPaint(new GradientPaint(0.25f, 0.1f, new Color(0x5BB4FF), 0.8f, 0.95f, new Color(0x1649B0)));
-                q.fill(globe);
-                q.setClip(globe);
-                q.setColor(new Color(0x56C46A));
-                Path2D am = new Path2D.Double();
-                am.moveTo(0.22, 0.17); am.lineTo(0.40, 0.12); am.lineTo(0.47, 0.24); am.lineTo(0.40, 0.36); am.lineTo(0.52, 0.47);
-                am.lineTo(0.45, 0.60); am.lineTo(0.35, 0.67); am.lineTo(0.31, 0.86); am.lineTo(0.21, 0.75); am.lineTo(0.24, 0.56);
-                am.lineTo(0.10, 0.45); am.lineTo(0.14, 0.28); am.closePath();
-                q.fill(am);
-                Path2D af = new Path2D.Double();
-                af.moveTo(0.60, 0.20); af.lineTo(0.78, 0.17); af.lineTo(0.88, 0.32); af.lineTo(0.74, 0.42); af.lineTo(0.84, 0.58);
-                af.lineTo(0.70, 0.80); af.lineTo(0.60, 0.70); af.lineTo(0.58, 0.50); af.lineTo(0.52, 0.34); af.closePath();
-                q.fill(af);
-                q.setColor(new Color(255, 255, 255, 60));
-                q.fill(new Ellipse2D.Double(0.12, 0.08, 0.5, 0.34));
-                q.setClip(null);
-                q.setStroke(new BasicStroke(0.04f));
-                q.setColor(new Color(190, 225, 255, 150));
-                q.draw(globe);
+            case I_EARTH: {   // planeta Tierra en línea (mismo estilo que el resto de iconos)
+                q.setStroke(new BasicStroke(0.085f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                q.draw(new Ellipse2D.Double(0.12, 0.12, 0.76, 0.76));
+                q.draw(new Ellipse2D.Double(0.32, 0.12, 0.36, 0.76));      // meridiano
+                q.draw(new Line2D.Double(0.12, 0.5, 0.88, 0.5));            // ecuador
+                break;
+            }
+            case I_EDIT: {
+                AffineTransform t0 = AffineTransform.getRotateInstance(0.7854, 0.5, 0.5);
+                Path2D p = new Path2D.Double();
+                p.append(new RoundRectangle2D.Double(0.41, 0.12, 0.18, 0.5, 0.05, 0.05), false);
+                Path2D tip = new Path2D.Double();
+                tip.moveTo(0.41, 0.68); tip.lineTo(0.59, 0.68); tip.lineTo(0.5, 0.86); tip.closePath();
+                p.append(tip, false);
+                q.fill(t0.createTransformedShape(p));
+                break;
+            }
+            case I_SWAP: {
+                q.setStroke(new BasicStroke(0.085f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                q.draw(new Line2D.Double(0.18, 0.34, 0.8, 0.34));
+                Path2D h1 = new Path2D.Double(); h1.moveTo(0.64, 0.18); h1.lineTo(0.82, 0.34); h1.lineTo(0.64, 0.5); q.draw(h1);
+                q.draw(new Line2D.Double(0.82, 0.68, 0.2, 0.68));
+                Path2D h2 = new Path2D.Double(); h2.moveTo(0.36, 0.52); h2.lineTo(0.18, 0.68); h2.lineTo(0.36, 0.84); q.draw(h2);
+                break;
+            }
+            case I_TRASH: {
+                q.setStroke(new BasicStroke(0.085f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                q.draw(new Line2D.Double(0.2, 0.27, 0.8, 0.27));
+                q.draw(new Line2D.Double(0.4, 0.17, 0.6, 0.17));
+                Path2D b2 = new Path2D.Double(); b2.moveTo(0.27, 0.37); b2.lineTo(0.32, 0.84); b2.lineTo(0.68, 0.84); b2.lineTo(0.73, 0.37); q.draw(b2);
+                break;
+            }
+            case I_FOLDER: {
+                Path2D f = new Path2D.Double();
+                f.moveTo(0.1, 0.24); f.lineTo(0.4, 0.24); f.lineTo(0.5, 0.36); f.lineTo(0.9, 0.36); f.lineTo(0.9, 0.8); f.lineTo(0.1, 0.8); f.closePath();
+                q.setStroke(new BasicStroke(0.085f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                q.draw(f);
                 break;
             }
             case I_HEAD: {
@@ -289,7 +308,7 @@ public final class NovaGfx {
         double isz = icon >= 0 ? (label.isEmpty() ? Math.min(h * 0.62, 10.5) : Math.min(h * 0.58, 8.5)) * s : 0;
         double gap = icon >= 0 && tw > 0 ? 3.5 * s : 0;
         double x0 = bx + (bw - (isz + gap + tw)) / 2;
-        if (icon >= 0) icon(g, icon, x0, by + (bh - isz) / 2, isz, icon == I_EARTH ? (enabled ? 0xFFFFFFFF : 0x70FFFFFF) : txt);
+        if (icon >= 0) icon(g, icon, x0, by + (bh - isz) / 2, isz, txt);
         if (tw > 0) {
             g.setColor(col(txt));
             g.drawString(label, (float) (x0 + isz + gap), (float) (by + (bh - fm.getHeight()) / 2 + fm.getAscent()));

@@ -2,6 +2,14 @@
 // La clave es el texto en español tal como sale en la app; {1}, {2}… son partes variables (nombres, números).
 window.LANGS=window.LANGS||{};
 window.LANGS.fr={name:"Français",d:{
+"Añadir cuenta":"Ajouter un compte",
+"Añade una cuenta de Minecraft al launcher":"Ajoute un compte Minecraft au launcher",
+"Tipo de cuenta":"Type de compte",
+"Nombre de usuario":"Nom d'utilisateur",
+"Offline":"Hors ligne",
+"Sin conexión: juegas con cualquier nombre (sin servidores premium)":"Hors ligne : tu joues avec n'importe quel nom (sans serveurs premium)",
+"Inicia sesión con tu cuenta oficial; el nombre sale de tu perfil de Minecraft":"Connecte-toi avec ton compte officiel ; le nom vient de ton profil Minecraft",
+"Cuenta añadida ✓":"Compte ajouté ✓",
 "Buscando actualizaciones…":"Recherche de mises à jour…",
 "Nueva versión":"Nouvelle version",
 "Descargando":"Téléchargement",

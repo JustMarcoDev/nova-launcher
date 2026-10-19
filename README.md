@@ -119,6 +119,12 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 
 ## Historial de actualizaciones
 
+### 0.2.14-beta.19 — Fondos propios y cuentas más fáciles
+
+- **Añadido:** botón «Añadir cuenta» sobre Ajustes; carpeta de fondos (arrastra fotos/vídeos y aparecen en el menú de Nova); nombre editable, cambiar y eliminar por fondo.
+- **Mejorado:** menú de Nova centrado y por encima de los títulos; botón de usuario más pequeño; icono del mundo en blanco; nuevo icono de Nova.
+- **Arreglado:** error `EPERM: operation not permitted, rename` (reintentos y copia de respaldo cuando el antivirus bloquea el archivo).
+
 ### 0.2.14-beta.18 — Menú de Nova renovado dentro del juego
 
 - Añadido: panel de perfil con tu skin, tu nombre y si la cuenta es Premium o no; panel de Nova para cambiar el fondo, el color de los botones y añadir tu propia foto o vídeo (el launcher lo convierte); ayuda con título y descripción corta en cada botón.

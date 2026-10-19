@@ -2,6 +2,14 @@
 // La clave es el texto en español tal como sale en la app; {1}, {2}… son partes variables (nombres, números).
 window.LANGS=window.LANGS||{};
 window.LANGS.en={name:"English (US)",d:{
+"Añadir cuenta":"Add account",
+"Añade una cuenta de Minecraft al launcher":"Add a Minecraft account to the launcher",
+"Tipo de cuenta":"Account type",
+"Nombre de usuario":"Username",
+"Offline":"Offline",
+"Sin conexión: juegas con cualquier nombre (sin servidores premium)":"Offline: play with any name (no premium servers)",
+"Inicia sesión con tu cuenta oficial; el nombre sale de tu perfil de Minecraft":"Sign in with your official account; the name comes from your Minecraft profile",
+"Cuenta añadida ✓":"Account added ✓",
 "Al lanzar Minecraft se abre la pestaña Consola con la salida del juego y el launcher no se esconde. Si lo desactivas, se minimiza mientras juegas (Modo juego)":"When Minecraft starts, the Console tab opens with the game's output and the launcher stays visible. If you turn it off, it minimizes while you play (Game mode)",
 "Al lanzar Minecraft, el launcher para las animaciones y se minimiza para dejar toda la potencia al juego":"When Minecraft starts, the launcher stops its animations and minimizes to leave all the power to the game",
 "Menú de Nova":"Nova menu",
