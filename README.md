@@ -119,6 +119,15 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 
 ## Historial de actualizaciones
 
+### 0.2.14 — Menú de Nova en el juego, fondos propios y perfil
+
+- Menú de Nova dentro de Minecraft (1.21.1 y 1.20.1): perfil, fondos animados (Agujero negro, Nebulosa y Espacio oscuro), color de los botones y botón «Confirmar cambios». Los textos siguen el idioma del juego.
+- Fondos propios: arrastra fotos o vídeos a la carpeta y aparecen solos, con nombre editable y botones para cambiarlos o eliminarlos.
+- Botón «Añadir cuenta» (sin conexión o Microsoft); al entrar por primera vez hay que crear un perfil.
+- Idiomas nuevos, portugués de Brasil y de Portugal, e informes de errores de descarga.
+- Mejoras: arranque más rápido, guardado seguro, Modo juego, descargas que continúan y CSS reorganizado.
+- Instalador preparado para firma de código (si Windows avisa: Más información → Ejecutar de todos modos).
+
 ### 0.2.14-beta.22 — Fondo Nebulosa
 
 - Mod: nuevo fondo animado integrado «Nebulosa» (vídeo en bucle, 1080p, 15 fps, igual que el agujero negro).
