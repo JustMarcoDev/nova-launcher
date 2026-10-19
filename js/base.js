@@ -5,7 +5,7 @@ const BHM={dorado:[44,100],azul:[205,100],violeta:[268,95],rosa:[328,95],verde:[
 const FF=[["Segoe UI","sans-serif"],["Segoe UI Variable Text","sans-serif","Segoe UI Variable"],["Bahnschrift","sans-serif"],["Calibri","sans-serif"],["Arial","sans-serif"],["Tahoma","sans-serif"],["Verdana","sans-serif"],["Trebuchet MS","sans-serif"],["Century Gothic","sans-serif"],["Candara","sans-serif"],["Corbel","sans-serif"],["Franklin Gothic Medium","sans-serif"],["Ebrima","sans-serif"],["Nirmala UI","sans-serif"],["Gill Sans MT","sans-serif"],["Cambria","serif"],["Constantia","serif"],["Georgia","serif"],["Palatino Linotype","serif"],["Sitka Text","serif"],["Times New Roman","serif"],["Comic Sans MS","cursive"],["Impact","sans-serif"],["Consolas","monospace"],["Cascadia Code","monospace"],["Lucida Console","monospace"],["Courier New","monospace"]];
 const FONTS=Object.fromEntries(FF.map(([n,g,l])=>[l||n,`"${n}",${n==="Segoe UI"?"system-ui,":""}${g}`]));
 // --- Estado compartido (versión, sistema, fondo) ---
-let VER="0.2.14-beta.20",SYS={total:16},secNow="gen",BG="#080a0f",BHs=BHM.dorado,dirty=60,RUN=false;
+let VER="0.2.14-beta.21",SYS={total:16},secNow="gen",BG="#080a0f",BHs=BHM.dorado,dirty=60,RUN=false;
 // --- Ajustes guardados ---
 const rec=()=>Math.max(1,Math.floor(SYS.total/2));
 async function sv(c){cfg={...cfg,...c};if(A)await A.set(c);if(A&&c.dlLimit!==undefined)A.dqLimit(c.dlLimit);if(c.lang!==undefined)setTimeout(()=>langSync(c.lang),120);dirty=60}
@@ -61,8 +61,9 @@ const fSz=n=>n>=1048576?(n/1048576).toFixed(1)+" MB":Math.max(1,Math.round(n/102
 const fmtD=t=>new Date(t).toLocaleString(LCUR,{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
 let flT=0,pickRes=null,busyBtn=null;
 function flash(t){const f=$("ft");f.textContent=t;f.classList.add("on");clearTimeout(flT);flT=setTimeout(()=>f.classList.remove("on"),4600)}
-function modal(h,w){const m=$("mdl"),d=m.querySelector(".md");d.className="md"+(w?" "+w:"");d.innerHTML=h;m.classList.add("on");d.scrollTop=0;d.querySelectorAll("[data-x]").forEach(x=>x.onclick=closeModal);return d}
-function closeModal(){$("mdl").classList.remove("on");if(pickRes){const r=pickRes;pickRes=null;r(null)}}
+function modal(h,w){MLOCK=false;const m=$("mdl"),d=m.querySelector(".md");d.className="md"+(w?" "+w:"");d.innerHTML=h;m.classList.add("on");d.scrollTop=0;d.querySelectorAll("[data-x]").forEach(x=>x.onclick=closeModal);return d}
+let MLOCK=false;   // true = ventana obligatoria (crear perfil): no se puede cerrar con Esc, clic fuera ni botón
+function closeModal(force){if(MLOCK&&force!==true)return;$("mdl").classList.remove("on");if(pickRes){const r=pickRes;pickRes=null;r(null)}}
 $("mdl").onclick=e=>{if(e.target.id==="mdl")closeModal()};
 const hdr=(i,t,s)=>`<div class="hd"><div class="iic" style="${i&&i.color?"--ic:"+esc(i.color):""}">${IC(i&&i.icon&&ICS.includes(i.icon)?i.icon:"box")}</div><div style="min-width:0"><h3>${t}</h3><span class="sub">${s}</span></div><button class="btn sm x" data-x>Cerrar</button></div>`;
 // --- Discord ---
@@ -94,6 +95,9 @@ async function launch(o){
   return A.play(o)
 }
 // --- Arranque: novedades y asistente (las ventanas se cargan solo cuando hacen falta) ---
-function startup212(){if(!A)return;if(cfg._first){sv({setupDone:true,seenVersion:VER});openWizard()}else if(cfg.seenVersion!==VER){sv({seenVersion:VER});openNews()}}
+// ¿Hay ya un perfil creado? Sin cuentas guardadas, sin Microsoft y con el nombre de fábrica «Jugador», no.
+function needProfile(){return!(cfg.accounts||[]).length&&!cfg.ms&&(!cfg.username||cfg.username==="Jugador")}
+function startup212(){if(!A)return;const go=()=>{if(cfg._first){sv({setupDone:true,seenVersion:VER});openWizard()}else if(cfg.seenVersion!==VER){sv({seenVersion:VER});openNews()}};
+if(needProfile())openAddAcc(true,go);else go()}
 lazyFn("asistente",["openNews","openWizard"],["ajustes"]);
 lazyFn("instancias",["showCrash","openOpts","openBackups","pickPackVersion"]);

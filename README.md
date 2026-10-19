@@ -119,6 +119,11 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 
 ## Historial de actualizaciones
 
+### 0.2.14-beta.21 — Perfil obligatorio
+
+- Launcher: al entrar por primera vez hay que crear un perfil (offline o Microsoft).
+- Mod: nuevo icono de idiomas (estilo traductor) e iconos siempre blancos.
+
 ### 0.2.14-beta.20 — Menú de Nova con confirmación e idiomas
 
 - **Añadido:** botón «Confirmar cambios» en el menú de Nova (los cambios de fondo y color solo se guardan al confirmar); los textos del mod siguen el idioma del juego (es, en, fr, de, it, pt).

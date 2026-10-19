@@ -1,7 +1,7 @@
 // Carga la interfaz en un navegador simulado (jsdom) con una app falsa y comprueba que arranca sin errores.
 const { JSDOM, VirtualConsole } = require('jsdom'), inline = require('./inline.js'), fs = require('fs'), path = require('path'), vm = require('vm');
 const errors = [], vc = new VirtualConsole(); vc.on('jsdomError', e => errors.push((e.detail && e.detail.message) || e.message)); vc.on('error', m => errors.push(String(m)));
-const mock = { insts: [], versions: { v: [{ id: '1.21.1', type: 'release' }], src: 'mojang' }, cfg: { _first: false, setupDone: true, seenVersion: '99.0.0' }, sys: { total: 16 }, ver: '0.0.0', updGet: { s: 'idle' }, discordGet: { s: 'off' }, worldLast: null, srvStatus: {}, shotsList: [], bkList: [], modsList: [], releases: [], dqState: { active: 0, paused: false, limit: 0, speed: 0 } };
+const mock = { accAddOffline: { accounts: [{ id: 'o1', type: 'offline', name: 'Marco_1' }], active: 'o1' }, insts: [], versions: { v: [{ id: '1.21.1', type: 'release' }], src: 'mojang' }, cfg: { _first: false, setupDone: true, seenVersion: '99.0.0' }, sys: { total: 16 }, ver: '0.0.0', updGet: { s: 'idle' }, discordGet: { s: 'off' }, worldLast: null, srvStatus: {}, shotsList: [], bkList: [], modsList: [], releases: [], dqState: { active: 0, paused: false, limit: 0, speed: 0 } };
 const EV = {}, api = new Proxy({ on(c, f) { EV[c] = f; }, win() {}, zoom() {}, folder() {}, open() {}, filePath: () => '' }, { get: (t, k) => k in t ? t[k] : async () => (k in mock ? JSON.parse(JSON.stringify(mock[k])) : (k === 'http' ? Promise.reject(new Error('sin red')) : undefined)) });
 const dom = new JSDOM(inline(), { runScripts: 'dangerously', pretendToBeVisual: true, url: 'file:///x/index.html', virtualConsole: vc, beforeParse(w) {
   w.HTMLCanvasElement.prototype.getContext = () => new Proxy({}, { get: (t, k) => k === 'measureText' ? () => ({ width: 0 }) : () => ({ addColorStop() {} }), set: () => true });
@@ -15,6 +15,19 @@ const w = dom.window, sleep = ms => new Promise(r => setTimeout(r, ms));
   w.document.querySelector('nav [data-p=home]').click();
   w.dispatchEvent(Object.assign(new w.KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true })));
   await sleep(100);
+  // Perfil obligatorio: sin cuentas ni nombre propio hay que crear uno; la ventana no se puede cerrar hasta entonces
+  {
+    const $m = () => w.document.getElementById('mdl');
+    if (w.eval('needProfile()') !== true) errors.push('Perfil: debería exigirse con la configuración de fábrica');
+    w.eval('cfg.accounts=[];cfg.ms=null;cfg.username="Marco"'); if (w.eval('needProfile()') !== false) errors.push('Perfil: no debe exigirse si ya hay un nombre');
+    w.eval('cfg.username="Jugador"'); w.eval('openAddAcc(true)');
+    if ($m().querySelector('[data-x]')) errors.push('Perfil: la ventana obligatoria no debe tener botón de cerrar');
+    w.eval('closeModal()'); w.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); $m().click();
+    if (!$m().classList.contains('on')) errors.push('Perfil: la ventana obligatoria se pudo cerrar sin crear perfil');
+    w.document.getElementById('aan').value = 'Marco_1'; w.document.getElementById('aag').click(); await sleep(200);
+    if ($m().classList.contains('on')) errors.push('Perfil: no se cerró tras crear el perfil'); if (w.eval('needProfile()') !== false) errors.push('Perfil: sigue exigiéndose tras crearlo');
+    w.eval('openAddAcc()'); if (!$m().querySelector('[data-x]')) errors.push('Perfil: el formulario normal sí debe poder cerrarse'); w.eval('closeModal()'); if ($m().classList.contains('on')) errors.push('Perfil: el formulario normal no se cerró');
+  }
   // Modo juego: con Minecraft abierto el fondo sigue animado (a pocos fps); con el ajuste apagado todo sigue igual
   {
     const gm = () => w.document.documentElement.classList.contains('gm');

@@ -2,6 +2,9 @@
 // La clave es el texto en español tal como sale en la app; {1}, {2}… son partes variables (nombres, números).
 window.LANGS=window.LANGS||{};
 window.LANGS.en={name:"English (US)",d:{
+"Crea tu perfil":"Create your profile",
+"Para jugar necesitas un perfil: elige cómo quieres entrar":"To play you need a profile: choose how you want to sign in",
+"Perfil creado ✓":"Profile created ✓",
 "Añadir cuenta":"Add account",
 "Añade una cuenta de Minecraft al launcher":"Add a Minecraft account to the launcher",
 "Tipo de cuenta":"Account type",
