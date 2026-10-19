@@ -1,3 +1,18 @@
+// =====================================================================================
+// NOVA LAUNCHER · proceso principal (Electron)
+// -------------------------------------------------------------------------------------
+// Aquí vive todo lo que toca el sistema: archivos, descargas, Java, lanzar Minecraft,
+// cuentas, actualizaciones... La interfaz (index.html + js/) le pide cosas por IPC
+// (ver preload.js) y este archivo las hace.
+// Orden aproximado de lo que contiene (se pueden buscar los títulos «// =====» y «// ----»):
+//   · Utilidades de archivos (guardado seguro, reintentos si el antivirus bloquea)
+//   · Java, descargas y versiones de Minecraft · Lanzar el juego
+//   · Actualizaciones, Discord, acceso directo, servidores
+//   · Instancias, mods, copias de seguridad, importar/exportar
+//   · Cuentas, bandeja, capturas, mundos, shaders
+//   · Menú de Nova dentro del juego (skin, fondos propios, ajustes)
+//   · Cola de descargas, diagnóstico, arrastrar y soltar
+// =====================================================================================
 const { app, BrowserWindow, ipcMain, shell, dialog, Notification, clipboard, nativeImage, safeStorage, screen, protocol } = require('electron');
 const path = require('path'), fs = require('fs'), os = require('os'), crypto = require('crypto'), net = require('net'), dns = require('dns').promises, { pathToFileURL } = require('url'), { execFile } = require('child_process');
 const { Client, Authenticator } = require('minecraft-launcher-core');

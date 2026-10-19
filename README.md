@@ -119,6 +119,12 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 
 ## Historial de actualizaciones
 
+### 0.2.14-beta.20 — Menú de Nova con confirmación e idiomas
+
+- **Añadido:** botón «Confirmar cambios» en el menú de Nova (los cambios de fondo y color solo se guardan al confirmar); los textos del mod siguen el idioma del juego (es, en, fr, de, it, pt).
+- **Mejorado:** icono de la Tierra con continentes y nuevo agujero negro, en blanco con toque del color de acento; CSS reorganizado y comentado.
+- **Arreglado:** un clic en el menú de Nova ya no activa el botón que hay debajo.
+
 ### 0.2.14-beta.19 — Fondos propios y cuentas más fáciles
 
 - **Añadido:** botón «Añadir cuenta» sobre Ajustes; carpeta de fondos (arrastra fotos/vídeos y aparecen en el menú de Nova); nombre editable, cambiar y eliminar por fondo.

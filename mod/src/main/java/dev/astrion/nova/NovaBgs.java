@@ -1,5 +1,6 @@
 package dev.astrion.nova;
 
+import static dev.astrion.nova.NovaLang.tr;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.io.File;
@@ -49,10 +50,10 @@ final class NovaBgs {
         return i > 0 ? file.substring(0, i) : file;
     }
 
-    static List<Entry> list(boolean es) {
+    static List<Entry> list() {
         List<Entry> L = new ArrayList<>();
-        Entry h = new Entry(); h.id = "hole"; h.name = es ? "Agujero negro" : "Black hole"; h.builtin = true; h.ready = true; h.path = System.getProperty("nova.bg", "");
-        Entry k = new Entry(); k.id = "dark"; k.name = es ? "Espacio oscuro" : "Dark space"; k.builtin = true; k.ready = true;
+        Entry h = new Entry(); h.id = "hole"; h.name = tr("Agujero negro"); h.builtin = true; h.ready = true; h.path = System.getProperty("nova.bg", "");
+        Entry k = new Entry(); k.id = "dark"; k.name = tr("Espacio oscuro"); k.builtin = true; k.ready = true;
         L.add(h); L.add(k);
         File f = folder();
         if (f == null || !f.isDirectory()) return L;
@@ -78,20 +79,20 @@ final class NovaBgs {
         return L;
     }
 
-    static Entry find(String id, boolean es) {
-        for (Entry e : list(es)) if (e.id.equals(id)) return e;
+    static Entry find(String id) {
+        for (Entry e : list()) if (e.id.equals(id)) return e;
         return null;
     }
 
     /** Cambia si algo de la lista cambió (archivos nuevos o borrados, nombres, progreso); sirve para no redibujar de más. */
     static String signature() {
         StringBuilder b = new StringBuilder();
-        for (Entry e : list(true)) b.append(e.id).append('|').append(e.name).append('|').append(e.ready).append('|').append(e.error).append('|').append(Math.round(e.progress * 20)).append(';');
+        for (Entry e : list()) b.append(e.id).append('|').append(e.name).append('|').append(e.ready).append('|').append(e.error).append('|').append(Math.round(e.progress * 20)).append(';');
         return b.toString();
     }
 
     static String pathOf(String id) {
-        Entry e = find(id, true);
+        Entry e = find(id);
         return e == null ? System.getProperty("nova.bg", "") : e.path;
     }
 

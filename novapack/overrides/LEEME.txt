@@ -1,1 +1,0 @@
-Todo lo que pongas en esta carpeta se copia dentro de la instancia del Nova Pack al instalarlo (por ejemplo config/, options.txt, resourcepacks/). No sobrescribe archivos que el jugador ya tenga.

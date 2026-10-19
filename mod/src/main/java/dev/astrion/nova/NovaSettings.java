@@ -35,7 +35,7 @@ final class NovaSettings {
             if (o.has("bg")) bg = o.get("bg").getAsString();
             if (o.has("accent")) { int a = o.get("accent").getAsInt(); for (int c : COLORS) if (c == a) accent = a; }
         } catch (Throwable ignored) { }
-        if (NovaBgs.find(bg, true) == null) bg = "hole";
+        if (NovaBgs.find(bg) == null) bg = "hole";
     }
 
     static void save() {
