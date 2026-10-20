@@ -119,6 +119,10 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 
 ## Historial de actualizaciones
 
+### 0.2.15-beta.3 — El canal Beta también recibe las estables
+
+- Arreglado: con el canal Beta solo llegaban las betas. Ahora el launcher mira todas las versiones publicadas y se actualiza a la de número más alto (beta o estable), así que cuando sale la estable también se actualiza a ella.
+
 ### 0.2.15-beta.2 — Modo bajo consumo
 
 - Nuevo ajuste «Modo bajo consumo» (Ajustes → Rendimiento) para PCs con poca RAM; objetivo: menos de 1 GB. Se activa solo en PCs con 8 GB o menos y aplica el perfil económico una vez.

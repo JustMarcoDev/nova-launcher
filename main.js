@@ -13,7 +13,7 @@
 //   · Menú de Nova dentro del juego (skin, fondos propios, ajustes)
 //   · Cola de descargas, diagnóstico, arrastrar y soltar
 // =====================================================================================
-const { app, BrowserWindow, ipcMain, shell, dialog, Notification, clipboard, nativeImage, safeStorage, screen, protocol } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, dialog, Notification, clipboard, nativeImage, safeStorage, screen, protocol, net: enet } = require('electron');
 const path = require('path'), fs = require('fs'), os = require('os'), crypto = require('crypto'), net = require('net'), dns = require('dns').promises, { pathToFileURL } = require('url'), { execFile } = require('child_process');
 const { Client, Authenticator } = require('minecraft-launcher-core');
 const { Auth } = require('msmc');
@@ -184,7 +184,7 @@ app.on('window-all-closed', () => app.quit());
 ipcMain.handle('cfg:get', () => { const c = load(), st = accState(c); return { ...c, lowRam: LOWRAM, ms: c.ms ? { name: c.ms.name } : null, accounts: st.a.map(({ token, ...r }) => r), activeAccount: st.act.id, _first: FIRST && !c.setupDone }; });
 ipcMain.handle('sys', () => ({ total: Math.max(1, Math.round(os.totalmem() / 1073741824)) }));
 ipcMain.handle('zoom', (e, f) => { win.webContents.setZoomFactor(Math.min(1.6, Math.max(0.7, +f || 1))); });
-ipcMain.handle('cfg:set', (e, c) => { wr(cfgFile, { ...load(), ...c }); if (updater && 'autoDownload' in c) updater.autoDownload = c.autoDownload !== false; if ('discord' in c || 'discordId' in c) discordInit(); if ('tray' in c) trayInit(); if ('channel' in c && updater) { updater.allowPrerelease = c.channel === 'beta'; updater.checkForUpdates().catch(() => {}); } return true; });
+ipcMain.handle('cfg:set', (e, c) => { wr(cfgFile, { ...load(), ...c }); if (updater && 'autoDownload' in c) updater.autoDownload = c.autoDownload !== false; if ('discord' in c || 'discordId' in c) discordInit(); if ('tray' in c) trayInit(); if ('channel' in c && updater) { checkUpd().catch(() => {}); } return true; });
 ipcMain.handle('folder', () => { fs.mkdirSync(root, { recursive: true }); return shell.openPath(root); });
 ipcMain.on('win', (e, a) => a === 'min' ? win.minimize() : a === 'max' ? (win.isMaximized() ? win.unmaximize() : win.maximize()) : win.close());
 const vcache = path.join(root, 'versions_cache.json');
@@ -215,7 +215,7 @@ ipcMain.handle('shortcut:create', () => ensureShortcut(true));
 ipcMain.handle('upd:check', async () => {
   if (!app.isPackaged || !updater) return { s: 'dev' };
   if (upd.s === 'downloading' || upd.s === 'ready') return upd;
-  try { await updater.checkForUpdates(); } catch (e) { if (upd.s === 'checking') setUpd({ s: 'error', msg: String(e && e.message || e).slice(0, 80) }); }
+  try { await checkUpd(); } catch (e) { if (upd.s === 'checking') setUpd({ s: 'error', msg: String(e && e.message || e).slice(0, 80) }); }
   return upd;
 });
 ipcMain.handle('upd:download', async () => {
@@ -469,6 +469,36 @@ ipcMain.handle('play', async (e, { id, server, world, safe }) => {
 // ===== Actualizaciones desde el launcher =====
 let upd = { s: 'idle' }, lastChk = 0, chkNow = () => {};
 const setUpd = o => { const was = upd.s; upd = o; send('upd:state', upd); if (was !== o.s && o.s === 'ready') notify('Actualización lista', 'Nova Launcher ' + (o.v || '') + ' está listo para instalarse'); if (was !== o.s && o.s === 'available') notify('Hay una actualización', 'Nova Launcher ' + (o.v || '') + ' está disponible'); };
+// Canal Beta: recibe la versión MÁS NUEVA de todas (beta o estable). electron-updater por sí solo coge la última publicada en GitHub,
+// así que si una estable sale antes (o después) que una beta de número mayor, se quedaba con la equivocada. Aquí se elige por número de versión.
+const UPD = { owner: 'JustMarcoDev', repo: 'nova-launcher' };
+function verParse(v) { const m = /^v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?/.exec(String(v)); return m ? { n: [+m[1], +m[2], +m[3]], pre: m[4] ? m[4].split('.') : null } : null; }
+function verCmp(a, b) {
+  a = verParse(a); b = verParse(b); if (!a || !b) return 0;
+  for (let i = 0; i < 3; i++) if (a.n[i] !== b.n[i]) return a.n[i] - b.n[i];
+  if (!a.pre && !b.pre) return 0; if (!a.pre) return 1; if (!b.pre) return -1;   // 0.2.15 es mayor que 0.2.15-beta.9
+  for (let i = 0; i < Math.max(a.pre.length, b.pre.length); i++) {
+    const x = a.pre[i], y = b.pre[i]; if (x === undefined) return -1; if (y === undefined) return 1; if (x === y) continue;
+    const nx = /^\d+$/.test(x), ny = /^\d+$/.test(y); if (nx && ny) return +x - +y; if (nx) return -1; if (ny) return 1; return x < y ? -1 : 1;
+  }
+  return 0;
+}
+async function pickNewestTag() {
+  const r = await enet.fetch('https://api.github.com/repos/' + UPD.owner + '/' + UPD.repo + '/releases?per_page=50', { headers: { 'User-Agent': 'Nova-Launcher', Accept: 'application/vnd.github+json' } });
+  if (!r.ok) throw new Error('GitHub ' + r.status);
+  let best = null;
+  for (const x of await r.json()) { if (x.draft || !verParse(x.tag_name) || !(x.assets || []).some(a => a.name === 'latest.yml')) continue; if (!best || verCmp(x.tag_name, best) > 0) best = x.tag_name; }
+  return best;
+}
+async function applyFeed() {
+  if (!updater) return;
+  const beta = load().channel === 'beta'; updater.allowPrerelease = beta;
+  try {
+    if (beta) { const tag = await pickNewestTag(); if (tag) { updater.setFeedURL({ provider: 'generic', url: 'https://github.com/' + UPD.owner + '/' + UPD.repo + '/releases/download/' + tag }); return; } }
+    updater.setFeedURL({ provider: 'github', owner: UPD.owner, repo: UPD.repo });   // estable (o sin red): el método normal
+  } catch { try { updater.setFeedURL({ provider: 'github', owner: UPD.owner, repo: UPD.repo }); } catch {} }
+}
+const checkUpd = async () => { await applyFeed(); return updater.checkForUpdates(); };
 function initUpdater() {
   try {
     const { autoUpdater } = require('electron-updater'); updater = autoUpdater;
@@ -480,7 +510,7 @@ function initUpdater() {
     autoUpdater.on('download-progress', p => setUpd({ s: 'downloading', v: upd.v, p: p.percent, bps: p.bytesPerSecond }));
     autoUpdater.on('update-downloaded', i => setUpd({ s: 'ready', v: i.version }));
     autoUpdater.on('error', e => { if (upd.s !== 'ready') setUpd({ s: 'error', msg: String(e && e.message || e).slice(0, 80) }); });
-    chkNow = () => { lastChk = Date.now(); if (load().autoUpdate !== false && upd.s !== 'downloading' && upd.s !== 'ready') autoUpdater.checkForUpdates().catch(() => {}); };
+    chkNow = () => { lastChk = Date.now(); if (load().autoUpdate !== false && upd.s !== 'downloading' && upd.s !== 'ready') checkUpd().catch(() => {}); };
     setTimeout(chkNow, 2500); setInterval(chkNow, 3600000);
   } catch {}
 }
