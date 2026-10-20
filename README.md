@@ -119,6 +119,14 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 
 ## Historial de actualizaciones
 
+### 0.2.15-beta.1 — Fondo Earth
+
+- Mod: nuevo fondo animado integrado «Earth» (vídeo en bucle, 1080p, 15 fps).
+
+### 0.2.15-beta.1 — Fondo Earth
+
+- Mod: nuevo fondo animado integrado «Earth» (la Tierra desde el espacio, en bucle, a velocidad 0,5, 1080p, 15 fps).
+
 ### 0.2.14 — Menú de Nova en el juego, fondos propios y perfil
 
 - Menú de Nova dentro de Minecraft (1.21.1 y 1.20.1): perfil, fondos animados (Agujero negro, Nebulosa y Espacio oscuro), color de los botones y botón «Confirmar cambios». Los textos siguen el idioma del juego.
