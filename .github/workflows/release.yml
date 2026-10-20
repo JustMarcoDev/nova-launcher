@@ -97,6 +97,14 @@ jobs:
             if [ -z "$YML" ]; then echo "::error::No hay ningún .yml de actualización en dist/"; exit 1; fi
             cp "$YML" dist/latest.yml; gh release upload "$TAG" dist/latest.yml --clobber
           fi
+      - name: Subir el menú de Nova (.jar y nova-menu.json) para actualizarlo sin nueva versión del launcher
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="v${{ steps.v.outputs.version }}"
+          node scripts/nova-menu-json.js "${{ steps.v.outputs.version }}"
+          gh release upload "$TAG" assets/mods/nova-menu-*.jar dist/nova-menu.json --clobber
       - name: Poner las notas en la página de la versión
         shell: bash
         env:

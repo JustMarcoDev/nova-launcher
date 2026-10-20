@@ -84,6 +84,17 @@ La pestaña **Servidores** (Alt + 4) muestra servidores conocidos con jugadores 
 - **Beta:** si la versión de `package.json` lleva guion (por ejemplo `0.2.14-beta.1`), el flujo la publica como *pre-release*. Solo la reciben los launchers con Ajustes → Rendimiento → Canal de actualizaciones = **Beta**. Los de **Estable** la ignoran. Para una beta sin entrada propia se usa la de la versión sin el sufijo.
 - **Volver a la versión anterior:** Ajustes → Acerca de → Volver a una versión anterior. Lista las releases de GitHub más antiguas que la instalada y ejecuta su instalador. Para que no se actualice sola otra vez, desactiva «Buscar actualizaciones al abrir»; vuelve a activarlo en Ajustes → Rendimiento cuando quieras.
 
+## Instalar y actualizar sin permisos de administrador (desde la 0.2.15)
+
+El instalador ya no pide permisos de administrador: siempre instala en `%LOCALAPPDATA%\Programs\Nova Launcher` (solo para tu usuario) y las actualizaciones automáticas no muestran el aviso de Windows (UAC).
+**Si instalaste Nova Launcher «para todos los usuarios»** (en `Archivos de programa`), desinstálalo y vuelve a instalarlo una vez con el instalador nuevo. Tus datos de la carpeta `.nova` (mundos, instancias, ajustes) se conservan.
+
+## Actualizar el menú de Nova sin sacar una versión nueva del launcher (desde la 0.2.15)
+
+Cada release sube, junto al instalador, los `nova-menu-<mc>.jar` y un `nova-menu.json` con la versión, el enlace y el sha256 de cada uno (lo genera `scripts/nova-menu-json.js` dentro de «Crear version»).
+Antes de lanzar Minecraft con el menú de Nova, el launcher mira ese JSON (caché de 6 horas; si no hay conexión no espera y usa lo último que sabe). Si hay un menú más nuevo que el que trae el launcher, lo descarga, comprueba el sha256 y lo usa. Si la descarga o la huella fallan, se usa el `.jar` incluido en `assets/mods/`. **Nunca se lanza un jar sin verificar.**
+Con el canal Beta se mira la release más nueva (beta o estable); con Estable, la última estable. `mod/min-launcher.txt` indica la versión mínima del launcher que admite el jar nuevo (los launchers más antiguos lo ignoran).
+
 ## Probar versiones beta con otras personas
 
 1. Publica la versión con guion en `package.json` (por ejemplo `0.2.14-beta.1`) y ejecuta **Crear version**. Queda como *pre-release* en GitHub.
@@ -118,6 +129,11 @@ Nova Launcher es un proyecto independiente de **Astrion Studio**. © 2026 Astrio
 Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión del launcher, para saber de un vistazo qué se ha **añadido**, qué se ha **mejorado** y qué se ha **quitado**. Cada vez que se publique una versión nueva hay que añadir una entrada al principio de la lista de abajo. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**.
 
 ## Historial de actualizaciones
+
+### 0.2.15-beta.5 — Instalación sin administrador y menú de Nova actualizable
+
+- El instalador ya no pide permisos de administrador (siempre en `%LOCALAPPDATA%\Programs\Nova Launcher`) y las actualizaciones no muestran UAC. Quien lo instaló «para todos» debe desinstalar y reinstalar una vez; los datos de `.nova` se conservan.
+- El menú de Nova (el mod) se puede actualizar sin sacar una versión nueva del launcher: cada release sube los `.jar` y un `nova-menu.json` con sha256; el launcher lo comprueba, descarga el jar más nuevo, verifica la huella y, si algo falla, usa el incluido.
 
 ### 0.2.15-beta.4 — Limpieza del código
 

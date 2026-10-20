@@ -1,6 +1,6 @@
 {
   "name": "nova-launcher",
-  "version": "0.2.15-beta.4",
+  "version": "0.2.15-beta.5",
   "description": "Nova Launcher para Minecraft",
   "author": "Astrion Studio",
   "main": "main.js",
@@ -31,12 +31,14 @@
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": "always",
       "createStartMenuShortcut": true,
       "language": "3082",
       "shortcutName": "Nova Launcher",
-      "runAfterFinish": true
+      "runAfterFinish": true,
+      "allowElevation": false,
+      "include": "build/installer.nsh",
+      "perMachine": false
     },
     "publish": {
       "provider": "github",
