@@ -13,7 +13,7 @@
 //   · Menú de Nova dentro del juego (skin, fondos propios, ajustes)
 //   · Cola de descargas, diagnóstico, arrastrar y soltar
 // =====================================================================================
-const { app, BrowserWindow, ipcMain, shell, dialog, Notification, clipboard, nativeImage, safeStorage, screen, protocol, net: enet } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, dialog, Notification, clipboard, nativeImage, safeStorage, screen, protocol } = require('electron');
 const path = require('path'), fs = require('fs'), os = require('os'), crypto = require('crypto'), net = require('net'), dns = require('dns').promises, { pathToFileURL } = require('url'), { execFile } = require('child_process');
 const { Client, Authenticator } = require('minecraft-launcher-core');
 const { Auth } = require('msmc');
@@ -148,7 +148,7 @@ app.whenReady().then(() => {
   if (wb.max) win.maximize();
   const later = () => { clearTimeout(winSaveT); winSaveT = setTimeout(winSave, 600); };
   win.on('resize', later); win.on('move', later); win.on('maximize', later); win.on('unmaximize', later); win.on('close', winSave);
-  setTimeout(imgPrune, 3000); setTimeout(encryptOldTokens, 500);
+  setTimeout(() => modManifest().catch(() => {}), 9000); setTimeout(imgPrune, 3000); setTimeout(encryptOldTokens, 500);
   win.once('ready-to-show', () => win.show());
   // Al minimizar u ocultar la ventana (o pasar un rato sin foco) se libera memoria de la interfaz y del proceso principal
   let trimT = null;
@@ -431,7 +431,7 @@ ipcMain.handle('play', async (e, { id, server, world, safe }) => {
     if (cfg.optimize !== false && !ins.jvmPreset) o.customArgs.push(...JVM_OPT);
     try { await applyGpu(java, ins.gpu === 'high'); } catch {}
     const noNova = !!(safe || ins.noNova);   // modo seguro: sin el menú de Nova (Shift al lanzar o ajuste de la instancia)
-    const nj = (!noNova && (!ins.ld || ins.ld === 'Vanilla' || ins.ld === 'Fabric')) ? novaModJar(ins.mc) : null;
+    const nj = (!noNova && (!ins.ld || ins.ld === 'Vanilla' || ins.ld === 'Fabric')) ? await novaModResolve(ins.mc) : null;
     let nova = false;
     if (ins.ld === 'Fabric') { o.version.custom = await fabric(ins.mc, ins.loaderVersion); nova = !!nj; }
     else if (noNova) { /* vanilla puro, sin Fabric */ }
@@ -441,7 +441,7 @@ ipcMain.handle('play', async (e, { id, server, world, safe }) => {
       : (!ins.ld || ins.ld === 'Vanilla' || ins.ld === 'Fabric') ? (NOVA_MC.includes(ins.mc) ? 'Nova: el menú de Nova no se pudo activar; se juega con el menú normal.\n' : 'Nova: el menú de Nova solo está disponible en Minecraft ' + NOVA_MC.join(' y ') + '; esta versión usa el menú normal.\n')
       : 'Nova: el menú de Nova solo está disponible en Nova y Fabric; ' + ins.ld + ' usa el menú normal.\n';
     if (nova) { fondosScan().catch(() => {}); fondosWatch(); }
-    if (nova) o.customArgs.push('-Dnova.dir=' + novaDir(), '-Dnova.skin=' + (await novaSkin(act.name)), '-Dnova.premium=' + (act.type === 'microsoft' ? '1' : '0'), '-Dnova.user=' + act.name, '-Dnova.bg=' + (novaBg() || ''), '-Dnova.bg2=' + (novaBg('nova-nebulosa.nvb') || ''), '-Dnova.bg3=' + (novaBg('nova-earth.nvb') || ''), '-Dnova.bg3=' + (novaBg('nova-earth.nvb') || ''), '-Dfabric.addMods=' + nj, '-Dnova.version=' + app.getVersion(), '-Dnova.loader=' + (ins.ld === 'Fabric' ? 'Fabric' : 'Nova'));
+    if (nova) o.customArgs.push('-Dnova.dir=' + novaDir(), '-Dnova.skin=' + (await novaSkin(act.name)), '-Dnova.premium=' + (act.type === 'microsoft' ? '1' : '0'), '-Dnova.user=' + act.name, '-Dnova.bg=' + (novaBg() || ''), '-Dnova.bg2=' + (novaBg('nova-nebulosa.nvb') || ''), '-Dnova.bg3=' + (novaBg('nova-earth.nvb') || ''), '-Dfabric.addMods=' + nj, '-Dnova.version=' + app.getVersion(), '-Dnova.loader=' + (ins.ld === 'Fabric' ? 'Fabric' : 'Nova'));
     if (ins.ld === 'Forge' || ins.ld === 'NeoForge') o.version.custom = await forge(ins.ld, ins.mc, java, ins.loaderVersion);
     if (server && server.host) o.quickPlay = { type: modernQP(ins.mc) ? 'multiplayer' : 'legacy', identifier: server.host + (server.port && +server.port !== 25565 ? ':' + server.port : '') };
     if (world && !server && modernQP(ins.mc)) o.quickPlay = { type: 'singleplayer', identifier: String(world) };
@@ -484,7 +484,7 @@ function verCmp(a, b) {
   return 0;
 }
 async function pickNewestTag() {
-  const r = await enet.fetch('https://api.github.com/repos/' + UPD.owner + '/' + UPD.repo + '/releases?per_page=50', { headers: { 'User-Agent': 'Nova-Launcher', Accept: 'application/vnd.github+json' } });
+  const r = await fetch('https://api.github.com/repos/' + UPD.owner + '/' + UPD.repo + '/releases?per_page=50', { signal: AbortSignal.timeout(5000), headers: { 'User-Agent': 'Nova-Launcher', Accept: 'application/vnd.github+json' } });
   if (!r.ok) throw new Error('GitHub ' + r.status);
   let best = null;
   for (const x of await r.json()) { if (x.draft || !verParse(x.tag_name) || !(x.assets || []).some(a => a.name === 'latest.yml')) continue; if (!best || verCmp(x.tag_name, best) > 0) best = x.tag_name; }
@@ -1366,6 +1366,48 @@ function novaBg(file = 'nova-bg.nvb') {
     if (!b || b.size !== a.size) { fs.mkdirSync(path.dirname(dst), { recursive: true }); fs.writeFileSync(dst, fs.readFileSync(src)); }
   } catch { return null; }
   return dst;
+}
+// ===== Menú de Nova: actualizar el mod sin sacar una versión nueva del launcher =====
+// Cada release sube los nova-menu-<mc>.jar y un nova-menu.json (versión, URL y sha256 por versión de Minecraft). Antes de lanzar se mira ese JSON
+// (con caché de 6 h y sin esperar si no hay conexión). Si hay un jar más nuevo se descarga, se comprueba su sha256 y se usa; si algo falla se usa el jar
+// que viene en el launcher (assets/mods). Nunca se lanza un jar sin verificar.
+const MODUP = { base: 'https://github.com/' + UPD.owner + '/' + UPD.repo + '/releases/', ttl: 6 * 3600e3, retry: 10 * 60e3 };
+async function modManifest() {
+  const cf = path.join(novaDir(), 'nova-menu-cache.json'), beta = load().channel === 'beta', c = rd(cf, null);
+  if (c && c.beta === beta && Date.now() - (c.t || 0) < MODUP.ttl) return c.json || null;
+  try {
+    let url = MODUP.base + 'latest/download/nova-menu.json';
+    if (beta) { const tag = await pickNewestTag(); if (tag) url = MODUP.base + 'download/' + tag + '/nova-menu.json'; }
+    const r = await fetch(url, { signal: AbortSignal.timeout(4000), headers: { 'User-Agent': UA() } });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const json = await r.json(); wr(cf, { t: Date.now(), beta, json }); return json;
+  } catch {
+    wr(cf, { t: Date.now() - MODUP.ttl + MODUP.retry, beta, json: c && c.json || null });   // sin red: se usa lo último que se supo y se reintenta en 10 min
+    return c && c.json || null;
+  }
+}
+const modEntryOk = (e, mc) => !!e && !!verParse(e.version) && /^[0-9a-f]{64}$/.test(String(e.sha256 || '')) && typeof e.url === 'string' && e.url.startsWith(MODUP.base + 'download/') && e.url.endsWith('/nova-menu-' + mc + '.jar');
+async function novaModResolve(mc) {
+  const bundled = novaModJar(mc); if (!bundled) return null;
+  try {
+    const mine = app.getVersion(), sf = path.join(novaDir(), 'mod-updates.json'), st = rd(sf, {}), m = await modManifest(), e = m && m.jars && m.jars[mc];
+    const drop = f => { try { fs.rmSync(f, { force: true }); } catch {} };
+    let best = st[mc] && st[mc].file && fs.existsSync(st[mc].file) ? st[mc] : null;
+    if (best && verCmp(best.version, mine) <= 0) { drop(best.file); best = null; }   // el launcher ya trae un jar igual o más nuevo
+    if (modEntryOk(e, mc) && verCmp(e.version, mine) > 0 && (!e.minLauncher || verCmp(mine, e.minLauncher) >= 0) && (!best || verCmp(e.version, best.version) > 0)) {
+      const file = path.join(novaDir(), 'nova-menu-' + mc + '-' + e.version + '.jar'), tmp = file + '.dl';
+      try {
+        await dl(e.url, tmp);
+        if (await hashFile(tmp, 'sha256') !== e.sha256.toLowerCase()) throw new Error('sha256 distinto');
+        await mv(tmp, file); if (best && best.file !== file) drop(best.file);
+        best = { version: e.version, sha256: e.sha256.toLowerCase(), file }; st[mc] = best; wr(sf, st);
+        send('log', 'Nova: menú de Nova actualizado a ' + e.version + ' (descargado y verificado).\n');
+      } catch (er) { drop(tmp); send('log', 'Nova: no se pudo actualizar el menú (' + String(er && er.message || er).slice(0, 60) + '); se usa el incluido.\n'); }
+    }
+    if (best && await hashFile(best.file, 'sha256').catch(() => '') === best.sha256) return best.file;   // se vuelve a comprobar antes de usarlo
+    if (best) { drop(best.file); delete st[mc]; wr(sf, st); }
+  } catch {}
+  return bundled;
 }
 function novaModJar(mc) {
   if (!NOVA_MC.includes(mc)) return null;
