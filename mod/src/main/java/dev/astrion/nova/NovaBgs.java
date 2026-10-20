@@ -114,6 +114,7 @@ final class NovaBgs {
             File f = folder();
             if (f != null) new File(f, file).delete();
             cacheOf(file).delete();
+            new File(cacheOf(file).getPath().replaceAll("\\.nvb$", ".720.nvb")).delete();
             rename(file, "");
         } catch (Throwable ignored) { }
     }

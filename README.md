@@ -130,6 +130,12 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 
 ## Historial de actualizaciones
 
+### 0.2.15-beta.6 — Menú de pausa de Nova y fondos más ligeros
+
+- **Menú de pausa de Nova**: sustituye al de Minecraft en 1.20.1, 1.21.1 y 1.21.4 (un jugador y multijugador, sin «Abrir a LAN»). Botones: Volver al juego, Ajustes, Logros, Estadísticas, Abrir launcher y Guardar y salir / Desconectar. El fondo es el juego oscurecido (en 1.20.1 solo oscurecido, sin desenfoque).
+- **Fondos de vídeo más ligeros**: el launcher genera 1080p y 720p; el mod usa 720p si la pantalla mide menos de 1080 px o con `-Dnova.lowpower=true` (lo envía el modo de bajos recursos). Los fondos se pausan y liberan texturas fuera del menú de título y decodifican bajo demanda.
+- **Más versiones del mod**: Minecraft 1.21.4 (capa de compatibilidad `mod/src/compat`). `mod/versions.txt` admite una tercera columna (`legacy`/`rl`) y `release.yml` compila cada versión.
+
 ### 0.2.15-beta.5 — Instalación sin administrador y menú de Nova actualizable
 
 - El instalador ya no pide permisos de administrador (siempre en `%LOCALAPPDATA%\Programs\Nova Launcher`) y las actualizaciones no muestran UAC. Quien lo instaló «para todos» debe desinstalar y reinstalar una vez; los datos de `.nova` se conservan.
