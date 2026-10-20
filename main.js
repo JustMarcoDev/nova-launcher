@@ -595,10 +595,7 @@ ipcMain.handle('srv:status', async (e, hosts) => {
   return out;
 });
 const nbtStr = s => { const b = Buffer.from(String(s), 'utf8'), l = Buffer.alloc(2); l.writeUInt16BE(b.length); return Buffer.concat([l, b]); };
-const serversDat = list => { const n = Buffer.alloc(4); n.writeInt32BE(list.length);
-  const parts = [Buffer.from([10]), nbtStr(''), Buffer.from([9]), nbtStr('servers'), Buffer.from([10]), n];
-  for (const s of list) parts.push(Buffer.from([8]), nbtStr('ip'), nbtStr(s.ip), Buffer.from([8]), nbtStr('name'), nbtStr(s.name), Buffer.from([0]));
-  parts.push(Buffer.from([0])); return Buffer.concat(parts); };
+
 
 // ===== Estabilidad, instancias, mods y copias (0.2.11) =====
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -903,7 +900,6 @@ function encryptOldTokens() {
   } catch {}
 }
 const accOut = () => { const st = accState(); return { accounts: st.a.map(({ token, pid, ...r }) => r), active: st.act.id }; };
-ipcMain.handle('acc:list', () => accOut());
 ipcMain.handle('acc:addOffline', (e, name) => {
   name = String(name || '').trim(); if (!/^[A-Za-z0-9_]{3,16}$/.test(name)) throw new Error('El nombre debe tener de 3 a 16 letras, números o _');
   const st = accState(); if (st.a.some(x => x.type === 'offline' && x.name.toLowerCase() === name.toLowerCase())) throw new Error('Ya tienes una cuenta offline con ese nombre');
@@ -922,7 +918,6 @@ ipcMain.handle('acc:remove', (e, id) => { const st = accState(); if (st.a.length
 
 // ---- Bandeja de Windows y notificaciones ----
 // Sin icono junto al reloj: el launcher se minimiza a la barra de tareas y nunca se esconde. trayInit se deja para las llamadas existentes.
-const tray = null;
 let trayImg = null;
 // Icono de la app para los avisos de Windows (tray.ico en Windows; tray.png como alternativa)
 try {
@@ -1017,7 +1012,6 @@ function syncServers(dir, list) {
   if (ch) { fs.mkdirSync(dir, { recursive: true }); fs.writeFileSync(f, nbtWrite(root)); }
   return ch;
 }
-ipcMain.handle('srv:sync', (e, id) => { const c = load(); syncServers(iDir(getIns(id).id), (c.myServers || []).filter(z => z && z.host).map(z => ({ name: String(z.name || z.host), ip: String(z.host) + (z.port && +z.port !== 25565 ? ':' + z.port : '') }))); return true; });
 
 // ---- Mundos de cada instancia ----
 async function dirSize(d, lim = { n: 0 }) {
@@ -1556,7 +1550,7 @@ async function cleanScan() {
   const vItems = []; for (const d of unusedV) vItems.push({ p: path.join(vd, d), name: d, size: await dirSize(path.join(vd, d)) });
   cats.push({ id: 'versions', title: 'Versiones de Minecraft sin uso', desc: 'Versiones y cargadores que ninguna instancia usa. Se descargan otra vez si los necesitas.', items: vItems });
   // 2) librerías sin uso
-  const ld = path.join(root, 'libraries'), keepVers = have.filter(d => used.has(d)), { dirs, arts } = await usedLibDirs(keepVers);
+  const ld = path.join(root, 'libraries'), keepVers = have.filter(d => used.has(d)), { dirs } = await usedLibDirs(keepVers);
   const protectLoader = li().some(i => i.ld === 'Forge' || i.ld === 'NeoForge') || keepVers.some(d => /forge/i.test(d));
   const libFiles = await walkFiles(ld), byDir = new Map();
   for (const f of libFiles) {

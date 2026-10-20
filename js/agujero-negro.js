@@ -1,8 +1,8 @@
 // Agujero negro (fondo animado)
 // Agujero negro (animación en bucle)
 const cv=$("cv"),x=cv.getContext("2d",{alpha:false}),rnd=Math.random,K=6.35,SQ=.18,DLw=1400,DLh=480;
-let W,HT,ST=[],cx=0,cy=0,R=50,al=1,T=0,ang=0,last=0,HR=null,hc=0,b1,b2,c1,c2,SPR=null,spK="",C8=[],FOC=document.hasFocus();
-addEventListener("focus",()=>{FOC=true;dirty=30});addEventListener("blur",()=>{FOC=false});
+let W,HT,ST=[],cx=0,cy=0,R=50,al=1,T=0,ang=0,last=0,HR=null,hc=0,b1,b2,c1,c2,SPR=null,spK="",C8=[];
+addEventListener("focus",()=>{dirty=30});
 const Q={alta:{n:900,f:60,b:1},media:{n:380,f:60,b:0},baja:{n:0,f:30,b:0},off:{n:500,f:0,b:0}};
 const DL=document.createElement("canvas");DL.width=DLw;DL.height=DLh;const lc=DL.getContext("2d");
 const D=Array.from({length:900},()=>{const r=1.4+Math.pow(rnd(),1.6)*4.9,t=(r-1.4)/4.9;return{r,t,b:Math.min(7,(t*8)|0),a:rnd()*6.283,z:rnd()-.5,s:rnd()*.6+.7}});

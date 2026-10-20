@@ -1,6 +1,6 @@
 // Consola
 // --- Consola ---
-let cLv="all",cQ="",cAuto=true,cLast="i";
+let cLv="all",cQ="",cAuto=true;
 const conVis=()=>{const q=cQ.toLowerCase();return CON.filter(x=>(cLv==="all"||x.l===cLv||(cLv==="w"&&x.l==="e"&&false))&&(!q||x.t.toLowerCase().includes(q)))};
 const conRow=(x,q)=>{let h=esc(x.t);if(q)h=h.replace(new RegExp(esc(q).replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"gi"),m=>"<mark>"+m+"</mark>");return`<div class="${x.l}">${h}</div>`};
 let cSeq=0,cChipT=0;

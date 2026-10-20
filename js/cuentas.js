@@ -28,7 +28,7 @@ if(r&&r.error){er.textContent=r.error;g.disabled=false;g.textContent=force?"Cont
 $("aag").onclick=go;$("aan").onkeydown=e=>{if(e.key==="Enter")go()}}
 // --- Capturas ---
 async function openShots(id){const api=A||DA;let L=[],cur=id||"all",lb=-1;
-const d=modal(`<div class="hd"><div class="iic">${IC("camera")}</div><div style="min-width:0"><h3>Capturas</h3><span class="sub" id="shs">Cargando…</span></div><button class="btn sm x" data-x>Cerrar</button></div><div class="chips" id="shf" style="margin-bottom:12px"></div><div id="shb"></div>`,"wide2");
+modal(`<div class="hd"><div class="iic">${IC("camera")}</div><div style="min-width:0"><h3>Capturas</h3><span class="sub" id="shs">Cargando…</span></div><button class="btn sm x" data-x>Cerrar</button></div><div class="chips" id="shf" style="margin-bottom:12px"></div><div id="shb"></div>`,"wide2");
 const nm=i=>(I.find(x=>x.id===i)||{name:"Instancia"}).name,vis=()=>L.filter(s=>cur==="all"||s.inst===cur);
 const draw=()=>{const v=vis();$("shs").textContent=v.length?v.length+(v.length===1?" captura":" capturas")+(cur==="all"?" en todas las instancias":" en «"+nm(cur)+"»"):"Sin capturas";
 const ids=[...new Set(L.map(s=>s.inst))];$("shf").style.display=lb>=0||ids.length<2?"none":"";chips($("shf"),[["all","Todas ("+L.length+")"],...ids.map(i=>[i,nm(i)+" ("+L.filter(s=>s.inst===i).length+")"])],cur,k=>{cur=k;draw()});

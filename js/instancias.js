@@ -85,7 +85,7 @@ else if(a==="ex")openExport(id);else if(a==="bk")openBackups(id);else if(a==="wo
 else if(a==="del"){if(!confirm("¿Borrar «"+ins.name+"» con sus mundos, mods y copias de seguridad? No se puede deshacer."))return;await api.delInst(id);await loadI();closeModal();flash("Instancia borrada")}}
 catch(x){flash(em(x));b.disabled=false}}}
 // --- Exportar ---
-function openExport(id){const ins=I.find(x=>x.id===id);if(!ins)return;const api=A||DA;let kind="mrpack";
+function openExport(id){const ins=I.find(x=>x.id===id);if(!ins)return;let kind="mrpack";
 modal(hdr(ins,"Exportar «"+esc(ins.name)+"»","Para pasarla a otro PC o a otra persona")+`<div class="fr"><label>Formato</label><div class="chips" id="ek"></div></div><p class="sub" id="ekd" style="margin:2px 0 14px"></p><div class="fr"><label>Incluir los mundos</label><label class="tg"><input type="checkbox" id="ew"><i></i></label></div><div class="acts"><button class="btn" id="eb">Volver</button><button class="btn pr" id="eg">Exportar</button></div>`);
 const T={mrpack:"Modpack de Modrinth (.mrpack): pesa poco; los mods se vuelven a descargar al importar. Los que no estén en Modrinth se incluyen dentro del archivo. Sirve también en otros launchers.",zip:"ZIP de Nova Launcher (.zip): lleva todo dentro, mods incluidos, y pesa más. Solo se puede importar en Nova Launcher."};
 const dr=()=>{chips($("ek"),[["mrpack","Modrinth (.mrpack)"],["zip","ZIP (.zip)"]],kind,k=>{kind=k;dr()});$("ekd").textContent=T[kind]};dr();

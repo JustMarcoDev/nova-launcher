@@ -119,6 +119,10 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 
 ## Historial de actualizaciones
 
+### 0.2.15-beta.4 — Limpieza del código
+
+- Revisión completa del código con un analizador: quitadas funciones, variables y accesos internos que nadie usaba (`serversDat`, `rc`, `acc:list`, `srv:sync` y algunas variables sueltas). Sin errores de variables sin definir en `main.js` ni en la interfaz. El CSS y los iconos del mod no tenían nada sin uso.
+
 ### 0.2.15-beta.3 — El canal Beta también recibe las estables
 
 - Arreglado: con el canal Beta solo llegaban las betas. Ahora el launcher mira todas las versiones publicadas y se actualiza a la de número más alto (beta o estable), así que cuando sale la estable también se actualiza a ella.
