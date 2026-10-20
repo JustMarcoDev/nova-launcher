@@ -2,6 +2,9 @@
 // La clave es el texto en español tal como sale en la app; {1}, {2}… son partes variables (nombres, números).
 window.LANGS=window.LANGS||{};
 window.LANGS.it={name:"Italiano",d:{
+"Modo bajo consumo":"Modalità risparmio",
+"Para PCs con poca RAM: el launcher gasta menos memoria (objetivo: menos de 1 GB). Se aplica del todo al reiniciar":"Per PC con poca RAM: il launcher usa meno memoria (obiettivo: meno di 1 GB). Applicato del tutto dopo il riavvio",
+"Modo bajo consumo activado: reinicia el launcher para aplicarlo del todo":"Modalità risparmio attiva: riavvia il launcher per applicarla del tutto",
 "Crea tu perfil":"Crea il tuo profilo",
 "Para jugar necesitas un perfil: elige cómo quieres entrar":"Per giocare serve un profilo: scegli come accedere",
 "Perfil creado ✓":"Profilo creato ✓",

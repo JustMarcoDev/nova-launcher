@@ -119,6 +119,12 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 
 ## Historial de actualizaciones
 
+### 0.2.15-beta.2 — Modo bajo consumo
+
+- Nuevo ajuste «Modo bajo consumo» (Ajustes → Rendimiento) para PCs con poca RAM; objetivo: menos de 1 GB. Se activa solo en PCs con 8 GB o menos y aplica el perfil económico una vez.
+- El launcher libera memoria al minimizarlo o al pasar un rato sin foco; límite de memoria para la interfaz; menos procesos de Chromium.
+- Quitado el fondo «Espacio oscuro» del menú de Nova (si lo tenías elegido, pasa al agujero negro).
+
 ### 0.2.15-beta.1 — Fondo Earth
 
 - Mod: nuevo fondo animado integrado «Earth» (vídeo en bucle, 1080p, 15 fps).

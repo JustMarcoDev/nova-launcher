@@ -2,6 +2,9 @@
 // La clave es el texto en español tal como sale en la app; {1}, {2}… son partes variables (nombres, números).
 window.LANGS=window.LANGS||{};
 window.LANGS.de={name:"Deutsch",d:{
+"Modo bajo consumo":"Sparmodus",
+"Para PCs con poca RAM: el launcher gasta menos memoria (objetivo: menos de 1 GB). Se aplica del todo al reiniciar":"Für PCs mit wenig RAM: Der Launcher braucht weniger Speicher (Ziel: unter 1 GB). Wird nach einem Neustart vollständig angewendet",
+"Modo bajo consumo activado: reinicia el launcher para aplicarlo del todo":"Sparmodus aktiviert: Starte den Launcher neu, um ihn vollständig anzuwenden",
 "Crea tu perfil":"Erstelle dein Profil",
 "Para jugar necesitas un perfil: elige cómo quieres entrar":"Zum Spielen brauchst du ein Profil: Wähle, wie du dich anmelden möchtest",
 "Perfil creado ✓":"Profil erstellt ✓",

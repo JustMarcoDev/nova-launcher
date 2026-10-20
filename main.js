@@ -61,6 +61,19 @@ const load = () => ({ ...DEF, ...rd(cfgFile, {}) }), li = () => rd(insFile, []);
 const addInst = o => { const L = li(); let id = Date.now().toString(36); while (L.some(x => x.id === id)) id += Math.random().toString(36).slice(2, 4); const i = { id, ...o }; wr(insFile, [...L, i]); return i; };
 const FIRST = !fs.existsSync(cfgFile) && !fs.existsSync(insFile);
 if (rd(cfgFile, {}).hwaccel === false) app.disableHardwareAcceleration();
+// Modo bajo consumo (objetivo: el launcher por debajo de 1 GB de RAM). Por defecto se activa solo en PCs con 8 GB o menos.
+const LOWRAM = (() => { const v = rd(cfgFile, {}).lowRam; return v === undefined || v === null ? os.totalmem() <= 8 * 1073741824 : !!v; })();
+try {
+  const sw = app.commandLine;
+  // Sin aislamiento de sitios (la app solo abre contenido propio): menos procesos de Chromium = menos RAM
+  sw.appendSwitch('disable-site-isolation-trials');
+  sw.appendSwitch('disable-features', 'MediaSessionService,HardwareMediaKeyHandling,OptimizationHints,Translate,AutofillServerCommunication');
+  sw.appendSwitch('disable-background-networking'); sw.appendSwitch('no-pings');
+  // expose-gc deja liberar memoria a mano al minimizar; el tope del montón de JS evita que la interfaz crezca sin límite
+  sw.appendSwitch('js-flags', '--expose-gc --max-old-space-size=' + (LOWRAM ? 192 : 384) + (LOWRAM ? ' --optimize-for-size' : ''));
+  if (LOWRAM) { sw.appendSwitch('enable-low-end-device-mode'); sw.appendSwitch('disable-gpu-shader-disk-cache'); }
+  require('v8').setFlagsFromString('--expose-gc'); global.gc = require('vm').runInNewContext('gc');
+} catch {}
 const MAN = 'https://launchermeta.mojang.com/mc/game/version_manifest_v2.json';
 let win, updater = null;
 if (process.platform === 'win32') app.setAppUserModelId('com.nova.launcher');
@@ -122,6 +135,10 @@ async function imgPrune() {
     L.sort((a, b) => a.t - b.t); for (const x of L) { if (tot < 80e6) break; await del(x.n); tot -= x.s; }
   } catch {}
 }
+async function trimMem() {
+  try { if (!win || win.isDestroyed() || win.isFocused()) return; await win.webContents.executeJavaScript('window.gc&&window.gc()').catch(() => {}); await win.webContents.session.clearCache(); } catch {}
+  try { if (global.gc) global.gc(); } catch {}
+}
 app.whenReady().then(() => {
   if (!single) return;
   try { protocol.handle('nova-img', req => { try { return imgGet(new URL(req.url).searchParams.get('u') || ''); } catch { return new Response('', { status: 400 }); } }); } catch {}
@@ -133,6 +150,11 @@ app.whenReady().then(() => {
   win.on('resize', later); win.on('move', later); win.on('maximize', later); win.on('unmaximize', later); win.on('close', winSave);
   setTimeout(imgPrune, 3000); setTimeout(encryptOldTokens, 500);
   win.once('ready-to-show', () => win.show());
+  // Al minimizar u ocultar la ventana (o pasar un rato sin foco) se libera memoria de la interfaz y del proceso principal
+  let trimT = null;
+  const trimSoon = ms => { clearTimeout(trimT); trimT = setTimeout(trimMem, ms); };
+  win.on('minimize', () => trimSoon(2500)); win.on('hide', () => trimSoon(2500)); win.on('blur', () => trimSoon(60000));
+  win.on('focus', () => clearTimeout(trimT)); win.on('restore', () => clearTimeout(trimT));
   if (process.env.NOVA_SMOKE) return smokeTest();
   win.loadFile('index.html');
   if (app.isPackaged) initUpdater();
@@ -159,7 +181,7 @@ function smokeTest() {
 }
 app.on('window-all-closed', () => app.quit());
 
-ipcMain.handle('cfg:get', () => { const c = load(), st = accState(c); return { ...c, ms: c.ms ? { name: c.ms.name } : null, accounts: st.a.map(({ token, ...r }) => r), activeAccount: st.act.id, _first: FIRST && !c.setupDone }; });
+ipcMain.handle('cfg:get', () => { const c = load(), st = accState(c); return { ...c, lowRam: LOWRAM, ms: c.ms ? { name: c.ms.name } : null, accounts: st.a.map(({ token, ...r }) => r), activeAccount: st.act.id, _first: FIRST && !c.setupDone }; });
 ipcMain.handle('sys', () => ({ total: Math.max(1, Math.round(os.totalmem() / 1073741824)) }));
 ipcMain.handle('zoom', (e, f) => { win.webContents.setZoomFactor(Math.min(1.6, Math.max(0.7, +f || 1))); });
 ipcMain.handle('cfg:set', (e, c) => { wr(cfgFile, { ...load(), ...c }); if (updater && 'autoDownload' in c) updater.autoDownload = c.autoDownload !== false; if ('discord' in c || 'discordId' in c) discordInit(); if ('tray' in c) trayInit(); if ('channel' in c && updater) { updater.allowPrerelease = c.channel === 'beta'; updater.checkForUpdates().catch(() => {}); } return true; });
