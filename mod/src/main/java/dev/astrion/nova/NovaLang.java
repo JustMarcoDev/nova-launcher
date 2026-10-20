@@ -101,6 +101,5 @@ final class NovaLang {
         p("Sin afiliación, respaldo ni distribución de Mojang o Microsoft", "Not affiliated with, endorsed or distributed by Mojang or Microsoft", "Non affilié à Mojang ou Microsoft, ni approuvé ou distribué par eux", "Nicht mit Mojang oder Microsoft verbunden und nicht von ihnen unterstützt oder vertrieben", "Non affiliato a Mojang o Microsoft, né approvato o distribuito da loro", "Sem afiliação, aprovação ou distribuição da Mojang ou da Microsoft");
         p("Agujero negro", "Black hole", "Trou noir", "Schwarzes Loch", "Buco nero", "Buraco negro");
         p("Nebulosa", "Nebula", "Nébuleuse", "Nebel", "Nebulosa", "Nebulosa");
-        p("Espacio oscuro", "Dark space", "Espace sombre", "Dunkler Weltraum", "Spazio oscuro", "Espaço escuro");
     }
 }

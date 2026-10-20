@@ -53,10 +53,9 @@ final class NovaBgs {
     static List<Entry> list() {
         List<Entry> L = new ArrayList<>();
         Entry h = new Entry(); h.id = "hole"; h.name = tr("Agujero negro"); h.builtin = true; h.ready = true; h.path = System.getProperty("nova.bg", "");
-        Entry k = new Entry(); k.id = "dark"; k.name = tr("Espacio oscuro"); k.builtin = true; k.ready = true;
         Entry n = new Entry(); n.id = "nebula"; n.name = tr("Nebulosa"); n.builtin = true; n.path = System.getProperty("nova.bg2", ""); n.ready = !n.path.isEmpty() && new File(n.path).isFile();
         Entry ea = new Entry(); ea.id = "earth"; ea.name = "Earth"; ea.builtin = true; ea.path = System.getProperty("nova.bg3", ""); ea.ready = !ea.path.isEmpty() && new File(ea.path).isFile();
-        L.add(h); if (n.ready) L.add(n); if (ea.ready) L.add(ea); L.add(k);
+        L.add(h); if (n.ready) L.add(n); if (ea.ready) L.add(ea);
         File f = folder();
         if (f == null || !f.isDirectory()) return L;
         JsonObject names = json("nombres.json"), st = json("fondos-estado.json");
