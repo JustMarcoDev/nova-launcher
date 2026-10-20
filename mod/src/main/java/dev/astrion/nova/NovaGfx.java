@@ -39,17 +39,11 @@ public final class NovaGfx {
         public int h() { return gh; }
         public void draw(DrawContext c, int x, int y, float alpha) {
             if (alpha <= 0.003f) return;
-            com.mojang.blaze3d.systems.RenderSystem.enableBlend();
-            c.setShaderColor(1f, 1f, 1f, Math.min(1f, alpha));
-            c.drawTexture(id, x, y, gw, gh, 0, 0, pw, ph, pw, ph);
-            c.setShaderColor(1f, 1f, 1f, 1f);
+            NovaCompat.blit(c, id, x, y, gw, gh, 0, 0, pw, ph, pw, ph, Math.min(1f, alpha));
         }
         /** Dibuja la textura a otro tamaño (en píxeles de interfaz). */
         public void drawSized(DrawContext c, int x, int y, int w, int h, float alpha) {
-            com.mojang.blaze3d.systems.RenderSystem.enableBlend();
-            c.setShaderColor(1f, 1f, 1f, Math.min(1f, alpha));
-            c.drawTexture(id, x, y, w, h, 0, 0, pw, ph, pw, ph);
-            c.setShaderColor(1f, 1f, 1f, 1f);
+            NovaCompat.blit(c, id, x, y, w, h, 0, 0, pw, ph, pw, ph, Math.min(1f, alpha));
         }
     }
 
@@ -106,7 +100,7 @@ public final class NovaGfx {
         NativeImage ni = new NativeImage(NativeImage.Format.RGBA, w, h, false);
         for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) {
             int p = im.getRGB(x, y);   // ARGB no premultiplicado
-            ni.setColor(x, y, (p & 0xFF00FF00) | ((p >> 16) & 255) | ((p & 255) << 16));   // -> ABGR
+            NovaCompat.setPixel(ni, x, y, p);
         }
         NativeImageBackedTexture t = new NativeImageBackedTexture(ni);
         if (smooth) { try { t.setFilter(true, false); } catch (Throwable ignored) { } }

@@ -80,6 +80,7 @@ public class NovaTitleScreen extends Screen {
             tested = true;
             client.execute(() -> { client.setScreen(null); System.out.println("[NOVA-TEST] " + client.currentScreen.getClass().getName()); });
         }
+        if (System.getProperty("nova.pause") != null && !tested3) { tested3 = true; client.execute(() -> client.setScreen(new NovaPauseScreen())); }   // solo para pruebas
         String forced = System.getProperty("nova.panel", "");
         if (!forced.isEmpty() && !tested2) { tested2 = true; panel = forced.equals("nova") ? 2 : forced.equals("profile") ? 1 : 0; }
         labels.clear();
@@ -128,7 +129,7 @@ public class NovaTitleScreen extends Screen {
         else if (panel == 2) { snapshot(); buildNova(); }
     }
 
-    static boolean tested2;
+    static boolean tested2, tested3;
 
     // ---------------------------------------------------------------- cambios pendientes del menú de Nova
     // El fondo y el color se ven al instante, pero solo se guardan al pulsar «Confirmar cambios»; si se cierra sin confirmar, vuelven a como estaban.
@@ -465,10 +466,7 @@ public class NovaTitleScreen extends Screen {
         int tw = textRenderer.getWidth(n) * 3 / 4 + 2;
         if (NovaGfx.ok) { try { tw = NovaGfx.text(client, n, 6.5f, 0xB8FFFFFF, true).w(); } catch (Throwable e) { NovaGfx.ok = false; } }
         int mx0 = width - 7 - tw - 3 - 9;
-        com.mojang.blaze3d.systems.RenderSystem.enableBlend();
-        c.setShaderColor(1f, 1f, 1f, 0.7f);
-        c.drawTexture(MARK, mx0, height - 14, 9, 9, 0, 0, 64, 64, 64, 64);
-        c.setShaderColor(1f, 1f, 1f, 1f);
+        NovaCompat.blit(c, MARK, mx0, height - 14, 9, 9, 0, 0, 64, 64, 64, 64, 0.7f);
         txt(c, n, width - 7, height - 14, 6.5f, 0xB8FFFFFF, true, 1);
         if (panel != 2) txt(c, tr("Sin afiliación, respaldo ni distribución de Mojang o Microsoft"), width / 2, height - 10, 5.5f, 0x58FFFFFF, false, 2);
         tooltip(c);

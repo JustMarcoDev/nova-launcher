@@ -1,6 +1,6 @@
 // Convierte una imagen o un vídeo en el fondo del menú de Nova (formato NVB1: fotogramas JPEG empaquetados).
 // Se hace con el propio Chromium de la app (una ventana oculta), así no hace falta instalar nada más.
-const { BrowserWindow, ipcMain } = require('electron');
+const { BrowserWindow, ipcMain, nativeImage } = require('electron');
 const fs = require('fs'), path = require('path'), { pathToFileURL } = require('url');
 
 const IMG = /\.(png|jpe?g|webp|bmp|gif)$/i, VID = /\.(mp4|m4v|mov|webm|ogv|mkv)$/i;
@@ -54,7 +54,7 @@ ipcMain.on('nvb:progress', (e, id, p) => { const j = jobs.get(id); if (j && j.on
 
 /** Crea el archivo `out` (NVB1) a partir de `file`. opts: w, h, fps, q, maxSec, onProgress(0..1). Devuelve {n, w, h, fps, bytes}. */
 async function convert(file, out, opts = {}) {
-  const o = { w: 1280, h: 720, fps: 15, q: 0.72, maxSec: 20, ...opts };
+  const o = { w: 1920, h: 1080, fps: 15, q: 0.78, maxSec: 20, ...opts };
   const image = isImage(file);
   if (!image && !isVideo(file)) throw new Error('Formato no compatible. Usa una imagen (png, jpg, webp) o un vídeo (mp4, webm).');
   const id = ++job, j = { frames: [], onProgress: o.onProgress };
@@ -76,6 +76,7 @@ async function convert(file, out, opts = {}) {
     const t = out + '.tmp';
     fs.writeFileSync(t, Buffer.concat([hdr, ...fr]));
     try { fs.renameSync(t, out); } catch (e) { fs.copyFileSync(t, out); try { fs.unlinkSync(t); } catch {} }
+    if (o.w >= 1920 && !o.single) { try { await make720(out); } catch {} }   // versión ligera (720p) para pantallas pequeñas y el Modo bajo consumo
     return { n: r.n, w: o.w, h: o.h, fps: r.fps, bytes: off };
   } finally {
     jobs.delete(id);
@@ -84,4 +85,31 @@ async function convert(file, out, opts = {}) {
   }
 }
 
-module.exports = { convert, isImage, isVideo };
+
+/** Ruta de la versión 720p de un .nvb: «foto.mp4.nvb» → «foto.mp4.720.nvb». */
+const lowPath = f => f.replace(/\.nvb$/i, '') + '.720.nvb';
+
+/** Crea la versión 720p (1280×720) de un .nvb de 1080p reescalando cada fotograma; el mod la elige en pantallas pequeñas o con el Modo bajo consumo. */
+async function make720(file) {
+  const out = lowPath(file), d = fs.readFileSync(file);
+  if (d.toString('latin1', 0, 4) !== 'NVB1') throw new Error('No es un .nvb');
+  const n = d.readUInt32LE(4), fps = d.readUInt16LE(8), W = d.readUInt16LE(10), H = d.readUInt16LE(12);
+  if (W <= 1280) return false;   // ya es ligero
+  const w = 1280, h = Math.round(H * 1280 / W), fr = [];
+  for (let i = 0; i < n; i++) {
+    const a = d.readUInt32LE(16 + 4 * i), b = d.readUInt32LE(16 + 4 * (i + 1));
+    fr.push(nativeImage.createFromBuffer(d.subarray(a, b)).resize({ width: w, height: h, quality: 'good' }).toJPEG(72));
+    if (i % 4 === 3) await new Promise(r => setImmediate(r));   // sin bloquear la ventana
+  }
+  const hdr = Buffer.alloc(16 + 4 * (n + 1));
+  hdr.write('NVB1', 0, 'latin1'); hdr.writeUInt32LE(n, 4); hdr.writeUInt16LE(fps, 8); hdr.writeUInt16LE(w, 10); hdr.writeUInt16LE(h, 12);
+  let off = hdr.length;
+  for (let i = 0; i < n; i++) { hdr.writeUInt32LE(off, 16 + 4 * i); off += fr[i].length; }
+  hdr.writeUInt32LE(off, 16 + 4 * n);
+  const t = out + '.tmp';
+  fs.writeFileSync(t, Buffer.concat([hdr, ...fr]));
+  try { fs.renameSync(t, out); } catch (e) { fs.copyFileSync(t, out); try { fs.unlinkSync(t); } catch {} }
+  return true;
+}
+
+module.exports = { convert, make720, lowPath, isImage, isVideo };

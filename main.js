@@ -441,7 +441,7 @@ ipcMain.handle('play', async (e, { id, server, world, safe }) => {
       : (!ins.ld || ins.ld === 'Vanilla' || ins.ld === 'Fabric') ? (NOVA_MC.includes(ins.mc) ? 'Nova: el menú de Nova no se pudo activar; se juega con el menú normal.\n' : 'Nova: el menú de Nova solo está disponible en Minecraft ' + NOVA_MC.join(' y ') + '; esta versión usa el menú normal.\n')
       : 'Nova: el menú de Nova solo está disponible en Nova y Fabric; ' + ins.ld + ' usa el menú normal.\n';
     if (nova) { fondosScan().catch(() => {}); fondosWatch(); }
-    if (nova) o.customArgs.push('-Dnova.dir=' + novaDir(), '-Dnova.skin=' + (await novaSkin(act.name)), '-Dnova.premium=' + (act.type === 'microsoft' ? '1' : '0'), '-Dnova.user=' + act.name, '-Dnova.bg=' + (novaBg() || ''), '-Dnova.bg2=' + (novaBg('nova-nebulosa.nvb') || ''), '-Dnova.bg3=' + (novaBg('nova-earth.nvb') || ''), '-Dfabric.addMods=' + nj, '-Dnova.version=' + app.getVersion(), '-Dnova.loader=' + (ins.ld === 'Fabric' ? 'Fabric' : 'Nova'));
+    if (nova) o.customArgs.push('-Dnova.dir=' + novaDir(), '-Dnova.skin=' + (await novaSkin(act.name)), '-Dnova.premium=' + (act.type === 'microsoft' ? '1' : '0'), '-Dnova.user=' + act.name, '-Dnova.bg=' + (novaBg() || ''), '-Dnova.bg2=' + (novaBg('nova-nebulosa.nvb') || ''), '-Dnova.bg3=' + (novaBg('nova-earth.nvb') || ''), '-Dnova.lowpower=' + (LOWRAM ? 'true' : 'false'), '-Dfabric.addMods=' + nj, '-Dnova.version=' + app.getVersion(), '-Dnova.loader=' + (ins.ld === 'Fabric' ? 'Fabric' : 'Nova'));
     if (ins.ld === 'Forge' || ins.ld === 'NeoForge') o.version.custom = await forge(ins.ld, ins.mc, java, ins.loaderVersion);
     if (server && server.host) o.quickPlay = { type: modernQP(ins.mc) ? 'multiplayer' : 'legacy', identifier: server.host + (server.port && +server.port !== 25565 ? ':' + server.port : '') };
     if (world && !server && modernQP(ins.mc)) o.quickPlay = { type: 'singleplayer', identifier: String(world) };
@@ -449,7 +449,7 @@ ipcMain.handle('play', async (e, { id, server, world, safe }) => {
     const l = new Client(), tail = [], lg = openLog(ins, java, ram), since = Date.now(); let t0 = 0;
     send('log', '── ' + ins.name + ' · Minecraft ' + ins.mc + ' · ' + (ins.ld || 'Vanilla') + ' · ' + (act.name) + ' ──\n'); send('log', novaMsg);
     l.on('progress', p => send('progress', p));
-    l.on('data', d => { const t = String(d); { const pk = t.match(/\[NOVA:PICKBG(?::([^\]]+))?\]/); if (pk) novaPickBg(pk[1]); if (t.includes('[NOVA:OPENDIR]')) shell.openPath(fondosDir()); } if (t.includes('[NOVA:SETTINGS]')) { try { if (win) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); send('nav', 'set'); } } catch {} } try { lg.w.write(t.endsWith('\n') ? t : t + '\n'); } catch {} for (const ln of t.split(/\r?\n/)) if (ln) tail.push(ln); if (tail.length > 500) tail.splice(0, tail.length - 300); send('log', t); });
+    l.on('data', d => { const t = String(d); { const pk = t.match(/\[NOVA:PICKBG(?::([^\]]+))?\]/); if (pk) novaPickBg(pk[1]); if (t.includes('[NOVA:OPENDIR]')) shell.openPath(fondosDir()); } if (t.includes('[NOVA:SETTINGS]') || t.includes('[NOVA:SHOW]')) { try { if (win) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); if (t.includes('[NOVA:SETTINGS]')) send('nav', 'set'); } } catch {} } try { lg.w.write(t.endsWith('\n') ? t : t + '\n'); } catch {} for (const ln of t.split(/\r?\n/)) if (ln) tail.push(ln); if (tail.length > 500) tail.splice(0, tail.length - 300); send('log', t); });
     l.on('close', code => {
       running.delete(id); try { lg.w.end(); } catch {} if (t0) { const cur = li().find(i => i.id === id) || {}; upIns(id, { playMs: (cur.playMs || 0) + (Date.now() - t0), lastPlayed: Date.now() }); } discordSet(null); send('running', running.size ? 1 : 0); send('progress', null);
       const crashed = !!code && tail.length > 0;
@@ -1271,7 +1271,7 @@ const GPU_KEY = 'HKCU\\Software\\Microsoft\\DirectX\\UserGpuPreferences';
 // Menú de Nova dentro del juego: mod de Fabric incluido de fábrica (carpeta assets/mods), siempre activo.
 // Se carga con -Dfabric.addMods, así que no aparece en la carpeta mods de la instancia ni se puede borrar desde ahí.
 // Vanilla se lanza a través de Fabric para poder cargarlo; si algo falla se juega en vanilla normal.
-const NOVA_MC = ['1.21.1', '1.20.1'];          // versiones de Minecraft con mod incluido
+const NOVA_MC = ['1.21.1', '1.20.1', '1.21.4'];          // versiones de Minecraft con mod incluido
 // Vídeo de fondo del menú de Nova (frames JPEG empaquetados): fuera del jar para que el mod pese poco
 // ---- Menú de Nova dentro del juego: carpeta de datos, skin del jugador y fondo personalizado ----
 function novaDir() { const d = path.join(root, 'nova'); try { fs.mkdirSync(d, { recursive: true }); } catch {} return d; }
@@ -1305,7 +1305,7 @@ async function fondosRun() {
       const setS = o => { const m = fondosJson('fondos-estado.json'); if (o) m[f] = o; else delete m[f]; fondosJson('fondos-estado.json', m); };
       try {
         const img = IMGEXT.test(f);
-        await require('./nvb').convert(src, path.join(fondosCache(), f + '.nvb'), img ? { w: 1920, h: 1080, q: 0.85 } : { onProgress: p => setS({ state: 'working', progress: p }) });
+        await require('./nvb').convert(src, path.join(fondosCache(), f + '.nvb'), { ...(img ? { q: 0.85 } : { onProgress: p => setS({ state: 'working', progress: p }) }), ...(LOWRAM ? { w: 1280, h: 720, single: true } : {}) });   // Modo bajo consumo: solo 720p
         setS(null);
       } catch (e) { FFAIL.set(f, st.mtimeMs); setS({ state: 'error', error: String(e && e.message || e).slice(0, 120) }); }
     }
@@ -1315,7 +1315,7 @@ async function fondosRun() {
 async function fondosScan() {
   const dir = fondosDir(), cache = fondosCache();
   let files = []; try { files = fs.readdirSync(dir).filter(f => MEDIA.test(f)); } catch {}
-  try { for (const c of fs.readdirSync(cache)) if (c.endsWith('.nvb') && !files.includes(c.slice(0, -4))) fs.unlinkSync(path.join(cache, c)); } catch {}
+  try { for (const c of fs.readdirSync(cache)) if (c.endsWith('.nvb') && !files.includes(c.replace(/(\.720)?\.nvb$/, ''))) fs.unlinkSync(path.join(cache, c)); } catch {}
   const est = fondosJson('fondos-estado.json'); let dirty = false;
   for (const k of Object.keys(est)) if (!files.includes(k)) { delete est[k]; dirty = true; }
   for (const f of files) {
@@ -1345,7 +1345,7 @@ async function novaPickBg(target) {
       if (target) {   // «cambiar»: mismo nombre, otro archivo
         const old = path.basename(target), base = path.basename(old, path.extname(old));
         dest = base + ext;
-        if (dest !== old) { try { fs.unlinkSync(path.join(dir, old)); } catch {} try { fs.unlinkSync(path.join(fondosCache(), old + '.nvb')); } catch {} if (names[old] !== undefined) { names[dest] = names[old]; delete names[old]; } }
+        if (dest !== old) { try { fs.unlinkSync(path.join(dir, old)); } catch {} try { fs.unlinkSync(path.join(fondosCache(), old + '.nvb')); } catch {} try { fs.unlinkSync(path.join(fondosCache(), old + '.720.nvb')); } catch {} if (names[old] !== undefined) { names[dest] = names[old]; delete names[old]; } }
       } else {
         const base = path.basename(p, ext); dest = base + ext;
         for (let i = 2; fs.existsSync(path.join(dir, dest)); i++) dest = base + ' (' + i + ')' + ext;
@@ -1357,6 +1357,7 @@ async function novaPickBg(target) {
     setTimeout(() => fondosScan().catch(() => {}), 1700);
   } catch {} finally { PICKING = false; if (wasMin && win) { try { win.minimize(); } catch {} } }
 }
+const LOW720 = new Set();   // fondos que se están reescalando a 720p ahora mismo
 function novaBg(file = 'nova-bg.nvb') {
   const src = path.join(__dirname, 'assets', file);
   if (!fs.existsSync(src)) return null;
@@ -1365,6 +1366,7 @@ function novaBg(file = 'nova-bg.nvb') {
     const a = fs.statSync(src), b = fs.existsSync(dst) ? fs.statSync(dst) : null;
     if (!b || b.size !== a.size) { fs.mkdirSync(path.dirname(dst), { recursive: true }); fs.writeFileSync(dst, fs.readFileSync(src)); }
   } catch { return null; }
+  try { const low = require('./nvb').lowPath(dst); if (!LOW720.has(dst) && (!fs.existsSync(low) || fs.statSync(low).mtimeMs < fs.statSync(dst).mtimeMs)) { LOW720.add(dst); require('./nvb').make720(dst).catch(() => {}).finally(() => LOW720.delete(dst)); } } catch {}
   return dst;
 }
 // ===== Menú de Nova: actualizar el mod sin sacar una versión nueva del launcher =====

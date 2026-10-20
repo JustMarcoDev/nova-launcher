@@ -100,6 +100,13 @@ final class NovaLang {
         p("Versión: ", "Version: ", "Version : ", "Version: ", "Versione: ", "Versão: ");
         p("Sin afiliación, respaldo ni distribución de Mojang o Microsoft", "Not affiliated with, endorsed or distributed by Mojang or Microsoft", "Non affilié à Mojang ou Microsoft, ni approuvé ou distribué par eux", "Nicht mit Mojang oder Microsoft verbunden und nicht von ihnen unterstützt oder vertrieben", "Non affiliato a Mojang o Microsoft, né approvato o distribuito da loro", "Sem afiliação, aprovação ou distribuição da Mojang ou da Microsoft");
         p("Agujero negro", "Black hole", "Trou noir", "Schwarzes Loch", "Buco nero", "Buraco negro");
+        p("Volver al juego", "Back to game", "Retour au jeu", "Zurück zum Spiel", "Torna al gioco", "Voltar ao jogo");
+        p("Logros", "Advancements", "Progrès", "Fortschritte", "Progressi", "Conquistas");
+        p("Estadísticas", "Statistics", "Statistiques", "Statistiken", "Statistiche", "Estatísticas");
+        p("Abrir launcher", "Open launcher", "Ouvrir le launcher", "Launcher öffnen", "Apri il launcher", "Abrir o launcher");
+        p("Guardar y salir", "Save and quit", "Enregistrer et quitter", "Speichern und beenden", "Salva ed esci", "Salvar e sair");
+        p("Desconectar", "Disconnect", "Se déconnecter", "Trennen", "Disconnetti", "Desconectar");
+        p("Juego en pausa", "Game paused", "Jeu en pause", "Spiel pausiert", "Gioco in pausa", "Jogo pausado");
         p("Nebulosa", "Nebula", "Nébuleuse", "Nebel", "Nebulosa", "Nebulosa");
     }
 }
