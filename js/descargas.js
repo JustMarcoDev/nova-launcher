@@ -7,7 +7,7 @@ let DQS={active:0,paused:false,limit:0,speed:0};
 function fSpeed(b){b=+b||0;return b>=1048576?(b/1048576).toFixed(1)+" MB/s":(b/1024).toFixed(0)+" KB/s"}
 function fEta(s){s=Math.max(1,Math.round(+s||0));if(s<60)return s+" s";const m=Math.floor(s/60);if(m<60)return m+" min"+(s%60&&m<10?" "+(s%60)+" s":"");const h=Math.floor(m/60);return h+" h"+(m%60?" "+(m%60)+" min":"")}
 function dqDraw(s){
-  DQS={...DQS,...s};const on=DQS.active>0||DQS.paused&&DQS.active>0;DQW.classList.toggle("on",DQS.active>0);
+  DQS={...DQS,...s};DQW.classList.toggle("on",DQS.active>0);
   $("dqb").textContent=DQS.paused?"Descarga en pausa":"Descargando…";
   $("dqs").textContent=DQS.paused?DQS.active+" en cola":DQS.active+" en curso · "+fSpeed(DQS.speed)+(DQS.eta>0?" · faltan "+fEta(DQS.eta):"");
   $("dqp").textContent=DQS.paused?"Reanudar":"Pausar";
