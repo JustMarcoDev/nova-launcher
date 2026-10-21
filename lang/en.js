@@ -994,4 +994,17 @@ window.LANGS.en={name:"English (US)",d:{
 "Preparando Minecraft {1} en segundo plano…":"Preparing Minecraft {1} in the background…",
 "Preparando Minecraft {1} · {2}%":"Preparing Minecraft {1} · {2}%",
 "Listo: Minecraft {1} se abrirá al instante ✓":"Ready: Minecraft {1} will open instantly ✓",
-"Cierra Minecraft antes de limpiar":"Close Minecraft before cleaning up"}};
+"Cierra Minecraft antes de limpiar":"Close Minecraft before cleaning up",
+"Instalar «{1}»":"Install “{1}”",
+"Paso 1 de 2 · Elige la versión del mod y el cargador":"Step 1 of 2 · Choose the mod version and the loader",
+"Paso 2 de 2 · Elige dónde instalarlo":"Step 2 of 2 · Choose where to install it",
+"Cargando versiones…":"Loading versions…",
+"Versión del mod":"Mod version",
+"Este mod no tiene versiones para Fabric, Forge ni NeoForge.":"This mod has no versions for Fabric, Forge or NeoForge.",
+"Instancias compatibles":"Compatible instances",
+"Crear una instancia nueva":"Create a new instance",
+"Todavía no tienes ninguna instancia compatible con esta versión. Crea una:":"You don't have any instance compatible with this version yet. Create one:",
+"Instalado en «{1}»":"Installed in “{1}”",
+"Este mod no tiene una versión de Minecraft compatible con {1}":"This mod has no Minecraft version compatible with {1}",
+"No se pudieron cargar las versiones":"Could not load the versions",
+"Versión de Minecraft":"Minecraft version"}};

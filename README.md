@@ -130,6 +130,13 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 
 ## Historial de actualizaciones
 
+### 0.2.15-beta.7 — Instalar mods con asistente
+
+- **Asistente de instalación de mods**: al pulsar Instalar se abre un panel para elegir el cargador (Fabric, Forge, NeoForge) y la versión del mod (con su versión de Minecraft); con «Siguiente» se elige una instancia compatible o se crea una nueva (nombre y versión de Minecraft). Se instala exactamente el archivo elegido (con comprobación de huella en Modrinth) y sus dependencias obligatorias para esa instancia. Solo para mods; shaders y texturas siguen como antes.
+- **Borrar instancia** desde la lista de instancias (con confirmación).
+- **Sin permisos de administrador al actualizar**: el instalador ignora una instalación antigua «para todos los usuarios» (clave de HKLM) y siempre instala en modo usuario (`build/installer.nsh`, macro `customInit`). Si el launcher sigue instalado en Archivos de programa, la actualización crea la copia nueva en tu carpeta de usuario; la antigua se puede desinstalar desde Windows.
+- **Arreglo**: el botón «Continuar» ya no se dibuja encima del menú de Lanzar juego.
+
 ### 0.2.15-beta.6 — Menú de pausa de Nova y fondos más ligeros
 
 - **Menú de pausa de Nova**: sustituye al de Minecraft en 1.20.1, 1.21.1 y 1.21.4 (un jugador y multijugador, sin «Abrir a LAN»). Botones: Volver al juego, Ajustes, Logros, Estadísticas, Abrir launcher y Guardar y salir / Desconectar. El fondo es el juego oscurecido (en 1.20.1 solo oscurecido, sin desenfoque).

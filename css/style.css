@@ -1493,7 +1493,7 @@ main {
 /* Botón «Continuar donde lo dejaste» (último mundo jugado). */
 .cont {
   position: relative;
-  z-index: 31;
+  z-index: 29;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -4041,4 +4041,88 @@ html[data-cb=Grises] {
       0 0 0 1px rgba(255,255,255,.18) inset,
       0 10px 64px color-mix(in srgb,var(--ac) 65%,transparent);
   }
+}
+
+/* Asistente «Instalar mod» (versión + cargador → instancia) */
+.wz .wl {
+  display: block;
+  margin: 14px 0 7px;
+  font-size: calc(11px*var(--fs,1));
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--m);
+}
+
+.wz .wl:first-child {
+  margin-top: 4px;
+}
+
+.wvl {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  max-height: min(340px,42vh);
+  overflow: auto;
+  padding: 2px;
+}
+
+.wr {
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.wr:hover {
+  border-color: color-mix(in srgb,var(--ac) 45%,transparent);
+}
+
+.wr.on {
+  border-color: var(--ac);
+  background: color-mix(in srgb,var(--ac) 14%,var(--p2));
+}
+
+.wr .nm {
+  min-width: 0;
+  flex: 1;
+}
+
+.wr .nm small i {
+  font-style: normal;
+}
+
+.wsum {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 9px 12px;
+  border-radius: calc(12px*var(--rs,1));
+  background: var(--p2);
+}
+
+.wsum small {
+  color: var(--m);
+}
+
+.wnote {
+  margin: 12px 0;
+  color: var(--m);
+}
+
+.wnew {
+  margin-top: 12px;
+}
+
+.wnew[hidden] {
+  display: none;
+}
+
+.wfoot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.wsum i {
+  font-style: normal;
 }
