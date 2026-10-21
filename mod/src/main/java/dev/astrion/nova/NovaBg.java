@@ -89,8 +89,8 @@ final class NovaBg {
             file = f;   // los fotogramas se leen del disco según toca: no se carga el archivo entero en memoria
             NativeImage img = new NativeImage(NativeImage.Format.RGBA, w, h, false);
             for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) NovaCompat.setPixel(img, x, y, 0xFF080A14);   // azul oscuro
-            tex = new NativeImageBackedTexture(img);
-            try { tex.setFilter(true, false); } catch (Throwable ignored) { }
+            tex = NovaCompat.newTex(img);
+            try { NovaCompat.smooth(tex); } catch (Throwable ignored) { }
             mc.getTextureManager().registerTexture(ID, tex);
             stop = false;
             curPath = p0 == null ? "" : p0;

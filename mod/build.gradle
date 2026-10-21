@@ -19,8 +19,8 @@ processResources {
     filesMatching('fabric.mod.json') { expand 'version': project.version, 'mc': project.mc }
 }
 
-// Código que cambia según la versión de Minecraft: src/compat/<compat>/java (compat = legacy o rl, ver versions.txt)
-sourceSets.main.java.srcDir "src/compat/${project.compat}/java"
+// Código que cambia según la versión de Minecraft: una carpeta por capa en src/compat/<capa>/java (las capas de cada versión están en versions.txt)
+project.layers.split(',').each { sourceSets.main.java.srcDir "src/compat/${it.trim()}/java" }
 
 tasks.withType(JavaCompile).configureEach { options.release = 17 }
 java { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }

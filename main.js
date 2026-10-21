@@ -439,7 +439,7 @@ ipcMain.handle('play', async (e, { id, server, world, safe }) => {
     else if (nj) { try { o.version.custom = fabricBundled(ins.mc) || await fabric(ins.mc); nova = true; } catch { send('log', 'Nova: no se pudo preparar Fabric; se juega en vanilla normal.\n'); } }
     let novaMsg = noNova ? 'Nova: modo seguro, se juega sin el menú de Nova' + (ins.ld === 'Fabric' ? ' (Fabric normal).\n' : ' (Minecraft normal).\n')
       : nova ? 'Nova: menú de Nova activado (Fabric incluido en el launcher).\n'
-      : (!ins.ld || ins.ld === 'Vanilla' || ins.ld === 'Fabric') ? (NOVA_MC.includes(ins.mc) ? 'Nova: el menú de Nova no se pudo activar; se juega con el menú normal.\n' : 'Nova: el menú de Nova solo está disponible en Minecraft ' + NOVA_MC.join(' y ') + '; esta versión usa el menú normal.\n')
+      : (!ins.ld || ins.ld === 'Vanilla' || ins.ld === 'Fabric') ? (NOVA_MC.includes(ins.mc) ? 'Nova: el menú de Nova no se pudo activar; se juega con el menú normal.\n' : 'Nova: el menú de Nova solo está disponible en Minecraft ' + NOVA_MC[0] + ' a ' + NOVA_MC[NOVA_MC.length - 1] + '; esta versión usa el menú normal.\n')
       : 'Nova: el menú de Nova solo está disponible en Nova y Fabric; ' + ins.ld + ' usa el menú normal.\n';
     if (nova) { fondosScan().catch(() => {}); fondosWatch(); }
     if (nova) o.customArgs.push('-Dnova.dir=' + novaDir(), '-Dnova.skin=' + (await novaSkin(act.name)), '-Dnova.premium=' + (act.type === 'microsoft' ? '1' : '0'), '-Dnova.user=' + act.name, '-Dnova.bg=' + (novaBg() || ''), '-Dnova.bg2=' + (novaBg('nova-nebulosa.nvb') || ''), '-Dnova.bg3=' + (novaBg('nova-earth.nvb') || ''), '-Dnova.lowpower=' + (LOWRAM ? 'true' : 'false'), '-Dfabric.addMods=' + nj, '-Dnova.version=' + app.getVersion(), '-Dnova.loader=' + (ins.ld === 'Fabric' ? 'Fabric' : 'Nova'));
@@ -1286,7 +1286,7 @@ const GPU_KEY = 'HKCU\\Software\\Microsoft\\DirectX\\UserGpuPreferences';
 // Menú de Nova dentro del juego: mod de Fabric incluido de fábrica (carpeta assets/mods), siempre activo.
 // Se carga con -Dfabric.addMods, así que no aparece en la carpeta mods de la instancia ni se puede borrar desde ahí.
 // Vanilla se lanza a través de Fabric para poder cargarlo; si algo falla se juega en vanilla normal.
-const NOVA_MC = ['1.21.1', '1.20.1', '1.21.4'];          // versiones de Minecraft con mod incluido
+const NOVA_MC = ['1.20', '1.20.1', '1.20.2', '1.20.3', '1.20.4', '1.20.5', '1.20.6', '1.21', '1.21.1', '1.21.2', '1.21.3', '1.21.4', '1.21.5', '1.21.6', '1.21.7', '1.21.8', '1.21.9', '1.21.10', '1.21.11'];          // versiones de Minecraft con mod incluido (mismo orden que mod/versions.txt)
 // Vídeo de fondo del menú de Nova (frames JPEG empaquetados): fuera del jar para que el mod pese poco
 // ---- Menú de Nova dentro del juego: carpeta de datos, skin del jugador y fondo personalizado ----
 function novaDir() { const d = path.join(root, 'nova'); try { fs.mkdirSync(d, { recursive: true }); } catch {} return d; }

@@ -33,9 +33,9 @@ jobs:
         working-directory: mod
         run: |
           # Una línea de mod/versions.txt por versión de Minecraft; los .jar sustituyen a los de assets/mods
-          tr -d '\r' < versions.txt | grep -v '^#' | grep -v '^$' | while read -r MC YARN COMPAT; do
+          tr -d '\r' < versions.txt | grep -v '^#' | grep -v '^$' | while read -r MC YARN LAYERS; do
             echo "== Menú de Nova para Minecraft $MC"
-            gradle build --no-daemon -q -Pmc="$MC" -Pyarn="$YARN" -Pcompat="${COMPAT:-legacy}"
+            gradle build --no-daemon -q -Pmc="$MC" -Pyarn="$YARN" -Players="${LAYERS:-legacy,in-old,btn-old}" < /dev/null
             JAR=$(ls build/libs/nova-menu-$MC-*.jar | grep -v sources | head -1)
             cp "$JAR" "../assets/mods/nova-menu-$MC.jar"
           done

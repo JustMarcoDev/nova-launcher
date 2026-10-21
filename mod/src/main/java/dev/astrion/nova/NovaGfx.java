@@ -102,8 +102,8 @@ public final class NovaGfx {
             int p = im.getRGB(x, y);   // ARGB no premultiplicado
             NovaCompat.setPixel(ni, x, y, p);
         }
-        NativeImageBackedTexture t = new NativeImageBackedTexture(ni);
-        if (smooth) { try { t.setFilter(true, false); } catch (Throwable ignored) { } }
+        NativeImageBackedTexture t = NovaCompat.newTex(ni);
+        if (smooth) { try { NovaCompat.smooth(t); } catch (Throwable ignored) { } }
         Identifier id = Identifier.tryParse("nova:gfx/g" + (seq++));
         mc.getTextureManager().registerTexture(id, t);
         Tex r = new Tex(id, w, h, sc);

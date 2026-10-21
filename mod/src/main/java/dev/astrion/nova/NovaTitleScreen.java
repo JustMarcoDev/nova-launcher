@@ -18,7 +18,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
 
 /** Pantalla de título de Nova Launcher: Minecraft «versión Nova». */
-public class NovaTitleScreen extends Screen {
+public class NovaTitleScreen extends NovaScreen {
     static final Identifier MARK = Identifier.tryParse("nova:textures/gui/mark.png");
     static boolean loaded, tested;
 
@@ -57,8 +57,8 @@ public class NovaTitleScreen extends Screen {
         try (java.io.InputStream in = NovaTitleScreen.class.getResourceAsStream("/assets/nova/" + path)) {
             if (in == null) return;
             net.minecraft.client.texture.NativeImage img = net.minecraft.client.texture.NativeImage.read(in);
-            net.minecraft.client.texture.NativeImageBackedTexture tex = new net.minecraft.client.texture.NativeImageBackedTexture(img);
-            if (path.contains("mark")) { try { tex.setFilter(true, false); } catch (Throwable ignored) { } }
+            net.minecraft.client.texture.NativeImageBackedTexture tex = NovaCompat.newTex(img);
+            if (path.contains("mark")) { try { NovaCompat.smooth(tex); } catch (Throwable ignored) { } }
             mc.getTextureManager().registerTexture(Identifier.tryParse("nova:" + path), tex);
         } catch (Exception e) {
             // se queda con la textura de «no encontrada»
@@ -66,7 +66,7 @@ public class NovaTitleScreen extends Screen {
     }
 
     static String mcVersion() {
-        return net.minecraft.SharedConstants.getGameVersion().getName();
+        return NovaCompat.gameVersion();
     }
 
     @Override public boolean shouldCloseOnEsc() { return false; }
@@ -354,7 +354,7 @@ public class NovaTitleScreen extends Screen {
     boolean inPanel(double mx, double my) { return mx >= px - 2 && mx <= px + pw + 2 && my >= py - 2 && my <= py + ph + 2; }
 
     @Override
-    public boolean mouseClicked(double mx, double my, int button) {
+    protected boolean nClick(double mx, double my, int button) {
         if (panel == 2) {   // el panel de Nova es modal: un clic fuera lo cierra sin guardar
             if (inPanel(mx, my)) { clickTopmost(mx, my, button); return true; }
             closeNova(false);
@@ -369,13 +369,13 @@ public class NovaTitleScreen extends Screen {
     private boolean clickTopmost(double mx, double my, int button) {
         java.util.List<? extends net.minecraft.client.gui.Element> ch = children();
         for (int i = ch.size() - 1; i >= 0; i--) {
-            if (ch.get(i).mouseClicked(mx, my, button)) return true;
+            if (NovaScreen.childClick(ch.get(i), mx, my, button)) return true;
         }
         return false;
     }
 
     @Override
-    public boolean keyPressed(int key, int scan, int mods) {
+    protected boolean nKey(int key, int scan, int mods) {
         if (editing != null) {
             if (key == 257 || key == 335) { commitName(editing); return true; }
             if (key == 256) { editing = null; clearAndInit(); return true; }
@@ -384,16 +384,16 @@ public class NovaTitleScreen extends Screen {
         }
         if (key == 256 && panel == 2) { closeNova(false); return true; }
         if (key == 256 && panel != 0) { panel = 0; confirmDel = null; clearAndInit(); return true; }
-        return super.keyPressed(key, scan, mods);
+        return superKey(key, scan, mods);
     }
 
     @Override
-    public boolean charTyped(char chr, int mods) {
+    protected boolean nChar(char chr, int mods) {
         if (editing != null) {
             if (chr >= 32 && chr != 127 && buf.length() < 28) { buf.append(chr); clearAndInit(); }
             return true;
         }
-        return super.charTyped(chr, mods);
+        return superChar(chr, mods);
     }
 
     // 1.20.1 usa (x, y, delta) y 1.21 (x, y, horizontal, vertical): se declaran las dos sin @Override
@@ -453,11 +453,9 @@ public class NovaTitleScreen extends Screen {
         float fade = Math.min(1f, (Util.getMeasuringTimeMs() - born) / 600f);
         // logo del propio juego (LogoDrawer), reducido
         float k = 0.62f;
-        net.minecraft.client.util.math.MatrixStack ms = c.getMatrices();
-        ms.push();
-        ms.scale(k, k, 1f);
+        NovaCompat.pushScale(c, k);
         if (panel != 2) logo.draw(c, (int) (width / k), fade, (int) (ly() / k));   // el panel de Nova va por encima de todo
-        ms.pop();
+        NovaCompat.popScale(c);
 
         // abajo izquierda: versión
         txt(c, (tr("Versión: ")) + mcVersion() + "/" + LOADER, 7, height - 14, 6.5f, 0xB8FFFFFF, false, 0);
