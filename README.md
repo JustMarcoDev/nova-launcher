@@ -130,6 +130,13 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 
 ## Historial de actualizaciones
 
+### 0.2.15-beta.9 — Menú de Nova en Minecraft 1.20 a 1.21.11
+
+- **19 versiones** con menú de Nova (título + pausa), para Nova y para Fabric: 1.20, 1.20.1–1.20.6, 1.21, 1.21.1–1.21.11 (solo versiones estables). La lista está en `mod/versions.txt` y en `NOVA_MC` de `main.js` (`tests/check.js` comprueba que coinciden).
+- **Capas de compatibilidad** (`mod/src/compat/<capa>`): `mod/versions.txt` indica por versión qué capas se compilan (`-Players=…`): API de dibujo (`legacy` 1.20–1.21.1 · `rl` 1.21.2–1.21.4 · `rl5` 1.21.5 · `gui` 1.21.6–1.21.10 · `gui11` 1.21.11), entrada de ratón y teclado (`in-old` hasta 1.21.8 · `in-new` desde 1.21.9) y base del botón (`btn-old` · `btn-new` en 1.21.11). Para añadir una versión nueva: línea en `versions.txt`, `node scripts/add-fabric.js <versión> [loader]` y la versión en `NOVA_MC`.
+- **Fabric incluido** en `assets/fabric` para las 19 versiones (loader 0.16.14 hasta 1.21.5 y 0.19.5 desde 1.21.6).
+- El workflow «Crear version» compila las 19 y publica sus jars en `nova-menu.json` (tardará más que antes).
+
 ### 0.2.15-beta.8 — Filtro de versiones, Fabric API y redes
 
 - **Filtro por versión de Minecraft** en la lista de versiones del asistente de instalación (por defecto, la versión elegida en el launcher si el mod la tiene) y en la lista de versiones de los modpacks.

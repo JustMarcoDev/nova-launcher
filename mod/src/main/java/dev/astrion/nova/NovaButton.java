@@ -2,12 +2,10 @@ package dev.astrion.nova;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.text.Text;
 import net.minecraft.util.Util;
 
 /** Botón de Nova: cristal oscuro con borde de acento, esquinas redondeadas y brillo animado. */
-public class NovaButton extends ButtonWidget {
+public class NovaButton extends NovaButtonBase {
     static final int ACCENT = 0xFF8B6CFF;
     static final int NORMAL = 0, PRIMARY = 1, DANGER = 2, SELECTED = 3;
 
@@ -21,8 +19,8 @@ public class NovaButton extends ButtonWidget {
     private float glow;
     private long last = Util.getMeasuringTimeMs();
 
-    public NovaButton(int x, int y, int w, int h, Text label, int icon, int style, PressAction action) {
-        super(x, y, w, h, label, action, DEFAULT_NARRATION_SUPPLIER);
+    public NovaButton(int x, int y, int w, int h, net.minecraft.text.Text label, int icon, int style, PressAction action) {
+        super(x, y, w, h, label, action);
         this.icon = icon;
         this.style = style;
     }

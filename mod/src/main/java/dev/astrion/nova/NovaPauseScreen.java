@@ -8,7 +8,6 @@ import net.minecraft.client.gui.screen.advancement.AdvancementsScreen;
 import net.minecraft.client.gui.screen.multiplayer.MultiplayerScreen;
 import net.minecraft.client.gui.screen.option.OptionsScreen;
 import net.minecraft.client.gui.screen.StatsScreen;
-import net.minecraft.client.gui.screen.MessageScreen;
 import net.minecraft.text.Text;
 
 /**
@@ -44,9 +43,7 @@ public class NovaPauseScreen extends Screen {
         boolean local = client.isInSingleplayer();
         addDrawableChild(new NovaButton(x, y, bw, bh, Text.literal(local ? tr("Guardar y salir") : tr("Desconectar")), NovaGfx.I_CLOSE, NovaButton.DANGER, b -> {
             b.active = false;
-            client.world.disconnect();
-            if (local) client.disconnect(new MessageScreen(Text.translatable("menu.savingLevel")));
-            else client.disconnect();
+            NovaCompat.disconnect(client, local);
             TitleScreen title = new TitleScreen();   // el mixin lo cambia por el menú de Nova
             if (local) client.setScreen(title);
             else client.setScreen(new MultiplayerScreen(title));
