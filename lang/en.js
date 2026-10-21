@@ -1007,4 +1007,8 @@ window.LANGS.en={name:"English (US)",d:{
 "Instalado en «{1}»":"Installed in “{1}”",
 "Este mod no tiene una versión de Minecraft compatible con {1}":"This mod has no Minecraft version compatible with {1}",
 "No se pudieron cargar las versiones":"Could not load the versions",
-"Versión de Minecraft":"Minecraft version"}};
+"Versión de Minecraft":"Minecraft version",
+"Paso 1 de 2 · Elige la versión y la versión de Minecraft":"Step 1 of 2 · Choose the version and the Minecraft version",
+"Ninguna versión coincide con ese filtro.":"No version matches that filter.",
+"Esta descarga no tiene versiones disponibles.":"This download has no available versions.",
+"Filtra por versión de Minecraft y elige la versión del modpack":"Filter by Minecraft version and choose the modpack version"}};

@@ -1,6 +1,6 @@
 {
   "name": "nova-launcher",
-  "version": "0.2.15-beta.7",
+  "version": "0.2.15-beta.8",
   "description": "Nova Launcher para Minecraft",
   "author": "Astrion Studio",
   "main": "main.js",

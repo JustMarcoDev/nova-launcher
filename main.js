@@ -226,7 +226,7 @@ ipcMain.handle('upd:install', () => { if (updater && upd.s === 'ready') updater.
 ipcMain.handle('open', (e, u) => { if (/^https?:\/\//i.test(String(u))) shell.openExternal(String(u)); });
 ipcMain.handle('http', (e, { url, headers }) => get(url, 'json', headers || {}));
 ipcMain.handle('inst:list', () => li());
-ipcMain.handle('inst:save', (e, o) => addInst(o));
+ipcMain.handle('inst:save', async (e, o) => { const i = addInst(o); try { await ensureFabricApi(i); } catch {} return li().find(x => x.id === i.id) || i; });
 ipcMain.handle('inst:del', async (e, id) => { id = String(id); if (running.has(id)) throw new Error('Cierra Minecraft antes de borrar la instancia'); wr(insFile, li().filter(i => i.id !== id)); await rmAsync(path.join(root, 'instances', id)); await rmAsync(path.join(root, 'backups', id)); });
 // ---- Informes de errores de descarga (mods, modpacks): se guardan en la carpeta «errores» ----
 const errDir = () => path.join(root, 'errores');
@@ -433,6 +433,7 @@ ipcMain.handle('play', async (e, { id, server, world, safe }) => {
     const noNova = !!(safe || ins.noNova);   // modo seguro: sin el menú de Nova (Shift al lanzar o ajuste de la instancia)
     const nj = (!noNova && (!ins.ld || ins.ld === 'Vanilla' || ins.ld === 'Fabric')) ? await novaModResolve(ins.mc) : null;
     let nova = false;
+    if (ins.ld === 'Fabric') { try { if (await ensureFabricApi(ins)) send('log', 'Fabric API instalada automáticamente para Minecraft ' + ins.mc + '.\n'); } catch {} }
     if (ins.ld === 'Fabric') { o.version.custom = await fabric(ins.mc, ins.loaderVersion); nova = !!nj; }
     else if (noNova) { /* vanilla puro, sin Fabric */ }
     else if (nj) { try { o.version.custom = fabricBundled(ins.mc) || await fabric(ins.mc); nova = true; } catch { send('log', 'Nova: no se pudo preparar Fabric; se juega en vanilla normal.\n'); } }
@@ -713,6 +714,20 @@ const getIns = id => { const i = li().find(x => x.id === String(id)); if (!i) th
 const safeName = (n, d = 'instancia') => String(n || d).replace(/[\\/:*?"<>|]+/g, '_').trim().slice(0, 60) || d;
 
 // ---- Opciones de cada instancia ----
+// Fabric API: casi todos los mods de Fabric la necesitan. Una vez por instancia Fabric se instala la de su versión de Minecraft
+// (si el jugador la borra después, no se vuelve a poner). Devuelve true si la instaló.
+async function ensureFabricApi(ins) {
+  if (!ins || ins.ld !== 'Fabric' || ins.custom || ins.novaPack || ins.fapi) return false;
+  const md = path.join(iDir(ins.id), 'mods'), mark = () => wr(insFile, li().map(i => i.id === ins.id ? { ...i, fapi: 1 } : i));
+  try { if (fs.readdirSync(md).some(f => /^fabric-api/i.test(f))) { mark(); return false; } } catch {}
+  const q = x => encodeURIComponent(JSON.stringify(x));
+  const v = await get('https://api.modrinth.com/v2/project/P7dR8mSH/version?game_versions=' + q([ins.mc]) + '&loaders=' + q(['fabric']));
+  if (!v.length) { mark(); return false; }   // esa versión de Minecraft no tiene Fabric API
+  const f = v[0].files.find(x => x.primary) || v[0].files[0];
+  fs.mkdirSync(md, { recursive: true });
+  await dl(f.url, path.join(md, path.basename(f.filename)), { sha1: f.hashes && f.hashes.sha1, sha512: f.hashes && f.hashes.sha512 });
+  mark(); return true;
+}
 ipcMain.handle('inst:update', (e, { id, patch }) => {
   getIns(id); const p = {}, q = patch || {};
   if ('name' in q) { const n = String(q.name).trim().slice(0, 40); if (n) p.name = n; }
