@@ -130,6 +130,13 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 
 ## Historial de actualizaciones
 
+### 0.2.15-beta.8 — Filtro de versiones, Fabric API y redes
+
+- **Filtro por versión de Minecraft** en la lista de versiones del asistente de instalación (por defecto, la versión elegida en el launcher si el mod la tiene) y en la lista de versiones de los modpacks.
+- **Shaders y texturas** usan el mismo asistente que los mods: versión + filtro de Minecraft y, después, una instancia compatible o una nueva. Los shaders siguen pasando por la comprobación de Iris. Los modpacks crean su propia instancia, así que solo llevan el filtro.
+- **Fabric API automática**: al crear o lanzar una instancia Fabric por primera vez se descarga la Fabric API de su versión de Minecraft (Modrinth, con comprobación de huella) si no la tiene. Se hace una sola vez por instancia: si la borras, no se vuelve a poner. No se aplica a modpacks importados.
+- **Redes**: enlaces a GitHub (`JustMarcoDev`), Twitch (`justmarcodrt`) e Instagram (`justmarcodev`).
+
 ### 0.2.15-beta.7 — Instalar mods con asistente
 
 - **Asistente de instalación de mods**: al pulsar Instalar se abre un panel para elegir el cargador (Fabric, Forge, NeoForge) y la versión del mod (con su versión de Minecraft); con «Siguiente» se elige una instancia compatible o se crea una nueva (nombre y versión de Minecraft). Se instala exactamente el archivo elegido (con comprobación de huella en Modrinth) y sus dependencias obligatorias para esa instancia. Solo para mods; shaders y texturas siguen como antes.

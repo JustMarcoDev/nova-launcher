@@ -26,16 +26,17 @@ else if(j){const s=(cfg.myServers||[])[+j.dataset.j];if(!s)return;if(!A){pvJoin(
 j.disabled=true;j.textContent="Preparando…";try{const i=await ensure();show("home");$("go").disabled=true;try{await launch({id:i.id,server:{name:s.name,host:s.host,port:s.port||25565}})}finally{$("go").disabled=false}}finally{j.disabled=false;j.textContent="Unirse"}}};
 // --- Shaders: que funcionen siempre ---
 function shaderGate(i){return new Promise(async res=>{
+const mc=(i&&i.mc)||sel.mc;
 let has={};const ld=(i&&i.ld)||"Vanilla",ok=ld==="Fabric"||ld==="NeoForge"||ld==="Forge";
 try{if(ok&&i)has=await A.modsHas({id:i.id,names:["iris","oculus","optifine"]})}catch{}
 if(has.iris||has.oculus||has.optifine)return res(i);
 const slugs=ld==="Forge"?["oculus","embeddium"]:["iris","sodium"],nmS=ld==="Forge"?"Oculus y Embeddium":"Iris y Sodium";
-pickRes=res;const d=modal(hdr(i,"Los shaders necesitan Iris","Esta instancia ("+esc(ld)+" "+esc(sel.mc)+") no lo tiene instalado")+`<p class="sub" style="margin-bottom:14px">Sin Iris (o Oculus en Forge) Minecraft ignora los shaders. Elige cómo prepararlo:</p><div class="shc">${ok?`<button class="btn pr" data-o="in">Instalar ${nmS} en «${esc(i.name)}»</button>`:""}<button class="btn pr" data-o="nw">Crear una instancia Fabric ${esc(sel.mc)} preparada para shaders</button><button class="btn" data-o="sk">Instalar solo el shader (no se verá sin Iris)</button></div><div class="aer" id="shm"></div><div class="acts"><button class="btn" data-x>Cancelar</button></div>`);
+pickRes=res;const d=modal(hdr(i,"Los shaders necesitan Iris","Esta instancia ("+esc(ld)+" "+esc(mc)+") no lo tiene instalado")+`<p class="sub" style="margin-bottom:14px">Sin Iris (o Oculus en Forge) Minecraft ignora los shaders. Elige cómo prepararlo:</p><div class="shc">${ok?`<button class="btn pr" data-o="in">Instalar ${nmS} en «${esc(i.name)}»</button>`:""}<button class="btn pr" data-o="nw">Crear una instancia Fabric ${esc(mc)} preparada para shaders</button><button class="btn" data-o="sk">Instalar solo el shader (no se verá sin Iris)</button></div><div class="aer" id="shm"></div><div class="acts"><button class="btn" data-x>Cancelar</button></div>`);
 d.querySelector(".shc").onclick=async e=>{const b=e.target.closest("button[data-o]");if(!b)return;const o=b.dataset.o,all=d.querySelectorAll(".shc button"),L0=b.textContent;
 if(o==="sk"){pickRes=null;closeModal();return res(i)}
 all.forEach(x=>x.disabled=true);b.textContent="Instalando…";
-try{let t=i,sl=slugs;if(o==="nw"){t=await A.saveInst({name:"Shaders "+sel.mc,mc:sel.mc,ld:"Fabric",type:sel.type,custom:true});sl=["iris","sodium"]}
-const r=await A.modsBundle({id:t.id,slugs:sl});if(r.failed&&r.failed.includes(sl[0]))throw new Error("No hay una versión de "+sl[0]+" para Minecraft "+sel.mc+" con ese cargador");
+try{let t=i,sl=slugs;if(o==="nw"){t=await A.saveInst({name:"Shaders "+mc,mc:mc,ld:"Fabric",type:"release",custom:true});sl=["iris","sodium"]}
+const r=await A.modsBundle({id:t.id,slugs:sl});if(r.failed&&r.failed.includes(sl[0]))throw new Error("No hay una versión de "+sl[0]+" para Minecraft "+mc+" con ese cargador");
 await loadI();pickRes=null;closeModal();flash((r.failed&&r.failed.length?"Instalado con avisos (falló "+r.failed.join(", ")+")":"Listo ✓ Iris y Sodium instalados")+(o==="nw"?" en la instancia nueva":""));res(I.find(x=>x.id===t.id)||t)}
 catch(x){$("shm").textContent=em(x);all.forEach(z=>z.disabled=false);b.textContent=L0}}})}
 // --- Importar desde otros launchers ---

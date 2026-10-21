@@ -4126,3 +4126,7 @@ html[data-cb=Grises] {
 .wsum i {
   font-style: normal;
 }
+
+.wz .wmf {
+  width: 100%;
+}

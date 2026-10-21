@@ -1007,4 +1007,8 @@ window.LANGS.de={name:"Deutsch",d:{
 "Instalado en «{1}»":"Installiert in „{1}“",
 "Este mod no tiene una versión de Minecraft compatible con {1}":"Dieser Mod hat keine Minecraft-Version, die mit {1} kompatibel ist",
 "No se pudieron cargar las versiones":"Die Versionen konnten nicht geladen werden",
-"Versión de Minecraft":"Minecraft-Version"}};
+"Versión de Minecraft":"Minecraft-Version",
+"Paso 1 de 2 · Elige la versión y la versión de Minecraft":"Schritt 1 von 2 · Wähle die Version und die Minecraft-Version",
+"Ninguna versión coincide con ese filtro.":"Keine Version passt zu diesem Filter.",
+"Esta descarga no tiene versiones disponibles.":"Dieser Download hat keine verfügbaren Versionen.",
+"Filtra por versión de Minecraft y elige la versión del modpack":"Nach Minecraft-Version filtern und die Modpack-Version wählen"}};
