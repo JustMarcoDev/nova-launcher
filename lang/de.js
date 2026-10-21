@@ -994,4 +994,17 @@ window.LANGS.de={name:"Deutsch",d:{
 "Salida rápida si el menú da problemas con un mod o servidor. También puedes mantener Mayús al pulsar Jugar.":"Schneller Ausweg, falls das Menü Probleme mit einer Mod oder einem Server macht. Du kannst auch beim Klick auf Spielen die Umschalttaste gedrückt halten.",
 "Licencias de terceros":"Lizenzen von Drittanbietern",
 "Al lanzar Minecraft se abre la pestaña Consola con la salida del juego y el launcher no se esconde. Si lo desactivas, se minimiza mientras juegas (Modo juego)":"Beim Start von Minecraft öffnet sich der Reiter Konsole mit der Spielausgabe und der Launcher bleibt sichtbar. Wenn du das ausschaltest, wird er während des Spielens minimiert (Spielmodus)",
-"Al lanzar Minecraft, el launcher para las animaciones y se minimiza para dejar toda la potencia al juego":"Beim Start von Minecraft stoppt der Launcher seine Animationen und wird minimiert, damit das Spiel die volle Leistung bekommt"}};
+"Al lanzar Minecraft, el launcher para las animaciones y se minimiza para dejar toda la potencia al juego":"Beim Start von Minecraft stoppt der Launcher seine Animationen und wird minimiert, damit das Spiel die volle Leistung bekommt",
+"Instalar «{1}»":"„{1}“ installieren",
+"Paso 1 de 2 · Elige la versión del mod y el cargador":"Schritt 1 von 2 · Wähle die Mod-Version und den Loader",
+"Paso 2 de 2 · Elige dónde instalarlo":"Schritt 2 von 2 · Wähle, wo installiert wird",
+"Cargando versiones…":"Versionen werden geladen…",
+"Versión del mod":"Mod-Version",
+"Este mod no tiene versiones para Fabric, Forge ni NeoForge.":"Dieser Mod hat keine Versionen für Fabric, Forge oder NeoForge.",
+"Instancias compatibles":"Kompatible Instanzen",
+"Crear una instancia nueva":"Neue Instanz erstellen",
+"Todavía no tienes ninguna instancia compatible con esta versión. Crea una:":"Du hast noch keine Instanz, die zu dieser Version passt. Erstelle eine:",
+"Instalado en «{1}»":"Installiert in „{1}“",
+"Este mod no tiene una versión de Minecraft compatible con {1}":"Dieser Mod hat keine Minecraft-Version, die mit {1} kompatibel ist",
+"No se pudieron cargar las versiones":"Die Versionen konnten nicht geladen werden",
+"Versión de Minecraft":"Minecraft-Version"}};

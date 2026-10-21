@@ -994,4 +994,17 @@ window.LANGS.fr={name:"Français",d:{
 "Salida rápida si el menú da problemas con un mod o servidor. También puedes mantener Mayús al pulsar Jugar.":"Solution rapide si le menu pose problème avec un mod ou un serveur. Vous pouvez aussi maintenir Maj en cliquant sur Jouer.",
 "Licencias de terceros":"Licences tierces",
 "Al lanzar Minecraft se abre la pestaña Consola con la salida del juego y el launcher no se esconde. Si lo desactivas, se minimiza mientras juegas (Modo juego)":"Au lancement de Minecraft, l'onglet Console s'ouvre avec la sortie du jeu et le launcher reste visible. Si vous le désactivez, il se réduit pendant que vous jouez (Mode jeu)",
-"Al lanzar Minecraft, el launcher para las animaciones y se minimiza para dejar toda la potencia al juego":"Au lancement de Minecraft, le launcher arrête ses animations et se réduit pour laisser toute la puissance au jeu"}};
+"Al lanzar Minecraft, el launcher para las animaciones y se minimiza para dejar toda la potencia al juego":"Au lancement de Minecraft, le launcher arrête ses animations et se réduit pour laisser toute la puissance au jeu",
+"Instalar «{1}»":"Installer « {1} »",
+"Paso 1 de 2 · Elige la versión del mod y el cargador":"Étape 1 sur 2 · Choisis la version du mod et le chargeur",
+"Paso 2 de 2 · Elige dónde instalarlo":"Étape 2 sur 2 · Choisis où l'installer",
+"Cargando versiones…":"Chargement des versions…",
+"Versión del mod":"Version du mod",
+"Este mod no tiene versiones para Fabric, Forge ni NeoForge.":"Ce mod n'a aucune version pour Fabric, Forge ou NeoForge.",
+"Instancias compatibles":"Instances compatibles",
+"Crear una instancia nueva":"Créer une nouvelle instance",
+"Todavía no tienes ninguna instancia compatible con esta versión. Crea una:":"Tu n'as encore aucune instance compatible avec cette version. Crées-en une :",
+"Instalado en «{1}»":"Installé dans « {1} »",
+"Este mod no tiene una versión de Minecraft compatible con {1}":"Ce mod n'a aucune version de Minecraft compatible avec {1}",
+"No se pudieron cargar las versiones":"Impossible de charger les versions",
+"Versión de Minecraft":"Version de Minecraft"}};
