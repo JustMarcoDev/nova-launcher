@@ -143,7 +143,7 @@ app.whenReady().then(() => {
   if (!single) return;
   try { protocol.handle('nova-img', req => { try { return imgGet(new URL(req.url).searchParams.get('u') || ''); } catch { return new Response('', { status: 400 }); } }); } catch {}
   const wb = winLoad();
-  win = new BrowserWindow({ width: wb.width || 1100, height: wb.height || 680, ...(wb.x !== undefined ? { x: wb.x, y: wb.y } : {}), minWidth: 900, minHeight: 560, frame: false, backgroundColor: '#0c0c10',
+  win = new BrowserWindow({ width: wb.width || 1100, height: wb.height || 680, ...(wb.x !== undefined ? { x: wb.x, y: wb.y } : {}), minWidth: 900, minHeight: 560, frame: false, backgroundColor: '#0c0c10', icon: appIcon(),
     show: false, webPreferences: { preload: path.join(__dirname, 'preload.js'), spellcheck: false } });
   if (wb.max) win.maximize();
   const later = () => { clearTimeout(winSaveT); winSaveT = setTimeout(winSave, 600); };
@@ -572,6 +572,15 @@ function discordInit() {
 }
 app.on('before-quit', discordStop);
 
+// ===== Icono de la app (ventana, barra de tareas y accesos directos) =====
+// El .ico va dentro del paquete (asar): para los accesos directos de Windows hace falta una copia real en disco.
+function appIcon() {
+  try { const i = nativeImage.createFromPath(path.join(__dirname, 'assets', 'nova.ico')); if (i && !i.isEmpty()) return i; } catch {}
+  return undefined;
+}
+function iconFile() {
+  try { const dst = path.join(root, 'nova.ico'); fs.mkdirSync(root, { recursive: true }); fs.copyFileSync(path.join(__dirname, 'assets', 'nova.ico'), dst); return dst; } catch { return process.execPath; }
+}
 // ===== Acceso directo del escritorio =====
 function ensureShortcut(force) {
   try {
@@ -579,7 +588,11 @@ function ensureShortcut(force) {
     const lnk = path.join(app.getPath('desktop'), 'Nova Launcher.lnk');
     const c = load(), first = c.lastRun !== app.getVersion();
     if (!force && !first) return true;
-    if (!fs.existsSync(lnk)) shell.writeShortcutLink(lnk, 'create', { target: process.execPath, cwd: path.dirname(process.execPath), description: 'Nova Launcher', icon: process.execPath, iconIndex: 0 });
+    const ico = iconFile(), opt = { target: process.execPath, cwd: path.dirname(process.execPath), description: 'Nova Launcher', icon: ico, iconIndex: 0, appUserModelId: 'com.nova.launcher' };
+    if (!fs.existsSync(lnk)) shell.writeShortcutLink(lnk, 'create', opt);
+    else { try { shell.writeShortcutLink(lnk, 'update', { icon: ico, iconIndex: 0 }); } catch {} }
+    // el acceso directo del menú Inicio (lo crea el instalador) también se actualiza con el icono
+    try { const sm = path.join(app.getPath('appData'), 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'Nova Launcher.lnk'); if (fs.existsSync(sm)) shell.writeShortcutLink(sm, 'update', { icon: ico, iconIndex: 0 }); } catch {}
     wr(cfgFile, { ...c, lastRun: app.getVersion() });
     return fs.existsSync(lnk);
   } catch { return false; }

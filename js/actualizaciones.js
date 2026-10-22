@@ -26,4 +26,5 @@ function setU(o){U=o||{s:"idle"};renderU();autoInst();if(CH&&U.s==="ready"){CH=f
 async function updAction(){const s=U.s;if(s==="available"||s==="downloading")CH=true;
 if(!A){demoUpd(s);return}
 try{if(s==="available")setU(await A.updDownload());else if(s==="ready")instNow();else if(s!=="downloading"){setU({s:"checking"});setU(await A.updCheck())}}catch(e){setU({s:"error"})}}
-
+// Botones de actualizar (aviso de arriba, ventanita y icono): se enlazan aquí porque vista-previa.js no se incluye en la app instalada
+$("ubb").onclick=updAction;$("umb").onclick=updAction;$("uml").onclick=()=>$("um").classList.remove("on");$("up").onclick=()=>{show("home");updAction()};

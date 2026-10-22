@@ -113,7 +113,7 @@ Con el canal Beta se mira la release más nueva (beta o estable); con Estable, l
 
 Windows SmartScreen avisa de cualquier instalador **sin firma digital** de un editor poco conocido; el aviso desaparece con un **certificado de firma de código**, no con cambios en el programa. Sin él, cada versión nueva vuelve a empezar de cero y avisa.
 
-1. Consigue un certificado de firma de código (por ejemplo Certum «Open Source Code Signing», SSL.com, Sectigo o DigiCert; los EV quitan el aviso al instante, los normales lo quitan al ganar reputación).
+1. Consigue un certificado de firma de código (por ejemplo Certum «Open Source Code Signing», SSL.com, Sectigo o DigiCert; desde 2024 los EV ya no quitan el aviso al instante: todos, EV y normales, lo quitan al ganar reputación con versiones firmadas seguidas). Azure Artifact Signing (unos 10 €/mes) solo está disponible para particulares en EE. UU. y Canadá, y para empresas en EE. UU., Canadá, la UE y el Reino Unido.
 2. Pasa el `.pfx` a base64 (PowerShell: `[Convert]::ToBase64String([IO.File]::ReadAllBytes("certificado.pfx")) | Set-Clipboard`).
 3. En GitHub: Settings → Secrets and variables → Actions → New repository secret: `WIN_CSC_LINK` (el base64) y `WIN_CSC_KEY_PASSWORD` (la contraseña).
 4. Ejecuta «Crear version»: el workflow firma el instalador solo y muestra la firma en el log. Sin los secretos publica sin firmar y lo avisa.
@@ -129,6 +129,13 @@ Nova Launcher es un proyecto independiente de **Astrion Studio**. © 2026 Astrio
 Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión del launcher, para saber de un vistazo qué se ha **añadido**, qué se ha **mejorado** y qué se ha **quitado**. Cada vez que se publique una versión nueva hay que añadir una entrada al principio de la lista de abajo. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**.
 
 ## Historial de actualizaciones
+
+### 0.2.15-beta.11 — Botón de actualizar e icono
+
+- **Botón «Reiniciar e instalar»** (aviso de arriba, ventanita de la actualización y icono junto al agujero negro): no hacía nada en la app instalada porque sus acciones estaban en `js/vista-previa.js`, que no se incluye en el instalador. Ahora se enlazan en `js/actualizaciones.js` y `tests/ui.js` lo comprueba.
+- **Icono de Nova Launcher** en la barra de tareas: la ventana usa `assets/nova.ico` (multi-tamaño) y los accesos directos del escritorio y del menú Inicio se actualizan con ese icono.
+- Traducido el texto «La versión X ya está descargada…» del aviso de actualización.
+- Windows SmartScreen («Windows protegió su PC»): se debe a que el instalador no está firmado. Se quita firmando el instalador con un certificado de firma de código (ver «Firma del instalador»).
 
 ### 0.2.15-beta.10 — Desinstalar desde Ajustes y botón de actualizar
 

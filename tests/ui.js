@@ -15,6 +15,17 @@ const w = dom.window, sleep = ms => new Promise(r => setTimeout(r, ms));
   w.document.querySelector('nav [data-p=home]').click();
   w.dispatchEvent(Object.assign(new w.KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true })));
   await sleep(100);
+  // Botones de actualizar: deben tener acción en la app instalada (antes dependían de vista-previa.js, que no se empaqueta)
+  {
+    w.eval('cfg.autoInstall=false'); if (typeof EV['upd:state'] !== 'function') errors.push('Actualizar: la interfaz no escucha «upd:state»');
+    else {
+      EV['upd:state']({ s: 'ready', v: '0.2.15-beta.11' }); await sleep(30);
+      for (const id of ['ubb', 'umb']) { const b = w.document.getElementById(id); if (!b || typeof b.onclick !== 'function') errors.push('Actualizar: el botón #' + id + ' no tiene acción'); }
+      const b = w.document.getElementById('ubb'); b.click(); await sleep(30);
+      if (b.textContent !== 'Instalando…') errors.push('Actualizar: al pulsar «Reiniciar e instalar» no pasó nada (texto: ' + b.textContent + ')');
+      EV['upd:state']({ s: 'none' });
+    }
+  }
   // Perfil obligatorio: sin cuentas ni nombre propio hay que crear uno; la ventana no se puede cerrar hasta entonces
   {
     const $m = () => w.document.getElementById('mdl');

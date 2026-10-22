@@ -33,7 +33,7 @@ function demoUpd(s){clearInterval(demoT);
 if(s==="ready"){setU({s:"none"});return}
 if(s==="available"){let p=0;demoT=setInterval(()=>{p+=7+Math.random()*9;if(p>=100){clearInterval(demoT);setU({s:"ready",v:"0.2.6 (simulación)"})}else setU({s:"downloading",v:"0.2.6 (simulación)",p,bps:2400000+Math.random()*900000})},320);return}
 setU({s:"checking"});demoT=setTimeout(()=>setU({s:"available",v:"0.2.6 (simulación)"}),1200)}
-$("ubb").onclick=updAction;$("umb").onclick=()=>{updAction();if(U.s==="ready")return};$("uml").onclick=()=>$("um").classList.remove("on");$("up").onclick=()=>{show("home");updAction()};
+// (los botones de actualizar se enlazan en actualizaciones.js: este archivo no va en la app instalada)
 // ---- acc2 ----
 const shSvg=(a,b)=>"data:image/svg+xml;utf8,"+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 90"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="160" height="90" fill="url(#g)"/><path d="M0 70 L30 52 L55 66 L90 40 L125 62 L160 48 V90 H0Z" fill="#0006"/><circle cx="125" cy="22" r="9" fill="#fff8"/></svg>`);
 let DSH=null;
