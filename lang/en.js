@@ -1023,4 +1023,5 @@ window.LANGS.en={name:"English (US)",d:{
 "¿Desinstalar Nova Launcher de este PC?":"Uninstall Nova Launcher from this PC?",
 "¿Borrar también tus instancias, mundos, mods y ajustes?":"Also delete your instances, worlds, mods and settings?",
 "Aceptar = borrarlo todo":"OK = delete everything",
-"Cancelar = conservar tus datos (podrás reinstalar y seguir donde lo dejaste)":"Cancel = keep your data (you can reinstall and pick up where you left off)"}};
+"Cancelar = conservar tus datos (podrás reinstalar y seguir donde lo dejaste)":"Cancel = keep your data (you can reinstall and pick up where you left off)",
+"La versión {1} ya está descargada. Reinicia para instalarla; tus mundos, mods y ajustes se conservan.":"Version {1} is downloaded. Restart to install it; your worlds, mods and settings are kept."}};

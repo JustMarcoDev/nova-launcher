@@ -1023,4 +1023,5 @@ window.LANGS.it={name:"Italiano",d:{
 "¿Desinstalar Nova Launcher de este PC?":"Disinstallare Nova Launcher da questo PC?",
 "¿Borrar también tus instancias, mundos, mods y ajustes?":"Eliminare anche istanze, mondi, mod e impostazioni?",
 "Aceptar = borrarlo todo":"OK = elimina tutto",
-"Cancelar = conservar tus datos (podrás reinstalar y seguir donde lo dejaste)":"Annulla = conserva i dati (potrai reinstallare e riprendere da dove eri rimasto)"}};
+"Cancelar = conservar tus datos (podrás reinstalar y seguir donde lo dejaste)":"Annulla = conserva i dati (potrai reinstallare e riprendere da dove eri rimasto)",
+"La versión {1} ya está descargada. Reinicia para instalarla; tus mundos, mods y ajustes se conservan.":"La versione {1} è stata scaricata. Riavvia per installarla; mondi, mod e impostazioni vengono conservati."}};
