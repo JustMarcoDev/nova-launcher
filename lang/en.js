@@ -1011,4 +1011,16 @@ window.LANGS.en={name:"English (US)",d:{
 "Paso 1 de 2 · Elige la versión y la versión de Minecraft":"Step 1 of 2 · Choose the version and the Minecraft version",
 "Ninguna versión coincide con ese filtro.":"No version matches that filter.",
 "Esta descarga no tiene versiones disponibles.":"This download has no available versions.",
-"Filtra por versión de Minecraft y elige la versión del modpack":"Filter by Minecraft version and choose the modpack version"}};
+"Filtra por versión de Minecraft y elige la versión del modpack":"Filter by Minecraft version and choose the modpack version",
+"Cerrando el launcher para instalar la actualización…":"Closing the launcher to install the update…",
+"No se pudo reiniciar solo: cierra el launcher y ábrelo de nuevo para terminar de instalar":"Could not restart by itself: close the launcher and open it again to finish installing",
+"Desinstalación":"Uninstall",
+"Desinstalar Nova Launcher":"Uninstall Nova Launcher",
+"Quita el programa de este PC. Tus mundos, instancias y ajustes se conservan, salvo que elijas borrarlos también":"Removes the program from this PC. Your worlds, instances and settings are kept unless you choose to delete them too",
+"Desinstalar…":"Uninstall…",
+"No se encontró el desinstalador. Usa Configuración de Windows → Aplicaciones":"The uninstaller was not found. Use Windows Settings → Apps",
+"No se pudo iniciar la desinstalación. Usa Configuración de Windows → Aplicaciones":"Could not start the uninstall. Use Windows Settings → Apps",
+"¿Desinstalar Nova Launcher de este PC?":"Uninstall Nova Launcher from this PC?",
+"¿Borrar también tus instancias, mundos, mods y ajustes?":"Also delete your instances, worlds, mods and settings?",
+"Aceptar = borrarlo todo":"OK = delete everything",
+"Cancelar = conservar tus datos (podrás reinstalar y seguir donde lo dejaste)":"Cancel = keep your data (you can reinstall and pick up where you left off)"}};

@@ -130,6 +130,12 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 
 ## Historial de actualizaciones
 
+### 0.2.15-beta.10 — Desinstalar desde Ajustes y botón de actualizar
+
+- **Ajustes → Desinstalación**: botón para desinstalar Nova Launcher. Abre el desinstalador del propio programa y pregunta si quieres borrar también tus instancias, mundos y ajustes (por defecto se conservan).
+- **Botón de actualizar** (arriba, junto al agujero negro, y el de Ajustes): ahora muestra «Instalando…» y un aviso al pulsarlo. Si `quitAndInstall` no cierra el launcher en 8 s, se lanza a mano el instalador ya descargado y se cierra la app; si sigue sin pasar nada, avisa de cómo terminar a mano.
+- Nota: quien venga de una instalación «para todos los usuarios» (Program Files, hasta la beta.5/6) debe desinstalarla una vez a mano e instalar la nueva; desde ahí las actualizaciones son silenciosas.
+
 ### 0.2.15-beta.9 — Menú de Nova en Minecraft 1.20 a 1.21.11
 
 - **19 versiones** con menú de Nova (título + pausa), para Nova y para Fabric: 1.20, 1.20.1–1.20.6, 1.21, 1.21.1–1.21.11 (solo versiones estables). La lista está en `mod/versions.txt` y en `NOVA_MC` de `main.js` (`tests/check.js` comprueba que coinciden).

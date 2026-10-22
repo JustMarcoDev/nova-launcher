@@ -222,7 +222,31 @@ ipcMain.handle('upd:download', async () => {
   if (updater && upd.s === 'available') { setUpd({ s: 'downloading', v: upd.v, p: 0 }); updater.downloadUpdate().catch(e => setUpd({ s: 'error', msg: String(e && e.message || e).slice(0, 80) })); }
   return upd;
 });
-ipcMain.handle('upd:install', () => { if (updater && upd.s === 'ready') updater.quitAndInstall(true, true); });
+ipcMain.handle('upd:install', () => {
+  if (!updater || upd.s !== 'ready') return false;
+  let ok = true;
+  try { updater.quitAndInstall(true, true); } catch { ok = false; }
+  // Si tras unos segundos el launcher sigue vivo, quitAndInstall no cerró la app: se lanza el instalador descargado a mano y se sale.
+  setTimeout(() => {
+    try {
+      const f = updater.downloadedUpdateHelper && updater.downloadedUpdateHelper.file;
+      if (f && fs.existsSync(f)) require('child_process').spawn(f, ['/S', '--updated', '--force-run'], { detached: true, stdio: 'ignore' }).unref();
+    } catch {}
+    app.exit(0);
+  }, ok ? 8000 : 500);
+  return true;
+});
+// Desinstalar desde Ajustes: abre el desinstalador de la carpeta de instalación (pide admin solo si la instalación antigua era «para todos»)
+ipcMain.handle('app:uninstall', async (e, o) => {
+  if (!app.isPackaged || process.platform !== 'win32') return { ok: false, why: 'dev' };
+  const u = path.join(path.dirname(process.execPath), 'Uninstall Nova Launcher.exe');
+  if (!fs.existsSync(u)) return { ok: false, why: 'nouninst' };
+  const err = await shell.openPath(u);
+  if (err) return { ok: false, why: err };
+  if (o && o.data) { try { require('child_process').spawn('cmd.exe', ['/c', 'timeout /t 8 /nobreak >nul & rmdir /s /q "' + root + '"'], { detached: true, stdio: 'ignore', windowsHide: true }).unref(); } catch {} }
+  setTimeout(() => app.exit(0), 900);
+  return { ok: true };
+});
 ipcMain.handle('open', (e, u) => { if (/^https?:\/\//i.test(String(u))) shell.openExternal(String(u)); });
 ipcMain.handle('http', (e, { url, headers }) => get(url, 'json', headers || {}));
 ipcMain.handle('inst:list', () => li());

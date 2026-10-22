@@ -1011,4 +1011,16 @@ window.LANGS.fr={name:"Français",d:{
 "Paso 1 de 2 · Elige la versión y la versión de Minecraft":"Étape 1 sur 2 · Choisis la version et la version de Minecraft",
 "Ninguna versión coincide con ese filtro.":"Aucune version ne correspond à ce filtre.",
 "Esta descarga no tiene versiones disponibles.":"Ce téléchargement n'a aucune version disponible.",
-"Filtra por versión de Minecraft y elige la versión del modpack":"Filtre par version de Minecraft et choisis la version du modpack"}};
+"Filtra por versión de Minecraft y elige la versión del modpack":"Filtre par version de Minecraft et choisis la version du modpack",
+"Cerrando el launcher para instalar la actualización…":"Fermeture du launcher pour installer la mise à jour…",
+"No se pudo reiniciar solo: cierra el launcher y ábrelo de nuevo para terminar de instalar":"Redémarrage impossible : ferme le launcher et rouvre-le pour terminer l'installation",
+"Desinstalación":"Désinstallation",
+"Desinstalar Nova Launcher":"Désinstaller Nova Launcher",
+"Quita el programa de este PC. Tus mundos, instancias y ajustes se conservan, salvo que elijas borrarlos también":"Retire le programme de ce PC. Tes mondes, instances et réglages sont conservés, sauf si tu choisis de les supprimer aussi",
+"Desinstalar…":"Désinstaller…",
+"No se encontró el desinstalador. Usa Configuración de Windows → Aplicaciones":"Désinstalleur introuvable. Utilise Paramètres Windows → Applications",
+"No se pudo iniciar la desinstalación. Usa Configuración de Windows → Aplicaciones":"Impossible de lancer la désinstallation. Utilise Paramètres Windows → Applications",
+"¿Desinstalar Nova Launcher de este PC?":"Désinstaller Nova Launcher de ce PC ?",
+"¿Borrar también tus instancias, mundos, mods y ajustes?":"Supprimer aussi tes instances, mondes, mods et réglages ?",
+"Aceptar = borrarlo todo":"OK = tout supprimer",
+"Cancelar = conservar tus datos (podrás reinstalar y seguir donde lo dejaste)":"Annuler = garder tes données (tu pourras réinstaller et reprendre où tu t'étais arrêté)"}};

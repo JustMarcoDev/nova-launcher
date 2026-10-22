@@ -1011,4 +1011,16 @@ window.LANGS.pt={name:"Português (Portugal)",d:{
 "Paso 1 de 2 · Elige la versión y la versión de Minecraft":"Passo 1 de 2 · Escolhe a versão e a versão do Minecraft",
 "Ninguna versión coincide con ese filtro.":"Nenhuma versão corresponde a esse filtro.",
 "Esta descarga no tiene versiones disponibles.":"Este download não tem versões disponíveis.",
-"Filtra por versión de Minecraft y elige la versión del modpack":"Filtra pela versão do Minecraft e escolhe a versão do modpack"}};
+"Filtra por versión de Minecraft y elige la versión del modpack":"Filtra pela versão do Minecraft e escolhe a versão do modpack",
+"Cerrando el launcher para instalar la actualización…":"A fechar o launcher para instalar a atualização…",
+"No se pudo reiniciar solo: cierra el launcher y ábrelo de nuevo para terminar de instalar":"Não foi possível reiniciar sozinho: fecha o launcher e abre-o de novo para terminar a instalação",
+"Desinstalación":"Desinstalação",
+"Desinstalar Nova Launcher":"Desinstalar o Nova Launcher",
+"Quita el programa de este PC. Tus mundos, instancias y ajustes se conservan, salvo que elijas borrarlos también":"Remove o programa deste PC. Os teus mundos, instâncias e definições são mantidos, a menos que escolhas apagá-los também",
+"Desinstalar…":"Desinstalar…",
+"No se encontró el desinstalador. Usa Configuración de Windows → Aplicaciones":"Desinstalador não encontrado. Usa Definições do Windows → Aplicações",
+"No se pudo iniciar la desinstalación. Usa Configuración de Windows → Aplicaciones":"Não foi possível iniciar a desinstalação. Usa Definições do Windows → Aplicações",
+"¿Desinstalar Nova Launcher de este PC?":"Desinstalar o Nova Launcher deste PC?",
+"¿Borrar también tus instancias, mundos, mods y ajustes?":"Apagar também as tuas instâncias, mundos, mods e definições?",
+"Aceptar = borrarlo todo":"OK = apagar tudo",
+"Cancelar = conservar tus datos (podrás reinstalar y seguir donde lo dejaste)":"Cancelar = manter os teus dados (podes reinstalar e continuar onde ficaste)"}};

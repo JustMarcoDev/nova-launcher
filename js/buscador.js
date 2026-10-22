@@ -1,7 +1,7 @@
 // Buscador global (Ctrl+K)
 // --- Buscador global (Ctrl+K) ---
 let pSel=0,PI=[],PM=[],pmT=0,pmSeq=0;
-const PEX=[["gen","Cuentas de Minecraft"],["game","Memoria RAM"],["game","Diagnóstico"],["perf","Limpieza de espacio"],["perf","Preparar la versión en segundo plano"],["game","Velocidad máxima de descarga"],["game","Copias de seguridad"],["game","Importar desde otro launcher"],["about","Volver a una versión anterior"],["about","Guardar mis ajustes en un archivo"],["about","Asistente de bienvenida"],["perf","Canal de actualizaciones"]];
+const PEX=[["unin","Desinstalar Nova Launcher"],["gen","Cuentas de Minecraft"],["game","Memoria RAM"],["game","Diagnóstico"],["perf","Limpieza de espacio"],["perf","Preparar la versión en segundo plano"],["game","Velocidad máxima de descarga"],["game","Copias de seguridad"],["game","Importar desde otro launcher"],["about","Volver a una versión anterior"],["about","Guardar mis ajustes en un archivo"],["about","Asistente de bienvenida"],["perf","Canal de actualizaciones"]];
 function palItems(q){q=q.trim().toLowerCase();const o=[],m=s=>!q||String(s).toLowerCase().includes(q);
 Object.entries(PT).forEach(([p,n])=>{if(m(n))o.push({g:"Páginas",t:n,d:"Ir a esta pestaña",f:()=>show(p)})});
 if(q){V.filter(v=>v.id.toLowerCase().includes(q)).slice(0,6).forEach(v=>o.push({g:"Versiones",t:"Minecraft "+v.id,d:(TN[v.type]||v.type)+" · con "+sel.ld,f:()=>{pick(v.id,v.type);show("home")}}))}
