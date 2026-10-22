@@ -18,10 +18,12 @@ const mm=$("upm");if(mm)mm.textContent=ulabel();const c=$("chk");if(c){c.disable
 let acT=null,acDone="";
 function hideAC(){clearInterval(acT);acT=null;$("ac").classList.remove("on")}
 function autoInst(){if(cfg.autoInstall===false||U.s!=="ready"||acDone===(U.v||"x")||RUN||acT)return;acDone=U.v||"x";let n=10;const say=()=>{$("acs").textContent="Nova Launcher"+(U.v?" "+U.v:"")+" se instalará y se reiniciará en "+n+" s"};say();$("ac").classList.add("on");$("um").classList.remove("on");
-const go=()=>{hideAC();if(A)A.updInstall();else setU({s:"none"})};$("aci").onclick=go;$("acx").onclick=hideAC;
+const go=()=>{hideAC();if(A)instNow();else setU({s:"none"})};$("aci").onclick=go;$("acx").onclick=hideAC;
 acT=setInterval(()=>{n--;if(n<=0)go();else say()},1000)}
-function setU(o){U=o||{s:"idle"};renderU();autoInst();if(CH&&U.s==="ready"){CH=false;setTimeout(()=>A&&A.updInstall(),600)}}
+let instBusy=false;
+function instNow(){if(instBusy||!A)return;instBusy=true;flash("Cerrando el launcher para instalar la actualización…");["umb","chk","ubb"].forEach(i=>{const b=$(i);if(b){b.disabled=true;b.textContent="Instalando…"}});A.updInstall();setTimeout(()=>{instBusy=false;renderU();flash("No se pudo reiniciar solo: cierra el launcher y ábrelo de nuevo para terminar de instalar")},20000)}
+function setU(o){U=o||{s:"idle"};renderU();autoInst();if(CH&&U.s==="ready"){CH=false;setTimeout(()=>A&&instNow(),600)}}
 async function updAction(){const s=U.s;if(s==="available"||s==="downloading")CH=true;
 if(!A){demoUpd(s);return}
-try{if(s==="available")setU(await A.updDownload());else if(s==="ready")A.updInstall();else if(s!=="downloading"){setU({s:"checking"});setU(await A.updCheck())}}catch(e){setU({s:"error"})}}
+try{if(s==="available")setU(await A.updDownload());else if(s==="ready")instNow();else if(s!=="downloading"){setU({s:"checking"});setU(await A.updCheck())}}catch(e){setU({s:"error"})}}
 

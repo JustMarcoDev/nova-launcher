@@ -1011,4 +1011,16 @@ window.LANGS.de={name:"Deutsch",d:{
 "Paso 1 de 2 · Elige la versión y la versión de Minecraft":"Schritt 1 von 2 · Wähle die Version und die Minecraft-Version",
 "Ninguna versión coincide con ese filtro.":"Keine Version passt zu diesem Filter.",
 "Esta descarga no tiene versiones disponibles.":"Dieser Download hat keine verfügbaren Versionen.",
-"Filtra por versión de Minecraft y elige la versión del modpack":"Nach Minecraft-Version filtern und die Modpack-Version wählen"}};
+"Filtra por versión de Minecraft y elige la versión del modpack":"Nach Minecraft-Version filtern und die Modpack-Version wählen",
+"Cerrando el launcher para instalar la actualización…":"Der Launcher wird geschlossen, um das Update zu installieren…",
+"No se pudo reiniciar solo: cierra el launcher y ábrelo de nuevo para terminar de instalar":"Automatischer Neustart nicht möglich: Schließe den Launcher und öffne ihn erneut, um die Installation abzuschließen",
+"Desinstalación":"Deinstallation",
+"Desinstalar Nova Launcher":"Nova Launcher deinstallieren",
+"Quita el programa de este PC. Tus mundos, instancias y ajustes se conservan, salvo que elijas borrarlos también":"Entfernt das Programm von diesem PC. Deine Welten, Instanzen und Einstellungen bleiben erhalten, außer du löschst sie ebenfalls",
+"Desinstalar…":"Deinstallieren…",
+"No se encontró el desinstalador. Usa Configuración de Windows → Aplicaciones":"Deinstallationsprogramm nicht gefunden. Nutze Windows-Einstellungen → Apps",
+"No se pudo iniciar la desinstalación. Usa Configuración de Windows → Aplicaciones":"Deinstallation konnte nicht gestartet werden. Nutze Windows-Einstellungen → Apps",
+"¿Desinstalar Nova Launcher de este PC?":"Nova Launcher von diesem PC deinstallieren?",
+"¿Borrar también tus instancias, mundos, mods y ajustes?":"Auch deine Instanzen, Welten, Mods und Einstellungen löschen?",
+"Aceptar = borrarlo todo":"OK = alles löschen",
+"Cancelar = conservar tus datos (podrás reinstalar y seguir donde lo dejaste)":"Abbrechen = Daten behalten (du kannst neu installieren und dort weitermachen)"}};

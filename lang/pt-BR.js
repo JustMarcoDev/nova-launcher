@@ -1011,4 +1011,16 @@ window.LANGS["pt-BR"]={name:"Português (Brasil)",d:{
 "Paso 1 de 2 · Elige la versión y la versión de Minecraft":"Etapa 1 de 2 · Escolha a versão e a versão do Minecraft",
 "Ninguna versión coincide con ese filtro.":"Nenhuma versão corresponde a esse filtro.",
 "Esta descarga no tiene versiones disponibles.":"Este download não tem versões disponíveis.",
-"Filtra por versión de Minecraft y elige la versión del modpack":"Filtre pela versão do Minecraft e escolha a versão do modpack"}};
+"Filtra por versión de Minecraft y elige la versión del modpack":"Filtre pela versão do Minecraft e escolha a versão do modpack",
+"Cerrando el launcher para instalar la actualización…":"Fechando o launcher para instalar a atualização…",
+"No se pudo reiniciar solo: cierra el launcher y ábrelo de nuevo para terminar de instalar":"Não foi possível reiniciar sozinho: feche o launcher e abra de novo para terminar a instalação",
+"Desinstalación":"Desinstalação",
+"Desinstalar Nova Launcher":"Desinstalar o Nova Launcher",
+"Quita el programa de este PC. Tus mundos, instancias y ajustes se conservan, salvo que elijas borrarlos también":"Remove o programa deste PC. Seus mundos, instâncias e configurações são mantidos, a menos que você escolha apagá-los também",
+"Desinstalar…":"Desinstalar…",
+"No se encontró el desinstalador. Usa Configuración de Windows → Aplicaciones":"Desinstalador não encontrado. Use Configurações do Windows → Aplicativos",
+"No se pudo iniciar la desinstalación. Usa Configuración de Windows → Aplicaciones":"Não foi possível iniciar a desinstalação. Use Configurações do Windows → Aplicativos",
+"¿Desinstalar Nova Launcher de este PC?":"Desinstalar o Nova Launcher deste PC?",
+"¿Borrar también tus instancias, mundos, mods y ajustes?":"Apagar também suas instâncias, mundos, mods e configurações?",
+"Aceptar = borrarlo todo":"OK = apagar tudo",
+"Cancelar = conservar tus datos (podrás reinstalar y seguir donde lo dejaste)":"Cancelar = manter seus dados (você poderá reinstalar e continuar de onde parou)"}};
