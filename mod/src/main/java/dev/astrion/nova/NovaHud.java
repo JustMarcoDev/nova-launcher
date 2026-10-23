@@ -109,8 +109,11 @@ public final class NovaHud {
 
     /** Tamaño del elemento tal como se dibuja ahora. */
     public static int[] size(MinecraftClient mc, El e, boolean sample) {
-        if (e == KEYS) return new int[] { KW, KH };
-        String[] L = lines(mc, e, sample);
+        return e == KEYS ? new int[] { KW, KH } : sizeOf(mc, lines(mc, e, sample));
+    }
+
+    /** Tamaño de un panel de texto con esas líneas (así el HUD solo calcula las líneas una vez por fotograma). */
+    private static int[] sizeOf(MinecraftClient mc, String[] L) {
         int w = 0;
         for (String s : L) w = Math.max(w, mc.textRenderer.getWidth(s));
         return new int[] { w + 10, L.length * 10 + 2 };
@@ -153,31 +156,33 @@ public final class NovaHud {
             return;
         }
         String[] L = lines(mc, e, sample);
-        int[] sz = size(mc, e, sample);
+        drawText(c, mc, L, sizeOf(mc, L), x, y);
+    }
+
+    /** Panel de texto con sus líneas ya calculadas. */
+    private static void drawText(DrawContext c, MinecraftClient mc, String[] L, int[] sz, int x, int y) {
         NovaButton.panel(c, x, y, sz[0], sz[1], 3, 0x9A0C0C14, border());
         c.fill(x + 3, y + 3, x + 4, y + sz[1] - 3, NovaSettings.accent);   // barrita de acento
         for (int i = 0; i < L.length; i++) c.drawText(mc.textRenderer, L[i], x + 7, y + 2 + i * 10, i == 0 ? 0xFFFFFFFF : 0xFFB8B8D8, true);
     }
 
     /** Dibuja el HUD en la pantalla de la partida (lo llama HudMixin al final del HUD del juego). */
-    private static final boolean TEST_EDIT = System.getProperty("nova.hudedit") != null;
-    private static int testTick;
-
     public static void render(DrawContext c) {
         try {
             MinecraftClient mc = MinecraftClient.getInstance();
             if (mc == null || mc.player == null) return;
             NovaSettings.load();
             NovaPresence.frame(mc);
-            if (TEST_EDIT && mc.currentScreen == null && ++testTick == 240) mc.setScreen(new NovaHudScreen(null));   // solo para pruebas (-Dnova.hudedit=1)
             if (mc.options.hudHidden) return;
             if (mc.currentScreen instanceof NovaHudScreen) return;   // el editor dibuja su propia vista previa
             pollMouse(mc);
             int sw = c.getScaledWindowWidth(), sh = c.getScaledWindowHeight();
             for (El e : ALL) {
                 if (!e.on) continue;
-                int[] s = size(mc, e, false), p = pos(e, sw, sh, s[0], s[1]);
-                draw(c, mc, e, p[0], p[1], false);
+                if (e == KEYS) { int[] p = pos(e, sw, sh, KW, KH); draw(c, mc, e, p[0], p[1], false); continue; }
+                String[] L = lines(mc, e, false);
+                int[] sz = sizeOf(mc, L), p = pos(e, sw, sh, sz[0], sz[1]);
+                drawText(c, mc, L, sz, p[0], p[1]);
             }
         } catch (Throwable t) { /* el HUD nunca debe tirar el juego */ }
     }

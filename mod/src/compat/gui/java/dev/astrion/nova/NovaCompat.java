@@ -2,10 +2,8 @@ package dev.astrion.nova;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.MessageScreen;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.NativeImageBackedTexture;
-import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.client.gl.RenderPipelines;
 
