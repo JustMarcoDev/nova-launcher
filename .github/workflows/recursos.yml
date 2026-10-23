@@ -1,0 +1,22 @@
+name: Subir recursos
+# Sube los vídeos de fondo (assets/*.nvb) a la release fija «recursos» y genera fondos.json (URL + sha256).
+# Hace falta una sola vez (o cuando haya un fondo nuevo en assets/); luego esos archivos salen de git. Mira «Fondos y recursos» en el README.
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  subir:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Subir los .nvb de assets/ a la release «recursos»
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ls -l assets/*.nvb
+          node scripts/recursos.js subir assets/*.nvb
+          node scripts/recursos.js json
