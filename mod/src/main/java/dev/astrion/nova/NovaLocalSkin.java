@@ -1,6 +1,8 @@
 package dev.astrion.nova;
 
 import java.awt.image.BufferedImage;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import java.io.File;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.PlayerListEntry;
@@ -9,40 +11,65 @@ import net.minecraft.client.texture.NativeImageBackedTexture;
 import net.minecraft.util.Identifier;
 
 /**
- * Skin local para cuentas sin conexión: el launcher pasa la skin elegida (-Dnova.skin) y -Dnova.skinlocal=1,
- * y los mixins de cada versión (capa skin-*) la ponen al jugador local. Solo la ve quien juega, nadie más.
+ * Skin local: la skin elegida en el launcher (cuenta sin conexión o de Microsoft) se pone al jugador local con los mixins de cada versión (capa skin-*).
+ * Solo la ve quien juega; en Microsoft el launcher además la sube a Mojang para que la vean los demás.
  */
 public final class NovaLocalSkin {
     private NovaLocalSkin() { }
 
-    private static boolean tried;
     private static Identifier id;
     private static boolean slim;
+    private static long lastCheck, version = -1;
+    private static int seq;
     private static java.lang.reflect.Method nameM;
 
-    private static boolean wanted() { return "1".equals(System.getProperty("nova.skinlocal", "0")); }
-
-    /** Textura de la skin (se crea la primera vez que hace falta). Null si no hay skin local. */
+    /**
+     * Textura de la skin elegida en el launcher, o null si no hay. El launcher deja <nova.dir>/skin-local.png y skin-local.json
+     * ({on, user, model, v}); aquí se vigila cada segundo, así que un cambio de skin se ve sin reiniciar el juego.
+     */
     public static Identifier id() {
-        if (!wanted()) return null;
-        if (!tried) {
-            tried = true;
-            try {
-                File f = new File(System.getProperty("nova.skin", ""));
-                BufferedImage s = f.isFile() ? javax.imageio.ImageIO.read(f) : null;
-                if (s != null && s.getWidth() == 64 && (s.getHeight() == 64 || s.getHeight() == 32)) {
-                    slim = "slim".equals(System.getProperty("nova.skinmodel", ""));
-                    BufferedImage full = legacy(s);
-                    NativeImage ni = new NativeImage(NativeImage.Format.RGBA, 64, 64, false);
-                    for (int y = 0; y < 64; y++) for (int x = 0; x < 64; x++) NovaCompat.setPixel(ni, x, y, full.getRGB(x, y));
-                    NativeImageBackedTexture t = NovaCompat.newTex(ni);
-                    Identifier i = Identifier.tryParse("nova:skin/local");
-                    MinecraftClient.getInstance().getTextureManager().registerTexture(i, t);
-                    id = i;
-                }
-            } catch (Throwable e) { id = null; }
-        }
+        poll();
         return id;
+    }
+
+    private static void poll() {
+        long now = System.currentTimeMillis();
+        if (now - lastCheck < 1000) return;
+        lastCheck = now;
+        try {
+            MinecraftClient mc = MinecraftClient.getInstance();
+            if (mc == null || !mc.isOnThread()) return;                // las texturas solo se registran en el hilo de render
+            String dir = System.getProperty("nova.dir", "");
+            if (dir.isEmpty()) return;
+            File jf = new File(dir, "skin-local.json");
+            if (!jf.isFile()) { clear(mc); return; }
+            JsonObject o = JsonParser.parseString(new String(java.nio.file.Files.readAllBytes(jf.toPath()), java.nio.charset.StandardCharsets.UTF_8)).getAsJsonObject();
+            var s = mc.getSession();
+            boolean on = o.has("on") && o.get("on").getAsBoolean() && s != null && o.has("user") && o.get("user").getAsString().equals(s.getUsername());
+            long v = o.has("v") ? o.get("v").getAsLong() : 0;
+            if (!on) { clear(mc); version = v; return; }
+            if (v == version && id != null) return;
+            File pf = new File(dir, "skin-local.png");
+            BufferedImage img = pf.isFile() ? javax.imageio.ImageIO.read(pf) : null;
+            if (img == null || img.getWidth() != 64 || (img.getHeight() != 64 && img.getHeight() != 32)) { clear(mc); version = v; return; }
+            BufferedImage full = legacy(img);
+            NativeImage ni = new NativeImage(NativeImage.Format.RGBA, 64, 64, false);
+            for (int y = 0; y < 64; y++) for (int x = 0; x < 64; x++) NovaCompat.setPixel(ni, x, y, full.getRGB(x, y));
+            Identifier n = Identifier.tryParse("nova:skin/local" + (seq++));
+            mc.getTextureManager().registerTexture(n, NovaCompat.newTex(ni));
+            Identifier old = id;
+            id = n;
+            slim = o.has("model") && "slim".equals(o.get("model").getAsString());
+            version = v;
+            if (old != null) { try { mc.getTextureManager().destroyTexture(old); } catch (Throwable ignored) { } }
+        } catch (Throwable e) { /* sin skin local: se ve la normal */ }
+    }
+
+    private static void clear(MinecraftClient mc) {
+        if (id == null) return;
+        Identifier old = id;
+        id = null;
+        try { mc.getTextureManager().destroyTexture(old); } catch (Throwable ignored) { }
     }
 
     public static boolean slim() { return slim; }
@@ -61,7 +88,7 @@ public final class NovaLocalSkin {
     /** ¿Esta fila de la lista de jugadores es la del jugador local? (se compara el nombre de la sesión; GameProfile.getName() / name() según la versión) */
     public static boolean mine(PlayerListEntry e) {
         try {
-            if (!wanted() || e == null) return false;
+            if (e == null) return false;
             Object p = e.getProfile();
             if (nameM == null) { for (String n : new String[] { "getName", "name" }) { try { nameM = p.getClass().getMethod(n); break; } catch (NoSuchMethodException ignored) { } } }
             var s = MinecraftClient.getInstance().getSession();
