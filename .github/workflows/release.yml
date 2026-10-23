@@ -2,18 +2,43 @@ name: Crear version
 
 on:
   workflow_dispatch:
+  # Al fusionar cambios de mod/ en main se sube la beta sola (scripts/auto-bump.js) y se publica el menú de Nova
+  push:
+    branches: [main]
+    paths: ['mod/**']
 
 permissions:
   contents: write
+
+# Una publicación detrás de otra, nunca a la vez (así cada una sube la beta siguiente)
+concurrency:
+  group: crear-version
+  cancel-in-progress: false
 
 jobs:
   build:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # el bump necesita el historial para sacar los commits del cambio
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Subir la beta (solo al fusionar mod/ en main)
+        if: github.event_name == 'push'
+        shell: bash
+        env:
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+        run: |
+          node scripts/auto-bump.js "$BEFORE" "$AFTER"
+          if git diff --quiet; then echo "Nada que subir"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json js/base.js index.html README.md
+          git commit -m "Versión $(node -p "require('./package.json').version") automática [skip ci]"
+          git push origin HEAD:main
       - name: Leer la versión
         id: v
         shell: bash
