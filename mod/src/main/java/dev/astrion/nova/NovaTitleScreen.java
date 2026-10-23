@@ -217,7 +217,7 @@ public class NovaTitleScreen extends NovaScreen {
 
     void buildNova() {
         java.util.List<NovaBgs.Entry> L = NovaBgs.list();
-        int fixed = 8 + 12 + 10 + 18 + 10 + 11 + 20 + 15 + 8;
+        int fixed = 8 + 12 + 10 + 18 + 10 + 11 + 20 + 15 + 8 + 17;
         int maxRows = Math.max(2, Math.min(6, (height - 20 - fixed) / 17));
         scroll = Math.max(0, Math.min(scroll, Math.max(0, L.size() - maxRows)));
         int rows = Math.min(maxRows, L.size());
@@ -266,14 +266,15 @@ public class NovaTitleScreen extends NovaScreen {
                 y += 17; continue;
             }
             String label = e.name;
-            if (!e.ready) label += e.error ? tr("  (error)") : "  " + Math.round(e.progress * 100) + "%";
+            if (!e.ready) label += e.error ? tr("  (error)") : e.remote && !e.working ? tr("  (descargar)") : "  " + Math.round(e.progress * 100) + "%";
             NovaButton b = new NovaButton(x, y, w - reserve, ib, Text.literal(label), sel ? NovaGfx.I_CHECK : -1, sel ? NovaButton.SELECTED : NovaButton.NORMAL, bb -> {
+                if (e.remote && !e.ready) { NovaBgs.request(e); clearAndInit(); return; }   // por descargar: se lo pide al launcher
                 NovaSettings.bg = e.id;
                 NovaBg.switchTo(client, NovaSettings.bgPath());
                 clearAndInit();
             });
-            b.active = e.ready;
-            b.tip(shorten(e.name, 26), e.ready ? (tr("Usar este fondo")) : e.error ? (tr("No se pudo convertir")) : (tr("Preparando el fondo…")));
+            b.active = e.ready || (e.remote && !e.working);
+            b.tip(shorten(e.name, 26), e.ready ? (tr("Usar este fondo")) : e.remote ? (e.working ? tr("Descargando el fondo…") : e.error ? tr("No se pudo descargar: pulsa para reintentar") : tr("Pulsa para descargar este fondo")) : e.error ? (tr("No se pudo convertir")) : (tr("Preparando el fondo…")));
             addDrawableChild(b);
             if (mine) {
                 final String f = e.file; final String nm = e.name;
@@ -316,6 +317,9 @@ public class NovaTitleScreen extends NovaScreen {
         y += d + 5;
         addDrawableChild(new NovaButton(x, y, w, ib, Text.literal(tr("Ajustes del launcher")), NovaGfx.I_GEAR, NovaButton.NORMAL, b -> System.out.println("[NOVA:SETTINGS]"))
                 .tip(tr("Ajustes del launcher"), tr("Abre Nova Launcher")));
+        y += ib + gap;
+        addDrawableChild(new NovaButton(x, y, w, ib, Text.literal(tr("Editar HUD")), NovaGfx.I_EDIT, NovaButton.NORMAL, b -> client.setScreen(new NovaHudScreen(this)))
+                .tip(tr("Editar HUD"), tr("Mueve FPS, CPS, coordenadas y teclas")));
         y += ib + gap + 1;
         NovaButton ok = new NovaButton(x, y, w, ib, Text.literal(tr("Confirmar cambios")), NovaGfx.I_CHECK, dirty() ? NovaButton.PRIMARY : NovaButton.NORMAL, b -> closeNova(true));
         ok.tip(tr("Confirmar cambios"), dirty() ? (tr("Guarda el fondo y el color elegidos")) : (tr("Sin cambios por guardar")));
@@ -343,7 +347,7 @@ public class NovaTitleScreen extends NovaScreen {
         if (s.equals(sig)) return;
         // un fondo nuevo que acaba de quedar listo se activa solo
         for (NovaBgs.Entry e : NovaBgs.list()) {
-            if (e.ready && !e.builtin && !known.contains(e.id) && !known.isEmpty()) {
+            if (e.ready && (!e.builtin || NovaBgs.awaiting.remove(e.id)) && !known.contains(e.id) && !known.isEmpty()) {
                 NovaSettings.bg = e.id; NovaBg.switchTo(client, NovaSettings.bgPath());
                 break;
             }

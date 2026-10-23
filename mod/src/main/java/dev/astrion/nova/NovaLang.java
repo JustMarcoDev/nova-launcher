@@ -108,5 +108,37 @@ final class NovaLang {
         p("Desconectar", "Disconnect", "Se déconnecter", "Trennen", "Disconnetti", "Desconectar");
         p("Juego en pausa", "Game paused", "Jeu en pause", "Spiel pausiert", "Gioco in pausa", "Jogo pausado");
         p("Nebulosa", "Nebula", "Nébuleuse", "Nebel", "Nebulosa", "Nebulosa");
+        p("  (descargar)", "  (download)", "  (télécharger)", "  (laden)", "  (scarica)", "  (baixar)");
+        p("Descargando el fondo…", "Downloading the background…", "Téléchargement du fond…", "Hintergrund wird heruntergeladen…", "Download dello sfondo…", "Baixando o fundo…");
+        p("No se pudo descargar: pulsa para reintentar", "Download failed: click to retry", "Échec du téléchargement : clique pour réessayer", "Download fehlgeschlagen: zum Wiederholen klicken", "Download non riuscito: clicca per riprovare", "Falha no download: clique para tentar de novo");
+        p("Pulsa para descargar este fondo", "Click to download this background", "Clique pour télécharger ce fond", "Klicken, um diesen Hintergrund herunterzuladen", "Clicca per scaricare questo sfondo", "Clique para baixar este fundo");
+        p("Editar HUD", "Edit HUD", "Modifier le HUD", "HUD bearbeiten", "Modifica HUD", "Editar HUD");
+        p("Arrastra los elementos para colocarlos", "Drag the elements to place them", "Fais glisser les éléments pour les placer", "Ziehe die Elemente an ihren Platz", "Trascina gli elementi per posizionarli", "Arraste os elementos para posicioná-los");
+        p("Coordenadas", "Coordinates", "Coordonnées", "Koordinaten", "Coordinate", "Coordenadas");
+        p("Teclas", "Keys", "Touches", "Tasten", "Tasti", "Teclas");
+        p("Activado: pulsa para ocultarlo", "On: click to hide it", "Activé : clique pour le masquer", "An: klicken zum Ausblenden", "Attivo: clicca per nasconderlo", "Ativado: clique para ocultar");
+        p("Desactivado: pulsa para mostrarlo", "Off: click to show it", "Désactivé : clique pour l'afficher", "Aus: klicken zum Anzeigen", "Disattivato: clicca per mostrarlo", "Desativado: clique para mostrar");
+        p("Zoom", "Zoom", "Zoom", "Zoom", "Zoom", "Zoom");
+        p("Sí", "Yes", "Oui", "Ja", "Sì", "Sim");
+        p("No", "No", "Non", "Nein", "No", "Não");
+        p("Mantén la tecla para acercar la vista", "Hold the key to zoom in", "Maintiens la touche pour zoomer", "Halte die Taste gedrückt, um heranzuzoomen", "Tieni premuto il tasto per ingrandire", "Segure a tecla para aproximar a visão");
+        p("Pulsa una tecla…", "Press a key…", "Appuie sur une touche…", "Drücke eine Taste…", "Premi un tasto…", "Pressione uma tecla…");
+        p("Tecla de zoom", "Zoom key", "Touche de zoom", "Zoom-Taste", "Tasto zoom", "Tecla de zoom");
+        p("Pulsa y luego la tecla que quieras (Esc cancela)", "Click, then press the key you want (Esc cancels)", "Clique, puis appuie sur la touche voulue (Échap annule)", "Klicken, dann die gewünschte Taste drücken (Esc bricht ab)", "Clicca, poi premi il tasto che vuoi (Esc annulla)", "Clique e depois pressione a tecla que quiser (Esc cancela)");
+        p("Mostrar que uso Nova", "Show that I use Nova", "Montrer que j'utilise Nova", "Zeigen, dass ich Nova nutze", "Mostra che uso Nova", "Mostrar que uso o Nova");
+        p("Los demás jugadores con Nova ven el logo junto a tu nombre", "Other Nova players see the logo next to your name", "Les autres joueurs Nova voient le logo à côté de ton nom", "Andere Nova-Spieler sehen das Logo neben deinem Namen", "Gli altri giocatori Nova vedono il logo accanto al tuo nome", "Outros jogadores com Nova veem o logo ao lado do seu nome");
+        p("Restablecer", "Reset", "Réinitialiser", "Zurücksetzen", "Ripristina", "Restaurar");
+        p("Vuelve a las posiciones de fábrica", "Back to the default positions", "Retour aux positions d'origine", "Zurück zu den Standardpositionen", "Torna alle posizioni di fabbrica", "Volta às posições de fábrica");
+        p("Listo", "Done", "Terminé", "Fertig", "Fatto", "Pronto");
+        p("Mueve FPS, CPS, coordenadas y teclas", "Move FPS, CPS, coordinates and keys", "Déplace FPS, CPS, coordonnées et touches", "Verschiebe FPS, CPS, Koordinaten und Tasten", "Sposta FPS, CPS, coordinate e tasti", "Mova FPS, CPS, coordenadas e teclas");
+        p("Espacio", "Space", "Espace", "Leertaste", "Spazio", "Espaço");
+        p("Sur", "South", "Sud", "Süden", "Sud", "Sul");
+        p("Suroeste", "Southwest", "Sud-ouest", "Südwesten", "Sud-ovest", "Sudoeste");
+        p("Oeste", "West", "Ouest", "Westen", "Ovest", "Oeste");
+        p("Noroeste", "Northwest", "Nord-ouest", "Nordwesten", "Nord-ovest", "Noroeste");
+        p("Norte", "North", "Nord", "Norden", "Nord", "Norte");
+        p("Noreste", "Northeast", "Nord-est", "Nordosten", "Nord-est", "Nordeste");
+        p("Este", "East", "Est", "Osten", "Est", "Leste");
+        p("Sureste", "Southeast", "Sud-est", "Südosten", "Sud-est", "Sudeste");
     }
 }

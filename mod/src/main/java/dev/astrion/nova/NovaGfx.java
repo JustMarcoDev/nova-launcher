@@ -420,6 +420,19 @@ public final class NovaGfx {
         return upload(mc, key, im, s);
     }
 
+    /** Logo de Nova (el agujero negro) cuadrado de d píxeles de interfaz; para la lista de jugadores. */
+    public static Tex logo(MinecraftClient mc, int d) {
+        int s = begin(mc);
+        String key = "logo|" + d;
+        Tex c = CACHE.get(key);
+        if (c != null) return c;
+        BufferedImage im = new BufferedImage(d * s, d * s, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = g2(im);
+        icon(g, I_NOVA, 0, 0, d * s, 0xFFFFFFFF);
+        g.dispose();
+        return upload(mc, key, im, s);
+    }
+
     /** Globo de ayuda: título y descripción corta. */
     public static Tex tooltip(MinecraftClient mc, String title, String desc) {
         int s = begin(mc);

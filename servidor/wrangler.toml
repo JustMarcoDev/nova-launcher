@@ -1,0 +1,8 @@
+name = "nova-presencia"
+main = "worker.js"
+compatibility_date = "2024-09-01"
+
+# Crea el KV con:  npx wrangler kv namespace create NOVA   y pega aquí el id que te devuelve
+[[kv_namespaces]]
+binding = "NOVA"
+id = "PEGA_AQUI_EL_ID_DEL_KV"

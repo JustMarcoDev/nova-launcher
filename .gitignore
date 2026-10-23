@@ -5,3 +5,6 @@ node_modules/
 dist/
 out/
 *.exe
+# Archivos pesados que no van en git: los vídeos de fondo viven en la release «recursos» y los .jar del menú de Nova se compilan en «Crear version» (mira el README)
+assets/*.nvb
+assets/mods/*.jar

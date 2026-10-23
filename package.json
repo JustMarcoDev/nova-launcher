@@ -1,6 +1,7 @@
 {
   "name": "nova-launcher",
-  "version": "0.2.15-beta.11",
+  "version": "0.2.15-beta.12",
+  "novaPresence": "",
   "description": "Nova Launcher para Minecraft",
   "author": "Astrion Studio",
   "main": "main.js",
@@ -8,6 +9,8 @@
     "start": "electron .",
     "test": "node tests/check.js && node tests/ui.js",
     "smoke": "node scripts/smoke.js",
+    "recursos": "node scripts/recursos.js bajar nova-bg.nvb && node scripts/recursos.js mods",
+    "predist": "npm run recursos",
     "dist": "electron-builder --win"
   },
   "dependencies": {
@@ -53,9 +56,12 @@
       "**/*",
       "!tests/**",
       "!scripts/**",
+      "!servidor/**",
       "!*.bat",
       "!README.md",
       "!assets/discord-logo.png",
+      "!assets/nova-earth.nvb",
+      "!assets/nova-nebulosa.nvb",
       "!js/vista-previa.js",
       "!mod/**"
     ]

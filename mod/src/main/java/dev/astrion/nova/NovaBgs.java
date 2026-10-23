@@ -21,6 +21,8 @@ final class NovaBgs {
     static final class Entry {
         String id, name, file;          // file = nombre del archivo del usuario (null en los incluidos)
         boolean builtin, ready, error;
+        boolean remote, working;        // remote: fondo incluido que se descarga (Nebulosa, Earth); working: el launcher lo está bajando
+        String rfile = "";              // nombre del archivo remoto (nova-earth.nvb)
         float progress;
         String path = "";               // ruta del NVB listo para reproducir ("" = sin vídeo)
     }
@@ -53,9 +55,11 @@ final class NovaBgs {
     static List<Entry> list() {
         List<Entry> L = new ArrayList<>();
         Entry h = new Entry(); h.id = "hole"; h.name = tr("Agujero negro"); h.builtin = true; h.ready = true; h.path = System.getProperty("nova.bg", "");
-        Entry n = new Entry(); n.id = "nebula"; n.name = tr("Nebulosa"); n.builtin = true; n.path = System.getProperty("nova.bg2", ""); n.ready = !n.path.isEmpty() && new File(n.path).isFile();
-        Entry ea = new Entry(); ea.id = "earth"; ea.name = "Earth"; ea.builtin = true; ea.path = System.getProperty("nova.bg3", ""); ea.ready = !ea.path.isEmpty() && new File(ea.path).isFile();
-        L.add(h); if (n.ready) L.add(n); if (ea.ready) L.add(ea);
+        Entry n = remoteEntry("nebula", tr("Nebulosa"), "nova.bg2", "nova-nebulosa.nvb");
+        Entry ea = remoteEntry("earth", "Earth", "nova.bg3", "nova-earth.nvb");
+        L.add(h);
+        if (!n.path.isEmpty()) L.add(n);
+        if (!ea.path.isEmpty()) L.add(ea);
         File f = folder();
         if (f == null || !f.isDirectory()) return L;
         JsonObject names = json("nombres.json"), st = json("fondos-estado.json");
@@ -80,6 +84,43 @@ final class NovaBgs {
         return L;
     }
 
+    /** Fondo que no va en el instalador: el launcher lo descarga al elegirlo y deja el progreso en fondos-estado.json. */
+    private static Entry remoteEntry(String id, String name, String prop, String rfile) {
+        Entry e = new Entry(); e.id = id; e.name = name; e.builtin = true; e.remote = true; e.rfile = rfile;
+        e.path = System.getProperty(prop, "");
+        e.ready = !e.path.isEmpty() && new File(e.path).isFile() && new File(e.path).length() > 32;
+        if (!e.ready) {
+            JsonObject st = json("fondos-estado.json");
+            if (st.has(rfile)) {
+                JsonObject s = st.getAsJsonObject(rfile);
+                String state = s.has("state") ? s.get("state").getAsString() : "";
+                e.error = state.equals("error");
+                e.working = state.equals("working");
+                e.progress = s.has("progress") ? s.get("progress").getAsFloat() : 0f;
+            }
+        }
+        return e;
+    }
+
+    /** Fondos que el usuario pidió y aún se están descargando: cuando queden listos se activan solos. */
+    static final java.util.Set<String> awaiting = new java.util.HashSet<>();
+
+    /** Pide al launcher (por la consola del juego) que descargue un fondo. */
+    static void request(Entry e) {
+        if (e == null || !e.remote || e.ready || e.working) return;
+        awaiting.add(e.id);
+        System.out.println("[NOVA:GETBG:" + e.id + "]");
+    }
+
+    private static boolean askedSaved = false;
+    /** Si el fondo guardado es Nebulosa o Earth y todavía no está en el PC, se pide una vez al abrir el juego. */
+    static void ensureSaved(String id) {
+        if (askedSaved) return;
+        askedSaved = true;
+        Entry e = find(id);
+        if (e != null && e.remote && !e.ready) request(e);
+    }
+
     static Entry find(String id) {
         for (Entry e : list()) if (e.id.equals(id)) return e;
         return null;
@@ -94,7 +135,7 @@ final class NovaBgs {
 
     static String pathOf(String id) {
         Entry e = find(id);
-        return e == null ? System.getProperty("nova.bg", "") : e.path;
+        return e == null || !e.ready ? System.getProperty("nova.bg", "") : e.path;   // sin descargar: se usa el agujero negro
     }
 
     static void rename(String file, String name) {

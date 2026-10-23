@@ -328,6 +328,11 @@ THE FONT SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
    - electron-updater (MIT), minecraft-launcher-core (MIT), msmc (MIT), discord-rpc (MIT).
    Cada paquete conserva su licencia en la carpeta node_modules de la aplicación.
 
+skinview3d 3.4.2 (js/vendor/skinview3d.bundle.js; vista 3D de la pestaña Skin)  -  MIT
+Copyright (c) 2014-2018 Kent Rasmussen, (c) 2017-2022 Haowei Wen, Sean Boult y otros colaboradores.
+Incluye three.js (MIT, Copyright (c) 2010-2024 three.js authors). Licencia MIT: igual que la de Mixin de arriba.
+https://github.com/bs-community/skinview3d
+
 Minecraft es una marca registrada de Mojang Studios. Nova Launcher no está afiliado, aprobado ni patrocinado por
 Mojang Studios ni por Microsoft. El juego y su logotipo no se distribuyen con Nova Launcher: los descarga el launcher
 desde los servidores oficiales y el menú de Nova usa el logotipo que ya trae el propio juego.

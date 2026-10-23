@@ -2,7 +2,8 @@
 // Recursos pesados de Nova Launcher (vídeos de fondo .nvb) que NO van en git ni en el instalador.
 // Viven como assets de la release fija «recursos» de GitHub, junto a un fondos.json con la URL y el sha256 de cada uno.
 //
-//   node scripts/recursos.js bajar            descarga a assets/ todos los .nvb de la release «recursos» (los verifica con sha256)
+//   node scripts/recursos.js bajar [nombres]  descarga a assets/ los .nvb de la release «recursos» (todos, o solo los que indiques) y los verifica con sha256
+//   node scripts/recursos.js mods [--forzar]  descarga a assets/mods los nova-menu-<mc>.jar que falten, de la última release (para compilar el instalador en local sin Gradle)
 //   node scripts/recursos.js subir <archivos> sube uno o varios .nvb (o el jar que quieras) a «recursos» y actualiza fondos.json
 //   node scripts/recursos.js json             muestra el fondos.json publicado
 //
@@ -23,9 +24,11 @@ async function manifest() {
   return r.json();
 }
 
-async function bajar() {
+async function bajar(only) {
   const m = await manifest(); fs.mkdirSync(ASSETS, { recursive: true });
   for (const [name, e] of Object.entries(m.files || {})) {
+    if (only.length && !only.includes(name)) continue;
+    if (!name.endsWith('.nvb')) continue;
     const dst = path.join(ASSETS, name);
     if (fs.existsSync(dst) && await sha256(dst) === e.sha256) { console.log('ya está (sha256 correcto): ' + name); continue; }
     console.log('descargando ' + name + ' (' + Math.round((e.size || 0) / 1048576) + ' MB)…');
@@ -35,6 +38,24 @@ async function bajar() {
     fs.renameSync(tmp, dst);
   }
   console.log('Recursos listos en assets/');
+}
+
+// Los .jar del menú de Nova de la última release (nova-menu.json trae la URL y el sha256 de cada versión de Minecraft)
+async function mods() {
+  const r = await fetch(`https://api.github.com/repos/${REPO}/releases?per_page=30`, { headers: { 'User-Agent': 'nova-recursos', Accept: 'application/vnd.github+json' } });
+  if (!r.ok) throw new Error('GitHub: HTTP ' + r.status);
+  const rel = (await r.json()).find(x => !x.draft && (x.assets || []).some(a => a.name === 'nova-menu.json'));
+  if (!rel) throw new Error('No hay ninguna release con nova-menu.json');
+  const m = await (await fetch(`https://github.com/${REPO}/releases/download/${rel.tag_name}/nova-menu.json`, { redirect: 'follow' })).json();
+  const dir = path.join(ASSETS, 'mods'); fs.mkdirSync(dir, { recursive: true });
+  for (const [mc, e] of Object.entries(m.jars || {})) {
+    const dst = path.join(dir, 'nova-menu-' + mc + '.jar');
+    if (fs.existsSync(dst) && (!process.argv.includes('--forzar') || await sha256(dst) === e.sha256)) { console.log('ya está: nova-menu-' + mc + '.jar'); continue; }   // lo que ya hay no se pisa (salvo --forzar)
+    const rr = await fetch(e.url, { redirect: 'follow' }); if (!rr.ok) throw new Error(mc + ': HTTP ' + rr.status);
+    fs.writeFileSync(dst, Buffer.from(await rr.arrayBuffer()));
+    if (await sha256(dst) !== e.sha256) { fs.unlinkSync(dst); throw new Error(mc + ': el sha256 no coincide'); }
+    console.log('descargado nova-menu-' + mc + '.jar (' + rel.tag_name + ')');
+  }
 }
 
 async function subir(files) {
@@ -61,8 +82,9 @@ async function subir(files) {
 
 (async () => {
   const [cmd, ...rest] = process.argv.slice(2);
-  if (cmd === 'bajar') await bajar();
+  if (cmd === 'bajar') await bajar(rest);
+  else if (cmd === 'mods') await mods();
   else if (cmd === 'subir') await subir(rest);
   else if (cmd === 'json') console.log(JSON.stringify(await manifest(), null, 2));
-  else { console.log('Uso: node scripts/recursos.js bajar | subir <archivos> | json'); process.exit(cmd ? 1 : 0); }
+  else { console.log('Uso: node scripts/recursos.js bajar [nombres] | mods | subir <archivos> | json'); process.exit(cmd ? 1 : 0); }
 })().catch(e => { console.error('Error: ' + e.message); process.exit(1); });

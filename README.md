@@ -120,6 +120,30 @@ Windows SmartScreen avisa de cualquier instalador **sin firma digital** de un ed
 
 Mientras tanto, a quien le salga el aviso: **Más información → Ejecutar de todas formas**. Si Windows Defender lo marca como virus, se puede enviar el archivo como falso positivo en https://www.microsoft.com/wdsi/filesubmission.
 
+## Fondos y recursos pesados (desde la 0.2.15-beta.12)
+
+Para que el repositorio y el instalador pesen menos, estos archivos **no van en git**:
+
+| Archivo | Dónde vive | Cómo llega al usuario |
+|---|---|---|
+| `assets/nova-bg.nvb` (agujero negro) | release fija **«recursos»** de GitHub | `Crear version` lo descarga antes de compilar y va dentro del instalador |
+| `assets/nova-earth.nvb`, `assets/nova-nebulosa.nvb` | release **«recursos»** | **no** van en el instalador: el launcher los descarga cuando el usuario los elige (en el juego, o en Ajustes → Juego → «Fondos del menú de Nova») |
+| `assets/mods/nova-menu-<mc>.jar` | se compilan en `Crear version` | van en el instalador y se publican en `nova-menu.json` |
+
+La release «recursos» tiene un `fondos.json` con la URL, el tamaño y el **sha256** de cada fondo. El launcher lo lee, descarga el archivo mostrando el progreso, comprueba el sha256 y solo entonces lo usa. Sin conexión (o si algo falla) sigue con el agujero negro.
+
+**Subir un fondo nuevo** (necesita la CLI `gh` con sesión iniciada): convierte el vídeo a `.nvb` (`node -e "require('./nvb').convert('video.mp4','assets/nova-nuevo.nvb',{}).then(()=>console.log('listo'))"`) y ejecuta `node scripts/recursos.js subir assets/nova-nuevo.nvb`. Sube el archivo a «recursos» y actualiza `fondos.json` solo. Para que aparezca en el juego hay que añadirlo también al mod (`NovaBgs.java`) y a `NOVA_REMOTE_BG` de `main.js`. También se puede subir desde GitHub: Actions → «Subir recursos» sube todos los `assets/*.nvb` que haya en el repositorio (solo sirve la primera vez, mientras los archivos aún estén en git).
+
+**Compilar en local** (`Crear-Instalador.bat` o `npm run dist`): antes se ejecuta solo `npm run recursos`, que descarga `nova-bg.nvb` y los `.jar` del menú de Nova de la última release (`node scripts/recursos.js bajar nova-bg.nvb` y `node scripts/recursos.js mods`). Lo que ya esté en `assets/` no se pisa.
+
+## HUD, logo de Nova en la lista de jugadores y skins (desde la 0.2.15-beta.12)
+
+**HUD tipo Lunar (menú de Nova en el juego).** FPS, CPS (izquierdo/derecho), coordenadas con dirección, teclas (W A S D, espacio y clics) y zoom con una tecla (`C` por defecto; mantenla pulsada). Cada elemento se activa por separado y se arrastra desde **Editar HUD** (en el menú de pausa y en el panel de Nova del menú principal). Se guarda en los ajustes de Nova y funciona en las 19 versiones. Se dibuja con un mixin al final del HUD de Minecraft (capas `hud-f`/`hud-t`) y el zoom con otro sobre `GameRenderer.getFov` (capas `fov-d`/`fov-f`).
+
+**Logo de Nova junto al nombre (TAB).** Quien juegue con una cuenta **premium** y active «Mostrar que uso Nova» sale con el logo en la lista de jugadores de los demás usuarios de Nova. Necesita un pequeño servidor de presencia (Cloudflare Worker, gratis): está en `servidor/` con sus instrucciones de despliegue. Hasta que lo despliegues y pongas su URL en el campo `novaPresence` de `package.json` (o en la variable de entorno `NOVA_PRESENCE`) el mod no hace nada. La identidad se comprueba con Mojang (`joinServer` + `hasJoined`), así que nadie puede hacerse pasar por otro. Si el servidor no responde, simplemente no se muestra nada.
+
+**Pestaña Skin.** Vista 3D (skinview3d), subir un `.png` de 64×64, modelo clásico o fino y una lista de skins guardadas. Con cuenta **Microsoft** cambia la skin y la capa de tu cuenta con la API de Mojang (la sesión cifrada de la cuenta, nunca sale del PC). Con cuenta **offline** la skin se aplica solo en tu juego (el launcher pasa `-Dnova.skin`/`-Dnova.skinlocal` al mod): los demás jugadores no la ven, es una limitación de Minecraft sin cuenta oficial. Atajo `Alt + 9`.
+
 ## Aviso legal
 
 Nova Launcher es un proyecto independiente de **Astrion Studio**. © 2026 Astrion Studio. No está afiliado, aprobado ni patrocinado por Mojang Studios ni por Microsoft. Minecraft es una marca registrada de Mojang Studios.
@@ -129,6 +153,15 @@ Nova Launcher es un proyecto independiente de **Astrion Studio**. © 2026 Astrio
 Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión del launcher, para saber de un vistazo qué se ha **añadido**, qué se ha **mejorado** y qué se ha **quitado**. Cada vez que se publique una versión nueva hay que añadir una entrada al principio de la lista de abajo. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**.
 
 ## Historial de actualizaciones
+
+### 0.2.15-beta.12 — Fondos fuera del instalador, HUD, logo en TAB y skins
+
+- **Fondos fuera del instalador**: Earth y Nebulosa ya no van dentro del instalador; se descargan de la release fija «recursos» (con `fondos.json`: URL + sha256) la primera vez que los eliges, con barra de progreso y comprobación sha256. Sin internet se queda el agujero negro. El instalador solo lleva `nova-bg.nvb`.
+- **Repositorio más ligero**: `assets/*.nvb` y `assets/mods/*.jar` ya no están en git (`.gitignore`); la CI los descarga de «recursos» y de la última release. `scripts/recursos.js` baja/sube recursos. Ver «Fondos y recursos pesados».
+- **HUD tipo Lunar** en el menú de Nova: FPS, CPS, coordenadas, teclas y zoom, cada uno activable y arrastrable desde **Editar HUD**. Las 19 versiones.
+- **Logo de Nova en la lista de jugadores** (solo premium, con servidor de presencia en `servidor/`; opción «Mostrar que uso Nova»).
+- **Pestaña Skin** en el launcher: vista 3D, subir `.png`, clásica/fina, lista guardada; en Microsoft cambia skin y capa; en offline la aplica el mod al jugador local.
+- Nota: el servidor de presencia hay que desplegarlo una vez en tu cuenta de Cloudflare (no puede hacerlo el launcher).
 
 ### 0.2.15-beta.11 — Botón de actualizar e icono
 
