@@ -155,7 +155,19 @@ Nova Launcher es un proyecto independiente de **Astrion Studio**. © 2026 Astrio
 
 Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión del launcher, para saber de un vistazo qué se ha **añadido**, qué se ha **mejorado** y qué se ha **quitado**. Cada vez que se publique una versión nueva hay que añadir una entrada al principio de la lista de abajo. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**.
 
+## Regla de versiones: mod y launcher van juntos
+
+Cada vez que cambia el mod (`mod/`) se publica una versión nueva del launcher: mientras dure la fase de pruebas, una beta más (`0.2.15-beta.14`, `beta.15`…). La versión del mod se lee de `package.json`, así que siempre coincide con la del launcher. El launcher se actualiza solo y el usuario recibe el mod nuevo con él.
+
 ## Historial de actualizaciones
+
+### 0.2.15-beta.14 — Zoom más suave y HUD ajustable
+
+- **Zoom más satisfactorio**: entra y sale con una curva suave (ya no es rígido) y la cámara se mueve en proporción al zoom, así no se escapa al girar. Se quita la «cámara cinematográfica» que usaba antes. La sensibilidad se restaura al soltar la tecla o abrir un menú.
+- **Botón X** en cada elemento del HUD (en «Editar HUD») para desactivarlo; se vuelve a activar con los botones de arriba.
+- **Coordenadas más legibles**: X, Y y Z con colores propios, números grandes, dirección y ejes debajo y fondo más oscuro.
+- **Se pueden agrandar y achicar**: arrastra la esquina de abajo a la derecha de cada elemento (50 %–300 %); se guarda el tamaño.
+- La versión del mod ahora es siempre la del launcher.
 
 ### 0.2.15-beta.13 — Instalador para todos o solo para ti, y skins mejoradas
 

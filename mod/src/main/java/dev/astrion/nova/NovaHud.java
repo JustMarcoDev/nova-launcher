@@ -22,9 +22,11 @@ public final class NovaHud {
         public final String id;
         public boolean on;
         public float fx, fy;
+        /** Tamaño del elemento (1 = normal). Se cambia arrastrando la esquina en «Editar HUD». */
+        public float scale = 1f;
         final boolean dOn; final float dfx, dfy;
         El(String id, boolean on, float fx, float fy) { this.id = id; this.on = dOn = on; this.fx = dfx = fx; this.fy = dfy = fy; }
-        void reset() { on = dOn; fx = dfx; fy = dfy; }
+        void reset() { on = dOn; fx = dfx; fy = dfy; scale = 1f; }
     }
 
     public static final El FPS = new El("fps", true, 0.010f, 0.020f);
@@ -48,6 +50,7 @@ public final class NovaHud {
             if (j.has("on")) e.on = j.get("on").getAsBoolean();
             if (j.has("x")) e.fx = clamp01(j.get("x").getAsFloat());
             if (j.has("y")) e.fy = clamp01(j.get("y").getAsFloat());
+            if (j.has("s")) e.scale = clampS(j.get("s").getAsFloat());
         }
         if (o.has("zoom") && o.get("zoom").isJsonObject()) {
             JsonObject z = o.getAsJsonObject("zoom");
@@ -61,6 +64,7 @@ public final class NovaHud {
         for (El e : ALL) {
             JsonObject j = new JsonObject();
             j.addProperty("on", e.on); j.addProperty("x", Math.round(e.fx * 10000f) / 10000f); j.addProperty("y", Math.round(e.fy * 10000f) / 10000f);
+            j.addProperty("s", Math.round(e.scale * 100f) / 100f);
             o.add(e.id, j);
         }
         JsonObject z = new JsonObject();
@@ -69,9 +73,12 @@ public final class NovaHud {
         return o;
     }
 
-    public static void resetPositions() { for (El e : ALL) { e.fx = e.dfx; e.fy = e.dfy; } }
+    public static void resetPositions() { for (El e : ALL) { e.fx = e.dfx; e.fy = e.dfy; e.scale = 1f; } }
 
     static float clamp01(float v) { return v < 0f ? 0f : v > 1f ? 1f : v; }
+
+    public static final float SMIN = 0.5f, SMAX = 3f;
+    public static float clampS(float v) { return v < SMIN ? SMIN : v > SMAX ? SMAX : v; }
 
     // ---- medidas y dibujo ----
 
@@ -86,24 +93,37 @@ public final class NovaHud {
         if (e == XYZ) {
             int x = has ? (int) Math.floor(mc.player.getX()) : 0, y = has ? (int) Math.floor(mc.player.getY()) : 64, z = has ? (int) Math.floor(mc.player.getZ()) : 0;
             float yaw = has ? mc.player.getYaw() : 0f;
-            return new String[] { "XYZ: " + x + " " + y + " " + z, direction(yaw) };
+            return new String[] { "X " + x + "   Y " + y + "   Z " + z, dirName(yaw) + "   " + dirAxis(yaw) };
         }
         return new String[0];
     }
 
     /** Dirección en la que mira el jugador (yaw 0 = sur, 90 = oeste, 180 = norte, 270 = este). */
-    static String direction(float yaw) {
-        float a = ((yaw % 360f) + 360f) % 360f;
-        int i = Math.round(a / 45f) % 8;
-        switch (i) {
-            case 0: return tr("Sur") + " (+Z)";
-            case 1: return tr("Suroeste") + " (+Z -X)";
-            case 2: return tr("Oeste") + " (-X)";
-            case 3: return tr("Noroeste") + " (-Z -X)";
-            case 4: return tr("Norte") + " (-Z)";
-            case 5: return tr("Noreste") + " (-Z +X)";
-            case 6: return tr("Este") + " (+X)";
-            default: return tr("Sureste") + " (+Z +X)";
+    static int dirIdx(float yaw) { return Math.round((((yaw % 360f) + 360f) % 360f) / 45f) % 8; }
+
+    static String dirName(float yaw) {
+        switch (dirIdx(yaw)) {
+            case 0: return tr("Sur");
+            case 1: return tr("Suroeste");
+            case 2: return tr("Oeste");
+            case 3: return tr("Noroeste");
+            case 4: return tr("Norte");
+            case 5: return tr("Noreste");
+            case 6: return tr("Este");
+            default: return tr("Sureste");
+        }
+    }
+
+    static String dirAxis(float yaw) {
+        switch (dirIdx(yaw)) {
+            case 0: return "+Z";
+            case 1: return "+Z -X";
+            case 2: return "-X";
+            case 3: return "-Z -X";
+            case 4: return "-Z";
+            case 5: return "-Z +X";
+            case 6: return "+X";
+            default: return "+Z +X";
         }
     }
 
@@ -113,7 +133,21 @@ public final class NovaHud {
         String[] L = lines(mc, e, sample);
         int w = 0;
         for (String s : L) w = Math.max(w, mc.textRenderer.getWidth(s));
-        return new int[] { w + 10, L.length * 10 + 2 };
+        return e == XYZ ? new int[] { w + 14, 28 } : new int[] { w + 10, L.length * 10 + 2 };
+    }
+
+    /** Tamaño en pantalla, ya con la escala del elemento. */
+    public static int[] sizeS(MinecraftClient mc, El e, boolean sample) {
+        int[] s = size(mc, e, sample);
+        return new int[] { Math.max(1, Math.round(s[0] * e.scale)), Math.max(1, Math.round(s[1] * e.scale)) };
+    }
+
+    /** Dibuja el elemento con su escala; (x, y) es la esquina de arriba a la izquierda en pantalla. */
+    public static void drawS(DrawContext c, MinecraftClient mc, El e, int x, int y, boolean sample) {
+        float k = e.scale;
+        if (Math.abs(k - 1f) < 0.005f) { draw(c, mc, e, x, y, sample); return; }
+        NovaCompat.pushScale(c, k);
+        try { draw(c, mc, e, Math.round(x / k), Math.round(y / k), sample); } finally { NovaCompat.popScale(c); }
     }
 
     /** Posición en pantalla (esquina de arriba a la izquierda) de un elemento. */
@@ -154,6 +188,28 @@ public final class NovaHud {
         }
         String[] L = lines(mc, e, sample);
         int[] sz = size(mc, e, sample);
+        if (e == XYZ) {
+            // coordenadas: cada eje con su color y la dirección debajo, sobre un fondo más oscuro para que se lea bien con cualquier fondo
+            NovaButton.panel(c, x, y, sz[0], sz[1], 3, 0xC0080810, border());
+            c.fill(x + 3, y + 3, x + 4, y + sz[1] - 3, NovaSettings.accent);
+            boolean has = mc.player != null && !sample;
+            int[] v = { has ? (int) Math.floor(mc.player.getX()) : 0, has ? (int) Math.floor(mc.player.getY()) : 64, has ? (int) Math.floor(mc.player.getZ()) : 0 };
+            int[] col = { 0xFFFF7B7B, 0xFF7BFF9A, 0xFF7BB8FF };
+            String[] ax = { "X ", "Y ", "Z " };
+            int cx = x + 8;
+            for (int i = 0; i < 3; i++) {
+                c.drawText(mc.textRenderer, ax[i], cx, y + 4, col[i], true);
+                cx += mc.textRenderer.getWidth(ax[i]);
+                String num = Integer.toString(v[i]);
+                c.drawText(mc.textRenderer, num, cx, y + 4, 0xFFFFFFFF, true);
+                cx += mc.textRenderer.getWidth(num + "   ");
+            }
+            float yaw = has ? mc.player.getYaw() : 0f;
+            String nm = dirName(yaw);
+            c.drawText(mc.textRenderer, nm, x + 8, y + 16, 0xFFFFFFFF, true);
+            c.drawText(mc.textRenderer, dirAxis(yaw), x + 8 + mc.textRenderer.getWidth(nm + "   "), y + 16, 0xFFB8B8D8, true);
+            return;
+        }
         NovaButton.panel(c, x, y, sz[0], sz[1], 3, 0x9A0C0C14, border());
         c.fill(x + 3, y + 3, x + 4, y + sz[1] - 3, NovaSettings.accent);   // barrita de acento
         for (int i = 0; i < L.length; i++) c.drawText(mc.textRenderer, L[i], x + 7, y + 2 + i * 10, i == 0 ? 0xFFFFFFFF : 0xFFB8B8D8, true);
@@ -176,8 +232,8 @@ public final class NovaHud {
             int sw = c.getScaledWindowWidth(), sh = c.getScaledWindowHeight();
             for (El e : ALL) {
                 if (!e.on) continue;
-                int[] s = size(mc, e, false), p = pos(e, sw, sh, s[0], s[1]);
-                draw(c, mc, e, p[0], p[1], false);
+                int[] s = sizeS(mc, e, false), p = pos(e, sw, sh, s[0], s[1]);
+                drawS(c, mc, e, p[0], p[1], false);
             }
         } catch (Throwable t) { /* el HUD nunca debe tirar el juego */ }
     }
@@ -209,30 +265,46 @@ public final class NovaHud {
 
     // ---- zoom ----
 
-    private static float zoomCur = 1f;
+    private static float zoomCur = 1f, zoomP = 0f;
     private static long zoomT = System.nanoTime();
-    private static boolean zoomHeld, prevSmooth;
+    private static boolean zoomHeld;
+    private static Double sensOrig;
 
-    /** Por cuánto se multiplica el campo de visión del mundo (1 = sin zoom). Se suaviza con el tiempo; lo llama FovMixin. */
-    public static double zoomMul() {
+    /** Al soltar el zoom (o abrir un menú) devuelve la sensibilidad del ratón a como estaba. */
+    private static void sensRestore(MinecraftClient mc) {
+        if (sensOrig != null && mc != null) { try { mc.options.getMouseSensitivity().setValue(sensOrig); } catch (Throwable ignored) { } }
+        sensOrig = null;
+    }
+
+    /** Con zoom el ratón se mueve en proporción al campo de visión: así la cámara no se escapa al girar (la sensibilidad de Minecraft va al cubo). */
+    private static void sensScale(MinecraftClient mc, float m) {
         try {
-            MinecraftClient mc = MinecraftClient.getInstance();
+            if (sensOrig == null) sensOrig = mc.options.getMouseSensitivity().getValue();
+            double d0 = sensOrig * 0.6 + 0.2, d = d0 * Math.cbrt(Math.max(0.05, Math.min(1.0, m)));
+            double v = (d - 0.2) / 0.6;
+            mc.options.getMouseSensitivity().setValue(v < 0 ? 0.0 : Math.min(sensOrig, v));
+        } catch (Throwable ignored) { }
+    }
+
+    /** Por cuánto se multiplica el campo de visión del mundo (1 = sin zoom). Entra y sale con una curva suave; lo llama FovMixin. */
+    public static double zoomMul() {
+        MinecraftClient mc = null;
+        try {
+            mc = MinecraftClient.getInstance();
             NovaSettings.load();
             boolean want = zoomOn && mc != null && mc.player != null && mc.currentScreen == null && zoomKey > 0
                     && GLFW.glfwGetKey(mc.getWindow().getHandle(), zoomKey) == GLFW.GLFW_PRESS;
-            if (want != zoomHeld) {
-                zoomHeld = want;
-                if (want) { prevSmooth = mc.options.smoothCameraEnabled; mc.options.smoothCameraEnabled = true; }   // cámara suave mientras se hace zoom
-                else mc.options.smoothCameraEnabled = prevSmooth;
-            }
             long now = System.nanoTime();
             float dt = Math.min(0.1f, (now - zoomT) / 1e9f);
             zoomT = now;
-            float target = want ? ZOOM_MUL : 1f;
-            zoomCur += (target - zoomCur) * Math.min(1f, dt * 14f);
-            if (Math.abs(zoomCur - target) < 0.002f) zoomCur = target;
+            if (!want && mc != null && mc.currentScreen != null) zoomP = 0f;   // con un menú abierto no hay zoom
+            else zoomP = Math.max(0f, Math.min(1f, zoomP + (want ? dt / 0.30f : -dt / 0.24f)));
+            float e = zoomP * zoomP * (3f - 2f * zoomP);                         // entrada y salida suaves (smoothstep)
+            zoomCur = (float) Math.pow(ZOOM_MUL, e);                             // interpolación geométrica: el acercamiento se nota parejo
+            zoomHeld = zoomP > 0f;
+            if (zoomHeld) sensScale(mc, zoomCur); else sensRestore(mc);
             return zoomCur;
-        } catch (Throwable t) { return 1.0; }
+        } catch (Throwable t) { sensRestore(mc); return 1.0; }
     }
 
     /** Nombre corto de una tecla GLFW para enseñarlo en el editor. */

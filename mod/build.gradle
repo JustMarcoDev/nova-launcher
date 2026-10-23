@@ -1,7 +1,8 @@
 plugins {
     id 'fabric-loom' version '1.11.8'
 }
-version = project.mod_version
+// La versión del mod es SIEMPRE la del launcher (../package.json): si cambia el mod se publica una versión nueva del launcher
+version = new groovy.json.JsonSlurper().parse(file('../package.json')).version
 group = 'dev.astrion.nova'
 base { archivesName = 'nova-menu-' + project.mc }
 
