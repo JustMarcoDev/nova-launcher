@@ -28,8 +28,6 @@ final class NovaLang {
         return 1;
     }
 
-    static boolean spanish() { return lang() == 0; }
-
     static String tr(String es, Object... args) {
         int l = lang();
         String r = es;

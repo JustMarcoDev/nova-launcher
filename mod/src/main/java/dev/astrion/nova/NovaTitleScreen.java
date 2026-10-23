@@ -1,12 +1,9 @@
 package dev.astrion.nova;
 
 import static dev.astrion.nova.NovaLang.tr;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.LogoDrawer;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.multiplayer.MultiplayerScreen;
 import net.minecraft.client.gui.screen.multiplayer.MultiplayerWarningScreen;
 import net.minecraft.client.gui.screen.option.LanguageOptionsScreen;
@@ -20,11 +17,9 @@ import net.minecraft.util.Util;
 /** Pantalla de título de Nova Launcher: Minecraft «versión Nova». */
 public class NovaTitleScreen extends NovaScreen {
     static final Identifier MARK = Identifier.tryParse("nova:textures/gui/mark.png");
-    static boolean loaded, tested;
+    static boolean loaded;
 
     static final String LOADER = System.getProperty("nova.loader", "Nova");
-    static final String VERSION = System.getProperty("nova.version", FabricLoader.getInstance()
-            .getModContainer("nova-menu").map(m -> m.getMetadata().getVersion().getFriendlyString()).orElse(""));
 
     private final long born = Util.getMeasuringTimeMs();
     private final LogoDrawer logo = new LogoDrawer(false);
@@ -76,13 +71,6 @@ public class NovaTitleScreen extends NovaScreen {
     protected void init() {
         ensure(client);
         NovaBg.start(client);
-        if (System.getProperty("nova.selftest") != null && !tested) {
-            tested = true;
-            client.execute(() -> { client.setScreen(null); System.out.println("[NOVA-TEST] " + client.currentScreen.getClass().getName()); });
-        }
-        if (System.getProperty("nova.pause") != null && !tested3) { tested3 = true; client.execute(() -> client.setScreen(new NovaPauseScreen())); }   // solo para pruebas
-        String forced = System.getProperty("nova.panel", "");
-        if (!forced.isEmpty() && !tested2) { tested2 = true; panel = forced.equals("nova") ? 2 : forced.equals("profile") ? 1 : 0; }
         labels.clear();
         int cx = width / 2;
         int bw = Math.min(124, width - 20), bh = 16, gap = 3;
@@ -128,8 +116,6 @@ public class NovaTitleScreen extends NovaScreen {
         if (panel == 1) buildProfile(name);
         else if (panel == 2) { snapshot(); buildNova(); }
     }
-
-    static boolean tested2, tested3;
 
     // ---------------------------------------------------------------- cambios pendientes del menú de Nova
     // El fondo y el color se ven al instante, pero solo se guardan al pulsar «Confirmar cambios»; si se cierra sin confirmar, vuelven a como estaban.
