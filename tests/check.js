@@ -11,7 +11,7 @@ console.log('sintaxis: ' + js.length + ' archivos revisados');
 // 2. index.html enlaza archivos que existen y no deja ningún .js sin usar
 const html = rd('index.html'), refs = [...html.matchAll(/(?:src|href)="((?:js|css|lang)\/[^"]+)"/g)].map(m => m[1]);
 for (const r of refs) if (!fs.existsSync(path.join(root, r))) bad('index.html enlaza ' + r + ' pero no existe');
-for (const f of fs.readdirSync(path.join(root, 'js'))) if (!refs.includes('js/' + f)) bad('js/' + f + ' no está enlazado en index.html');
+for (const f of fs.readdirSync(path.join(root, 'js')).filter(f => f.endsWith('.js'))) if (!refs.includes('js/' + f)) bad('js/' + f + ' no está enlazado en index.html');
 const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]), dup = ids.filter((x, i) => ids.indexOf(x) !== i);
 if (dup.length) bad('ids repetidos en index.html: ' + [...new Set(dup)].join(', '));
 
@@ -20,7 +20,7 @@ const main = rd('main.js'), pre = rd('preload.js');
 const handled = new Set([...main.matchAll(/ipcMain\.(?:handle|on)\('([^']+)'/g)].map(m => m[1]));
 for (const m of pre.matchAll(/invoke\('([^']+)'/g)) if (!handled.has(m[1])) bad('preload.js llama a «' + m[1] + '» y main.js no lo atiende');
 const api = new Set([...pre.matchAll(/^\s*([a-zA-Z]+):\s/gm)].map(m => m[1]).concat([...pre.matchAll(/,\s*([a-zA-Z]+):\s/g)].map(m => m[1])));
-const used = new Set(); for (const f of fs.readdirSync(path.join(root, 'js'))) for (const m of rd('js/' + f).matchAll(/\bA\.([a-zA-Z]+)\(/g)) used.add(m[1]);
+const used = new Set(); for (const f of fs.readdirSync(path.join(root, 'js')).filter(f => f.endsWith('.js'))) for (const m of rd('js/' + f).matchAll(/\bA\.([a-zA-Z]+)\(/g)) used.add(m[1]);
 for (const u of used) if (u !== 'on' && !api.has(u)) bad('la interfaz usa A.' + u + '() y preload.js no lo ofrece');
 
 // 3a. Idiomas bajo demanda: cada idioma de la lista tiene su archivo y index.html no los carga todos
@@ -57,7 +57,8 @@ if (ver !== pkg.version) bad('VER en js/base.js (' + ver + ') no coincide con pa
   const vs = rd('mod/versions.txt').split(/\r?\n/).filter(l => l.trim() && !l.startsWith('#')).map(l => l.split(/\s+/)[0]);
   const nm = (main.match(/const NOVA_MC = \[([^\]]*)\]/) || [, ''])[1].split(',').map(x => x.replace(/['"\s]/g, '')).filter(Boolean);
   if (vs.join() !== nm.join()) bad('mod/versions.txt (' + vs.join() + ') no coincide con NOVA_MC de main.js (' + nm.join() + ')');
-  for (const v of vs) if (!fs.existsSync(path.join(root, 'assets/mods/nova-menu-' + v + '.jar'))) bad('falta assets/mods/nova-menu-' + v + '.jar');
+  // Los .jar y los .nvb no están en git: en el release se compilan/descargan antes; la revisión de cada push (NOVA_SIN_JARS=1) no los necesita
+  if (!process.env.NOVA_SIN_JARS) for (const v of vs) if (!fs.existsSync(path.join(root, 'assets/mods/nova-menu-' + v + '.jar'))) bad('falta assets/mods/nova-menu-' + v + '.jar');
   const bg = path.join(root, 'assets/nova-bg.nvb');
   if (!fs.existsSync(bg) || fs.readFileSync(bg).subarray(0, 4).toString() !== 'NVB1') bad('assets/nova-bg.nvb falta o no es un vídeo NVB1');
   if (!fs.existsSync(path.join(root, 'THIRD-PARTY-NOTICES.txt'))) bad('falta THIRD-PARTY-NOTICES.txt');

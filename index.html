@@ -7,6 +7,7 @@
 <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".45" style="stop-color:var(--ac,#2ee06f)"/><stop offset="1" stop-color="#7a5cff"/></linearGradient>
 <symbol id="logo" viewBox="0 0 120 120"><g transform="rotate(-18 60 60)"><ellipse cx="60" cy="60" rx="54" ry="14" fill="none" stroke="url(#lg)" stroke-width="5" opacity=".85"/></g><circle cx="60" cy="60" r="28" fill="#000" stroke="url(#lg)" stroke-width="2.6"/><path d="M30 52A33 33 0 0 1 90 52" fill="none" stroke="#fff" stroke-width="1.6" opacity=".7"/><g transform="rotate(-18 60 60)"><path d="M6 60A54 14 0 0 0 114 60" fill="none" stroke="url(#lg)" stroke-width="5.5" stroke-linecap="round"/></g><path d="M98 12l2.4 6.6 6.6 2.4-6.6 2.4-2.4 6.6-2.4-6.6-6.6-2.4 6.6-2.4z" fill="#fff"/></symbol>
 <symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></symbol>
+<symbol id="i-skin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3L3 6l2 4 3-1v11h8V9l3 1 2-4-5-3a4 4 0 01-8 0z"/></symbol>
 <symbol id="i-chip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></symbol>
 <symbol id="i-cup" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h11v5a5 5 0 01-5 5h-1a5 5 0 01-5-5V9z"/><path d="M16 10h2a2 2 0 010 4h-2M8 3c0 1.5 1.5 1.5 1.5 3M12 3c0 1.5 1.5 1.5 1.5 3"/></symbol>
 <symbol id="i-monitor" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></symbol>
@@ -55,7 +56,7 @@
 <div class="upp" id="up" title="Actualización"><svg class="ic" style="width:14px;height:14px"><use href="#i-dl"/></svg><span id="upt"></span></div><button class="pl" id="plb" aria-haspopup="true" title="Cambiar de cuenta"><img id="av" alt=""><b id="un"></b><svg class="ic"><use href="#i-down"/></svg></button><div class="run" id="rn"><i></i><span>0 instancias en ejecución</span></div>
 <button class="wb" onclick="A&&A.win('min')">—</button><button class="wb" onclick="A&&A.win('max')">▢</button><button class="wb" onclick="A&&A.win('x')">✕</button></div>
 <div class="app">
-<nav><button class="on" data-p="home" title="Inicio"><svg class="ic"><use href="#i-rocket"/></svg></button><button data-p="vers" title="Versiones"><svg class="ic"><use href="#i-game"/></svg></button><button data-p="mods" title="Mods"><svg class="ic"><use href="#i-puzzle"/></svg></button><button data-p="srv" title="Servidores"><svg class="ic"><use href="#i-server"/></svg></button><button data-p="inst" title="Instancias"><svg class="ic"><use href="#i-box"/></svg></button><button data-p="con" title="Consola"><svg class="ic"><use href="#i-term"/></svg></button><button data-p="soc" title="Redes"><svg class="ic"><use href="#i-heart"/></svg></button><div class="sp"></div><button data-act="addacc" title="Añadir cuenta"><svg class="ic"><use href="#i-addacc"/></svg></button><button data-p="set" title="Ajustes"><svg class="ic"><use href="#i-gear"/></svg></button></nav>
+<nav><button class="on" data-p="home" title="Inicio"><svg class="ic"><use href="#i-rocket"/></svg></button><button data-p="vers" title="Versiones"><svg class="ic"><use href="#i-game"/></svg></button><button data-p="mods" title="Mods"><svg class="ic"><use href="#i-puzzle"/></svg></button><button data-p="srv" title="Servidores"><svg class="ic"><use href="#i-server"/></svg></button><button data-p="inst" title="Instancias"><svg class="ic"><use href="#i-box"/></svg></button><button data-p="con" title="Consola"><svg class="ic"><use href="#i-term"/></svg></button><button data-p="sk" title="Skin"><svg class="ic"><use href="#i-skin"/></svg></button><button data-p="soc" title="Redes"><svg class="ic"><use href="#i-heart"/></svg></button><div class="sp"></div><button data-act="addacc" title="Añadir cuenta"><svg class="ic"><use href="#i-addacc"/></svg></button><button data-p="set" title="Ajustes"><svg class="ic"><use href="#i-gear"/></svg></button></nav>
 <main>
 <div id="home" class="pg on"><div class="ub" id="ub"><div class="ui"><svg class="ic"><use href="#i-dl"/></svg></div><div class="ut"><b id="ubt"></b><span id="ubs"></span><div class="bar"><i id="ubp"></i></div></div><button class="btn" id="ubb"></button></div><div class="wel" id="wel">Bienvenido de nuevo, Astronauta <b id="hn"></b></div>
 <div class="hero">
@@ -65,7 +66,7 @@
 <button class="cont" id="cont" type="button" hidden><span class="pi"><svg class="ic"><use href="#i-play"/></svg></span><span class="ct2"><b>Continuar</b><span id="cons"></span></span></button>
 <div class="grid2" id="g2"><div id="newsBox"><h3>Últimas novedades <small id="nsrc"></small></h3><div class="news" id="nw"></div></div>
 <div id="cards"><div class="card" id="cardI"><h4>Tus instancias</h4><div id="qi"></div></div>
-<div class="card" id="cardS"><h4>Estado</h4><div class="kv">Cuenta<b id="k1"></b></div><div class="kv">Memoria<b id="k2"></b></div><div class="kv">Java<b id="k3"></b></div><div class="kv">Tiempo jugado<b id="k5"></b></div><div class="kv">Versión del launcher<b id="k4">0.2.15-beta.11</b></div></div></div></div></div>
+<div class="card" id="cardS"><h4>Estado</h4><div class="kv">Cuenta<b id="k1"></b></div><div class="kv">Memoria<b id="k2"></b></div><div class="kv">Java<b id="k3"></b></div><div class="kv">Tiempo jugado<b id="k5"></b></div><div class="kv">Versión del launcher<b id="k4">0.2.15-beta.12</b></div></div></div></div></div>
 
 <div id="vers" class="pg"><h2>Versiones</h2><div class="vi"><span id="vinfo"></span><button class="btn" id="vre">Recargar lista</button></div><div class="chips" id="tf2" style="margin-bottom:12px"></div><input id="vq" placeholder="Buscar versión…" style="max-width:340px;margin-bottom:14px"><div id="vl"></div></div>
 <div id="srv" class="pg"><h2>Servidores</h2><p class="sub">Los más populares. Pulsa <b>Unirse</b> y el launcher abre Minecraft y entra solo al servidor.</p>
@@ -77,6 +78,12 @@
 <div class="mt"><input id="q" placeholder="Buscar mods, modpacks, shaders…"><select id="mo"></select><div class="chips" id="mcp"></div></div>
 <div class="chips mcat" id="mcat"></div><div id="mi" style="color:var(--m);margin:4px 0 14px"></div><div class="grid mg2" id="mg"></div>
 <div style="text-align:center;margin:18px 0 8px"><button class="btn" id="mmore" style="display:none">Cargar más</button></div></div>
+<div id="sk" class="pg"><h2>Skin</h2><p class="sub" id="sks"></p>
+<div class="skw"><div class="skv card"><canvas id="skc3" width="300" height="420"></canvas><p class="skh" id="skh">Sube un archivo .png de 64×64 para verlo aquí en 3D</p><div class="ska"><button class="btn sm" id="ska" type="button">Girar / pausar</button></div></div>
+<div class="skp"><div class="card"><h4>Skin</h4><div class="chips" id="skmd"><button class="chip on" data-m="classic">Clásica (brazos de 4 px)</button><button class="chip" data-m="slim">Fina (brazos de 3 px)</button></div>
+<div class="acts"><input type="file" id="skf" accept=".png,image/png" hidden><button class="btn" id="sks2" type="button">Subir skin (.png)</button><button class="btn" id="skg" type="button">Guardar en mi lista</button><button class="btn pri" id="sku" type="button">Usar esta skin</button><button class="btn" id="skx" type="button" style="display:none">Quitar la skin local</button></div></div>
+<div class="card" id="skcp"><h4>Capa</h4><div class="chips" id="skcl"></div><div class="acts"><button class="btn" id="skca" type="button">Poner esta capa</button></div></div>
+<div class="card"><h4>Mis skins</h4><div class="skg" id="skl"></div></div></div></div></div>
 <div id="soc" class="pg"><h2>Redes</h2><div class="cre"><svg class="lg"><use href="#logo"/></svg><div><b style="font-size:18px">Creador de Nova Launcher</b><p>Sigue al creador para ver novedades, avances y próximas versiones.</p></div></div><div class="soc" id="sg"></div></div>
 <div id="set" class="pg"><h2>Ajustes</h2><div class="sg"><div class="sn" id="sn"></div><div id="sc" class="sc"></div></div></div>
 </main></div><svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><filter id="cb-p"><feColorMatrix type="matrix" values="0.567 0.433 0 0 0  0.558 0.442 0 0 0  0 0.242 0.758 0 0  0 0 0 1 0"/></filter><filter id="cb-d"><feColorMatrix type="matrix" values="0.625 0.375 0 0 0  0.7 0.3 0 0 0  0 0.3 0.7 0 0  0 0 0 1 0"/></filter><filter id="cb-t"><feColorMatrix type="matrix" values="0.95 0.05 0 0 0  0 0.433 0.567 0 0  0 0.475 0.525 0 0  0 0 0 1 0"/></filter></defs></svg>
@@ -93,6 +100,7 @@
 <script type="lazy" src="js/servidores.js"></script>
 <script type="lazy" src="js/instancias.js"></script>
 <script type="lazy" src="js/social.js"></script>
+<script type="lazy" src="js/skin.js"></script>
 <script src="js/cuentas.js"></script>
 <script type="lazy" src="js/consola.js"></script>
 <script src="js/herramientas.js"></script>

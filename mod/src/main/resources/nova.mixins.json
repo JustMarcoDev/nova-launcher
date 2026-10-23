@@ -3,6 +3,6 @@
   "minVersion": "0.8",
   "package": "dev.astrion.nova.mixin",
   "compatibilityLevel": "JAVA_17",
-  "client": ["MinecraftClientMixin"],
+  "client": ["MinecraftClientMixin", "HudMixin", "FovMixin", "PlayerListMixin", "SkinMixin"],
   "injectors": { "defaultRequire": 1 }
 }

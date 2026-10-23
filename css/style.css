@@ -4130,3 +4130,27 @@ html[data-cb=Grises] {
 .wz .wmf {
   width: 100%;
 }
+
+/* ==========================================================================
+   SKIN · pestaña de skins (vista 3D, lista guardada y capas)
+   ========================================================================== */
+.skw { display: grid; grid-template-columns: 340px 1fr; gap: 14px; align-items: start; }
+.skv { position: relative; display: flex; flex-direction: column; align-items: center; padding: 12px; margin-bottom: 0; }
+.skv canvas { width: 300px; max-width: 100%; height: auto; aspect-ratio: 300/420; outline: none; cursor: grab; }
+.skh { position: absolute; inset: 40% 24px auto; text-align: center; color: var(--m); font-size: 13px; pointer-events: none; }
+.ska { margin-top: 8px; }
+.skp .acts { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 8px; margin-top: 12px; }
+.skp .btn:disabled { opacity: .45; cursor: default; }
+.skg { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; }
+.skc { position: relative; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 8px; border-radius: calc(12px*var(--rs,1)); border: 1px solid var(--l); background: var(--p2); cursor: pointer; text-align: center; }
+.skc:hover, .skc:focus-visible { border-color: color-mix(in srgb, var(--ac) 55%, transparent); outline: none; }
+.skc.on { border-color: var(--ac); box-shadow: 0 0 0 1px var(--ac) inset; }
+.skc b { font-size: 12.5px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.skc small { color: var(--m); font-size: 11px; }
+.skc .sku2 { color: var(--ac); }
+.skhd { width: 40px; height: 40px; image-rendering: pixelated; background-image: var(--d), var(--d); background-repeat: no-repeat; background-size: 320px auto, 320px auto; background-position: -40px -40px, -200px -40px; border-radius: 4px; margin-bottom: 4px; }
+.skdl { all: unset; position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; display: grid; place-items: center; border-radius: 6px; color: var(--m); cursor: pointer; opacity: 0; }
+.skc:hover .skdl, .skc:focus-within .skdl { opacity: 1; }
+.skdl:hover { color: #ff5d5d; background: rgba(255,255,255,.08); }
+.skdl .ic { width: 12px; height: 12px; }
+@media (max-width: 860px) { .skw { grid-template-columns: 1fr; } }

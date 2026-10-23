@@ -14,7 +14,11 @@ jobs:
         with:
           node-version: 22
       - run: npm install
+      - name: Descargar el fondo de la release «recursos» (no está en git)
+        run: node scripts/recursos.js bajar nova-bg.nvb
       - name: Revisar el código
+        env:
+          NOVA_SIN_JARS: "1"   # los .jar del menú de Nova no están en git: los compila «Crear version»
         run: npm test
       - name: Probar que la app arranca
         run: npm run smoke

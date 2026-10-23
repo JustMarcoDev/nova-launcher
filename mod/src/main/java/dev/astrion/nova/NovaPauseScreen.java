@@ -21,7 +21,7 @@ public class NovaPauseScreen extends Screen {
     protected void init() {
         NovaTitleScreen.ensure(client);
         int cx = width / 2, bw = Math.min(124, width - 20), bh = 16, gap = 3;
-        int total = 4 * bh + 3 * gap + 3;                       // volver · logros/estadísticas · ajustes · launcher · salir
+        int total = 5 * bh + 4 * gap + 3;                       // volver · logros/estadísticas · ajustes · HUD · launcher · salir
         int y = Math.max(34, (height - total) / 2 + 6), x = cx - bw / 2;
         int half = (bw - gap) / 2;
 
@@ -36,6 +36,9 @@ public class NovaPauseScreen extends Screen {
         y += bh + gap;
         addDrawableChild(new NovaButton(x, y, bw, bh, Text.literal(tr("Ajustes")), NovaGfx.I_GEAR, NovaButton.NORMAL,
                 b -> client.setScreen(new OptionsScreen(this, client.options))));
+        y += bh + gap;
+        addDrawableChild(new NovaButton(x, y, bw, bh, Text.literal(tr("Editar HUD")), NovaGfx.I_EDIT, NovaButton.NORMAL,
+                b -> client.setScreen(new NovaHudScreen(this))).tip(tr("Editar HUD"), tr("Mueve FPS, CPS, coordenadas y teclas")));
         y += bh + gap;
         addDrawableChild(new NovaButton(x, y, bw, bh, Text.literal(tr("Abrir launcher")), NovaGfx.I_NOVA, NovaButton.NORMAL,
                 b -> System.out.println("[NOVA:SHOW]")));
@@ -54,7 +57,7 @@ public class NovaPauseScreen extends Screen {
     public void render(DrawContext c, int mx, int my, float delta) {
         super.render(c, mx, my, delta);   // fondo del juego + botones
         String t = tr("Juego en pausa");
-        int ty = Math.max(14, Math.max(34, (height - (4 * 16 + 3 * 3 + 3)) / 2 + 6) - 18);
+        int ty = Math.max(14, Math.max(34, (height - (5 * 16 + 4 * 3 + 3)) / 2 + 6) - 18);
         if (NovaGfx.ok) {
             try { NovaGfx.text(client, t, 9f, 0xFFFFFFFF, true).draw(c, width / 2 - NovaGfx.text(client, t, 9f, 0xFFFFFFFF, true).w() / 2, ty, 1f); return; }
             catch (Throwable e) { NovaGfx.ok = false; }

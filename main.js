@@ -466,7 +466,7 @@ ipcMain.handle('play', async (e, { id, server, world, safe }) => {
       : (!ins.ld || ins.ld === 'Vanilla' || ins.ld === 'Fabric') ? (NOVA_MC.includes(ins.mc) ? 'Nova: el menú de Nova no se pudo activar; se juega con el menú normal.\n' : 'Nova: el menú de Nova solo está disponible en Minecraft ' + NOVA_MC[0] + ' a ' + NOVA_MC[NOVA_MC.length - 1] + '; esta versión usa el menú normal.\n')
       : 'Nova: el menú de Nova solo está disponible en Nova y Fabric; ' + ins.ld + ' usa el menú normal.\n';
     if (nova) { fondosScan().catch(() => {}); fondosWatch(); }
-    if (nova) o.customArgs.push('-Dnova.dir=' + novaDir(), '-Dnova.skin=' + (await novaSkin(act.name)), '-Dnova.premium=' + (act.type === 'microsoft' ? '1' : '0'), '-Dnova.user=' + act.name, '-Dnova.bg=' + (novaBg() || ''), '-Dnova.bg2=' + (novaBg('nova-nebulosa.nvb') || ''), '-Dnova.bg3=' + (novaBg('nova-earth.nvb') || ''), '-Dnova.lowpower=' + (LOWRAM ? 'true' : 'false'), '-Dfabric.addMods=' + nj, '-Dnova.version=' + app.getVersion(), '-Dnova.loader=' + (ins.ld === 'Fabric' ? 'Fabric' : 'Nova'));
+    if (nova) o.customArgs.push('-Dnova.dir=' + novaDir(), ...(await (async () => { const k = await novaSkinFor(act); return ['-Dnova.skin=' + k.file, '-Dnova.skinmodel=' + k.model, '-Dnova.skinlocal=' + (k.local ? '1' : '0')]; })()), '-Dnova.premium=' + (act.type === 'microsoft' ? '1' : '0'), '-Dnova.presence=' + (process.env.NOVA_PRESENCE || (() => { try { return require('./package.json').novaPresence || ''; } catch { return ''; } })()), '-Dnova.user=' + act.name, '-Dnova.bg=' + (novaBg() || ''), '-Dnova.bg2=' + (novaBg('nova-nebulosa.nvb') || ''), '-Dnova.bg3=' + (novaBg('nova-earth.nvb') || ''), '-Dnova.lowpower=' + (LOWRAM ? 'true' : 'false'), '-Dfabric.addMods=' + nj, '-Dnova.version=' + app.getVersion(), '-Dnova.loader=' + (ins.ld === 'Fabric' ? 'Fabric' : 'Nova'));
     if (ins.ld === 'Forge' || ins.ld === 'NeoForge') o.version.custom = await forge(ins.ld, ins.mc, java, ins.loaderVersion);
     if (server && server.host) o.quickPlay = { type: modernQP(ins.mc) ? 'multiplayer' : 'legacy', identifier: server.host + (server.port && +server.port !== 25565 ? ':' + server.port : '') };
     if (world && !server && modernQP(ins.mc)) o.quickPlay = { type: 'singleplayer', identifier: String(world) };
@@ -474,7 +474,7 @@ ipcMain.handle('play', async (e, { id, server, world, safe }) => {
     const l = new Client(), tail = [], lg = openLog(ins, java, ram), since = Date.now(); let t0 = 0;
     send('log', '── ' + ins.name + ' · Minecraft ' + ins.mc + ' · ' + (ins.ld || 'Vanilla') + ' · ' + (act.name) + ' ──\n'); send('log', novaMsg);
     l.on('progress', p => send('progress', p));
-    l.on('data', d => { const t = String(d); { const pk = t.match(/\[NOVA:PICKBG(?::([^\]]+))?\]/); if (pk) novaPickBg(pk[1]); if (t.includes('[NOVA:OPENDIR]')) shell.openPath(fondosDir()); } if (t.includes('[NOVA:SETTINGS]') || t.includes('[NOVA:SHOW]')) { try { if (win) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); if (t.includes('[NOVA:SETTINGS]')) send('nav', 'set'); } } catch {} } try { lg.w.write(t.endsWith('\n') ? t : t + '\n'); } catch {} for (const ln of t.split(/\r?\n/)) if (ln) tail.push(ln); if (tail.length > 500) tail.splice(0, tail.length - 300); send('log', t); });
+    l.on('data', d => { const t = String(d); { const pk = t.match(/\[NOVA:PICKBG(?::([^\]]+))?\]/); if (pk) novaPickBg(pk[1]); const gb = t.match(/\[NOVA:GETBG:(nebula|earth)\]/); if (gb) novaBgGet(NOVA_REMOTE_ID[gb[1]]); if (t.includes('[NOVA:OPENDIR]')) shell.openPath(fondosDir()); } if (t.includes('[NOVA:SETTINGS]') || t.includes('[NOVA:SHOW]')) { try { if (win) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); if (t.includes('[NOVA:SETTINGS]')) send('nav', 'set'); } } catch {} } try { lg.w.write(t.endsWith('\n') ? t : t + '\n'); } catch {} for (const ln of t.split(/\r?\n/)) if (ln) tail.push(ln); if (tail.length > 500) tail.splice(0, tail.length - 300); send('log', t); });
     l.on('close', code => {
       running.delete(id); try { lg.w.end(); } catch {} if (t0) { const cur = li().find(i => i.id === id) || {}; upIns(id, { playMs: (cur.playMs || 0) + (Date.now() - t0), lastPlayed: Date.now() }); } discordSet(null); send('running', running.size ? 1 : 0); send('progress', null);
       const crashed = !!code && tail.length > 0;
@@ -968,6 +968,95 @@ ipcMain.handle('acc:login', async () => {
 ipcMain.handle('acc:switch', (e, id) => { const st = accState(); if (!st.a.some(x => x.id === id)) throw new Error('Cuenta no encontrada'); saveAcc(st.a, id); return accOut(); });
 ipcMain.handle('acc:remove', (e, id) => { const st = accState(); if (st.a.length <= 1) throw new Error('Debe quedar al menos una cuenta'); const a = st.a.filter(x => x.id !== id); saveAcc(a, st.act.id === id ? a[0].id : st.act.id); return accOut(); });
 
+// ---- Skins (0.2.15-beta.12): biblioteca de skins, cambio de skin y capa en cuentas Microsoft, y skin local en cuentas offline ----
+// Las skins guardadas viven en <datos>/nova/skins (PNG + skins.json). En Microsoft se suben a Mojang con la sesión cifrada de la cuenta;
+// en offline el launcher pasa la elegida al mod (-Dnova.skin) y solo la ve quien juega (los demás jugadores no).
+const skinsDir = () => { const d = path.join(novaDir(), 'skins'); try { fs.mkdirSync(d, { recursive: true }); } catch {} return d; };
+const skinsIdx = () => { const l = rd(path.join(skinsDir(), 'skins.json'), []); return Array.isArray(l) ? l.filter(x => x && /^s[\w]{3,20}$/.test(x.id)) : []; };
+const skinsPut = l => wr(path.join(skinsDir(), 'skins.json'), l);
+const isPng = b => Buffer.isBuffer(b) && b.length > 67 && b.length < 200000 && b.slice(1, 4).toString() === 'PNG';
+const pngWH = b => [b.readUInt32BE(16), b.readUInt32BE(20)];
+const dataUrl = b => 'data:image/png;base64,' + b.toString('base64');
+const skinFile = id => path.join(skinsDir(), id + '.png');
+const skinSelGet = accId => { const m = load().skinSel; return m && typeof m === 'object' ? m[accId] || '' : ''; };
+const skinSelSet = (accId, id) => { const c = load(), m = { ...(c.skinSel || {}) }; if (id) m[accId] = id; else delete m[accId]; wr(cfgFile, { ...c, skinSel: m }); };
+function skinList() {
+  const act = accState().act, sel = skinSelGet(act.id);
+  const skins = skinsIdx().filter(x => fs.existsSync(skinFile(x.id))).map(x => ({ id: x.id, name: x.name, model: x.model === 'slim' ? 'slim' : 'classic', data: dataUrl(fs.readFileSync(skinFile(x.id))) }));
+  return { skins, sel: skins.some(x => x.id === sel) ? sel : '', acc: { type: act.type, name: act.name } };
+}
+// Token de Minecraft de la cuenta Microsoft activa (se renueva con la sesión cifrada)
+async function msBearer() {
+  const st = accState(), act = st.act;
+  if (act.type !== 'microsoft' || !act.token) throw new Error('Esta función es para cuentas de Microsoft');
+  let x;
+  try { x = await new Auth('select_account').refresh(act.token); } catch { throw new Error('La sesión de Microsoft de «' + act.name + '» caducó. Vuelve a iniciarla desde la cuenta (barra superior).'); }
+  const mc = await x.getMinecraft();
+  saveAcc(st.a.map(z => z.id === act.id ? { ...z, token: x.save() } : z), act.id);
+  return mc.mcToken;
+}
+async function mojang(tok, method, url, opt = {}) {
+  const r = await fetch('https://api.minecraftservices.com' + url, { method, headers: { Authorization: 'Bearer ' + tok, ...(opt.json ? { 'content-type': 'application/json' } : {}) }, body: opt.json ? JSON.stringify(opt.json) : opt.body, signal: AbortSignal.timeout(20000) });
+  if (r.status === 401) throw new Error('La sesión de Microsoft caducó. Vuelve a iniciarla desde la cuenta (barra superior).');
+  if (r.status === 429) throw new Error('Mojang limita los cambios de skin. Espera un minuto y vuelve a intentarlo.');
+  if (!r.ok) { let m = ''; try { m = (await r.json()).errorMessage || ''; } catch {} throw new Error('Mojang rechazó el cambio (' + r.status + ')' + (m ? ': ' + m.slice(0, 120) : '')); }
+  return r;
+}
+const imgUrl = async u => { u = String(u || '').replace(/^http:\/\//, 'https://'); if (!/^https:\/\/([\w-]+\.)?minecraft\.net\//.test(u)) return ''; try { const r = await fetch(u, { signal: AbortSignal.timeout(10000) }); const b = Buffer.from(await r.arrayBuffer()); return isPng(b) ? dataUrl(b) : ''; } catch { return ''; } };
+ipcMain.handle('skin:list', () => skinList());
+ipcMain.handle('skin:save', (e, o) => {
+  const m = /^data:image\/png;base64,([A-Za-z0-9+/=]+)$/.exec(String(o && o.data || '')); if (!m) throw new Error('Elige un archivo .png');
+  const b = Buffer.from(m[1], 'base64'); if (!isPng(b)) throw new Error('Ese archivo no es una imagen PNG válida');
+  const [w, h] = pngWH(b); if (w !== 64 || (h !== 64 && h !== 32)) throw new Error('Una skin de Minecraft mide 64×64 píxeles (o 64×32 las antiguas)');
+  const l = skinsIdx(); if (l.length >= 60) throw new Error('Has guardado demasiadas skins: borra alguna');
+  const id = 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+  fs.writeFileSync(skinFile(id), b);
+  skinsPut([...l, { id, name: String(o.name || 'Skin').replace(/[^\p{L}\p{N} _.\-]/gu, '').trim().slice(0, 30) || 'Skin', model: o.model === 'slim' ? 'slim' : 'classic' }]);
+  return skinList();
+});
+ipcMain.handle('skin:del', (e, id) => {
+  skinsPut(skinsIdx().filter(x => x.id !== id)); try { fs.rmSync(skinFile(String(id).replace(/[^\w]/g, '')), { force: true }); } catch {}
+  const c = load(), m = { ...(c.skinSel || {}) }; let ch = false; for (const k of Object.keys(m)) if (m[k] === id) { delete m[k]; ch = true; } if (ch) wr(cfgFile, { ...c, skinSel: m });
+  return skinList();
+});
+ipcMain.handle('skin:model', (e, o) => { skinsPut(skinsIdx().map(x => x.id === o.id ? { ...x, model: o.model === 'slim' ? 'slim' : 'classic' } : x)); return skinList(); });
+// Usar una skin: en Microsoft se sube a Mojang (cambia para todos); en offline se guarda como skin local del jugador
+ipcMain.handle('skin:use', async (e, id) => {
+  const x = skinsIdx().find(z => z.id === id); if (!x || !fs.existsSync(skinFile(id))) throw new Error('Skin no encontrada');
+  const act = accState().act;
+  if (act.type === 'microsoft') {
+    const tok = await msBearer(), fd = new FormData();
+    fd.append('variant', x.model === 'slim' ? 'slim' : 'classic');
+    fd.append('file', new Blob([fs.readFileSync(skinFile(id))], { type: 'image/png' }), 'skin.png');
+    await mojang(tok, 'POST', '/minecraft/profile/skins', { body: fd });
+  }
+  skinSelSet(act.id, id);
+  return { ...skinList(), mode: act.type === 'microsoft' ? 'microsoft' : 'offline' };
+});
+ipcMain.handle('skin:unset', () => { skinSelSet(accState().act.id, ''); return skinList(); });
+// Skin y capas actuales de la cuenta Microsoft (para la vista previa y la lista de capas)
+ipcMain.handle('skin:current', async () => {
+  const act = accState().act; if (act.type !== 'microsoft') return { offline: true };
+  const tok = await msBearer(), p = await (await mojang(tok, 'GET', '/minecraft/profile')).json();
+  const sk = (p.skins || []).find(z => z.state === 'ACTIVE') || (p.skins || [])[0];
+  const capes = await Promise.all((p.capes || []).map(async c => ({ id: c.id, alias: c.alias || 'Capa', active: c.state === 'ACTIVE', data: await imgUrl(c.url) })));
+  return { name: p.name, skin: sk ? { variant: String(sk.variant || '').toLowerCase() === 'slim' ? 'slim' : 'classic', data: await imgUrl(sk.url) } : null, capes };
+});
+ipcMain.handle('cape:set', async (e, id) => {
+  const tok = await msBearer();
+  if (id) await mojang(tok, 'PUT', '/minecraft/profile/capes/active', { json: { capeId: String(id) } });
+  else await mojang(tok, 'DELETE', '/minecraft/profile/capes/active');
+  return true;
+});
+// Skin que se pasa al juego: la elegida en una cuenta offline, o la que descarga novaSkin de la cuenta
+async function novaSkinFor(act) {
+  if (act.type !== 'microsoft') {
+    const id = skinSelGet(act.id), x = id && skinsIdx().find(z => z.id === id);
+    if (x && fs.existsSync(skinFile(id))) return { file: skinFile(id), model: x.model === 'slim' ? 'slim' : 'classic', local: true };
+  }
+  return { file: await novaSkin(act.name), model: '', local: false };
+}
+
 // ---- Bandeja de Windows y notificaciones ----
 // Sin icono junto al reloj: el launcher se minimiza a la barra de tareas y nunca se esconde. trayInit se deja para las llamadas existentes.
 let trayImg = null;
@@ -1410,10 +1499,58 @@ async function novaPickBg(target) {
   } catch {} finally { PICKING = false; if (wasMin && win) { try { win.minimize(); } catch {} } }
 }
 const LOW720 = new Set();   // fondos que se están reescalando a 720p ahora mismo
+// Fondos que NO vienen en el instalador: se descargan de la release «recursos» (fondos.json con URL y sha256) cuando el usuario los elige.
+const NOVA_REMOTE_BG = { 'nova-nebulosa.nvb': 'Nebulosa', 'nova-earth.nvb': 'Earth' };
+const NOVA_REMOTE_ID = { nebula: 'nova-nebulosa.nvb', earth: 'nova-earth.nvb' };
+const FONDOS_BASE = 'https://github.com/' + UPD.owner + '/' + UPD.repo + '/releases/download/recursos/';
+let fondosMan = null, fondosManT = 0; const BGDL = new Map();
+async function fondosManifest() {
+  if (fondosMan && Date.now() - fondosManT < 6 * 3600e3) return fondosMan;
+  const r = await fetch(FONDOS_BASE + 'fondos.json', { signal: AbortSignal.timeout(8000), headers: { 'User-Agent': UA() } });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  fondosMan = await r.json(); fondosManT = Date.now(); return fondosMan;
+}
+const nbvEntryOk = e => !!e && typeof e.url === 'string' && e.url.startsWith(FONDOS_BASE) && /^[0-9a-f]{64}$/.test(String(e.sha256 || '')) && +e.size > 0;
+const nbvPath = f => path.join(root, 'nova', f);
+const nbvHave = f => { try { return fs.statSync(nbvPath(f)).size > 32; } catch { return false; } };
+function nbvState(f, o) {   // el mod lee este estado (fondos-estado.json) para enseñar el progreso dentro del juego
+  const m = fondosJson('fondos-estado.json'); if (o) m[f] = o; else delete m[f]; fondosJson('fondos-estado.json', m);
+  send('nvbg:state', { file: f, have: nbvHave(f), ...(o || { state: 'ok' }) });
+}
+// Descarga un fondo (con progreso y comprobando el sha256). Sin conexión o si falla, no pasa nada grave: se sigue con el agujero negro.
+function novaBgGet(f) {
+  if (!NOVA_REMOTE_BG[f]) return Promise.resolve(false);
+  if (nbvHave(f)) return Promise.resolve(true);
+  if (BGDL.has(f)) return BGDL.get(f);
+  const p = (async () => {
+    let timer = null; const dst = nbvPath(f), tmp = dst + '.dl';
+    try {
+      nbvState(f, { state: 'working', progress: 0 });
+      const m = await fondosManifest(), e = m && m.files && m.files[f];
+      if (!nbvEntryOk(e)) throw new Error('El fondo no está en la lista de recursos');
+      fs.mkdirSync(path.dirname(dst), { recursive: true });
+      timer = setInterval(() => { try { nbvState(f, { state: 'working', progress: Math.min(0.99, fs.statSync(tmp + '.part').size / e.size) }); } catch {} }, 700);
+      await dl([e.url], tmp, {});
+      clearInterval(timer); timer = null;
+      if (await hashFile(tmp, 'sha256') !== e.sha256) { await rmQ(tmp); throw new Error('Archivo corrupto: la huella no coincide'); }
+      await mv(tmp, dst);
+      nbvState(f, null); send('status', 'Fondo «' + NOVA_REMOTE_BG[f] + '» descargado');
+      return true;
+    } catch (e) {
+      if (timer) clearInterval(timer);
+      nbvState(f, { state: 'error', msg: String(e && e.message || e).slice(0, 80) });
+      return false;
+    } finally { BGDL.delete(f); }
+  })();
+  BGDL.set(f, p); return p;
+}
 function novaBg(file = 'nova-bg.nvb') {
-  const src = path.join(__dirname, 'assets', file);
-  if (!fs.existsSync(src)) return null;
-  const dst = path.join(root, 'nova', file);
+  const bundled = path.join(__dirname, 'assets', file), dst = path.join(root, 'nova', file);
+  if (!fs.existsSync(bundled)) {
+    // Fondo descargable: se devuelve la ruta donde estará; el mod lo muestra como «por descargar» hasta que el archivo exista
+    return NOVA_REMOTE_BG[file] ? dst : null;
+  }
+  const src = bundled;
   try {
     const a = fs.statSync(src), b = fs.existsSync(dst) ? fs.statSync(dst) : null;
     if (!b || b.size !== a.size) { fs.mkdirSync(path.dirname(dst), { recursive: true }); fs.writeFileSync(dst, fs.readFileSync(src)); }
@@ -1421,6 +1558,13 @@ function novaBg(file = 'nova-bg.nvb') {
   try { const low = require('./nvb').lowPath(dst); if (!LOW720.has(dst) && (!fs.existsSync(low) || fs.statSync(low).mtimeMs < fs.statSync(dst).mtimeMs)) { LOW720.add(dst); require('./nvb').make720(dst).catch(() => {}).finally(() => LOW720.delete(dst)); } } catch {}
   return dst;
 }
+ipcMain.handle('nvbg:list', async () => {
+  let man = null; try { man = await fondosManifest(); } catch {}
+  const st = fondosJson('fondos-estado.json');
+  return Object.keys(NOVA_REMOTE_BG).map(f => { const e = man && man.files && man.files[f], s = st[f] || null; return { file: f, name: NOVA_REMOTE_BG[f], have: nbvHave(f), size: e && +e.size || 0, state: BGDL.has(f) ? 'working' : (s && s.state === 'error' ? 'error' : 'idle'), progress: s && s.progress || 0, online: !!man }; });
+});
+ipcMain.handle('nvbg:get', async (e, f) => { await novaBgGet(String(f)); return true; });
+ipcMain.handle('nvbg:del', (e, f) => { f = String(f); if (!NOVA_REMOTE_BG[f] || BGDL.has(f)) return false; try { fs.unlinkSync(nbvPath(f)); } catch {} try { const l = require('./nvb').lowPath(nbvPath(f)); fs.unlinkSync(l); } catch {} nbvState(f, null); return true; });
 // ===== Menú de Nova: actualizar el mod sin sacar una versión nueva del launcher =====
 // Cada release sube los nova-menu-<mc>.jar y un nova-menu.json (versión, URL y sha256 por versión de Minecraft). Antes de lanzar se mira ese JSON
 // (con caché de 6 h y sin esperar si no hay conexión). Si hay un jar más nuevo se descarga, se comprueba su sha256 y se usa; si algo falla se usa el jar
