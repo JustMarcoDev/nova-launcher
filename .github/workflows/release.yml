@@ -33,6 +33,7 @@ jobs:
         working-directory: mod
         run: |
           # Una línea de mod/versions.txt por versión de Minecraft; los .jar sustituyen a los de assets/mods
+          mkdir -p ../assets/mods   # los .jar ya no están en git: la carpeta no existe en un clon limpio
           tr -d '\r' < versions.txt | grep -v '^#' | grep -v '^$' | while read -r MC YARN LAYERS; do
             echo "== Menú de Nova para Minecraft $MC"
             gradle build --no-daemon -q -Pmc="$MC" -Pyarn="$YARN" -Players="${LAYERS:-legacy,in-old,btn-old,hud-f,fov-d,skin-o}" < /dev/null
