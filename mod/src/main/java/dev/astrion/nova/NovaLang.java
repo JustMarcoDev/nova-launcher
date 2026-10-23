@@ -140,5 +140,6 @@ final class NovaLang {
         p("Noreste", "Northeast", "Nord-est", "Nordosten", "Nord-est", "Nordeste");
         p("Este", "East", "Est", "Osten", "Est", "Leste");
         p("Sureste", "Southeast", "Sud-est", "Südosten", "Sud-est", "Sudeste");
+        p("Arrastra: mover · Esquina: tamaño · X: quitar", "Drag: move · Corner: resize · X: remove", "Glisser : déplacer · Coin : taille · X : retirer", "Ziehen: bewegen · Ecke: Größe · X: entfernen", "Trascina: sposta · Angolo: dimensione · X: rimuovi", "Arrastar: mover · Canto: tamanho · X: remover");
     }
 }

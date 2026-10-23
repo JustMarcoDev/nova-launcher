@@ -15,7 +15,8 @@ import org.lwjgl.glfw.GLFW;
  */
 public class NovaHudScreen extends NovaScreen {
     private final Screen parent;
-    private NovaHud.El drag;
+    private NovaHud.El drag, size;
+    private float sizeX0, sizeY0, sizeUW, sizeUH;
     private int offX, offY;
     private boolean wasDown, listening;
 
@@ -80,16 +81,34 @@ public class NovaHudScreen extends NovaScreen {
         for (int i = 0; i < NovaHud.ALL.length; i++) {
             NovaHud.El e = NovaHud.ALL[i];
             if (!e.on) continue;
-            int[] s = NovaHud.size(client, e, sample), p = NovaHud.pos(e, sw, sh, s[0], s[1]);
+            int[] s = NovaHud.sizeS(client, e, sample), p = NovaHud.pos(e, sw, sh, s[0], s[1]);
             box[i] = new int[] { p[0], p[1], s[0], s[1] };
         }
-        if (down && !wasDown && !overWidget(mx, my)) {   // empieza a arrastrar el elemento que hay bajo el cursor
+        if (down && !wasDown && !overWidget(mx, my)) {   // clic: primero la X (quitar), luego la esquina (tamaño) y por último el cuerpo (mover)
             for (int i = NovaHud.ALL.length - 1; i >= 0; i--) {
                 int[] b = box[i];
-                if (b != null && mx >= b[0] && mx <= b[0] + b[2] && my >= b[1] && my <= b[1] + b[3]) { drag = NovaHud.ALL[i]; offX = mx - b[0]; offY = my - b[1]; break; }
+                if (b == null) continue;
+                int[] xb = xBtn(b, sw), hb = handle(b);
+                if (in(mx, my, xb[0], xb[1], XS, XS)) { NovaHud.ALL[i].on = false; clearAndInit(); box[i] = null; break; }
+                if (in(mx, my, hb[0], hb[1], HS, HS)) {
+                    size = NovaHud.ALL[i]; sizeX0 = b[0]; sizeY0 = b[1];
+                    int[] u = NovaHud.size(client, size, sample); sizeUW = u[0]; sizeUH = u[1];
+                    break;
+                }
+                if (in(mx, my, b[0], b[1], b[2], b[3])) { drag = NovaHud.ALL[i]; offX = mx - b[0]; offY = my - b[1]; break; }
             }
         }
-        if (!down) drag = null;
+        if (!down) { drag = null; size = null; }
+        if (size != null) {   // cambiar el tamaño: la esquina de arriba a la izquierda se queda quieta
+            int i = java.util.Arrays.asList(NovaHud.ALL).indexOf(size);
+            float k = NovaHud.clampS(Math.max((mx - sizeX0) / sizeUW, (my - sizeY0) / sizeUH));
+            size.scale = k;
+            int nw = Math.max(1, Math.round(sizeUW * k)), nh = Math.max(1, Math.round(sizeUH * k));
+            size.fx = NovaHud.clamp01(sizeX0 / Math.max(1, sw - nw));
+            size.fy = NovaHud.clamp01(sizeY0 / Math.max(1, sh - nh));
+            int[] p = NovaHud.pos(size, sw, sh, nw, nh);
+            box[i] = new int[] { p[0], p[1], nw, nh };
+        }
         if (drag != null) {
             int i = java.util.Arrays.asList(NovaHud.ALL).indexOf(drag);
             int[] b = box[i];
@@ -103,17 +122,35 @@ public class NovaHudScreen extends NovaScreen {
         for (int i = 0; i < NovaHud.ALL.length; i++) {
             int[] b = box[i];
             if (b == null) continue;
-            NovaHud.draw(c, client, NovaHud.ALL[i], b[0], b[1], sample);
-            boolean hot = NovaHud.ALL[i] == drag || (mx >= b[0] && mx <= b[0] + b[2] && my >= b[1] && my <= b[1] + b[3]);
+            NovaHud.drawS(c, client, NovaHud.ALL[i], b[0], b[1], sample);
+            boolean hot = NovaHud.ALL[i] == drag || NovaHud.ALL[i] == size || in(mx, my, b[0] - 2, b[1] - 2, b[2] + 4, b[3] + 4);
             int col = hot ? 0xCC000000 | (NovaSettings.accent & 0xFFFFFF) : 0x55FFFFFF;
             c.fill(b[0] - 2, b[1] - 2, b[0] + b[2] + 2, b[1] - 1, col);
             c.fill(b[0] - 2, b[1] + b[3] + 1, b[0] + b[2] + 2, b[1] + b[3] + 2, col);
             c.fill(b[0] - 2, b[1] - 1, b[0] - 1, b[1] + b[3] + 1, col);
             c.fill(b[0] + b[2] + 1, b[1] - 1, b[0] + b[2] + 2, b[1] + b[3] + 1, col);
+            // X para quitarlo (rojo) y esquina para cambiar el tamaño
+            int[] xb = xBtn(b, sw), hb = handle(b);
+            boolean ox = in(mx, my, xb[0], xb[1], XS, XS), oh = in(mx, my, hb[0], hb[1], HS, HS) || NovaHud.ALL[i] == size;
+            c.fill(xb[0], xb[1], xb[0] + XS, xb[1] + XS, ox ? 0xFFFF4D4D : 0xE0C93030);
+            c.drawText(textRenderer, "x", xb[0] + 3, xb[1] + 1, 0xFFFFFFFF, false);
+            c.fill(hb[0], hb[1], hb[0] + HS, hb[1] + HS, oh ? 0xFFFFFFFF : 0xE0000000 | (NovaSettings.accent & 0xFFFFFF));
+            c.fill(hb[0] + 2, hb[1] + 2, hb[0] + HS - 2, hb[1] + HS - 2, 0xFF101018);
+            if (hot) c.drawCenteredTextWithShadow(textRenderer, Math.round(NovaHud.ALL[i].scale * 100f) + "%", b[0] + b[2] / 2, Math.min(sh - 10, b[1] + b[3] + 4), 0xFFFFFFFF);
         }
         c.drawCenteredTextWithShadow(textRenderer, tr("Editar HUD"), width / 2, 10, 0xFFFFFFFF);
-        c.drawCenteredTextWithShadow(textRenderer, tr("Arrastra los elementos para colocarlos"), width / 2, 22, 0xFFB8B8D8);
+        c.drawCenteredTextWithShadow(textRenderer, tr("Arrastra: mover · Esquina: tamaño · X: quitar"), width / 2, 22, 0xFFB8B8D8);
     }
+
+    private static final int XS = 9, HS = 8;
+
+    private static boolean in(int mx, int my, int x, int y, int w, int h) { return mx >= x && mx < x + w && my >= y && my < y + h; }
+
+    /** Botón X: arriba a la derecha del elemento, sin salirse de la pantalla. */
+    private static int[] xBtn(int[] b, int sw) { return new int[] { Math.min(b[0] + b[2] + 3, sw - XS), Math.max(0, b[1] - XS - 1) }; }
+
+    /** Esquina de abajo a la derecha para cambiar el tamaño. */
+    private static int[] handle(int[] b) { return new int[] { b[0] + b[2] - 2, b[1] + b[3] - 2 }; }
 
     private boolean overWidget(int mx, int my) {
         for (Element ch : children()) if (ch.isMouseOver(mx, my)) return true;
