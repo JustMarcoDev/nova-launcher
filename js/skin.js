@@ -1,4 +1,4 @@
-// Pestaña Skin (0.2.15-beta.12): vista 3D, biblioteca de skins, cambio de skin y capa (Microsoft) y skin local (offline)
+// Pestaña Skin (0.2.15-beta.13): vista 3D, biblioteca de skins, cambio de skin y capa (Microsoft) y skin local (offline)
 let SKV=null,SKS={skins:[],sel:"",acc:{type:"offline",name:""}},SKC=null,SKD=null,SKCAPE=undefined,SKB=false;
 const SKA=()=>A||(typeof DA!=="undefined"?DA:null);
 function skBundle(){return window.skinview3d?Promise.resolve():new Promise((ok,no)=>{const s=document.createElement("script");s.src="js/vendor/skinview3d.bundle.js";s.onload=ok;s.onerror=()=>no(new Error("No se pudo cargar la vista 3D"));document.head.appendChild(s)})}
@@ -16,12 +16,13 @@ async function skShow(){
 function skThumb(d){return `style="--d:url('${d}')"`}
 function skDraw(){
   const ms=skMs(),sel=SKS.sel;
-  $("sks").textContent=ms?"Cuenta de Microsoft: la skin y la capa que elijas cambian en tu cuenta de Minecraft y las ven todos los jugadores.":"Cuenta sin conexión: la skin que elijas solo la verás tú (los demás jugadores no la ven). Para que todos la vean hace falta una cuenta de Microsoft.";
+  $("sks").textContent=ms?"Cuenta de Microsoft: la skin y la capa que elijas cambian en tu cuenta de Minecraft (la ven todos los jugadores) y tú la ves al instante en el juego.":"Cuenta sin conexión: la skin que elijas solo la verás tú (los demás jugadores no la ven). Para que todos la vean hace falta una cuenta de Microsoft.";
   $("skmd").querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.m===(SKD?SKD.model:"classic")));
   const cur=SKD&&SKD.id,useTxt=ms?"Aplicar a mi cuenta":"Usar esta skin";
-  $("sku").textContent=useTxt;$("sku").disabled=!(SKD&&SKD.data)||SKB;$("skg").disabled=!(SKD&&SKD.data&&!SKD.id)||SKB;
-  $("skx").style.display=!ms&&sel?"":"none";
-  $("skl").innerHTML=SKS.skins.length?SKS.skins.map(s=>`<div class="skc${s.id===cur?" on":""}${s.id===sel?" use":""}" data-id="${esc(s.id)}" tabindex="0"><span class="skhd" ${skThumb(s.data)}></span><b>${esc(s.name)}</b><small>${s.model==="slim"?"Fina":"Clásica"}</small>${s.id===sel?`<small class="sku2">En uso</small>`:""}<button class="skdl" data-del="${esc(s.id)}" title="Borrar" aria-label="Borrar">${IC("x")}</button></div>`).join(""):`<p class="sub">Aún no has guardado ninguna skin. Sube un .png de 64×64 y pulsa «Guardar en mi lista».</p>`;
+  $("sku").textContent=useTxt;$("sku").disabled=!(SKD&&SKD.data)||SKB;  $("skx").style.display=sel?"":"none";
+  const sv=SKD&&SKD.id?SKS.skins.find(z=>z.id===SKD.id):null;$("skt").style.display=sv?"":"none";if(sv&&$("skni").hidden)$("sknm").textContent=sv.name;
+  ["skrn","skrp","skdel"].forEach(i=>$(i).disabled=SKB);
+  $("skl").innerHTML=SKS.skins.length?SKS.skins.map(s=>`<div class="skc${s.id===cur?" on":""}${s.id===sel?" use":""}" data-id="${esc(s.id)}" tabindex="0"><span class="skhd" ${skThumb(s.data)}></span><b>${esc(s.name)}</b><small>${s.model==="slim"?"Fina":"Clásica"}</small>${s.id===sel?`<small class="sku2">En uso</small>`:""}<button class="skdl" data-del="${esc(s.id)}" title="Eliminar skin" aria-label="Eliminar skin">${IC("x")}</button></div>`).join(""):`<p class="sub">Aún no has guardado ninguna skin. Sube un .png de 64×64 y se guardará aquí.</p>`;
   $("skcp").style.display=ms?"":"none";
   if(ms){const cs=(SKC&&SKC.capes)||[];$("skcl").innerHTML=cs.length?[`<button class="chip${!SKCAPE?" on":""}" data-c="">Sin capa</button>`,...cs.map(c=>`<button class="chip${SKCAPE&&SKCAPE.id===c.id?" on":""}" data-c="${esc(c.id)}">${esc(c.alias)}${c.active?" ✓":""}</button>`)].join(""):`<span class="sub">Tu cuenta no tiene capas.</span>`;
     const act=cs.find(c=>c.active);$("skca").disabled=SKB||((SKCAPE?SKCAPE.id:"")===(act?act.id:""));}
@@ -63,18 +64,31 @@ async function skSave(){
 }
 function skBusy(b){SKB=b;skDraw()}
 function skInit(){
-  $("skf").onchange=async()=>{const f=$("skf").files[0];$("skf").value="";try{const d=await skRead(f);SKD={data:d,model:SKD?SKD.model:"classic",name:f.name.replace(/\.png$/i,"").slice(0,30)||"Skin"};skDraw();skShow()}catch(e){flash(em(e))}};
+  $("skf").onchange=async()=>{const f=$("skf").files[0];$("skf").value="";try{const d=await skRead(f);SKD={data:d,model:SKD?SKD.model:"classic",name:f.name.replace(/\.png$/i,"").slice(0,30)||"Skin"};skDraw();skShow();await skSave();skDraw();flash("Skin guardada en la carpeta del launcher ✓")}catch(e){flash(em(e))}};
   $("sks2").onclick=()=>$("skf").click();
   $("skmd").onclick=async e=>{const b=e.target.closest("button[data-m]");if(!b||!SKD)return;SKD.model=b.dataset.m;if(SKD.id){try{SKS=await SKA().skinModel({id:SKD.id,model:SKD.model})}catch(x){flash(em(x))}}skDraw();skShow()};
-  $("skg").onclick=async()=>{try{skBusy(true);await skSave();flash("Skin guardada ✓")}catch(e){flash(em(e))}finally{skBusy(false);skDraw()}};
   $("sku").onclick=async()=>{
     const api=SKA();if(!api||!SKD||!SKD.data)return;
     try{skBusy(true);if(!SKD.id)await skSave();const r=await api.skinUse(SKD.id);SKS=r;flash(r.mode==="microsoft"?"Skin cambiada en tu cuenta ✓ (puede tardar un momento en verse en el juego)":"Skin aplicada ✓ Solo tú la verás al jugar")}
     catch(e){flash(em(e))}finally{skBusy(false);skDraw()}};
   $("skx").onclick=async()=>{try{SKS=await SKA().skinUnset();flash("Vuelves a la skin de tu nombre");skDraw()}catch(e){flash(em(e))}};
+  const del=async id=>{if(!confirm(trad("¿Eliminar esta skin? Se borra de la carpeta del launcher.")))return;try{SKS=await SKA().skinDel(id);if(SKD&&SKD.id===id){SKD={...SKD,id:undefined}}skDraw();flash("Skin eliminada")}catch(x){flash(em(x))}};
+  const ren=async()=>{const i=$("skni"),sv=SKS.skins.find(z=>z.id===(SKD&&SKD.id));if(!sv)return;
+    if(i.hidden){i.value=sv.name;i.hidden=false;$("sknm").hidden=true;$("skrn").textContent=trad("Guardar nombre");i.focus();i.select();return}
+    const n=i.value.trim();i.hidden=true;$("sknm").hidden=false;$("skrn").textContent=trad("Editar nombre");
+    if(!n||n===sv.name)return;try{SKS=await SKA().skinRename({id:sv.id,name:n});SKD={...SKD,name:(SKS.skins.find(z=>z.id===sv.id)||{}).name||n};skDraw();flash("Nombre cambiado ✓")}catch(x){flash(em(x))}};
+  $("skrn").onclick=ren;
+  $("skni").onkeydown=e=>{if(e.key==="Enter")ren();if(e.key==="Escape"){$("skni").hidden=true;$("sknm").hidden=false;$("skrn").textContent=trad("Editar nombre")}};
+  $("skdel").onclick=()=>SKD&&SKD.id&&del(SKD.id);
+  $("skrp").onclick=()=>$("skf2").click();
+  $("skf2").onchange=async()=>{const f=$("skf2").files[0];$("skf2").value="";if(!SKD||!SKD.id)return;
+    try{const d=await skRead(f);skBusy(true);const id=SKD.id;SKS=await SKA().skinReplace({id,data:d});SKD={...SKS.skins.find(z=>z.id===id)};skShow();
+      flash(skMs()&&SKS.sel===id?"PNG cambiado ✓ Pulsa «Aplicar a mi cuenta» para subirlo a Mojang":"PNG cambiado ✓")}
+    catch(e){flash(em(e))}finally{skBusy(false);skDraw()}};
+  $("skfo").onclick=()=>SKA().skinFolder().catch(e=>flash(em(e)));
   $("skl").onclick=async e=>{
     const d=e.target.closest("[data-del]");
-    if(d){if(!confirm(trad("¿Borrar esta skin de tu lista?")))return;try{const id=d.dataset.del;SKS=await SKA().skinDel(id);if(SKD&&SKD.id===id){SKD={...SKD,id:undefined}}skDraw()}catch(x){flash(em(x))}return}
+    if(d){del(d.dataset.del);return}
     const c=e.target.closest(".skc");if(!c)return;const s=SKS.skins.find(z=>z.id===c.dataset.id);if(!s)return;SKD={...s};skDraw();skShow()};
   $("skcl").onclick=e=>{const b=e.target.closest("button[data-c]");if(!b)return;SKCAPE=b.dataset.c?(SKC.capes||[]).find(c=>c.id===b.dataset.c):undefined;skDraw();skShow()};
   $("skca").onclick=async()=>{try{skBusy(true);await SKA().capeSet(SKCAPE?SKCAPE.id:null);SKC=await SKA().skinCurrent();flash(SKCAPE?"Capa cambiada ✓":"Capa quitada ✓")}catch(e){flash(em(e))}finally{skBusy(false);skDraw()}};

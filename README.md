@@ -84,10 +84,13 @@ La pestaña **Servidores** (Alt + 4) muestra servidores conocidos con jugadores 
 - **Beta:** si la versión de `package.json` lleva guion (por ejemplo `0.2.14-beta.1`), el flujo la publica como *pre-release*. Solo la reciben los launchers con Ajustes → Rendimiento → Canal de actualizaciones = **Beta**. Los de **Estable** la ignoran. Para una beta sin entrada propia se usa la de la versión sin el sufijo.
 - **Volver a la versión anterior:** Ajustes → Acerca de → Volver a una versión anterior. Lista las releases de GitHub más antiguas que la instalada y ejecuta su instalador. Para que no se actualice sola otra vez, desactiva «Buscar actualizaciones al abrir»; vuelve a activarlo en Ajustes → Rendimiento cuando quieras.
 
-## Instalar y actualizar sin permisos de administrador (desde la 0.2.15)
+## Instalar para todos los usuarios o solo para ti (desde la 0.2.15-beta.13)
 
-El instalador ya no pide permisos de administrador: siempre instala en `%LOCALAPPDATA%\Programs\Nova Launcher` (solo para tu usuario) y las actualizaciones automáticas no muestran el aviso de Windows (UAC).
-**Si instalaste Nova Launcher «para todos los usuarios»** (en `Archivos de programa`), desinstálalo y vuelve a instalarlo una vez con el instalador nuevo. Tus datos de la carpeta `.nova` (mundos, instancias, ajustes) se conservan.
+El instalador pregunta cómo instalar:
+- **Solo para mí** (`%LOCALAPPDATA%\Programs\Nova Launcher`): no pide permisos de administrador, ni al instalar ni al actualizar.
+- **Para todos los usuarios del equipo** (`Archivos de programa`): pide permisos de administrador al instalar y también al actualizar (aviso de Windows, UAC), porque la carpeta es del sistema.
+
+Las actualizaciones automáticas respetan el modo con el que instalaste. (De la beta.7 a la beta.12 el instalador instalaba siempre «solo para mí»; esas instalaciones siguen igual y no piden administrador.)
 
 ## Actualizar el menú de Nova sin sacar una versión nueva del launcher (desde la 0.2.15)
 
@@ -153,6 +156,13 @@ Nova Launcher es un proyecto independiente de **Astrion Studio**. © 2026 Astrio
 Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión del launcher, para saber de un vistazo qué se ha **añadido**, qué se ha **mejorado** y qué se ha **quitado**. Cada vez que se publique una versión nueva hay que añadir una entrada al principio de la lista de abajo. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**.
 
 ## Historial de actualizaciones
+
+### 0.2.15-beta.13 — Instalador para todos o solo para ti, y skins mejoradas
+
+- **Instalador**: vuelve la pregunta «para todos los usuarios / solo para mí». Si se instala para todos, actualizar pide permisos de administrador (UAC); si es solo para tu usuario, no pide nada. Se quita `build/installer.nsh`, que forzaba la instalación por usuario.
+- **Skins guardadas en una carpeta del launcher**: al subir un `.png` se guarda solo (ya no hace falta «Guardar en mi lista») y hay un botón «Abrir carpeta de skins».
+- **Barra de la skin seleccionada**: «Editar nombre», «Cambiar PNG» y un botón rojo «Eliminar skin»; además cada tarjeta lleva una × roja siempre visible.
+- **Arreglo: la skin no salía en singleplayer ni con cuenta Microsoft**. Ahora el launcher escribe `skin-local.png/json` y el mod los lee cada segundo, así que la skin cambia al instante, sin reiniciar y con cualquier tipo de cuenta. Con Microsoft además se sube a Mojang para que la vean los demás. Requiere el mod de Nova (Nova/Fabric 1.20–1.21.11).
 
 ### 0.2.15-beta.12 — Fondos fuera del instalador, HUD, logo en TAB y skins
 

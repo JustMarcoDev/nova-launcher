@@ -4149,8 +4149,13 @@ html[data-cb=Grises] {
 .skc small { color: var(--m); font-size: 11px; }
 .skc .sku2 { color: var(--ac); }
 .skhd { width: 40px; height: 40px; image-rendering: pixelated; background-image: var(--d), var(--d); background-repeat: no-repeat; background-size: 320px auto, 320px auto; background-position: -40px -40px, -200px -40px; border-radius: 4px; margin-bottom: 4px; }
-.skdl { all: unset; position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; display: grid; place-items: center; border-radius: 6px; color: var(--m); cursor: pointer; opacity: 0; }
-.skc:hover .skdl, .skc:focus-within .skdl { opacity: 1; }
-.skdl:hover { color: #ff5d5d; background: rgba(255,255,255,.08); }
+.skdl { all: unset; position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; display: grid; place-items: center; border-radius: 6px; color: #ff6b6b; background: rgba(255,80,80,.14); cursor: pointer; }
+.skdl:hover, .skdl:focus-visible { color: #fff; background: #e5484d; }
 .skdl .ic { width: 12px; height: 12px; }
+.skt { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--l); }
+.skn { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.skn b { font-size: 14px; }
+.skn input { flex: 1; min-width: 120px; padding: 6px 9px; border-radius: 8px; border: 1px solid var(--ac); background: var(--p2); color: inherit; font: inherit; }
+.skp .btn.skdel { background: #e5484d; border-color: #e5484d; color: #fff; font-weight: 700; margin-left: auto; }
+.skp .btn.skdel:hover:not(:disabled) { background: #cf3a3f; }
 @media (max-width: 860px) { .skw { grid-template-columns: 1fr; } }

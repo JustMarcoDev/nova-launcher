@@ -60,6 +60,8 @@ const w = dom.window, sleep = ms => new Promise(r => setTimeout(r, ms));
     if (!/sin conexión/.test(g('sks').textContent)) errors.push('Skin: falta el aviso de cuenta sin conexión');
     if (g('skcp').style.display !== 'none') errors.push('Skin: las capas solo deben verse con cuenta Microsoft');
     if (g('skx').style.display === 'none') errors.push('Skin: falta «Quitar la skin local» con una skin local elegida');
+    if (g('skt').style.display === 'none') errors.push('Skin: falta la barra de la skin seleccionada (editar nombre / cambiar PNG / eliminar)');
+    for (const i of ['skrn', 'skrp', 'skdel', 'skfo']) if (!g(i)) errors.push('Skin: falta el botón ' + i);
     mock.skinList = { ...mock.skinList, acc: { type: 'microsoft', name: 'Marco' } }; mock.skinCurrent = { name: 'Marco', skin: { variant: 'slim', data: 'data:image/png;base64,iVBORw0KGgo=' }, capes: [{ id: 'c1', alias: 'Migrator', active: true, data: '' }] };
     await w.eval('skLoad()'); await sleep(50);
     if (g('skcp').style.display === 'none' || !/Migrator/.test(g('skcl').textContent)) errors.push('Skin: no salen las capas de la cuenta Microsoft');

@@ -230,7 +230,7 @@ ipcMain.handle('upd:install', () => {
   setTimeout(() => {
     try {
       const f = updater.downloadedUpdateHelper && updater.downloadedUpdateHelper.file;
-      if (f && fs.existsSync(f)) require('child_process').spawn(f, ['/S', '--updated', '--force-run'], { detached: true, stdio: 'ignore' }).unref();
+      if (f && fs.existsSync(f)) require('child_process').spawn(f, ['/S', '--updated', '--force-run'], { detached: true, stdio: 'ignore' }).on('error', () => {}).unref();
     } catch {}
     app.exit(0);
   }, ok ? 8000 : 500);
@@ -466,7 +466,7 @@ ipcMain.handle('play', async (e, { id, server, world, safe }) => {
       : (!ins.ld || ins.ld === 'Vanilla' || ins.ld === 'Fabric') ? (NOVA_MC.includes(ins.mc) ? 'Nova: el menú de Nova no se pudo activar; se juega con el menú normal.\n' : 'Nova: el menú de Nova solo está disponible en Minecraft ' + NOVA_MC[0] + ' a ' + NOVA_MC[NOVA_MC.length - 1] + '; esta versión usa el menú normal.\n')
       : 'Nova: el menú de Nova solo está disponible en Nova y Fabric; ' + ins.ld + ' usa el menú normal.\n';
     if (nova) { fondosScan().catch(() => {}); fondosWatch(); }
-    if (nova) o.customArgs.push('-Dnova.dir=' + novaDir(), ...(await (async () => { const k = await novaSkinFor(act); return ['-Dnova.skin=' + k.file, '-Dnova.skinmodel=' + k.model, '-Dnova.skinlocal=' + (k.local ? '1' : '0')]; })()), '-Dnova.premium=' + (act.type === 'microsoft' ? '1' : '0'), '-Dnova.presence=' + (process.env.NOVA_PRESENCE || (() => { try { return require('./package.json').novaPresence || ''; } catch { return ''; } })()), '-Dnova.user=' + act.name, '-Dnova.bg=' + (novaBg() || ''), '-Dnova.bg2=' + (novaBg('nova-nebulosa.nvb') || ''), '-Dnova.bg3=' + (novaBg('nova-earth.nvb') || ''), '-Dnova.lowpower=' + (LOWRAM ? 'true' : 'false'), '-Dfabric.addMods=' + nj, '-Dnova.version=' + app.getVersion(), '-Dnova.loader=' + (ins.ld === 'Fabric' ? 'Fabric' : 'Nova'));
+    if (nova) o.customArgs.push('-Dnova.dir=' + novaDir(), '-Dnova.skin=' + (await novaSkinFor(act)).file, '-Dnova.premium=' + (act.type === 'microsoft' ? '1' : '0'), '-Dnova.presence=' + (process.env.NOVA_PRESENCE || (() => { try { return require('./package.json').novaPresence || ''; } catch { return ''; } })()), '-Dnova.user=' + act.name, '-Dnova.bg=' + (novaBg() || ''), '-Dnova.bg2=' + (novaBg('nova-nebulosa.nvb') || ''), '-Dnova.bg3=' + (novaBg('nova-earth.nvb') || ''), '-Dnova.lowpower=' + (LOWRAM ? 'true' : 'false'), '-Dfabric.addMods=' + nj, '-Dnova.version=' + app.getVersion(), '-Dnova.loader=' + (ins.ld === 'Fabric' ? 'Fabric' : 'Nova'));
     if (ins.ld === 'Forge' || ins.ld === 'NeoForge') o.version.custom = await forge(ins.ld, ins.mc, java, ins.loaderVersion);
     if (server && server.host) o.quickPlay = { type: modernQP(ins.mc) ? 'multiplayer' : 'legacy', identifier: server.host + (server.port && +server.port !== 25565 ? ':' + server.port : '') };
     if (world && !server && modernQP(ins.mc)) o.quickPlay = { type: 'singleplayer', identifier: String(world) };
@@ -980,6 +980,17 @@ const dataUrl = b => 'data:image/png;base64,' + b.toString('base64');
 const skinFile = id => path.join(skinsDir(), id + '.png');
 const skinSelGet = accId => { const m = load().skinSel; return m && typeof m === 'object' ? m[accId] || '' : ''; };
 const skinSelSet = (accId, id) => { const c = load(), m = { ...(c.skinSel || {}) }; if (id) m[accId] = id; else delete m[accId]; wr(cfgFile, { ...c, skinSel: m }); };
+// Skin local en vivo: el launcher deja la skin elegida en <datos>/nova/skin-local.png y su descripción en skin-local.json;
+// el mod las vigila cada segundo, así que el cambio se ve sin reiniciar Minecraft (también en una partida individual y con cuentas de Microsoft).
+function skinLocalWrite(act) {
+  try {
+    const dir = novaDir(), id = skinSelGet(act.id), x = id && skinsIdx().find(z => z.id === id), png = path.join(dir, 'skin-local.png');
+    let on = false;
+    if (x && fs.existsSync(skinFile(id))) { fs.copyFileSync(skinFile(id), png + '.tmp'); fs.renameSync(png + '.tmp', png); on = true; }
+    const j = path.join(dir, 'skin-local.json');
+    fs.writeFileSync(j + '.tmp', JSON.stringify({ on, user: act.name, model: on && x.model === 'slim' ? 'slim' : 'classic', v: Date.now() })); fs.renameSync(j + '.tmp', j);
+  } catch {}
+}
 function skinList() {
   const act = accState().act, sel = skinSelGet(act.id);
   const skins = skinsIdx().filter(x => fs.existsSync(skinFile(x.id))).map(x => ({ id: x.id, name: x.name, model: x.model === 'slim' ? 'slim' : 'classic', data: dataUrl(fs.readFileSync(skinFile(x.id))) }));
@@ -1011,15 +1022,32 @@ ipcMain.handle('skin:save', (e, o) => {
   const l = skinsIdx(); if (l.length >= 60) throw new Error('Has guardado demasiadas skins: borra alguna');
   const id = 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
   fs.writeFileSync(skinFile(id), b);
-  skinsPut([...l, { id, name: String(o.name || 'Skin').replace(/[^\p{L}\p{N} _.\-]/gu, '').trim().slice(0, 30) || 'Skin', model: o.model === 'slim' ? 'slim' : 'classic' }]);
+  skinsPut([...l, { id, name: skinName(o.name) || 'Skin', model: o.model === 'slim' ? 'slim' : 'classic' }]);
   return skinList();
 });
 ipcMain.handle('skin:del', (e, id) => {
   skinsPut(skinsIdx().filter(x => x.id !== id)); try { fs.rmSync(skinFile(String(id).replace(/[^\w]/g, '')), { force: true }); } catch {}
-  const c = load(), m = { ...(c.skinSel || {}) }; let ch = false; for (const k of Object.keys(m)) if (m[k] === id) { delete m[k]; ch = true; } if (ch) wr(cfgFile, { ...c, skinSel: m });
+  const c = load(), m = { ...(c.skinSel || {}) }; let ch = false; for (const k of Object.keys(m)) if (m[k] === id) { delete m[k]; ch = true; } if (ch) { wr(cfgFile, { ...c, skinSel: m }); skinLocalWrite(accState().act); }
   return skinList();
 });
-ipcMain.handle('skin:model', (e, o) => { skinsPut(skinsIdx().map(x => x.id === o.id ? { ...x, model: o.model === 'slim' ? 'slim' : 'classic' } : x)); return skinList(); });
+ipcMain.handle('skin:model', (e, o) => { skinsPut(skinsIdx().map(x => x.id === o.id ? { ...x, model: o.model === 'slim' ? 'slim' : 'classic' } : x)); const act = accState().act; if (skinSelGet(act.id) === o.id) skinLocalWrite(act); return skinList(); });
+const skinName = n => String(n || '').replace(/[^\p{L}\p{N} _.\-]/gu, '').trim().slice(0, 30);
+ipcMain.handle('skin:rename', (e, o) => {
+  const n = skinName(o && o.name); if (!n) throw new Error('Escribe un nombre para la skin');
+  if (!skinsIdx().some(x => x.id === o.id)) throw new Error('Skin no encontrada');
+  skinsPut(skinsIdx().map(x => x.id === o.id ? { ...x, name: n } : x)); return skinList();
+});
+// Cambiar el PNG de una skin guardada (mantiene su nombre y su lugar en la lista)
+ipcMain.handle('skin:replace', (e, o) => {
+  if (!skinsIdx().some(x => x.id === o.id)) throw new Error('Skin no encontrada');
+  const m = /^data:image\/png;base64,([A-Za-z0-9+/=]+)$/.exec(String(o && o.data || '')); if (!m) throw new Error('Elige un archivo .png');
+  const b = Buffer.from(m[1], 'base64'); if (!isPng(b)) throw new Error('Ese archivo no es una imagen PNG válida');
+  const [w, h] = pngWH(b); if (w !== 64 || (h !== 64 && h !== 32)) throw new Error('Una skin de Minecraft mide 64×64 píxeles (o 64×32 las antiguas)');
+  fs.writeFileSync(skinFile(o.id), b);
+  const act = accState().act; if (skinSelGet(act.id) === o.id) skinLocalWrite(act);
+  return skinList();
+});
+ipcMain.handle('skin:folder', async () => { const d = skinsDir(); await shell.openPath(d); return d; });
 // Usar una skin: en Microsoft se sube a Mojang (cambia para todos); en offline se guarda como skin local del jugador
 ipcMain.handle('skin:use', async (e, id) => {
   const x = skinsIdx().find(z => z.id === id); if (!x || !fs.existsSync(skinFile(id))) throw new Error('Skin no encontrada');
@@ -1030,10 +1058,10 @@ ipcMain.handle('skin:use', async (e, id) => {
     fd.append('file', new Blob([fs.readFileSync(skinFile(id))], { type: 'image/png' }), 'skin.png');
     await mojang(tok, 'POST', '/minecraft/profile/skins', { body: fd });
   }
-  skinSelSet(act.id, id);
+  skinSelSet(act.id, id); skinLocalWrite(act);
   return { ...skinList(), mode: act.type === 'microsoft' ? 'microsoft' : 'offline' };
 });
-ipcMain.handle('skin:unset', () => { skinSelSet(accState().act.id, ''); return skinList(); });
+ipcMain.handle('skin:unset', () => { const act = accState().act; skinSelSet(act.id, ''); skinLocalWrite(act); return skinList(); });
 // Skin y capas actuales de la cuenta Microsoft (para la vista previa y la lista de capas)
 ipcMain.handle('skin:current', async () => {
   const act = accState().act; if (act.type !== 'microsoft') return { offline: true };
@@ -1048,12 +1076,12 @@ ipcMain.handle('cape:set', async (e, id) => {
   else await mojang(tok, 'DELETE', '/minecraft/profile/capes/active');
   return true;
 });
-// Skin que se pasa al juego: la elegida en una cuenta offline, o la que descarga novaSkin de la cuenta
+// Skin que se pasa al juego: la elegida (en cualquier tipo de cuenta, el mod la pone al jugador local aunque Mojang aún no la haya actualizado),
+// o la que descarga novaSkin de la cuenta. Además deja skin-local.png/json al día para el mod.
 async function novaSkinFor(act) {
-  if (act.type !== 'microsoft') {
-    const id = skinSelGet(act.id), x = id && skinsIdx().find(z => z.id === id);
-    if (x && fs.existsSync(skinFile(id))) return { file: skinFile(id), model: x.model === 'slim' ? 'slim' : 'classic', local: true };
-  }
+  skinLocalWrite(act);
+  const id = skinSelGet(act.id), x = id && skinsIdx().find(z => z.id === id);
+  if (x && fs.existsSync(skinFile(id))) return { file: skinFile(id), model: x.model === 'slim' ? 'slim' : 'classic', local: true };
   return { file: await novaSkin(act.name), model: '', local: false };
 }
 
