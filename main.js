@@ -355,13 +355,36 @@ async function javaFor(mc, cfg) {
 
 const nfC = mc => { const p = mc.split('.'); return p[0] === '1' ? [`${p[1]}.${p[2] || 0}.`] : [`${p[0]}.${p[1]}.${p[2] || 0}.`, `${p[0]}.${p[1]}.`]; };
 // Versiones disponibles de cada loader (la más nueva primero)
-async function loaderList(ld, mc) {
-  if (ld === 'Fabric') { const L = await get(`https://meta.fabricmc.net/v2/versions/loader/${mc}`); return L.map(x => ({ v: x.loader.version, stable: !!x.loader.stable })); }
-  if (ld === 'Forge') { const x = await get('https://maven.minecraftforge.net/net/minecraftforge/forge/maven-metadata.xml', 'text');
+// Lista de versiones del cargador de una versión de Minecraft. Si la red falla se prueba una segunda fuente (Fabric), después la última lista guardada
+// y por último la versión de Fabric que va dentro del instalador; si no hay nada, se lanza el error (la pantalla lo enseña con «Reintentar»).
+const loaderCacheFile = () => path.join(novaDir(), 'loader-cache.json');
+async function getRetry(u, t) { try { return await get(u, t); } catch (e) { await new Promise(r => setTimeout(r, 700)); return get(u, t); } }
+async function loaderListNet(ld, mc) {
+  if (ld === 'Fabric') {
+    try { const L = await getRetry(`https://meta.fabricmc.net/v2/versions/loader/${mc}`); if (Array.isArray(L) && L.length) return L.map(x => ({ v: x.loader.version, stable: !!x.loader.stable })); }
+    catch (e) { logErr('loader', e, { 'Qué se intentaba': 'Lista de versiones de Fabric para ' + mc, Dirección: 'meta.fabricmc.net' }); }
+    // segunda fuente: todas las versiones del cargador (sin filtrar por Minecraft; Fabric funciona con casi todas)
+    const x = await get('https://maven.fabricmc.net/net/fabricmc/fabric-loader/maven-metadata.xml', 'text');
+    const vs = [...x.matchAll(/<version>([^<]+)<\/version>/g)].map(m => m[1]).reverse();
+    return vs.map(v => ({ v, stable: !/-(beta|alpha|rc|pre)/i.test(v) }));
+  }
+  if (ld === 'Forge') { const x = await getRetry('https://maven.minecraftforge.net/net/minecraftforge/forge/maven-metadata.xml', 'text');
     return [...x.matchAll(/<version>([^<]+)<\/version>/g)].map(m => m[1]).filter(v => v.startsWith(mc + '-')).map(v => v.slice(mc.length + 1)).reverse().map(v => ({ v, stable: true })); }
-  if (ld === 'NeoForge') { const all = (await get('https://maven.neoforged.net/api/maven/versions/releases/net/neoforged/neoforge')).versions.filter(x => nfC(mc).some(c => x.startsWith(c)));
+  if (ld === 'NeoForge') { const all = (await getRetry('https://maven.neoforged.net/api/maven/versions/releases/net/neoforged/neoforge')).versions.filter(x => nfC(mc).some(c => x.startsWith(c)));
     return all.reverse().map(v => ({ v, stable: !/alpha|beta/.test(v) })); }
   return [];
+}
+async function loaderList(ld, mc) {
+  const key = ld + '|' + mc;
+  try {
+    const L = await loaderListNet(ld, mc);
+    if (L.length) { try { const c = rd(loaderCacheFile(), {}); c[key] = L.slice(0, 120); wr(loaderCacheFile(), c); } catch {} }
+    return L;
+  } catch (e) {
+    const c = rd(loaderCacheFile(), {}); if (c && Array.isArray(c[key]) && c[key].length) return c[key];
+    if (ld === 'Fabric') { try { const prof = JSON.parse(fs.readFileSync(path.join(__dirname, 'assets', 'fabric', mc + '.json'), 'utf8')), m = /^fabric-loader-(.+)-[^-]+$/.exec(prof.id); if (m) return [{ v: m[1], stable: true }]; } catch {} }
+    throw new Error('No se pudo cargar la lista de versiones de ' + ld + ' (' + String(e && e.message || e).slice(0, 80) + '). Comprueba tu conexión.');
+  }
 }
 async function loaderPick(ld, mc, want) {
   if (want) return want;
@@ -390,7 +413,10 @@ async function fabric(mc, want) {
   let lv; try { lv = await loaderPick('Fabric', mc, want); }
   catch (x) { const vd = path.join(root, 'versions'), have = fs.existsSync(vd) && fs.readdirSync(vd).find(d => d.startsWith('fabric-loader-') && d.endsWith('-' + mc)); if (have) return have; const b = fabricBundled(mc); if (b) return b; throw x; }
   const id = `fabric-loader-${lv}-${mc}`, f = path.join(root, 'versions', id, id + '.json');
-  if (!fs.existsSync(f)) { fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, await get(`https://meta.fabricmc.net/v2/versions/loader/${mc}/${lv}/profile/json`, 'text')); }
+  if (!fs.existsSync(f)) {
+    try { const t = await get(`https://meta.fabricmc.net/v2/versions/loader/${mc}/${lv}/profile/json`, 'text'); fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, t); }
+    catch (x) { if (!want) { const b = fabricBundled(mc); if (b) return b; } throw x; }
+  }
   return id;
 }
 async function forge(ld, mc, java, want) {

@@ -157,9 +157,14 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 
 ## Regla de versiones: mod y launcher van juntos
 
-Cada vez que cambia el mod (`mod/`) se publica una versión nueva del launcher: mientras dure la fase de pruebas, una beta más (`0.2.15-beta.14`, `beta.15`…). La versión del mod se lee de `package.json`, así que siempre coincide con la del launcher. El launcher se actualiza solo y el usuario recibe el mod nuevo con él.
+Cada vez que cambia el mod (`mod/`) se publica una versión nueva del launcher: mientras dure la fase de pruebas, una beta más (`0.2.15-beta.14`, `beta.15`, `beta.16`…). La versión del mod se lee de `package.json`, así que siempre coincide con la del launcher. El launcher se actualiza solo y el usuario recibe el mod nuevo con él.
 
 ## Historial de actualizaciones
+
+### 0.2.15-beta.16 — Versión de Fabric en las instancias
+
+- **Instancias → Opciones → versión de Fabric/Quilt/Forge/NeoForge**: el desplegable solo mostraba «Automática (recomendada)» cuando la lista no se podía descargar y no decía nada. Ahora se reintenta, se prueba una segunda fuente (maven de Fabric), se guarda una copia en disco para usarla sin red, se muestra el error con un botón «Reintentar» y la versión elegida se usa al jugar.
+- Test de interfaz nuevo para el desplegable (con lista y con fallo).
 
 ### 0.2.15-beta.15 — Instancias con detalle, menú de skins en el juego y arreglos
 
