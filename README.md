@@ -43,7 +43,7 @@ Con Discord y el launcher abiertos a la vez, el perfil muestra **Nova Launcher**
 1. Entra en https://discord.com/developers/applications con tu cuenta y pulsa **New Application**.
 2. Ponle el nombre **Nova Launcher** (es el nombre que verán tus amigos en «Jugando a…»).
 3. En **General Information** copia el **Application ID**.
-4. Abre `main.js`, busca la línea `const DISCORD_CLIENT_ID = '';` y pega el número entre las comillas.
+4. Abre `main/discord.js`, busca la línea `const DISCORD_CLIENT_ID = '';` y pega el número entre las comillas.
 5. En el mismo sitio de Discord Developers: **Rich Presence → Art Assets → Add Image(s)**, sube el archivo `assets/discord-logo.png` (viene en el proyecto) y ponle el nombre `logo`. Discord puede tardar unos minutos en mostrarlo.
 6. Publica la versión como siempre (`git add .`, `git commit`, `git push`, Actions).
 
@@ -108,7 +108,8 @@ Con el canal Beta se mira la release más nueva (beta o estable); con Estable, l
 ## Revisión automática, idiomas y archivos (desde la 0.2.13)
 
 - **Revisión antes de publicar.** «Crear version» ahora ejecuta `npm test` (sintaxis, archivos enlazados, canales entre la app y la interfaz, versión, notas y traducciones, y una prueba de la interfaz en un navegador simulado) y `npm run smoke` (abre la app de verdad y mira que cargue sin errores). Si algo falla, el instalador no se sube. El flujo «Revision» hace lo mismo en cada `git push`, sin publicar nada.
-- **Estructura.** `index.html` solo tiene el esqueleto; los estilos están en `css/style.css` y el código en `js/` (un archivo por pestaña o función). Se cargan en el orden que marca `index.html`.
+- **Estructura del proceso principal.** `main.js` solo carga los módulos de `main/`, cada uno con una parte del trabajo: `base` (rutas, archivos, ajustes), `red`, `errores`, `descargas`, `instancias`, `cuentas`, `skins`, `servidores`, `mundos`, `mods`, `cargadores` (Fabric/Forge/NeoForge), `mod-nova` (menú de Nova, fondos y actualización del mod), `juego` (lanzar Minecraft), `actualizaciones` (del launcher), `discord`, `sistema` (iconos, bandeja, capturas, diagnóstico), `ventana` y `limpieza`. `main/compartido.js` tiene `R` (lo que un módulo ofrece a otros: cada uno hace `Object.assign(R, {…})` al final) y `S` (variables que cambian y usan varios módulos, como la ventana). Un módulo solo puede usar valores —no funciones— de los que se cargan antes (el orden está en `main.js`); las funciones de módulos posteriores se llaman a través de `R`. Cada archivo empieza con lo que importa de los demás.
+- **Estructura de la interfaz.** `index.html` solo tiene el esqueleto; los estilos están en `css/style.css` y el código en `js/` (un archivo por pestaña o función). Se cargan en el orden que marca `index.html`.
 - **Idiomas.** El español es la base. Hay seis: `es` (España), `es-419` (Latinoamérica, solo cambia las palabras distintas), `en`, `fr`, `de`, `it` y `pt`. Las traducciones están escritas con IA y no las ha revisado nadie nativo: si ves algo raro, corrígelo en su archivo de `lang/`. Cada idioma es un archivo en `lang/` (mira `lang/en.js`): la clave es el texto en español y el valor su traducción; `{1}`, `{2}`… son partes variables. Para añadir uno, copia `lang/en.js`, cambia `en` por su código, traduce y enlázalo en `index.html` antes de `js/idioma.js`. Lo que no esté traducido se ve en español.
 - **Descargas.** El cuadro de pausa, cancelar y límite controla lo que descarga el propio launcher (Java, mods, modpacks, instaladores). Los archivos del juego que baja Minecraft por su cuenta no pasan por él.
 
@@ -157,9 +158,15 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 
 ## Regla de versiones: mod y launcher van juntos
 
-Cada vez que cambia el mod (`mod/`) se publica una versión nueva del launcher: mientras dure la fase de pruebas, una beta más (`0.2.15-beta.14`, `beta.15`, `beta.16`, `beta.17`, `beta.18`…). La versión del mod se lee de `package.json`, así que siempre coincide con la del launcher. El launcher se actualiza solo y el usuario recibe el mod nuevo con él.
+Cada vez que cambia el mod (`mod/`) se publica una versión nueva del launcher: mientras dure la fase de pruebas, una beta más (`0.2.15-beta.14`, `beta.15`… `beta.19`…). La versión del mod se lee de `package.json`, así que siempre coincide con la del launcher. El launcher se actualiza solo y el usuario recibe el mod nuevo con él.
 
 ## Historial de actualizaciones
+
+### 0.2.15-beta.19 — Instalador «solo para mí», icono del .exe y main.js en módulos
+
+- **Instalador**: «Solo para mí» sale marcado por defecto (aunque ya hubiera una instalación para todos, salvo que se pase `/allusers` o sea una actualización silenciosa), y la opción «todos los usuarios» avisa de que cada actualización pedirá permisos de administrador (UAC). Así la mayoría tiene actualizaciones silenciosas. Está en `build/installer.nsh`.
+- **`.exe` con icono y datos propios también en local**: `signAndEditExecutable` pasa a `true` en `package.json` (con o sin certificado), así que un instalador hecho con `Crear-Instalador.bat` lleva el logo de Nova, el nombre y la empresa (Astrion Studio) en el Administrador de tareas y en Propiedades. Si en tu Windows falla por permisos de enlaces simbólicos (activa el «Modo desarrollador»), el `.bat` reintenta solo sin editar el `.exe`.
+- **`main.js` partido en 18 módulos** (`main/*.js`, unas 100–260 líneas cada uno). El comportamiento no cambia; cada cambio toca menos código. Mira «Estructura del proceso principal» más arriba.
 
 ### 0.2.15-beta.18 — Fabric aunque falle la conexión
 
@@ -221,7 +228,7 @@ Cada vez que cambia el mod (`mod/`) se publica una versión nueva del launcher: 
 
 ### 0.2.15-beta.9 — Menú de Nova en Minecraft 1.20 a 1.21.11
 
-- **19 versiones** con menú de Nova (título + pausa), para Nova y para Fabric: 1.20, 1.20.1–1.20.6, 1.21, 1.21.1–1.21.11 (solo versiones estables). La lista está en `mod/versions.txt` y en `NOVA_MC` de `main.js` (`tests/check.js` comprueba que coinciden).
+- **19 versiones** con menú de Nova (título + pausa), para Nova y para Fabric: 1.20, 1.20.1–1.20.6, 1.21, 1.21.1–1.21.11 (solo versiones estables). La lista está en `mod/versions.txt` y en `NOVA_MC` de `main/mod-nova.js` (`tests/check.js` comprueba que coinciden).
 - **Capas de compatibilidad** (`mod/src/compat/<capa>`): `mod/versions.txt` indica por versión qué capas se compilan (`-Players=…`): API de dibujo (`legacy` 1.20–1.21.1 · `rl` 1.21.2–1.21.4 · `rl5` 1.21.5 · `gui` 1.21.6–1.21.10 · `gui11` 1.21.11), entrada de ratón y teclado (`in-old` hasta 1.21.8 · `in-new` desde 1.21.9) y base del botón (`btn-old` · `btn-new` en 1.21.11). Para añadir una versión nueva: línea en `versions.txt`, `node scripts/add-fabric.js <versión> [loader]` y la versión en `NOVA_MC`.
 - **Fabric incluido** en `assets/fabric` para las 19 versiones (loader 0.16.14 hasta 1.21.5 y 0.19.5 desde 1.21.6).
 - El workflow «Crear version» compila las 19 y publica sus jars en `nova-menu.json` (tardará más que antes).
