@@ -1088,4 +1088,12 @@ window.LANGS.en={name:"English (US)",d:{
 "PNG cambiado ✓":"PNG changed ✓",
 "PNG cambiado ✓ Pulsa «Aplicar a mi cuenta» para subirlo a Mojang":"PNG changed ✓ Press “Apply to my account” to upload it to Mojang",
 "Cuenta de Microsoft: la skin y la capa que elijas cambian en tu cuenta de Minecraft (la ven todos los jugadores) y tú la ves al instante en el juego.":"Microsoft account: the skin and cape you pick change on your Minecraft account (everyone sees them) and you see the skin instantly in the game.",
-"Aún no has guardado ninguna skin. Sube un .png de 64×64 y se guardará aquí.":"You haven't saved any skins yet. Upload a 64×64 .png and it will be saved here."}};
+"Aún no has guardado ninguna skin. Sube un .png de 64×64 y se guardará aquí.":"You haven't saved any skins yet. Upload a 64×64 .png and it will be saved here.",
+"Detalles y mods":"Details and mods",
+"Descripción":"Description",
+"Guardar cambios":"Save changes",
+"Buscar e instalar mods":"Find and install mods",
+"Abrir carpeta de mods":"Open mods folder",
+"Instancia guardada ✓":"Instance saved ✓",
+"Filtrar mods…":"Filter mods…",
+"Desactivado por defecto: nada se descarga hasta que pulses Jugar. Si lo activas, al elegir una versión se descargan Java, librerías y cargador para que Jugar abra el juego al instante":"Off by default: nothing downloads until you press Play. If you turn it on, choosing a version downloads Java, libraries and the loader so Play opens the game instantly"}};

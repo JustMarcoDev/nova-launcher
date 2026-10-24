@@ -132,25 +132,34 @@ public class NovaHudScreen extends NovaScreen {
             // X para quitarlo (rojo) y esquina para cambiar el tamaño
             int[] xb = xBtn(b, sw), hb = handle(b);
             boolean ox = in(mx, my, xb[0], xb[1], XS, XS), oh = in(mx, my, hb[0], hb[1], HS, HS) || NovaHud.ALL[i] == size;
-            c.fill(xb[0], xb[1], xb[0] + XS, xb[1] + XS, ox ? 0xFFFF4D4D : 0xE0C93030);
-            c.drawText(textRenderer, "x", xb[0] + 3, xb[1] + 1, 0xFFFFFFFF, false);
-            c.fill(hb[0], hb[1], hb[0] + HS, hb[1] + HS, oh ? 0xFFFFFFFF : 0xE0000000 | (NovaSettings.accent & 0xFFFFFF));
-            c.fill(hb[0] + 2, hb[1] + 2, hb[0] + HS - 2, hb[1] + HS - 2, 0xFF101018);
+            boolean drawn = false;
+            if (NovaGfx.ok) {
+                try {   // los mismos botones redondeados del menú principal
+                    NovaGfx.button(client, XS, XS, "", NovaGfx.I_CLOSE, NovaButton.DANGER, ox, true).draw(c, xb[0] - 5, xb[1] - 5, 1f);
+                    NovaGfx.button(client, HS, HS, "", NovaGfx.I_RESIZE, oh ? NovaButton.PRIMARY : NovaButton.NORMAL, oh, true).draw(c, hb[0] - 5, hb[1] - 5, 1f);
+                    drawn = true;
+                } catch (Throwable ex) { NovaGfx.ok = false; }
+            }
+            if (!drawn) {
+                c.fill(xb[0], xb[1], xb[0] + XS, xb[1] + XS, ox ? 0xFFFF4D4D : 0xE0C93030);
+                c.drawText(textRenderer, "x", xb[0] + 4, xb[1] + 3, 0xFFFFFFFF, false);
+                c.fill(hb[0], hb[1], hb[0] + HS, hb[1] + HS, oh ? 0xFFFFFFFF : 0xE0000000 | (NovaSettings.accent & 0xFFFFFF));
+            }
             if (hot) c.drawCenteredTextWithShadow(textRenderer, Math.round(NovaHud.ALL[i].scale * 100f) + "%", b[0] + b[2] / 2, Math.min(sh - 10, b[1] + b[3] + 4), 0xFFFFFFFF);
         }
         c.drawCenteredTextWithShadow(textRenderer, tr("Editar HUD"), width / 2, 10, 0xFFFFFFFF);
         c.drawCenteredTextWithShadow(textRenderer, tr("Arrastra: mover · Esquina: tamaño · X: quitar"), width / 2, 22, 0xFFB8B8D8);
     }
 
-    private static final int XS = 9, HS = 8;
+    private static final int XS = 13, HS = 13;
 
     private static boolean in(int mx, int my, int x, int y, int w, int h) { return mx >= x && mx < x + w && my >= y && my < y + h; }
 
     /** Botón X: arriba a la derecha del elemento, sin salirse de la pantalla. */
-    private static int[] xBtn(int[] b, int sw) { return new int[] { Math.min(b[0] + b[2] + 3, sw - XS), Math.max(0, b[1] - XS - 1) }; }
+    private static int[] xBtn(int[] b, int sw) { return new int[] { Math.min(b[0] + b[2] + 1, sw - XS), Math.max(0, b[1] - XS + 1) }; }
 
     /** Esquina de abajo a la derecha para cambiar el tamaño. */
-    private static int[] handle(int[] b) { return new int[] { b[0] + b[2] - 2, b[1] + b[3] - 2 }; }
+    private static int[] handle(int[] b) { return new int[] { b[0] + b[2] - 6, b[1] + b[3] - 6 }; }
 
     private boolean overWidget(int mx, int my) {
         for (Element ch : children()) if (ch.isMouseOver(mx, my)) return true;

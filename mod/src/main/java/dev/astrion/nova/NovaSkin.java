@@ -9,12 +9,23 @@ final class NovaSkin {
     private static BufferedImage skin;
     static BufferedImage body, head;   // body: 16x32 (1 px por píxel de skin), head: 8x8
     static boolean slim;
+    static int ver;   // sube cada vez que cambia la skin (las texturas de la figura se piden con esta versión)
+
+    static void reload() { tried = false; skin = null; body = null; head = null; ver++; load(); }
+
+    /** Figura de cuerpo de cualquier skin (para la vista previa de la lista). */
+    static BufferedImage figureOf(BufferedImage s) {
+        BufferedImage os = skin, ob = body, oh = head; boolean osl = slim;
+        try { skin = s; build(); return body; } finally { skin = os; body = ob; head = oh; slim = osl; }
+    }
 
     static void load() {
         if (tried) return;
         tried = true;
         try {
             String p = System.getProperty("nova.skin", "");
+            String dir = System.getProperty("nova.dir", "");
+            if (!dir.isEmpty() && !NovaSkins.current().isEmpty()) p = new File(dir, "skin-local.png").getPath();   // la skin local puesta desde el launcher o desde aquí
             if (p.isEmpty()) return;
             File f = new File(p);
             if (!f.isFile()) return;

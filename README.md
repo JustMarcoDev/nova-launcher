@@ -161,6 +161,14 @@ Cada vez que cambia el mod (`mod/`) se publica una versión nueva del launcher: 
 
 ## Historial de actualizaciones
 
+### 0.2.15-beta.15 — Instancias con detalle, menú de skins en el juego y arreglos
+
+- **Ya no se descarga nada sin pulsar Jugar**: la «preparación en segundo plano» (descargaba Minecraft al elegir una versión) queda desactivada por defecto; se puede activar en Ajustes → Rendimiento («Preparar la versión en segundo plano»).
+- **Icono en la barra de tareas**: se fuerza el logo de Nova en la ventana (`setIcon` + `setAppDetails`) y se corrigen los accesos directos anclados a la barra y al menú Inicio. El `.exe` sigue llevando el icono genérico de Electron (`signAndEditExecutable: false`), por eso hace falta esto.
+- **Instancias**: al hacer clic en una instancia (o en «Detalles y mods») se abre su ventana con nombre y descripción editables, Jugar/Opciones/Abrir carpeta y la lista de mods (activar, desactivar, borrar, actualizar, añadir un .jar y «Buscar e instalar mods», que abre la pestaña Mods con esa instancia elegida).
+- **Mod · menú de skins** en el botón que antes era el candado (pantalla de título): lista de las skins del launcher con vista previa, usar, quitar, eliminar (con confirmación), modelo fina/clásica, «Guardar la actual» y «Abrir carpeta» (los `.png` que se dejen en la carpeta aparecen solos). El launcher adopta lo que se elija en el juego (`by: mod` en `skin-local.json`). Con Microsoft la skin solo se ve en tu juego; para que la vean todos hay que aplicarla desde el launcher.
+- **Mod · editor del HUD**: los botones X y de tamaño usan los botones redondeados del menú principal.
+
 ### 0.2.15-beta.14 — Zoom más suave y HUD ajustable
 
 - **Zoom más satisfactorio**: entra y sale con una curva suave (ya no es rígido) y la cámara se mueve en proporción al zoom, así no se escapa al girar. Se quita la «cámara cinematográfica» que usaba antes. La sensibilidad se restaura al soltar la tecla o abrir un menú.
