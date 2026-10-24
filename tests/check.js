@@ -4,7 +4,7 @@ const root = path.join(__dirname, '..'), rd = f => fs.readFileSync(path.join(roo
 const fails = []; const bad = m => fails.push(m);
 
 // 1. Sintaxis de todos los .js
-const js = ['main.js', 'preload.js', 'nvb.js', ...fs.readdirSync(path.join(root, 'js')).filter(f => f.endsWith('.js')).map(f => 'js/' + f), ...fs.readdirSync(path.join(root, 'scripts')).map(f => 'scripts/' + f), ...fs.readdirSync(__dirname).filter(f => f.endsWith('.js')).map(f => 'tests/' + f)];
+const js = ['main.js', ...fs.readdirSync(path.join(root, 'main')).filter(f => f.endsWith('.js')).map(f => 'main/' + f), 'preload.js', 'nvb.js', ...fs.readdirSync(path.join(root, 'js')).filter(f => f.endsWith('.js')).map(f => 'js/' + f), ...fs.readdirSync(path.join(root, 'scripts')).map(f => 'scripts/' + f), ...fs.readdirSync(__dirname).filter(f => f.endsWith('.js')).map(f => 'tests/' + f)];
 for (const f of js) { const r = cp.spawnSync(process.execPath, ['--check', path.join(root, f)], { encoding: 'utf8' }); if (r.status) bad('Error de sintaxis en ' + f + '\n' + r.stderr.split('\n').slice(0, 4).join('\n')); }
 console.log('sintaxis: ' + js.length + ' archivos revisados');
 
@@ -16,7 +16,7 @@ const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]), dup = ids.filt
 if (dup.length) bad('ids repetidos en index.html: ' + [...new Set(dup)].join(', '));
 
 // 3. Todo lo que la interfaz pide a la app existe en main.js
-const main = rd('main.js'), pre = rd('preload.js');
+const main = ['main.js', ...fs.readdirSync(path.join(root, 'main')).filter(f => f.endsWith('.js')).map(f => 'main/' + f)].map(rd).join('\n'), pre = rd('preload.js');
 const handled = new Set([...main.matchAll(/ipcMain\.(?:handle|on)\('([^']+)'/g)].map(m => m[1]));
 for (const m of pre.matchAll(/invoke\('([^']+)'/g)) if (!handled.has(m[1])) bad('preload.js llama a «' + m[1] + '» y main.js no lo atiende');
 const api = new Set([...pre.matchAll(/^\s*([a-zA-Z]+):\s/gm)].map(m => m[1]).concat([...pre.matchAll(/,\s*([a-zA-Z]+):\s/g)].map(m => m[1])));

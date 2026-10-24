@@ -1,6 +1,6 @@
 {
   "name": "nova-launcher",
-  "version": "0.2.15-beta.18",
+  "version": "0.2.15-beta.19",
   "novaPresence": "",
   "description": "Nova Launcher para Minecraft",
   "author": "Astrion Studio",
@@ -29,7 +29,7 @@
     "productName": "Nova Launcher",
     "win": {
       "target": "nsis",
-      "signAndEditExecutable": false,
+      "signAndEditExecutable": true,
       "icon": "build/icon.png"
     },
     "nsis": {

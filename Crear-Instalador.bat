@@ -19,7 +19,13 @@ call npm run recursos
 if errorlevel 1 goto err
 echo [3/3] Creando el instalador...
 call npm run dist
-if errorlevel 1 goto err
+if errorlevel 1 (
+  echo.
+  echo No se pudo escribir el icono y los datos en el .exe ^(Windows suele pedir un permiso especial para eso^).
+  echo Reintentando sin editar el .exe: el instalador saldra igual, pero con el icono generico de Electron.
+  call npx electron-builder --win -c.win.signAndEditExecutable=false
+  if errorlevel 1 goto err
+)
 start "" "%~dp0dist"
 echo.
 echo LISTO. Abre "Nova Launcher Setup" en la carpeta dist para instalar la app.
