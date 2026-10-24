@@ -157,9 +157,13 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 
 ## Regla de versiones: mod y launcher van juntos
 
-Cada vez que cambia el mod (`mod/`) se publica una versión nueva del launcher: mientras dure la fase de pruebas, una beta más (`0.2.15-beta.14`, `beta.15`, `beta.16`, `beta.17`…). La versión del mod se lee de `package.json`, así que siempre coincide con la del launcher. El launcher se actualiza solo y el usuario recibe el mod nuevo con él.
+Cada vez que cambia el mod (`mod/`) se publica una versión nueva del launcher: mientras dure la fase de pruebas, una beta más (`0.2.15-beta.14`, `beta.15`, `beta.16`, `beta.17`, `beta.18`…). La versión del mod se lee de `package.json`, así que siempre coincide con la del launcher. El launcher se actualiza solo y el usuario recibe el mod nuevo con él.
 
 ## Historial de actualizaciones
+
+### 0.2.15-beta.18 — Fabric aunque falle la conexión
+
+- Si no hay conexión con `meta.fabricmc.net` / `maven.fabricmc.net` (en España, algunos días de partido el bloqueo de LaLiga a Cloudflare los deja inaccesibles), el desplegable de versión de Fabric ya no se queda en una sola opción: sale la lista incluida en el launcher (`assets/fabric-loaders.json`) con un aviso. Se prueba también un mirror (BMCLAPI) para la lista y el perfil.
 
 ### 0.2.15-beta.17 — La lista de Fabric vuelve a descargarse
 

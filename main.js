@@ -372,6 +372,7 @@ async function loaderListNet(ld, mc) {
   if (ld === 'Fabric') {
     try { const L = await getRetry(`https://meta.fabricmc.net/v2/versions/loader/${mc}`); if (Array.isArray(L) && L.length) return L.map(x => ({ v: x.loader.version, stable: !!x.loader.stable })); }
     catch (e) { logErr('loader', e, { 'Qué se intentaba': 'Lista de versiones de Fabric para ' + mc, Dirección: 'meta.fabricmc.net' }); }
+    try { const L = await get(`https://bmclapi2.bangbang93.com/fabric-meta/v2/versions/loader/${mc}`); if (Array.isArray(L) && L.length) return L.map(x => ({ v: x.loader.version, stable: !!x.loader.stable })); } catch {}
     // segunda fuente: todas las versiones del cargador (sin filtrar por Minecraft; Fabric funciona con casi todas)
     const x = await get('https://maven.fabricmc.net/net/fabricmc/fabric-loader/maven-metadata.xml', 'text');
     const vs = [...x.matchAll(/<version>([^<]+)<\/version>/g)].map(m => m[1]).reverse();
@@ -391,6 +392,7 @@ async function loaderList(ld, mc) {
     return L;
   } catch (e) {
     const c = rd(loaderCacheFile(), {}); if (c && Array.isArray(c[key]) && c[key].length) return c[key];
+    if (ld === 'Fabric') { try { const E = JSON.parse(fs.readFileSync(path.join(__dirname, 'assets', 'fabric-loaders.json'), 'utf8')); if (E.length) return E.map(x => ({ ...x, off: true })); } catch {} }
     if (ld === 'Fabric') { try { const prof = JSON.parse(fs.readFileSync(path.join(__dirname, 'assets', 'fabric', mc + '.json'), 'utf8')), m = /^fabric-loader-(.+)-[^-]+$/.exec(prof.id); if (m) return [{ v: m[1], stable: true, off: true }]; } catch {} }
     throw new Error('No se pudo cargar la lista de versiones de ' + ld + ' (' + String(e && e.message || e).slice(0, 80) + '). Comprueba tu conexión.');
   }
@@ -423,7 +425,7 @@ async function fabric(mc, want) {
   catch (x) { const vd = path.join(root, 'versions'), have = fs.existsSync(vd) && fs.readdirSync(vd).find(d => d.startsWith('fabric-loader-') && d.endsWith('-' + mc)); if (have) return have; const b = fabricBundled(mc); if (b) return b; throw x; }
   const id = `fabric-loader-${lv}-${mc}`, f = path.join(root, 'versions', id, id + '.json');
   if (!fs.existsSync(f)) {
-    try { const t = await get(`https://meta.fabricmc.net/v2/versions/loader/${mc}/${lv}/profile/json`, 'text'); fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, t); }
+    try { let t; try { t = await get(`https://meta.fabricmc.net/v2/versions/loader/${mc}/${lv}/profile/json`, 'text'); } catch { t = await get(`https://bmclapi2.bangbang93.com/fabric-meta/v2/versions/loader/${mc}/${lv}/profile/json`, 'text'); } fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, t); }
     catch (x) { if (!want) { const b = fabricBundled(mc); if (b) return b; } throw x; }
   }
   return id;
