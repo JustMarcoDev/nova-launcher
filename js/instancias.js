@@ -73,15 +73,19 @@ const d=modal(hdr(ins,"Opciones de la instancia",esc(LDN(ins.ld||"Vanilla"))+" �
 <div class="fr"><label>Ajustes de Java</label><select id="ojp"><option value="">Normales</option><option value="rendimiento" ${ins.jvmPreset==="rendimiento"?"selected":""}>Rendimiento</option><option value="tirones" ${ins.jvmPreset==="tirones"?"selected":""}>Pocos tirones</option></select></div>
 <div class="fr"><label>Menú de Nova</label><select id="onv"><option value="">Activado</option><option value="1" ${ins.noNova?"selected":""}>Jugar sin el menú de Nova</option></select></div><small class="hint" style="margin:-6px 0 12px 142px">Salida rápida si el menú da problemas con un mod o servidor. También puedes mantener Mayús al pulsar Jugar.</small>
 <div class="fr"><label>Tarjeta gráfica</label><select id="ogp"><option value="">Automática</option><option value="high" ${ins.gpu==="high"?"selected":""}>Usar la más potente</option></select></div><small class="hint" style="margin:-6px 0 12px 142px">En portátiles con dos tarjetas gráficas obliga a Java a usar la dedicada (Windows 10/11).</small>
-${hasL?`<div class="fr"><label>Versión de ${esc(ins.ld)}</label><select id="olv"><option value="">Cargando…</option></select></div>`:""}
+${hasL?`<div class="fr"><label>Versión de ${esc(ins.ld)}</label><select id="olv"><option value="">Cargando…</option></select></div><small class="hint" id="olh" style="display:block;margin:-6px 0 12px 142px"></small>`:""}
 <div class="acts2"><button class="btn sm" data-a="fo">Abrir carpeta</button><button class="btn sm" data-a="dup">Duplicar</button><button class="btn sm" data-a="ex">Exportar…</button><button class="btn sm" data-a="wo">Mundos</button><button class="btn sm" data-a="sh">Capturas</button><button class="btn sm" data-a="bk">Copias de seguridad</button><button class="btn sm dg" data-a="del">Borrar instancia</button></div>
 <div class="acts"><button class="btn" data-x>Cancelar</button><button class="btn pr" id="osv">Guardar</button></div>`);
 const rv=()=>{const v=+$("orm").value;$("orv").textContent=v?v+" GB":"Global ("+cfg.ram+" GB)"};rv();$("orm").oninput=rv;
 $("oic").onclick=e=>{const b=e.target.closest("button");if(!b)return;ic=b.dataset.i;$("oic").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b))};
 $("ocl").onclick=e=>{const b=e.target.closest(".sw2");if(!b)return;col=b.dataset.c;$("ocl").querySelectorAll(".sw2").forEach(x=>x.classList.toggle("on",x===b))};
-if(hasL)(async()=>{const s=$("olv");let L=[];try{L=await api.loaderVersions({ld:ins.ld,mc:ins.mc})}catch{}if(!$("olv"))return;
+if(hasL){const lv=async()=>{const s=$("olv");if(!s)return;let L=[],err="";s.innerHTML=`<option value="">Cargando…</option>`;const hh=$("olh");if(hh)hh.innerHTML="";
+try{L=await api.loaderVersions({ld:ins.ld,mc:ins.mc})}catch(x){err=em(x)}if(!$("olv"))return;
 const cur=ins.loaderVersion||"";if(cur&&!L.some(x=>x.v===cur))L.unshift({v:cur,stable:true});
-s.innerHTML=`<option value="">Automática (recomendada)</option>`+L.map((x,k)=>`<option value="${esc(x.v)}" ${x.v===cur?"selected":""}>${esc(x.v)}${x.stable?"":" (beta)"}${k===0&&!cur?"":""}</option>`).join("");if(!L.length)s.title="No se pudo cargar la lista (¿sin conexión?)"})();
+s.innerHTML=`<option value="">Automática (recomendada)</option>`+L.map(x=>`<option value="${esc(x.v)}" ${x.v===cur?"selected":""}>${esc(x.v)}${x.stable?"":" (beta)"}</option>`).join("");
+const h=$("olh");if(h)h.innerHTML=err?`<span style="color:#ff9aa4">${esc(err)}</span> <button class="btn sm" id="olr" type="button">Reintentar</button>`:"";
+if(err&&$("olr"))$("olr").onclick=lv}
+lv()}
 $("osv").onclick=async()=>{const b=$("osv");b.disabled=true;const p={name:$("on").value.trim()||ins.name,icon:ic,color:col,ram:+$("orm").value,javaPath:$("oj").value.trim(),jvmPreset:$("ojp").value,gpu:$("ogp").value,noNova:$("onv").value==="1",tags:$("otg").value,note:$("ont").value.trim()};if(hasL&&$("olv"))p.loaderVersion=$("olv").value;
 try{await api.instUpdate(id,p);await loadI();closeModal();flash("Cambios guardados")}catch(e){b.disabled=false;flash(em(e))}};
 d.querySelector(".acts2").onclick=async e=>{const b=e.target.closest("button[data-a]");if(!b)return;const a=b.dataset.a;
