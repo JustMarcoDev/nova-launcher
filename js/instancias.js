@@ -81,7 +81,7 @@ $("oic").onclick=e=>{const b=e.target.closest("button");if(!b)return;ic=b.datase
 $("ocl").onclick=e=>{const b=e.target.closest(".sw2");if(!b)return;col=b.dataset.c;$("ocl").querySelectorAll(".sw2").forEach(x=>x.classList.toggle("on",x===b))};
 if(hasL){const lv=async()=>{const s=$("olv");if(!s)return;let L=[],err="";s.innerHTML=`<option value="">Cargando…</option>`;const hh=$("olh");if(hh)hh.innerHTML="";
 try{L=await api.loaderVersions({ld:ins.ld,mc:ins.mc})}catch(x){err=em(x)}if(!$("olv"))return;
-const off=!err&&L.length&&L.every(x=>x.off);if(off)err="No se pudo descargar la lista completa (sin conexión con Fabric); solo sale la versión incluida.";const cur=ins.loaderVersion||"";if(cur&&!L.some(x=>x.v===cur))L.unshift({v:cur,stable:true});
+const off=!err&&L.length&&L.every(x=>x.off);if(off)err="Sin conexión con Fabric: se muestra la lista incluida en el launcher (puede faltar alguna versión muy nueva). Si falla al jugar con la versión elegida, prueba con otra red o con «Automática».";const cur=ins.loaderVersion||"";if(cur&&!L.some(x=>x.v===cur))L.unshift({v:cur,stable:true});
 s.innerHTML=`<option value="">Automática (recomendada)</option>`+L.map(x=>`<option value="${esc(x.v)}" ${x.v===cur?"selected":""}>${esc(x.v)}${x.stable?"":" (beta)"}</option>`).join("");
 const h=$("olh");if(h)h.innerHTML=err?`<span style="color:#ff9aa4">${esc(err)}</span> <button class="btn sm" id="olr" type="button">Reintentar</button>`:"";
 if(err&&$("olr"))$("olr").onclick=lv}
