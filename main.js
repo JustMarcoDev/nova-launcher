@@ -13,6 +13,7 @@
 //   · Menú de Nova dentro del juego (skin, fondos propios, ajustes)
 //   · Cola de descargas, diagnóstico, arrastrar y soltar
 // =====================================================================================
+let electronNet = null; try { electronNet = require('electron').net; } catch {}
 const { app, BrowserWindow, ipcMain, shell, dialog, Notification, clipboard, nativeImage, safeStorage, screen, protocol } = require('electron');
 const path = require('path'), fs = require('fs'), os = require('os'), crypto = require('crypto'), net = require('net'), dns = require('dns').promises, { pathToFileURL } = require('url'), { execFile } = require('child_process');
 const { Client, Authenticator } = require('minecraft-launcher-core');
@@ -90,7 +91,15 @@ globalThis.fetch = async (u, o) => {
   try { return await rawFetch(u, o); }
   catch (e) { if (e && e.message === 'fetch failed') { let h = ''; try { h = new URL(String(u && u.href || u)).host; } catch {} const c = e.cause && (e.cause.code || e.cause.message); e.message = 'No se pudo conectar con ' + (h || 'el servidor') + (c ? ' (' + c + ')' : ''); } throw e; }
 };
-const get = async (u, t = 'json', h = {}) => { const r = await fetch(u, { signal: AbortSignal.timeout(t === 'arrayBuffer' ? 600000 : 30000), headers: { 'User-Agent': UA(), ...h } }); if (!r.ok) throw new Error('HTTP ' + r.status); return r[t](); };
+const get = async (u, t = 'json', h = {}) => {
+  const o = () => ({ signal: AbortSignal.timeout(t === 'arrayBuffer' ? 600000 : 30000), headers: { 'User-Agent': UA(), ...h } });
+  let r;
+  try { r = await fetch(u, o()); }
+  catch (e) { // fallo de red de Node (proxy del sistema, antivirus, DNS…): se reintenta con la red de Chromium, que sí usa la configuración del sistema
+    const nf = electronNet && electronNet.fetch; if (!nf) throw e;
+    try { r = await nf.call(electronNet, u, o()); } catch { throw e; }
+  }
+  if (!r.ok) throw new Error('HTTP ' + r.status); return r[t](); };
 const run = (cmd, args, opt = {}) => new Promise((res, rej) => execFile(cmd, args, { maxBuffer: 1e8, ...opt }, e => e ? rej(e) : res()));
 
 protocol.registerSchemesAsPrivileged([{ scheme: 'nova-img', privileges: { standard: true, secure: true, supportFetchAPI: true, bypassCSP: true } }]);
@@ -382,7 +391,7 @@ async function loaderList(ld, mc) {
     return L;
   } catch (e) {
     const c = rd(loaderCacheFile(), {}); if (c && Array.isArray(c[key]) && c[key].length) return c[key];
-    if (ld === 'Fabric') { try { const prof = JSON.parse(fs.readFileSync(path.join(__dirname, 'assets', 'fabric', mc + '.json'), 'utf8')), m = /^fabric-loader-(.+)-[^-]+$/.exec(prof.id); if (m) return [{ v: m[1], stable: true }]; } catch {} }
+    if (ld === 'Fabric') { try { const prof = JSON.parse(fs.readFileSync(path.join(__dirname, 'assets', 'fabric', mc + '.json'), 'utf8')), m = /^fabric-loader-(.+)-[^-]+$/.exec(prof.id); if (m) return [{ v: m[1], stable: true, off: true }]; } catch {} }
     throw new Error('No se pudo cargar la lista de versiones de ' + ld + ' (' + String(e && e.message || e).slice(0, 80) + '). Comprueba tu conexión.');
   }
 }

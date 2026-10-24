@@ -157,9 +157,13 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 
 ## Regla de versiones: mod y launcher van juntos
 
-Cada vez que cambia el mod (`mod/`) se publica una versión nueva del launcher: mientras dure la fase de pruebas, una beta más (`0.2.15-beta.14`, `beta.15`, `beta.16`…). La versión del mod se lee de `package.json`, así que siempre coincide con la del launcher. El launcher se actualiza solo y el usuario recibe el mod nuevo con él.
+Cada vez que cambia el mod (`mod/`) se publica una versión nueva del launcher: mientras dure la fase de pruebas, una beta más (`0.2.15-beta.14`, `beta.15`, `beta.16`, `beta.17`…). La versión del mod se lee de `package.json`, así que siempre coincide con la del launcher. El launcher se actualiza solo y el usuario recibe el mod nuevo con él.
 
 ## Historial de actualizaciones
+
+### 0.2.15-beta.17 — La lista de Fabric vuelve a descargarse
+
+- Si Node no conseguía conectar (proxy del sistema, antivirus, DNS), el launcher solo mostraba la versión de Fabric incluida sin avisar. Ahora reintenta con la red de Chromium (que usa la configuración del sistema) y, si sigue sin haber conexión, avisa con «Reintentar».
 
 ### 0.2.15-beta.16 — Versión de Fabric en las instancias
 
