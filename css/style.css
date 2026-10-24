@@ -4159,3 +4159,15 @@ html[data-cb=Grises] {
 .skp .btn.skdel { background: #e5484d; border-color: #e5484d; color: #fff; font-weight: 700; margin-left: auto; }
 .skp .btn.skdel:hover:not(:disabled) { background: #cf3a3f; }
 @media (max-width: 860px) { .skw { grid-template-columns: 1fr; } }
+
+/* ==========================================================================
+   INSTANCIAS · ventana de detalle (nombre, descripción y mods)
+   ========================================================================== */
+.ir { cursor: pointer; }
+.ir:hover { border-color: color-mix(in srgb, var(--ac) 55%, transparent); }
+.idt { margin: 4px 0 8px; padding-bottom: 6px; }
+.idt .fr { margin-bottom: 10px; }
+.idt textarea { resize: vertical; min-height: 54px; }
+.idh { margin: 10px 0 8px; display: flex; align-items: baseline; gap: 10px; font-size: 15px; }
+.idh span { color: var(--m); font-size: 12.5px; font-weight: 400; }
+.mbar .btn.pr { flex: none; }

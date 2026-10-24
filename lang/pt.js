@@ -1088,4 +1088,12 @@ window.LANGS.pt={name:"Português (Portugal)",d:{
 "PNG cambiado ✓":"PNG alterado ✓",
 "PNG cambiado ✓ Pulsa «Aplicar a mi cuenta» para subirlo a Mojang":"PNG alterado ✓ Carrega em «Aplicar à minha conta» para o enviar à Mojang",
 "Cuenta de Microsoft: la skin y la capa que elijas cambian en tu cuenta de Minecraft (la ven todos los jugadores) y tú la ves al instante en el juego.":"Conta Microsoft: a skin e a capa que escolheres mudam na tua conta do Minecraft (todos a veem) e vês a skin logo no jogo.",
-"Aún no has guardado ninguna skin. Sube un .png de 64×64 y se guardará aquí.":"Ainda não guardaste nenhuma skin. Envia um .png de 64×64 e ficará guardada aqui."}};
+"Aún no has guardado ninguna skin. Sube un .png de 64×64 y se guardará aquí.":"Ainda não guardaste nenhuma skin. Envia um .png de 64×64 e ficará guardada aqui.",
+"Detalles y mods":"Detalhes e mods",
+"Descripción":"Descrição",
+"Guardar cambios":"Guardar alterações",
+"Buscar e instalar mods":"Procurar e instalar mods",
+"Abrir carpeta de mods":"Abrir pasta de mods",
+"Instancia guardada ✓":"Instância guardada ✓",
+"Filtrar mods…":"Filtrar mods…",
+"Desactivado por defecto: nada se descarga hasta que pulses Jugar. Si lo activas, al elegir una versión se descargan Java, librerías y cargador para que Jugar abra el juego al instante":"Desativado por defeito: nada é descarregado até carregares em Jogar. Se ativares, ao escolher uma versão descarrega Java, bibliotecas e o loader para que Jogar abra o jogo logo"}};

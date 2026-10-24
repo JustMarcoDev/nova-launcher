@@ -52,6 +52,21 @@ const w = dom.window, sleep = ms => new Promise(r => setTimeout(r, ms));
       w.eval('cfg.gameMode=false'); EV.running(1); if (gm()) errors.push('Modo juego: se activó con el ajuste apagado'); EV.running(0); w.eval('cfg.gameMode=true');
     }
   }
+  // Instancias: al pulsar una tarjeta se abre su ventana de detalle (nombre, descripción y lista de mods)
+  {
+    const g = id => w.document.getElementById(id);
+    mock.insts = [{ id: 'i1', name: 'Mi instancia', mc: '1.21.1', ld: 'Fabric', note: 'Descripción de prueba' }];
+    await w.eval('loadI()'); await sleep(100);
+    const row = w.document.querySelector('#il .ir');
+    if (!row) errors.push('Instancias: no se pintó la tarjeta');
+    else {
+      row.click(); await sleep(150);
+      if (!g('dn') || g('dn').value !== 'Mi instancia' || !g('dd') || g('dd').value !== 'Descripción de prueba') errors.push('Instancias: la ventana de detalle no muestra nombre y descripción');
+      if (!g('mls') || !g('msr') || !g('mad')) errors.push('Instancias: faltan la lista de mods o los botones de añadir/buscar mods');
+      w.eval('closeModal()');
+    }
+    mock.insts = []; await w.eval('loadI()');
+  }
   // Pestaña Skin: lista de skins guardadas, texto según la cuenta (offline / Microsoft) y capas solo en Microsoft
   {
     const g = id => w.document.getElementById(id);

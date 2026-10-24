@@ -141,5 +141,35 @@ final class NovaLang {
         p("Este", "East", "Est", "Osten", "Est", "Leste");
         p("Sureste", "Southeast", "Sud-est", "Südosten", "Sud-est", "Sudeste");
         p("Arrastra: mover · Esquina: tamaño · X: quitar", "Drag: move · Corner: resize · X: remove", "Glisser : déplacer · Coin : taille · X : retirer", "Ziehen: bewegen · Ecke: Größe · X: entfernen", "Trascina: sposta · Angolo: dimensione · X: rimuovi", "Arrastar: mover · Canto: tamanho · X: remover");
+        p("Skins", "Skins", "Skins", "Skins", "Skin", "Skins");
+        p("Cambia, guarda y elimina tus skins", "Change, save and delete your skins", "Change, enregistre et supprime tes skins", "Ändere, speichere und lösche deine Skins", "Cambia, salva ed elimina le tue skin", "Troque, salve e exclua suas skins");
+        p("TUS SKINS", "YOUR SKINS", "TES SKINS", "DEINE SKINS", "LE TUE SKIN", "SUAS SKINS");
+        p("Aún no tienes skins: sube una desde el launcher", "You have no skins yet: upload one from the launcher", "Tu n'as pas encore de skin : importes-en une depuis le launcher", "Du hast noch keine Skins: lade eine im Launcher hoch", "Non hai ancora skin: caricane una dal launcher", "Você ainda não tem skins: envie uma pelo launcher");
+        p("Skin eliminada", "Skin deleted", "Skin supprimée", "Skin gelöscht", "Skin eliminata", "Skin excluída");
+        p("No se pudo eliminar", "Could not delete it", "Impossible de la supprimer", "Konnte nicht gelöscht werden", "Impossibile eliminarla", "Não foi possível excluir");
+        p("Borra la skin de tu lista", "Removes the skin from your list", "Retire la skin de ta liste", "Entfernt die Skin aus deiner Liste", "Rimuove la skin dalla tua lista", "Remove a skin da sua lista");
+        p("Skin puesta: la ves en un momento", "Skin applied: you will see it in a moment", "Skin appliquée : tu la verras dans un instant", "Skin angewendet: gleich siehst du sie", "Skin applicata: la vedrai tra un attimo", "Skin aplicada: você a verá em instantes");
+        p("No se pudo poner la skin", "Could not apply the skin", "Impossible d'appliquer la skin", "Skin konnte nicht angewendet werden", "Impossibile applicare la skin", "Não foi possível aplicar a skin");
+        p("En uso", "In use", "En cours d'utilisation", "In Verwendung", "In uso", "Em uso");
+        p("Usar esta skin", "Use this skin", "Utiliser cette skin", "Diese Skin verwenden", "Usa questa skin", "Usar esta skin");
+        p("Fina", "Slim", "Fin", "Schlank", "Sottile", "Fina");
+        p("Clásica", "Classic", "Classique", "Klassisch", "Classica", "Clássica");
+        p("Modelo", "Model", "Modèle", "Modell", "Modello", "Modelo");
+        p("Brazos finos (3 px) o clásicos (4 px)", "Slim (3 px) or classic (4 px) arms", "Bras fins (3 px) ou classiques (4 px)", "Schlanke (3 px) oder klassische (4 px) Arme", "Braccia sottili (3 px) o classiche (4 px)", "Braços finos (3 px) ou clássicos (4 px)");
+        p("No se pudo cambiar", "Could not change it", "Impossible de la modifier", "Konnte nicht geändert werden", "Impossibile modificarla", "Não foi possível alterar");
+        p("Guardar la actual", "Save current", "Enregistrer l'actuelle", "Aktuelle speichern", "Salva l'attuale", "Salvar a atual");
+        p("Guarda la skin que llevas ahora en tu lista", "Saves the skin you are wearing to your list", "Enregistre la skin que tu portes dans ta liste", "Speichert deine aktuelle Skin in deiner Liste", "Salva la skin che indossi nella tua lista", "Salva a skin que você está usando na sua lista");
+        p("No hay ninguna skin que guardar", "There is no skin to save", "Il n'y a aucune skin à enregistrer", "Es gibt keine Skin zum Speichern", "Non c'è nessuna skin da salvare", "Não há nenhuma skin para salvar");
+        p("Ya la tenías guardada", "You already had it saved", "Tu l'avais déjà enregistrée", "Du hattest sie schon gespeichert", "L'avevi già salvata", "Você já a tinha salva");
+        p("Skin guardada", "Skin saved", "Skin enregistrée", "Skin gespeichert", "Skin salvata", "Skin salva");
+        p("No se pudo guardar", "Could not save it", "Impossible de l'enregistrer", "Konnte nicht gespeichert werden", "Impossibile salvarla", "Não foi possível salvar");
+        p("Carpeta de skins", "Skins folder", "Dossier des skins", "Skin-Ordner", "Cartella delle skin", "Pasta de skins");
+        p("Suelta aquí archivos .png de 64×64 y aparecen en la lista", "Drop 64×64 .png files here and they show up in the list", "Dépose ici des fichiers .png de 64×64 et ils apparaissent dans la liste", "Lege hier 64×64-.png-Dateien ab, sie erscheinen in der Liste", "Metti qui file .png da 64×64 e compaiono nell'elenco", "Solte aqui arquivos .png de 64×64 e eles aparecem na lista");
+        p("Quitar skin", "Remove skin", "Retirer la skin", "Skin entfernen", "Rimuovi skin", "Remover skin");
+        p("Vuelves a tu skin de siempre", "Back to your usual skin", "Retour à ta skin habituelle", "Zurück zu deiner üblichen Skin", "Torni alla tua skin di sempre", "De volta à sua skin de sempre");
+        p("No se pudo quitar", "Could not remove it", "Impossible de la retirer", "Konnte nicht entfernt werden", "Impossibile rimuoverla", "Não foi possível remover");
+        p("Vuelves a la skin de tu cuenta", "Back to your account's skin", "Retour à la skin de ton compte", "Zurück zur Skin deines Kontos", "Torni alla skin del tuo account", "De volta à skin da sua conta");
+        p("Solo la ves tú; para que todos la vean, aplícala desde el launcher", "Only you see it; to show it to everyone, apply it from the launcher", "Toi seul la vois ; pour que tous la voient, applique-la depuis le launcher", "Nur du siehst sie; damit alle sie sehen, wende sie im Launcher an", "Solo tu la vedi; perché la vedano tutti, applicala dal launcher", "Só você a vê; para todos verem, aplique-a pelo launcher");
+        p("Solo la ves tú", "Only you see it", "Toi seul la vois", "Nur du siehst sie", "Solo tu la vedi", "Só você a vê");
     }
 }

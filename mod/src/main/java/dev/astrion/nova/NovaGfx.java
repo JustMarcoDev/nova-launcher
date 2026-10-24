@@ -111,7 +111,7 @@ public final class NovaGfx {
         return r;
     }
 
-    public static final int I_USER = 0, I_GEAR = 1, I_CLOSE = 2, I_EARTH = 6, I_NOVA = 8, I_LOCK = 9, I_REALMS = 10, I_USERS = 11, I_CHECK = 12, I_PLUS = 13, I_HEAD = 14, I_EDIT = 15, I_SWAP = 16, I_TRASH = 17, I_FOLDER = 18;
+    public static final int I_USER = 0, I_GEAR = 1, I_CLOSE = 2, I_EARTH = 6, I_NOVA = 8, I_LOCK = 9, I_REALMS = 10, I_USERS = 11, I_CHECK = 12, I_PLUS = 13, I_HEAD = 14, I_EDIT = 15, I_SWAP = 16, I_TRASH = 17, I_FOLDER = 18, I_RESIZE = 19;
 
     static void person(Graphics2D g, double cx, double top, double s) {
         g.fill(new Ellipse2D.Double(cx - 0.17 * s, top, 0.34 * s, 0.34 * s));
@@ -249,6 +249,14 @@ public final class NovaGfx {
                 q.draw(f);
                 break;
             }
+            case I_RESIZE: {   // flecha doble en diagonal (cambiar tamaño)
+                q.setStroke(new BasicStroke(0.09f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                q.draw(new Line2D.Double(0.28, 0.28, 0.72, 0.72));
+                Path2D a1 = new Path2D.Double(); a1.moveTo(0.26, 0.5); a1.lineTo(0.26, 0.26); a1.lineTo(0.5, 0.26);
+                Path2D a2 = new Path2D.Double(); a2.moveTo(0.74, 0.5); a2.lineTo(0.74, 0.74); a2.lineTo(0.5, 0.74);
+                q.draw(a1); q.draw(a2);
+                break;
+            }
             case I_HEAD: {
                 java.awt.image.BufferedImage h = NovaSkin.head;
                 if (h == null) { person(q, 0.5, 0.1, 0.8); break; }
@@ -266,7 +274,7 @@ public final class NovaGfx {
 
     public static Tex button(MinecraftClient mc, int w, int h, String label, int icon, int style, boolean hot, boolean enabled) {
         int s = begin(mc);
-        String key = "b|" + w + "x" + h + "|" + label + "|" + icon + "|" + style + "|" + hot + "|" + enabled + "|" + accent + (icon == I_HEAD && NovaSkin.head != null ? "|skin" : "");
+        String key = "b|" + w + "x" + h + "|" + label + "|" + icon + "|" + style + "|" + hot + "|" + enabled + "|" + accent + (icon == I_HEAD && NovaSkin.head != null ? "|skin" + NovaSkin.ver : "");
         Tex c = CACHE.get(key);
         if (c != null) return c;
         int m = 5;   // margen para el brillo exterior

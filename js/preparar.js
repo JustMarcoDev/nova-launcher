@@ -1,7 +1,7 @@
 // Preparar antes de jugar: al elegir una versión se descarga en segundo plano lo que falte
 let prepT=0,prepMsg="";
 function prepSoon(){
-  if(!A||!A.prepRun||cfg.prefetch===false)return;
+  if(!A||!A.prepRun||cfg.prefetchOn!==true)return;
   clearTimeout(prepT);
   prepT=setTimeout(()=>{
     if(RUN||$("go").disabled)return;

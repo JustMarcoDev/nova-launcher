@@ -149,7 +149,8 @@ app.whenReady().then(() => {
   const later = () => { clearTimeout(winSaveT); winSaveT = setTimeout(winSave, 600); };
   win.on('resize', later); win.on('move', later); win.on('maximize', later); win.on('unmaximize', later); win.on('close', winSave);
   setTimeout(() => modManifest().catch(() => {}), 9000); setTimeout(imgPrune, 3000); setTimeout(encryptOldTokens, 500);
-  win.once('ready-to-show', () => win.show());
+  win.once('ready-to-show', () => { win.show(); taskbarIcon(); });
+  win.on('show', () => taskbarIcon());
   // Al minimizar u ocultar la ventana (o pasar un rato sin foco) se libera memoria de la interfaz y del proceso principal
   let trimT = null;
   const trimSoon = ms => { clearTimeout(trimT); trimT = setTimeout(trimMem, ms); };
@@ -158,7 +159,7 @@ app.whenReady().then(() => {
   if (process.env.NOVA_SMOKE) return smokeTest();
   win.loadFile('index.html');
   if (app.isPackaged) initUpdater();
-  discordInit(); ensureShortcut(); trayInit(); win.on('focus', () => { if (Date.now() - lastChk > 600000) chkNow(); });
+  discordInit(); ensureShortcut(); fixPinnedIcons(); trayInit(); win.on('focus', () => { if (Date.now() - lastChk > 600000) chkNow(); });
 });
 // Prueba de arranque para la revisión automática (NOVA_SMOKE=1): abre la ventana, mira que la interfaz cargue sin errores y se cierra.
 function smokeTest() {
@@ -578,6 +579,29 @@ function appIcon() {
   try { const i = nativeImage.createFromPath(path.join(__dirname, 'assets', 'nova.ico')); if (i && !i.isEmpty()) return i; } catch {}
   return undefined;
 }
+// Fuerza el logo de Nova en la barra de tareas de Windows: icono de la ventana + detalles de la barra (icono propio, no el del .exe) + accesos directos anclados.
+function taskbarIcon() {
+  if (process.platform !== 'win32') return;
+  try { const i = appIcon(); if (i && win) win.setIcon(i); } catch {}
+  try {
+    const ico = iconFile();
+    if (win && app.isPackaged) win.setAppDetails({ appId: 'com.nova.launcher', appIconPath: ico, appIconIndex: 0, relaunchCommand: '"' + process.execPath + '"', relaunchDisplayName: 'Nova Launcher' });
+  } catch {}
+}
+// Accesos directos de Nova Launcher anclados a la barra de tareas o al menú Inicio: se les pone el icono de Nova (el .exe lleva el icono genérico de Electron).
+function fixPinnedIcons() {
+  try {
+    if (process.platform !== 'win32' || !app.isPackaged) return;
+    const ico = iconFile(), ad = app.getPath('appData');
+    for (const d of [path.join(ad, 'Microsoft', 'Internet Explorer', 'Quick Launch', 'User Pinned', 'TaskBar'), path.join(ad, 'Microsoft', 'Windows', 'Start Menu', 'Programs'), app.getPath('desktop')]) {
+      let fl = []; try { fl = fs.readdirSync(d).filter(f => /\.lnk$/i.test(f)); } catch { continue; }
+      for (const f of fl) {
+        const p = path.join(d, f);
+        try { const l = shell.readShortcutLink(p); if (l && l.target && path.resolve(l.target).toLowerCase() === path.resolve(process.execPath).toLowerCase() && l.icon !== ico) shell.writeShortcutLink(p, 'update', { icon: ico, iconIndex: 0 }); } catch {}
+      }
+    }
+  } catch {}
+}
 function iconFile() {
   try { const dst = path.join(root, 'nova.ico'); fs.mkdirSync(root, { recursive: true }); fs.copyFileSync(path.join(__dirname, 'assets', 'nova.ico'), dst); return dst; } catch { return process.execPath; }
 }
@@ -988,7 +1012,17 @@ function skinLocalWrite(act) {
     let on = false;
     if (x && fs.existsSync(skinFile(id))) { fs.copyFileSync(skinFile(id), png + '.tmp'); fs.renameSync(png + '.tmp', png); on = true; }
     const j = path.join(dir, 'skin-local.json');
-    fs.writeFileSync(j + '.tmp', JSON.stringify({ on, user: act.name, model: on && x.model === 'slim' ? 'slim' : 'classic', v: Date.now() })); fs.renameSync(j + '.tmp', j);
+    fs.writeFileSync(j + '.tmp', JSON.stringify({ on, user: act.name, model: on && x.model === 'slim' ? 'slim' : 'classic', v: Date.now(), id: on ? id : '' })); fs.renameSync(j + '.tmp', j);
+  } catch {}
+}
+// Si la skin se cambió desde el menú del juego (el mod marca «by: mod» en skin-local.json), el launcher adopta esa elección para la cuenta.
+function skinSyncFromMod() {
+  try {
+    const act = accState().act, j = path.join(novaDir(), 'skin-local.json'), o = rd(j, null);
+    if (!o || o.by !== 'mod' || o.user !== act.name) return;
+    const id = o.on && o.id && skinsIdx().some(x => x.id === o.id) ? String(o.id) : '';
+    if (skinSelGet(act.id) !== id) skinSelSet(act.id, id);
+    delete o.by; fs.writeFileSync(j + '.tmp', JSON.stringify(o)); fs.renameSync(j + '.tmp', j);
   } catch {}
 }
 function skinList() {
@@ -1014,7 +1048,7 @@ async function mojang(tok, method, url, opt = {}) {
   return r;
 }
 const imgUrl = async u => { u = String(u || '').replace(/^http:\/\//, 'https://'); if (!/^https:\/\/([\w-]+\.)?minecraft\.net\//.test(u)) return ''; try { const r = await fetch(u, { signal: AbortSignal.timeout(10000) }); const b = Buffer.from(await r.arrayBuffer()); return isPng(b) ? dataUrl(b) : ''; } catch { return ''; } };
-ipcMain.handle('skin:list', () => skinList());
+ipcMain.handle('skin:list', () => { skinSyncFromMod(); return skinList(); });
 ipcMain.handle('skin:save', (e, o) => {
   const m = /^data:image\/png;base64,([A-Za-z0-9+/=]+)$/.exec(String(o && o.data || '')); if (!m) throw new Error('Elige un archivo .png');
   const b = Buffer.from(m[1], 'base64'); if (!isPng(b)) throw new Error('Ese archivo no es una imagen PNG válida');
@@ -1079,7 +1113,7 @@ ipcMain.handle('cape:set', async (e, id) => {
 // Skin que se pasa al juego: la elegida (en cualquier tipo de cuenta, el mod la pone al jugador local aunque Mojang aún no la haya actualizado),
 // o la que descarga novaSkin de la cuenta. Además deja skin-local.png/json al día para el mod.
 async function novaSkinFor(act) {
-  skinLocalWrite(act);
+  skinSyncFromMod(); skinLocalWrite(act);
   const id = skinSelGet(act.id), x = id && skinsIdx().find(z => z.id === id);
   if (x && fs.existsSync(skinFile(id))) return { file: skinFile(id), model: x.model === 'slim' ? 'slim' : 'classic', local: true };
   return { file: await novaSkin(act.name), model: '', local: false };
@@ -1766,7 +1800,7 @@ async function prepRun(r) {
   } catch (e) { pr('error', { msg: String(e && e.message || e) }); }
 }
 ipcMain.handle('prep:run', (e, r) => {
-  r = r || {}; if (load().prefetch === false || running.size) return { skipped: true };
+  r = r || {}; if (load().prefetchOn !== true || running.size) return { skipped: true };
   if (PREPP) { PREPQ = r; return { queued: true }; }
   const go = req => { PREPP = prepRun(req).finally(() => { PREPP = null; const n = PREPQ; PREPQ = null; if (n && prepKey(n) !== prepKey(req)) go(n); }); };
   go(r); return { started: true };

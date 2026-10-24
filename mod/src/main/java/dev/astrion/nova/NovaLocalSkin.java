@@ -74,6 +74,9 @@ public final class NovaLocalSkin {
 
     public static boolean slim() { return slim; }
 
+    /** Fuerza que la próxima consulta lea ya los archivos (tras cambiar la skin desde el menú del juego). */
+    static void refresh() { lastCheck = 0; }
+
     /** Las skins antiguas de 64×32 se convierten a 64×64 como hace el juego (la pierna y el brazo izquierdos son el espejo de los derechos). */
     private static BufferedImage legacy(BufferedImage s) {
         BufferedImage o = new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB);

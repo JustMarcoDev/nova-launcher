@@ -9,7 +9,7 @@ function insOrder(L,sort){
 }
 function insRow(i){
   const ic=i.icon&&ICS.includes(i.icon)?i.icon:"box";
-  return `<div class="ir ${i.fav?"fav":""}" data-i="${esc(i.id)}" style="${i.color?"--ic:"+esc(i.color):""}"><button class="star ${i.fav?"on":""}" data-a="fav" type="button" title="${i.fav?"Quitar de favoritas":"Fijar arriba como favorita"}" aria-label="Favorita">${i.fav?"★":"☆"}</button><div class="iic">${IC(ic)}</div><div class="im"><div class="t"><span class="tn">${esc(i.name)}</span>${(i.tags||[]).map(t=>`<span class="etq" data-t="${esc(t)}">${esc(t)}</span>`).join("")}</div><div class="s">${esc(LDN(i.ld||"Vanilla"))} · ${esc(i.mc)}${i.ram?" · "+i.ram+" GB":""}</div>${i.note?`<div class="nt">${esc(i.note)}</div>`:""}</div><div class="ip s">${esc(plLine(i))}</div><div class="a"><button class="btn pr sm" data-a="play">Jugar</button><button class="btn sm" data-a="mods">Mods</button><button class="btn sm" data-a="shots">Capturas</button><button class="btn sm" data-a="opt">Opciones</button><button class="btn sm dg" data-a="del" title="Borrar instancia">Borrar</button></div></div>`;
+  return `<div class="ir ${i.fav?"fav":""}" data-i="${esc(i.id)}" style="${i.color?"--ic:"+esc(i.color):""}"><button class="star ${i.fav?"on":""}" data-a="fav" type="button" title="${i.fav?"Quitar de favoritas":"Fijar arriba como favorita"}" aria-label="Favorita">${i.fav?"★":"☆"}</button><div class="iic">${IC(ic)}</div><div class="im"><div class="t"><span class="tn">${esc(i.name)}</span>${(i.tags||[]).map(t=>`<span class="etq" data-t="${esc(t)}">${esc(t)}</span>`).join("")}</div><div class="s">${esc(LDN(i.ld||"Vanilla"))} · ${esc(i.mc)}${i.ram?" · "+i.ram+" GB":""}</div>${i.note?`<div class="nt">${esc(i.note)}</div>`:""}</div><div class="ip s">${esc(plLine(i))}</div><div class="a"><button class="btn pr sm" data-a="play">Jugar</button><button class="btn sm" data-a="mods">Detalles y mods</button><button class="btn sm" data-a="shots">Capturas</button><button class="btn sm" data-a="opt">Opciones</button><button class="btn sm dg" data-a="del" title="Borrar instancia">Borrar</button></div></div>`;
 }
 function ri(){
   const sort=cfg.instSort||"last",tags=[...new Set(I.flatMap(i=>i.tags||[]))].sort((a,b)=>a.localeCompare(b));
@@ -27,7 +27,7 @@ function ri(){
 $("iq").oninput=()=>{iQ=$("iq").value.trim().toLowerCase();ri()};
 $("il").onclick=async e=>{
   const tg=e.target.closest(".etq");if(tg){iTag=tg.dataset.t;ri();return}
-  const b=e.target.closest("button[data-a]");if(!b)return;const id=b.closest(".ir").dataset.i,i=I.find(x=>x.id===id),a=b.dataset.a;if(!i)return;
+  const b=e.target.closest("button[data-a]");if(!b){const row=e.target.closest(".ir");if(row)openMods(row.dataset.i);return}const id=b.closest(".ir").dataset.i,i=I.find(x=>x.id===id),a=b.dataset.a;if(!i)return;
   if(a==="fav"){try{await(A||DA).instUpdate(id,{fav:!i.fav});await loadI()}catch(x){flash(em(x))}return}
   if(a==="del"){if(!confirm("¿Borrar «"+i.name+"» con sus mundos, mods y copias de seguridad? No se puede deshacer."))return;try{await api.delInst(id);await loadI();flash("Instancia borrada")}catch(x){flash(em(x))}return}
   if(a==="play"){pick(i.mc,i.type||"release",i.ld);sel.inst=i.id;show("home");play(i.id)}else if(a==="mods")openMods(id);else if(a==="shots")openShots(id);else openOpts(id)};
@@ -37,7 +37,12 @@ const b=$("imp");b.disabled=true;try{const r=await A.instImport();if(r&&!r.cance
 $("ifo").onclick=()=>{if(A)A.folder();else pv("ifo")};
 // --- Gestor de mods ---
 async function openMods(id){const ins=I.find(x=>x.id===id);if(!ins)return;const api=A||DA;
-modal(hdr(ins,"Mods de "+esc(ins.name),'<span id="mst">Cargando…</span>')+`<div class="mbar"><input id="mq" type="text" placeholder="Filtrar mods…"><button class="btn sm pr" id="mup" style="display:none"></button><button class="btn sm" id="mad">Añadir .jar</button><button class="btn sm" id="mfo">Abrir carpeta</button></div><div id="mls"></div>`,"wide");
+modal(hdr(ins,esc(ins.name),esc(LDN(ins.ld||"Vanilla"))+" · Minecraft "+esc(ins.mc)+(ins.playMs?" · "+esc(plLine(ins)):""))+`<div class="idt"><div class="fr"><label>Nombre</label><input id="dn" type="text" maxlength="40" value="${esc(ins.name)}"></div><div class="fr"><label>Descripción</label><textarea id="dd" rows="2" maxlength="600" placeholder="Para qué usas esta instancia, mods que faltan…">${esc(ins.note||"")}</textarea></div><div class="acts2"><button class="btn sm pr" id="dsv" type="button" disabled>Guardar cambios</button><button class="btn sm pr" id="dpl" type="button">Jugar</button><button class="btn sm" id="dop" type="button">Opciones</button><button class="btn sm" id="dfo" type="button">Abrir carpeta</button></div></div><h4 class="idh">Mods <span id="mst">Cargando…</span></h4><div class="mbar"><input id="mq" type="text" placeholder="Filtrar mods…"><button class="btn sm pr" id="mup" style="display:none"></button><button class="btn sm pr" id="msr" type="button">Buscar e instalar mods</button><button class="btn sm" id="mad">Añadir .jar</button><button class="btn sm" id="mfo">Abrir carpeta de mods</button></div><div id="mls"></div>`,"wide");
+{const dv=()=>{$("dsv").disabled=$("dn").value.trim()===ins.name&&$("dd").value.trim()===(ins.note||"")};$("dn").oninput=dv;$("dd").oninput=dv;
+$("dsv").onclick=async()=>{const b=$("dsv");b.disabled=true;try{await api.instUpdate(id,{name:$("dn").value.trim()||ins.name,note:$("dd").value.trim()});await loadI();const n=I.find(x=>x.id===id);if(n){ins.name=n.name;ins.note=n.note;const h=document.querySelector("#mdl .hd h3");if(h)h.textContent=n.name}dv();flash("Instancia guardada ✓")}catch(x){b.disabled=false;flash(em(x))}};
+$("dpl").onclick=()=>{closeModal();pick(ins.mc,ins.type||"release",ins.ld);sel.inst=ins.id;show("home");play(ins.id)};
+$("dop").onclick=()=>openOpts(id);$("dfo").onclick=()=>{if(A)A.instOpen(id,"")};
+$("msr").onclick=()=>{closeModal();pick(ins.mc,ins.type||"release",ins.ld);sel.inst=ins.id;show("mods")}}
 let L=[],M={};
 const sum=()=>{const n=L.filter(m=>M[m.sha1]&&M[m.sha1].update).length,b=$("mup");if(!b)return;b.style.display=n?"":"none";b.textContent=`Actualizar todo (${n})`;return n};
 const draw=()=>{const q=($("mq").value||"").toLowerCase();const rows=L.filter(m=>!q||m.file.toLowerCase().includes(q)||((M[m.sha1]||{}).title||"").toLowerCase().includes(q));
