@@ -63,13 +63,14 @@ const w = dom.window, sleep = ms => new Promise(r => setTimeout(r, ms));
       row.click(); await sleep(150);
       if (!g('dn') || g('dn').value !== 'Mi instancia' || !g('dd') || g('dd').value !== 'Descripción de prueba') errors.push('Instancias: la ventana de detalle no muestra nombre y descripción');
       if (!g('mls') || !g('msr') || !g('mad')) errors.push('Instancias: faltan la lista de mods o los botones de añadir/buscar mods');
-      w.eval('closeModal()');
+      w.eval('closeModal()'); await sleep(400);
     }
     // Opciones de una instancia con Fabric: el desplegable de versiones del cargador debe traer la lista, no solo «Automática»
     mock.insts = [{ id: 'i2', name: 'Con Fabric', mc: '1.21.1', ld: 'Fabric', loaderVersion: '' }];
     mock.loaderVersions = [{ v: '0.16.14', stable: true }, { v: '0.16.13', stable: true }, { v: '0.17.0-beta.1', stable: false }];
-    await w.eval('loadI()'); await sleep(100);
-    w.document.querySelector('#il [data-a=opt]').click(); await sleep(250);
+    await w.eval('loadI()'); for (let k = 0; k < 30 && !/Con Fabric/.test(w.document.getElementById('il').textContent); k++) await sleep(100);
+    w.eval('closeModal()'); await sleep(200);
+    w.document.querySelector('#il [data-a=opt]').click(); for (let k = 0; k < 30 && !(g('olv') && g('olv').options.length > 1); k++) await sleep(100);
     {
       const o = g('olv') ? [...g('olv').options].map(x => x.value) : [];
       if (o.length !== 4 || !o.includes('0.16.13') || !o.includes('0.17.0-beta.1')) errors.push('Instancias: el desplegable de la versión de Fabric no muestra la lista (' + o.join(',') + ')');
@@ -78,9 +79,9 @@ const w = dom.window, sleep = ms => new Promise(r => setTimeout(r, ms));
     delete mock.loaderVersions;
     // si la lista falla se ve el aviso con «Reintentar» (antes solo salía «Automática» sin explicación)
     mock.insts = [{ id: 'i3', name: 'Sin red', mc: '1.21.1', ld: 'Fabric', loaderVersion: '' }];
-    await w.eval('loadI()'); await sleep(100);
+    await w.eval('loadI()'); for (let k = 0; k < 30 && !/Sin red/.test(w.document.getElementById('il').textContent); k++) await sleep(100);
     api.loaderVersions = async () => { throw new Error('No se pudo cargar la lista'); };
-    w.document.querySelector('#il [data-a=opt]').click(); await sleep(500);
+    w.document.querySelector('#il [data-a=opt]').click(); for (let k = 0; k < 30 && !g('olr'); k++) await sleep(100);
     if (!g('olr')) errors.push('Instancias: si falla la lista de versiones de Fabric no sale «Reintentar»');
     w.eval('closeModal()'); delete api.loaderVersions;
     mock.insts = []; await w.eval('loadI()');
