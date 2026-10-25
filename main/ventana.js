@@ -85,7 +85,8 @@ app.whenReady().then(() => {
   if (process.env.NOVA_SMOKE) return smokeTest();
   S.win.loadFile('index.html');
   if (app.isPackaged) initUpdater();
-  discordInit(); ensureShortcut(); fixPinnedIcons(); trayInit(); S.win.on('focus', () => { if (Date.now() - S.lastChk > 600000) S.chkNow(); });
+  // Lo que no hace falta para pintar la ventana se hace después, con la interfaz ya en pantalla (leer los accesos directos de Windows uno a uno es lento)
+  setTimeout(discordInit, 1500); setTimeout(ensureShortcut, 2500); setTimeout(fixPinnedIcons, 8000); trayInit(); S.win.on('focus', () => { if (Date.now() - S.lastChk > 600000) S.chkNow(); });
 });
 // Prueba de arranque para la revisión automática (NOVA_SMOKE=1): abre la ventana, mira que la interfaz cargue sin errores y se cierra.
 function smokeTest() {
