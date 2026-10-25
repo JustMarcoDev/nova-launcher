@@ -1,6 +1,6 @@
-# Los .bat de Windows se guardan tal cual, con fin de línea CRLF (no se convierten); el resto, LF
-*.bat -text
+# Fin de línea: LF en todo el repositorio, salvo los .bat de Windows, que se guardan tal cual con CRLF
 * text=auto eol=lf
+*.bat -text
 *.png binary
 *.ico binary
 *.jar binary
