@@ -97,8 +97,21 @@ ipcMain.handle('mods:check', async (e, { id, hashes }) => {
 });
 // Qué proyectos de Modrinth (y qué archivos) ya hay en una instancia, para marcar «ya instalado» en el catálogo
 const pcache = new Map();
-ipcMain.handle('mods:projects', async (e, { id }) => {
-  const L = await listMods(id), need = L.map(m => m.sha1).filter(h => !pcache.has(h));
+ipcMain.handle('mods:projects', async (e, { id, dir }) => {
+  dir = ['shaderpacks', 'resourcepacks'].includes(dir) ? dir : 'mods';
+  let L;
+  if (dir === 'mods') L = await listMods(id);
+  else {
+    const d = path.join(iDir(getIns(id).id), dir); L = [];
+    let es = []; try { es = await fs.promises.readdir(d); } catch {}
+    for (const f of es) {
+      if (!/\.zip$/i.test(f)) continue; const p = path.join(d, f); let st; try { st = await fs.promises.stat(p); } catch { continue; } if (!st.isFile() || st.size > 400 * 1024 * 1024) continue;
+      const k = p + '|' + st.size + '|' + st.mtimeMs; let h = hcache.get(k);
+      if (!h) { h = hashOf(await fs.promises.readFile(p), 'sha1'); hcache.set(k, h); }
+      L.push({ file: f, sha1: h });
+    }
+  }
+  const need = L.map(m => m.sha1).filter(h => !pcache.has(h));
   for (let i = 0; i < need.length; i += 400) {
     const part = need.slice(i, i + 400);
     try { const cur = await post('https://api.modrinth.com/v2/version_files', { hashes: part, algorithm: 'sha1' }); for (const h of part) pcache.set(h, cur[h] ? cur[h].project_id : ''); } catch {}

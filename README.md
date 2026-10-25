@@ -158,9 +158,14 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 
 ## Regla de versiones: mod y launcher van juntos
 
-Cada vez que cambia el mod (`mod/`) se publica una versión nueva del launcher: mientras dure la fase de pruebas, una beta más (`0.2.15-beta.14`, `beta.15`… `beta.21`…). La versión del mod se lee de `package.json`, así que siempre coincide con la del launcher. El launcher se actualiza solo y el usuario recibe el mod nuevo con él.
+Cada vez que cambia el mod (`mod/`) se publica una versión nueva del launcher: mientras dure la fase de pruebas, una beta más (`0.2.15-beta.14`, `beta.15`… `beta.22`…). La versión del mod se lee de `package.json`, así que siempre coincide con la del launcher. El launcher se actualiza solo y el usuario recibe el mod nuevo con él.
 
 ## Historial de actualizaciones
+
+### 0.2.15-beta.22 — Panel «Añadir a esta instancia»
+
+- La sección Mods vuelve a ser un catálogo normal: ya no pone «ya está en la instancia».
+- En el detalle de una instancia, el botón **«Añadir mods, shaders y texturas»** abre un panel con el catálogo de Modrinth filtrado por la versión (y el cargador) de esa instancia. Tiene botones **Mods · Shaders · Texturas** y buscador; lo que la instancia ya tiene sale como **«Instalado ✓»** (por la huella del archivo y, si no, por el nombre). Los mods se instalan con sus dependencias obligatorias. «‹ Volver a la instancia» regresa al detalle.
 
 ### 0.2.15-beta.21 — El catálogo de mods marca los que ya tiene la instancia
 

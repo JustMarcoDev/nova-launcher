@@ -4174,3 +4174,11 @@ html[data-cb=Grises] {
 /* mod que ya está en la instancia */
 .inh{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;color:#3ddc84;background:rgba(61,220,132,.12);border:1px solid rgba(61,220,132,.35)}
 .wr .nm small.inh{display:block;width:max-content;margin-top:3px}
+/* panel «Añadir a esta instancia» */
+.adb{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:10px 0}
+.adb .chips{margin-left:auto}
+.mr.ad .nm small{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:normal}
+.mr.ad .btn{flex:none;min-width:96px}
+.mr.ad .btn.ok{color:#3ddc84;border-color:rgba(61,220,132,.4);opacity:1}
+#adl{max-height:52vh;overflow:auto;display:grid;gap:6px;margin-top:8px}
+.adm{text-align:center;margin-top:8px}
