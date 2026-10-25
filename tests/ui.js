@@ -62,7 +62,7 @@ const w = dom.window, sleep = ms => new Promise(r => setTimeout(r, ms));
     const row = w.document.querySelector('#il .ir');
     if (!row) errors.push('Instancias: no se pintó la tarjeta');
     else {
-      row.click(); await sleep(150);
+      row.click(); for (let t = 0; t < 50 && !g('msr'); t++) await sleep(100); await sleep(50);
       if (!g('dn') || g('dn').value !== 'Mi instancia' || !g('dd') || g('dd').value !== 'Descripción de prueba') errors.push('Instancias: la ventana de detalle no muestra nombre y descripción');
       if (!g('mls') || !g('msr') || !g('mad')) errors.push('Instancias: faltan la lista de mods o los botones de añadir/buscar mods');
       // Panel «Añadir a esta instancia»: lo que ya tiene sale como instalado, y hay botones para shaders y texturas
@@ -72,9 +72,11 @@ const w = dom.window, sleep = ms => new Promise(r => setTimeout(r, ms));
       const bs = [...w.document.querySelectorAll('#adl button')];
       if (bs.length !== 2 || bs[0].textContent.indexOf('Instalado') < 0 || !bs[0].disabled || bs[1].textContent !== 'Instalar' || bs[1].disabled) errors.push('Añadir a la instancia: lo que ya está no sale como instalado');
       if (!seen.some(u => u.includes('versions%3A') || u.includes('1.21.1'))) errors.push('Añadir a la instancia: no filtra por la versión de la instancia');
+      for (let t = 0; t < 50 && w.document.querySelectorAll('#adk button').length < 3; t++) await sleep(100);
       const kb = [...w.document.querySelectorAll('#adk button')].map(b => b.textContent).join('|');
       if (kb !== 'Mods|Shaders|Texturas') errors.push('Añadir a la instancia: faltan los botones de shaders y texturas (' + kb + ')');
-      [...w.document.querySelectorAll('#adk button')][1].click(); for (let t = 0; t < 40 && !seen.some(u => u.includes('project_type%3Ashader')); t++) await sleep(100);
+      const sb = [...w.document.querySelectorAll('#adk button')][1]; if (sb) sb.click(); else errors.push('Añadir a la instancia: no hay botón de shaders');
+      for (let t = 0; t < 40 && !seen.some(u => u.includes('project_type%3Ashader')); t++) await sleep(100);
       if (!seen.some(u => u.includes('project_type%3Ashader'))) errors.push('Añadir a la instancia: el botón de shaders no busca shaders');
       delete api.http; delete api.modsProjects;
       w.eval('closeModal()'); await sleep(400);
@@ -115,6 +117,21 @@ const w = dom.window, sleep = ms => new Promise(r => setTimeout(r, ms));
     if (g('skcp').style.display === 'none' || !/Migrator/.test(g('skcl').textContent)) errors.push('Skin: no salen las capas de la cuenta Microsoft');
     if (g('sku').textContent !== 'Aplicar a mi cuenta') errors.push('Skin: el botón de Microsoft debe decir «Aplicar a mi cuenta»');
     w.document.querySelector('nav [data-p=home]').click();
+  }
+  // Crear instancia: botones en Instancias y en el desplegable de Lanzar; el diálogo crea la instancia sin lanzar
+  {
+    const g = id => w.document.getElementById(id);
+    if (!g('icr') || !g('pcr')) errors.push('Crear instancia: faltan los botones');
+    else {
+      g('pcr').click(); await sleep(300);
+      for (let k = 0; k < 20 && !g('cgo'); k++) await sleep(100);
+      if (!g('cgo')) errors.push('Crear instancia: no se abrió el diálogo');
+      else {
+        if (!g('cnm').value) errors.push('Crear instancia: el nombre no trae uno por defecto');
+        g('cnm').value = 'Mi instancia'; g('cgo').click(); await sleep(200);
+        if (g('mdl').classList.contains('on')) errors.push('Crear instancia: el diálogo no se cerró');
+      }
+    }
   }
   // Botón «Continuar»: sale con el último mundo y la X lo quita hasta que cambie el mundo
   {

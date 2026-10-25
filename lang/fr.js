@@ -1106,5 +1106,10 @@ window.LANGS.fr={name:"Français",d:{
 "Sin datos todavía":"Pas encore de données",
 "Aún no has entrado a ningún servidor desde el launcher":"Tu n'as encore rejoint aucun serveur depuis le launcher",
 "Incluye {1} jugadas antes de que existieran las estadísticas (sin fecha: no salen en el gráfico).":"Inclut {1} jouées avant l'existence des statistiques (sans date : absentes du graphique).",
-"Quitar este botón":"Retirer ce bouton"
+"Quitar este botón":"Retirer ce bouton",
+"Crear instancia con esto":"Créer une instance avec ça",
+"Con sus propios mundos, mods y ajustes. No abre el juego.":"Avec ses propres mondes, mods et réglages. N'ouvre pas le jeu.",
+"Instancia «{1}» creada ✓":"Instance « {1} » créée ✓",
+"Escribe un nombre":"Écris un nom",
+"En la vista previa no se pueden crear instancias":"On ne peut pas créer d'instances dans l'aperçu"
 }};

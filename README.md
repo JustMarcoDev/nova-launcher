@@ -162,6 +162,14 @@ Cada vez que cambia el mod (`mod/`) se publica una versión nueva del launcher: 
 
 ## Historial de actualizaciones
 
+### 0.2.16-beta.3 — Crear instancias, aviso de capturas y panel de mods mejorados, y limpieza
+
+- **Crear instancia**: botón «Crear instancia con esto» en el desplegable de Lanzar (usa la versión y el cargador elegidos) y botón «Crear instancia» en Instancias. Abre un diálogo con nombre, cargador, tipo y versión; no abre el juego. Estas instancias llevan `manual: true`, así que «Lanzar» no las reutiliza por su cuenta: se juegan desde la lista de instancias.
+- **Aviso de capturas (mod)**: más grande y con marco; muestra el tamaño de la imagen y su peso, una barra con el tiempo que queda, una X para cerrarlo y tres botones: **Copiar** (pasa a «¡Copiada!»), **Abrir** (la imagen) y **Carpeta**. Si el cursor está bloqueado avisa de que hay que abrir el chat para pulsarlos. Marcadores nuevos para el launcher: `[NOVA:SHOTVIEW:ruta]`.
+- **Panel de mods (mod)**: buscador (se escribe directamente; el primer Esc borra la búsqueda), barra de desplazamiento, al pasar el ratón sale la descripción del mod y, si tiene página web (`https://`), al pulsar se abre. Botón «Carpeta de mods» (`[NOVA:OPENMODS]`: el launcher abre la carpeta `mods` de esa instancia).
+- **Limpieza de código**: se quitó el canal `prep:state` (sin uso) del launcher y, del mod, constantes, textos de `NovaLang`, un icono y variables que nadie usaba. El resto de funciones y archivos del launcher se revisaron con un script: no hay más código sin uso.
+- **Optimización**: la lista de capturas y su recuento leen todas las carpetas y archivos a la vez en lugar de uno a uno; `NovaCape` ya no relee los ajustes por jugador y fotograma.
+
 ### 0.2.16-beta.2 — Botón Mods en el menú, botones alineados y arreglos de Nova
 
 - **Launcher**: el botón «Continuar» tiene una X para quitarlo; vuelve a salir cuando juegas otro mundo (o ese mismo otra vez).

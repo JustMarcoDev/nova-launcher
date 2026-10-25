@@ -1106,5 +1106,10 @@ window.LANGS.en={name:"English (US)",d:{
 "Sin datos todavía":"No data yet",
 "Aún no has entrado a ningún servidor desde el launcher":"You haven't joined any server from the launcher yet",
 "Incluye {1} jugadas antes de que existieran las estadísticas (sin fecha: no salen en el gráfico).":"Includes {1} played before statistics existed (undated: not shown in the chart).",
-"Quitar este botón":"Remove this button"
+"Quitar este botón":"Remove this button",
+"Crear instancia con esto":"Create instance with this",
+"Con sus propios mundos, mods y ajustes. No abre el juego.":"With its own worlds, mods and settings. It does not open the game.",
+"Instancia «{1}» creada ✓":"Instance “{1}” created ✓",
+"Escribe un nombre":"Enter a name",
+"En la vista previa no se pueden crear instancias":"Instances cannot be created in the preview"
 }};

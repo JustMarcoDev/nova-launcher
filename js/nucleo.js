@@ -29,6 +29,7 @@ if(cfg.shortcuts===false)return;const P=["home","vers","mods","srv","inst","con"
 if(e.altKey&&/^[1-9]$/.test(e.key)){e.preventDefault();show(P[+e.key-1])}
 if(e.ctrlKey&&e.key==="Enter"){e.preventDefault();const g=$("go");g&&!g.disabled&&g.click()}});document.addEventListener("click",e=>{if(!e.target.closest(".pop"))$("pop").classList.remove("on")});
 $("pop").onclick=e=>e.stopPropagation();
+$("pcr").onclick=()=>{$("pop").classList.remove("on");openCreate({mc:sel.mc,ld:sel.ld,type:sel.type})};
 function rp(){chips($("ld"),Object.keys(LD).map(k=>[k,LDN(k),!LD[k](sel.mc)]),sel.ld,k=>{sel.ld=k;head();save()});
 chips($("tf"),Object.entries(TN),tf,k=>{tf=k;rp()});
 const key=tf+"|"+sel.ld+"|"+sel.mc+"|"+V.length+"|"+(LS.f?1:0)+(LS.g?1:0)+(LS.n?1:0);if(key===rpK)return;rpK=key;
@@ -50,7 +51,7 @@ if(r[2].value)LS.n=new Set(r[2].value.versions.flatMap(v=>{const p=v.split("."),
 rpK="";rp();rv()}
 // Instancias (automáticas)
 async function loadI(){I=A?await A.insts():demoInsts();qi();ri()}
-async function ensure(){let i=(sel.inst&&I.find(x=>x.id===sel.inst&&x.mc===sel.mc&&x.ld===sel.ld))||I.find(x=>x.mc===sel.mc&&x.ld===sel.ld&&!x.novaPack&&!x.custom);if(!i&&A){i=await A.saveInst({name:`${LDN(sel.ld)} ${sel.mc}`,mc:sel.mc,ld:sel.ld,type:sel.type});await loadI()}return i}
+async function ensure(){let i=(sel.inst&&I.find(x=>x.id===sel.inst&&x.mc===sel.mc&&x.ld===sel.ld))||I.find(x=>x.mc===sel.mc&&x.ld===sel.ld&&!x.novaPack&&!x.custom&&!x.manual);if(!i&&A){i=await A.saveInst({name:`${LDN(sel.ld)} ${sel.mc}`,mc:sel.mc,ld:sel.ld,type:sel.type});await loadI()}return i}
 function qi(){$("qi").innerHTML=I.length?[...I].sort((a,b)=>(!!b.fav-!!a.fav)||(b.lastPlayed||0)-(a.lastPlayed||0)).slice(0,6).map(i=>`<div class="row ${sel.inst?i.id===sel.inst:i.mc===sel.mc&&i.ld===sel.ld&&!i.novaPack&&!i.custom?"on":""}" data-i="${i.id}"><span class="n">${i.fav?"★ ":""}${i.name}</span><span class="s">${i.mc}</span></div>`).join(""):'<div style="color:var(--m)">Aún no hay instancias. Elige una versión y pulsa Lanzar juego: se crea sola.</div>';
 $("qi").querySelectorAll(".row").forEach(r=>r.onclick=()=>{const i=I.find(x=>x.id===r.dataset.i);pick(i.mc,i.type||"release",i.ld);sel.inst=i.id;save();qi()})}
 // Jugar

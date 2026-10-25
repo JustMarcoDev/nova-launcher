@@ -15,9 +15,9 @@ import net.minecraft.util.Util;
 import org.lwjgl.glfw.GLFW;
 
 /**
- * Aviso de Nova al guardar una captura (F2): miniatura, «Copiar» y «Abrir carpeta» en la esquina de arriba a la derecha durante 5 s.
+ * Aviso de Nova al guardar una captura (F2): miniatura, datos y los botones «Copiar», «Abrir» y «Carpeta» en la esquina de arriba a la derecha durante 5 s.
  * Los botones se pueden pulsar cuando el ratón está libre (chat, inventario, pausa); mientras el puntero esté encima, el aviso no se va.
- * El mod no copia imágenes ni abre carpetas por su cuenta: escribe marcadores que el launcher entiende ([NOVA:SHOTCOPY:ruta], [NOVA:SHOTOPEN:ruta]).
+ * El mod no copia imágenes ni abre carpetas por su cuenta: escribe marcadores que el launcher entiende ([NOVA:SHOTCOPY:ruta], [NOVA:SHOTVIEW:ruta], [NOVA:SHOTOPEN:ruta]).
  */
 public final class NovaShots {
     private NovaShots() { }
@@ -26,8 +26,9 @@ public final class NovaShots {
     private static volatile String path = "";
     private static volatile BufferedImage thumb;
     private static volatile long born;
-    private static String thumbKey = "";
-    private static NovaButton bCopy, bOpen;
+    private static NovaButton bCopy, bView, bDir;
+    private static volatile int shotW, shotH;
+    private static volatile long shotBytes, copiedAt;
     private static boolean wasDown;
     private static long lastNow;
 
@@ -53,7 +54,8 @@ public final class NovaShots {
             try {
                 BufferedImage im = ImageIO.read(best);
                 if (im != null) {
-                    int w = 160, h = Math.max(1, im.getHeight() * w / im.getWidth());
+                    shotW = im.getWidth(); shotH = im.getHeight();
+                    int w = 200, h = Math.max(1, im.getHeight() * w / im.getWidth());
                     th = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
                     java.awt.Graphics2D g = th.createGraphics();
                     g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
@@ -62,9 +64,10 @@ public final class NovaShots {
                 }
             } catch (Throwable ignored) { }
             thumb = th;
+            shotBytes = best.length(); copiedAt = 0;
             path = best.getAbsolutePath();
             born = Util.getMeasuringTimeMs();
-            bCopy = null; bOpen = null;
+            bCopy = null; bView = null; bDir = null;
         } catch (Throwable ignored) { }
     }
 
@@ -79,7 +82,7 @@ public final class NovaShots {
         if (free) {
             try { mx = mc.mouse.getX() * sw / (double) mc.getWindow().getWidth(); my = mc.mouse.getY() * sh / (double) mc.getWindow().getHeight(); } catch (Throwable ignored) { }
         }
-        int w = 158, h = 62, x = sw - w - 6, y = 36;
+        int w = 196, h = 84, x = sw - w - 6, y = 36;
         boolean over = free && mx >= x && mx <= x + w && my >= y && my <= y + h;
         if (over) born += now - lastNow;   // con el puntero encima el aviso espera
         lastNow = now;
@@ -87,40 +90,60 @@ public final class NovaShots {
         if (age > SHOW_MS) { path = ""; thumb = null; return; }
         float a = Math.min(1f, age / 180f) * Math.min(1f, (SHOW_MS - age) / 300f);
         if (a <= 0f) return;
-        int slide = (int) ((1f - Math.min(1f, age / 180f)) * 14);
-        x += slide;
+        x += (int) ((1f - Math.min(1f, age / 180f)) * 14);
         NovaButton.panel(c, x, y, w, h, 6, withAlpha(0xF010102A, a), withAlpha(0xFF4A3C8C, a));
-        // miniatura
-        int tw = 70, th = 40;
+        // miniatura con marco
+        int tw = 78, th = 44;
         BufferedImage im = thumb;
         boolean drawn = false;
         if (im != null && NovaGfx.ok) {
             try {
                 NovaGfx.Tex t = NovaGfx.skin(mc, im, "shot|" + p);
-                th = Math.max(20, Math.min(46, tw * im.getHeight() / im.getWidth()));
-                t.drawSized(c, x + 6, y + 6, tw, th, a);
+                th = Math.max(24, Math.min(50, tw * im.getHeight() / im.getWidth()));
+                t.drawSized(c, x + 7, y + 7, tw, th, a);
                 drawn = true;
             } catch (Throwable e) { NovaGfx.ok = false; }
         }
-        if (!drawn) c.fill(x + 6, y + 6, x + 6 + tw, y + 6 + th, withAlpha(0xFF1B1B33, a));
-        int tx = x + 6 + tw + 6;
-        txt(c, mc, tr("Captura guardada"), tx, y + 8, 7.4f, 0xFFFFFFFF, true, a);
+        if (!drawn) c.fill(x + 7, y + 7, x + 7 + tw, y + 7 + th, withAlpha(0xFF1B1B33, a));
+        c.fill(x + 6, y + 6, x + 8 + tw, y + 7, withAlpha(0x66FFFFFF, a)); c.fill(x + 6, y + 7 + th, x + 8 + tw, y + 8 + th, withAlpha(0x66FFFFFF, a));
+        c.fill(x + 6, y + 7, x + 7, y + 7 + th, withAlpha(0x66FFFFFF, a)); c.fill(x + 7 + tw, y + 7, x + 8 + tw, y + 7 + th, withAlpha(0x66FFFFFF, a));
+        int tx = x + 7 + tw + 8;
+        txt(c, mc, "✓ " + tr("Captura guardada"), tx, y + 8, 7.2f, 0xFFFFFFFF, true, a);
         String fn = new File(p).getName();
-        txt(c, mc, fn.length() > 20 ? fn.substring(0, 17) + "…" : fn, tx, y + 21, 5.4f, 0xFF9A9AC0, false, a);
-        txt(c, mc, tr("5 s"), tx, y + 31, 5.4f, 0xFF7C7CA0, false, a);
-        // botones
-        int by = y + 6 + Math.max(th, 40) + 4, bw = (w - 12 - 3) / 2;
+        txt(c, mc, fn.length() > 22 ? fn.substring(0, 19) + "…" : fn, tx, y + 21, 5.4f, 0xFF9A9AC0, false, a);
+        long kb = shotBytes / 1024;
+        String info = (shotW > 0 ? shotW + "×" + shotH + "  ·  " : "") + (kb >= 1024 ? String.format(java.util.Locale.ROOT, "%.1f MB", kb / 1024.0) : kb + " KB");
+        txt(c, mc, info, tx, y + 31, 5.4f, 0xFF7C7CA0, false, a);
+        // cerrar (X)
+        int cx0 = x + w - 13, cy0 = y + 4;
+        boolean hotX = free && mx >= cx0 && mx < cx0 + 10 && my >= cy0 && my < cy0 + 10;
+        txt(c, mc, "×", cx0 + 2, cy0 - 1, 9f, hotX ? 0xFFFFFFFF : 0xFF9A9AC0, true, a);
+        // botones: Copiar · Abrir · Carpeta
+        int by = y + 7 + Math.max(th, 44) + 6, bw = (w - 14 - 2 * 3) / 3;
+        boolean copied = copiedAt > 0 && now - copiedAt < 1800;
         if (bCopy == null) {
-            bCopy = new NovaButton(0, 0, bw, 12, Text.literal(tr("Copiar")), -1, NovaButton.NORMAL, b -> System.out.println("[NOVA:SHOTCOPY:" + path + "]"));
-            bOpen = new NovaButton(0, 0, bw, 12, Text.literal(tr("Abrir carpeta")), NovaGfx.I_FOLDER, NovaButton.NORMAL, b -> System.out.println("[NOVA:SHOTOPEN:" + path + "]"));
+            bCopy = new NovaButton(0, 0, bw, 13, Text.literal(tr("Copiar")), -1, NovaButton.NORMAL, b -> { });
+            bView = new NovaButton(0, 0, bw, 13, Text.literal(tr("Abrir")), -1, NovaButton.NORMAL, b -> { });
+            bDir = new NovaButton(0, 0, bw, 13, Text.literal(tr("Carpeta")), NovaGfx.I_FOLDER, NovaButton.NORMAL, b -> { });
         }
-        bCopy.setX(x + 6); bCopy.setY(by); bOpen.setX(x + 6 + bw + 3); bOpen.setY(by);
+        bCopy.setMessage(Text.literal(copied ? "✓ " + tr("¡Copiada!") : tr("Copiar")));
+        bCopy.setX(x + 7); bCopy.setY(by); bView.setX(x + 7 + bw + 3); bView.setY(by); bDir.setX(x + 7 + 2 * (bw + 3)); bDir.setY(by);
         int imx = (int) mx, imy = (int) my;
-        bCopy.render(c, imx, imy, 0f); bOpen.render(c, imx, imy, 0f);
+        bCopy.render(c, imx, imy, 0f); bView.render(c, imx, imy, 0f); bDir.render(c, imx, imy, 0f);
+        // barra de tiempo restante, o la pista de cómo pulsar los botones
+        if (free) {
+            int bar = (int) ((w - 14) * (1f - age / (float) SHOW_MS));
+            c.fill(x + 7, y + h - 6, x + 7 + (w - 14), y + h - 4, withAlpha(0x33FFFFFF, a));
+            c.fill(x + 7, y + h - 6, x + 7 + Math.max(0, bar), y + h - 4, withAlpha(NovaSettings.accent | 0xFF000000, a));
+        } else {
+            txt(c, mc, tr("Abre el chat para usar los botones"), x + 7, y + h - 10, 5.2f, 0xFF7C7CA0, false, a);
+        }
         boolean down = free && GLFW.glfwGetMouseButton(mc.getWindow().getHandle(), 0) == GLFW.GLFW_PRESS;
         if (down && !wasDown) {
-            if (hit(bCopy, mx, my)) { System.out.println("[NOVA:SHOTCOPY:" + path + "]"); born = Math.min(born, now - SHOW_MS + 1200); }
-            else if (hit(bOpen, mx, my)) { System.out.println("[NOVA:SHOTOPEN:" + path + "]"); born = Math.min(born, now - SHOW_MS + 1200); }
+            if (hotX) { born = now - SHOW_MS + 150; }
+            else if (hit(bCopy, mx, my)) { System.out.println("[NOVA:SHOTCOPY:" + p + "]"); copiedAt = now; born = Math.max(born, now - SHOW_MS + 2600); }
+            else if (hit(bView, mx, my)) { System.out.println("[NOVA:SHOTVIEW:" + p + "]"); born = Math.min(born, now - SHOW_MS + 900); }
+            else if (hit(bDir, mx, my)) { System.out.println("[NOVA:SHOTOPEN:" + p + "]"); born = Math.min(born, now - SHOW_MS + 900); }
         }
         wasDown = down;
     }

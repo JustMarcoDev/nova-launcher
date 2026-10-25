@@ -111,7 +111,7 @@ public final class NovaGfx {
         return r;
     }
 
-    public static final int I_USER = 0, I_GEAR = 1, I_CLOSE = 2, I_EARTH = 6, I_NOVA = 8, I_LOCK = 9, I_REALMS = 10, I_USERS = 11, I_CHECK = 12, I_PLUS = 13, I_HEAD = 14, I_EDIT = 15, I_SWAP = 16, I_TRASH = 17, I_FOLDER = 18, I_RESIZE = 19, I_SERVER = 20, I_PLAY = 21, I_BOLT = 22, I_MODS = 23;
+    public static final int I_USER = 0, I_GEAR = 1, I_CLOSE = 2, I_EARTH = 6, I_NOVA = 8, I_REALMS = 10, I_USERS = 11, I_CHECK = 12, I_PLUS = 13, I_HEAD = 14, I_EDIT = 15, I_SWAP = 16, I_TRASH = 17, I_FOLDER = 18, I_RESIZE = 19, I_SERVER = 20, I_PLAY = 21, I_BOLT = 22, I_MODS = 23;
 
     static void person(Graphics2D g, double cx, double top, double s) {
         g.fill(new Ellipse2D.Double(cx - 0.17 * s, top, 0.34 * s, 0.34 * s));
@@ -148,14 +148,6 @@ public final class NovaGfx {
                 for (int i = 0; i < 8; i++) a.add(new Area(AffineTransform.getRotateInstance(i * Math.PI / 4, 0.5, 0.5).createTransformedShape(new RoundRectangle2D.Double(0.5 - 0.075, 0.07, 0.15, 0.22, 0.05, 0.05))));
                 a.subtract(new Area(new Ellipse2D.Double(0.5 - 0.13, 0.5 - 0.13, 0.26, 0.26)));
                 q.fill(a);
-                break;
-            }
-            case I_LOCK: {
-                q.fill(new RoundRectangle2D.Double(0.2, 0.46, 0.6, 0.42, 0.12, 0.12));
-                q.setStroke(new BasicStroke(0.09f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-                q.draw(new Arc2D.Double(0.32, 0.13, 0.36, 0.40, 0, 180, Arc2D.OPEN));
-                q.draw(new Line2D.Double(0.32, 0.33, 0.32, 0.48));
-                q.draw(new Line2D.Double(0.68, 0.33, 0.68, 0.48));
                 break;
             }
             case I_CLOSE: {

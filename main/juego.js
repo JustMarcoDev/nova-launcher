@@ -126,7 +126,7 @@ ipcMain.handle('play', async (e, { id, server, world, safe }) => {
     const l = new Client(), tail = [], lg = openLog(ins, java, ram), since = Date.now(); let t0 = 0, sk = '';
     send('log', '── ' + ins.name + ' · Minecraft ' + ins.mc + ' · ' + (ins.ld || 'Vanilla') + ' · ' + (act.name) + ' ──\n'); send('log', novaMsg);
     l.on('progress', p => send('progress', p));
-    l.on('data', d => { const t = String(d); if (t.includes('[Nova] captura') || t.includes('[NOVA:SHOT')) { try { shotMarkers(t, id); } catch {} } { const pk = t.match(/\[NOVA:PICKBG(?::([^\]]+))?\]/); if (pk) novaPickBg(pk[1]); const gb = t.match(/\[NOVA:GETBG:(nebula|earth)\]/); if (gb) novaBgGet(NOVA_REMOTE_ID[gb[1]]); if (t.includes('[NOVA:OPENDIR]')) shell.openPath(fondosDir()); } if (t.includes('[NOVA:SETTINGS]') || t.includes('[NOVA:SHOW]')) { try { if (S.win) { if (S.win.isMinimized()) S.win.restore(); S.win.show(); S.win.focus(); if (t.includes('[NOVA:SETTINGS]')) send('nav', 'set'); } } catch {} } try { lg.w.write(t.endsWith('\n') ? t : t + '\n'); } catch {} for (const ln of t.split(/\r?\n/)) if (ln) tail.push(ln); if (tail.length > 500) tail.splice(0, tail.length - 300); send('log', t); });
+    l.on('data', d => { const t = String(d); if (t.includes('[Nova] captura') || t.includes('[NOVA:SHOT')) { try { shotMarkers(t, id); } catch {} } { const pk = t.match(/\[NOVA:PICKBG(?::([^\]]+))?\]/); if (pk) novaPickBg(pk[1]); const gb = t.match(/\[NOVA:GETBG:(nebula|earth)\]/); if (gb) novaBgGet(NOVA_REMOTE_ID[gb[1]]); if (t.includes('[NOVA:OPENDIR]')) shell.openPath(fondosDir()); if (t.includes('[NOVA:OPENMODS]')) { const md = path.join(root, 'instances', String(id), 'mods'); fs.mkdirSync(md, { recursive: true }); shell.openPath(md); } } if (t.includes('[NOVA:SETTINGS]') || t.includes('[NOVA:SHOW]')) { try { if (S.win) { if (S.win.isMinimized()) S.win.restore(); S.win.show(); S.win.focus(); if (t.includes('[NOVA:SETTINGS]')) send('nav', 'set'); } } catch {} } try { lg.w.write(t.endsWith('\n') ? t : t + '\n'); } catch {} for (const ln of t.split(/\r?\n/)) if (ln) tail.push(ln); if (tail.length > 500) tail.splice(0, tail.length - 300); send('log', t); });
     l.on('close', code => {
       running.delete(id); try { lg.w.end(); } catch {} if (t0) { statsEnd(sk, Date.now() - t0); const cur = li().find(i => i.id === id) || {}; upIns(id, { playMs: (cur.playMs || 0) + (Date.now() - t0), lastPlayed: Date.now() }); } discordSet(null); send('running', running.size ? 1 : 0); send('progress', null);
       const crashed = !!code && tail.length > 0;
@@ -194,7 +194,6 @@ ipcMain.handle('prep:run', (e, r) => {
   const go = req => { S.PREPP = prepRun(req).finally(() => { S.PREPP = null; const n = PREPQ; PREPQ = null; if (n && prepKey(n) !== prepKey(req)) go(n); }); };
   go(r); return { started: true };
 });
-ipcMain.handle('prep:state', () => ({ busy: !!S.PREPP, last: S.PREPLAST }));
 
 
 // Lo que usan otros módulos

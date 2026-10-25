@@ -1106,5 +1106,10 @@ window.LANGS.it={name:"Italiano",d:{
 "Sin datos todavía":"Ancora nessun dato",
 "Aún no has entrado a ningún servidor desde el launcher":"Non sei ancora entrato in nessun server dal launcher",
 "Incluye {1} jugadas antes de que existieran las estadísticas (sin fecha: no salen en el gráfico).":"Include {1} giocate prima che esistessero le statistiche (senza data: non compaiono nel grafico).",
-"Quitar este botón":"Rimuovi questo pulsante"
+"Quitar este botón":"Rimuovi questo pulsante",
+"Crear instancia con esto":"Crea un'istanza con questo",
+"Con sus propios mundos, mods y ajustes. No abre el juego.":"Con mondi, mod e impostazioni propri. Non avvia il gioco.",
+"Instancia «{1}» creada ✓":"Istanza «{1}» creata ✓",
+"Escribe un nombre":"Scrivi un nome",
+"En la vista previa no se pueden crear instancias":"Nell'anteprima non si possono creare istanze"
 }};
