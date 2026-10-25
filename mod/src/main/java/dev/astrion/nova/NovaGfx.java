@@ -111,7 +111,7 @@ public final class NovaGfx {
         return r;
     }
 
-    public static final int I_USER = 0, I_GEAR = 1, I_CLOSE = 2, I_EARTH = 6, I_NOVA = 8, I_LOCK = 9, I_REALMS = 10, I_USERS = 11, I_CHECK = 12, I_PLUS = 13, I_HEAD = 14, I_EDIT = 15, I_SWAP = 16, I_TRASH = 17, I_FOLDER = 18, I_RESIZE = 19;
+    public static final int I_USER = 0, I_GEAR = 1, I_CLOSE = 2, I_EARTH = 6, I_NOVA = 8, I_LOCK = 9, I_REALMS = 10, I_USERS = 11, I_CHECK = 12, I_PLUS = 13, I_HEAD = 14, I_EDIT = 15, I_SWAP = 16, I_TRASH = 17, I_FOLDER = 18, I_RESIZE = 19, I_SERVER = 20, I_PLAY = 21;
 
     static void person(Graphics2D g, double cx, double top, double s) {
         g.fill(new Ellipse2D.Double(cx - 0.17 * s, top, 0.34 * s, 0.34 * s));
@@ -255,6 +255,25 @@ public final class NovaGfx {
                 Path2D a1 = new Path2D.Double(); a1.moveTo(0.26, 0.5); a1.lineTo(0.26, 0.26); a1.lineTo(0.5, 0.26);
                 Path2D a2 = new Path2D.Double(); a2.moveTo(0.74, 0.5); a2.lineTo(0.74, 0.74); a2.lineTo(0.5, 0.74);
                 q.draw(a1); q.draw(a2);
+                break;
+            }
+            case I_SERVER: {   // dos módulos de servidor apilados, cada uno con su luz y su ranura
+                q.setStroke(new BasicStroke(0.075f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                q.draw(new RoundRectangle2D.Double(0.13, 0.13, 0.74, 0.31, 0.1, 0.1));
+                q.draw(new RoundRectangle2D.Double(0.13, 0.56, 0.74, 0.31, 0.1, 0.1));
+                q.fill(new Ellipse2D.Double(0.23, 0.245, 0.08, 0.08));
+                q.fill(new Ellipse2D.Double(0.23, 0.675, 0.08, 0.08));
+                q.setStroke(new BasicStroke(0.075f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                q.draw(new Line2D.Double(0.43, 0.285, 0.7, 0.285));
+                q.draw(new Line2D.Double(0.43, 0.715, 0.7, 0.715));
+                break;
+            }
+            case I_PLAY: {   // triángulo de «entrar»
+                Path2D t2 = new Path2D.Double();
+                t2.moveTo(0.3, 0.2); t2.lineTo(0.8, 0.5); t2.lineTo(0.3, 0.8); t2.closePath();
+                q.fill(t2);
+                q.setStroke(new BasicStroke(0.08f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                q.draw(t2);
                 break;
             }
             case I_HEAD: {
