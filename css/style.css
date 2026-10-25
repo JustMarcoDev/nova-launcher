@@ -1646,12 +1646,6 @@ main {
   gap: 8px;
 }
 
-.ih {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
 .ins .s {
   color: var(--m);
   font-size: 12px;
@@ -4171,9 +4165,6 @@ html[data-cb=Grises] {
 .idh { margin: 10px 0 8px; display: flex; align-items: baseline; gap: 10px; font-size: 15px; }
 .idh span { color: var(--m); font-size: 12.5px; font-weight: 400; }
 .mbar .btn.pr { flex: none; }
-/* mod que ya está en la instancia */
-.inh{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;color:#3ddc84;background:rgba(61,220,132,.12);border:1px solid rgba(61,220,132,.35)}
-.wr .nm small.inh{display:block;width:max-content;margin-top:3px}
 /* panel «Añadir a esta instancia» */
 .adb{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:10px 0}
 .adb .chips{margin-left:auto}
@@ -4202,3 +4193,30 @@ html[data-cb=Grises] {
 
 .cont .cx { margin-left: 4px; width: 20px; height: 20px; display: grid; place-items: center; border-radius: 50%; font-size: 11px; color: var(--m); flex: none; }
 .cont .cx:hover, .cont .cx:focus-visible { background: color-mix(in srgb,var(--ac) 22%,transparent); color: var(--t); outline: none; }
+
+/* Cerrar (X) arriba a la derecha de todas las ventanas */
+.md { position: relative; }
+.md .mx { position: sticky; top: -10px; float: right; width: 0; height: 0; z-index: 5; margin: -8px -4px 0 0; overflow: visible; background: none; border: 0; padding: 0; color: var(--m); cursor: pointer; }
+.md .mx::before { content: "✕"; position: absolute; right: 0; top: 0; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; background: var(--p2); border: 1px solid var(--l); font-size: 12px; transition: background-color .2s,color .2s,border-color .2s; }
+.md .mx:hover::before, .md .mx:focus-visible::before { color: var(--tx); border-color: var(--ac); background: color-mix(in srgb,var(--ac) 18%,var(--p2)); }
+.md .mx { font-size: 0; }
+.md .mx[hidden] { display: none; }
+.md .hd > .x { display: none; }
+.md .hd { padding-right: 34px; }
+
+/* Botón «Crear instancia con esto» del desplegable de Lanzar */
+.pop #pcr { display: flex; align-items: center; justify-content: center; box-sizing: border-box; width: 100%; margin-top: 12px; padding: 10px 16px; background: color-mix(in srgb,var(--ac) 14%,var(--p2)); border-color: color-mix(in srgb,var(--ac) 40%,var(--l)); }
+.pop #pcr:hover { background: color-mix(in srgb,var(--ac) 24%,var(--p2)); }
+
+/* Tarjeta «Tus instancias» */
+#qi { display: grid; gap: 6px; }
+#qi .row { padding: 8px 10px; border: 1px solid transparent; background: var(--p2); gap: 10px; }
+#qi .row:hover { border-color: color-mix(in srgb,var(--ac) 45%,var(--l)); transform: translateY(-1px); }
+#qi .row.on { border-color: var(--ac); background: color-mix(in srgb,var(--ac) 12%,var(--p2)); box-shadow: none; }
+#qi .rin { flex: none; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 9px; background: color-mix(in srgb,var(--ac) 16%,transparent); color: var(--ac); }
+#qi .rin .ic { width: 16px; height: 16px; }
+#qi .rt { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
+#qi .rt .n { flex: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#qi .rf { font-style: normal; color: #ffd93d; margin-left: 6px; font-size: 12px; }
+#qi .rs2 { color: var(--m); font-size: 11.5px; }
+#qi .s { flex: none; padding: 2px 9px; border-radius: 99px; background: rgba(255,255,255,.07); font-size: 11.5px; font-weight: 600; }

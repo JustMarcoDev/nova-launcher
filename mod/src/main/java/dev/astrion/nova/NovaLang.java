@@ -58,7 +58,6 @@ final class NovaLang {
         p("Cierra Minecraft", "Closes Minecraft", "Ferme Minecraft", "Schließt Minecraft", "Chiude Minecraft", "Fecha o Minecraft");
         p("Cuenta de Microsoft", "Microsoft account", "Compte Microsoft", "Microsoft-Konto", "Account Microsoft", "Conta Microsoft");
         p("Cuenta sin conexión", "Offline account", "Compte hors ligne", "Offline-Konto", "Account offline", "Conta offline");
-        p("Pulsa Esc para cerrar", "Press Esc to close", "Appuie sur Échap pour fermer", "Zum Schließen Esc drücken", "Premi Esc per chiudere", "Pressione Esc para fechar");
         p("FONDO", "BACKGROUND", "FOND", "HINTERGRUND", "SFONDO", "FUNDO");
         p("  ·  rueda del ratón", "  ·  mouse wheel", "  ·  molette", "  ·  Mausrad", "  ·  rotellina", "  ·  roda do mouse");
         p("¿Eliminar «{0}»?", "Delete \"{0}\"?", "Supprimer « {0} » ?", "„{0}“ löschen?", "Eliminare «{0}»?", "Excluir «{0}»?");
@@ -150,6 +149,12 @@ final class NovaLang {
         p("Escribe para buscar un mod…", "Type to search for a mod…", "Écris pour chercher un mod…", "Tippe, um einen Mod zu suchen…", "Scrivi per cercare un mod…", "Escreve para procurar um mod…");
         p("Ningún mod coincide", "No mod matches", "Aucun mod ne correspond", "Kein Mod passt", "Nessun mod corrisponde", "Nenhum mod corresponde");
         p("Pulsa para abrir su página", "Click to open its page", "Clique pour ouvrir sa page", "Klicken, um die Seite zu öffnen", "Clicca per aprire la sua pagina", "Clica para abrir a página");
+        p("Ocultar panel", "Hide panel", "Masquer le panneau", "Panel ausblenden", "Nascondi pannello", "Ocultar painel");
+        p("Mostrar panel", "Show panel", "Afficher le panneau", "Panel anzeigen", "Mostra pannello", "Mostrar painel");
+        p("Panel de ajustes", "Settings panel", "Panneau de réglages", "Einstellungen", "Pannello impostazioni", "Painel de ajustes");
+        p("Ábrelo o ciérralo para mover el HUD sin que estorbe", "Open or close it to move the HUD without it getting in the way", "Ouvre-le ou ferme-le pour déplacer le HUD sans gêne", "Auf- oder zuklappen, um das HUD ungestört zu verschieben", "Aprilo o chiudilo per spostare l'HUD senza ingombro", "Abre ou fecha para mover o HUD sem atrapalhar");
+        p("Cerrar", "Close", "Fermer", "Schließen", "Chiudi", "Fechar");
+        p("Cierra este panel (también con Esc)", "Closes this panel (Esc works too)", "Ferme ce panneau (Échap aussi)", "Schließt dieses Panel (auch mit Esc)", "Chiude questo pannello (anche con Esc)", "Fecha este painel (Esc também funciona)");
         p("Carpeta de mods", "Mods folder", "Dossier des mods", "Mods-Ordner", "Cartella dei mod", "Pasta de mods");
         p("Abre la carpeta mods de esta instancia", "Opens this instance's mods folder", "Ouvre le dossier mods de cette instance", "Öffnet den Mods-Ordner dieser Instanz", "Apre la cartella mods di questa istanza", "Abre a pasta mods desta instância");
         p("Mods instalados", "Installed mods", "Mods installés", "Installierte Mods", "Mod installati", "Mods instalados");
