@@ -225,6 +225,7 @@ public final class NovaHud {
             if (mc == null || mc.player == null) return;
             NovaSettings.load();
             NovaPresence.frame(mc);
+            NovaServers.frame(mc);
             if (TEST_EDIT && mc.currentScreen == null && ++testTick == 240) mc.setScreen(new NovaHudScreen(null));   // solo para pruebas (-Dnova.hudedit=1)
             if (mc.options.hudHidden) return;
             if (mc.currentScreen instanceof NovaHudScreen) return;   // el editor dibuja su propia vista previa

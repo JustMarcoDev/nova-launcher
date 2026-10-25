@@ -17,7 +17,7 @@ const { appIcon, ensureShortcut, fixPinnedIcons, taskbarIcon, trayInit } = R; //
 const { accState, encryptOldTokens } = R; // cuentas
 const { checkUpd, initUpdater } = R; // actualizaciones
 const { discordInit } = R; // discord
-const { modManifest } = R; // mod-nova
+const { modManifest, novaServersWrite } = R; // mod-nova
 
 protocol.registerSchemesAsPrivileged([{ scheme: 'nova-img', privileges: { standard: true, secure: true, supportFetchAPI: true, bypassCSP: true } }]);
 // Tamaño y posición de la ventana (y si estaba maximizada) entre aperturas
@@ -110,7 +110,7 @@ app.on('window-all-closed', () => app.quit());
 ipcMain.handle('cfg:get', () => { const c = load(), st = accState(c); return { ...c, lowRam: LOWRAM, ms: c.ms ? { name: c.ms.name } : null, accounts: st.a.map(({ token, ...r }) => r), activeAccount: st.act.id, _first: FIRST && !c.setupDone }; });
 ipcMain.handle('sys', () => ({ total: Math.max(1, Math.round(os.totalmem() / 1073741824)) }));
 ipcMain.handle('zoom', (e, f) => { S.win.webContents.setZoomFactor(Math.min(1.6, Math.max(0.7, +f || 1))); });
-ipcMain.handle('cfg:set', (e, c) => { wr(cfgFile, { ...load(), ...c }); if (S.updater && 'autoDownload' in c) S.updater.autoDownload = c.autoDownload !== false; if ('discord' in c || 'discordId' in c) discordInit(); if ('tray' in c) trayInit(); if ('channel' in c && S.updater) { checkUpd().catch(() => {}); } return true; });
+ipcMain.handle('cfg:set', (e, c) => { wr(cfgFile, { ...load(), ...c }); if ('myServers' in c) novaServersWrite(c.myServers); if (S.updater && 'autoDownload' in c) S.updater.autoDownload = c.autoDownload !== false; if ('discord' in c || 'discordId' in c) discordInit(); if ('tray' in c) trayInit(); if ('channel' in c && S.updater) { checkUpd().catch(() => {}); } return true; });
 ipcMain.handle('folder', () => { fs.mkdirSync(root, { recursive: true }); return shell.openPath(root); });
 ipcMain.on('win', (e, a) => a === 'min' ? S.win.minimize() : a === 'max' ? (S.win.isMaximized() ? S.win.unmaximize() : S.win.maximize()) : S.win.close());
 ipcMain.handle('ver', () => app.getVersion());

@@ -82,7 +82,7 @@ public class NovaTitleScreen extends NovaScreen {
         }
         if (System.getProperty("nova.pause") != null && !tested3) { tested3 = true; client.execute(() -> client.setScreen(new NovaPauseScreen())); }   // solo para pruebas
         String forced = System.getProperty("nova.panel", "");
-        if (!forced.isEmpty() && !tested2) { tested2 = true; panel = forced.equals("nova") ? 2 : forced.equals("profile") ? 1 : forced.equals("skins") ? 3 : 0; }
+        if (!forced.isEmpty() && !tested2) { tested2 = true; panel = forced.equals("nova") ? 2 : forced.equals("profile") ? 1 : forced.equals("skins") ? 3 : forced.equals("servers") ? 4 : 0; }
         labels.clear();
         int cx = width / 2;
         int bw = Math.min(124, width - 20), bh = 16, gap = 3;
@@ -99,8 +99,8 @@ public class NovaTitleScreen extends NovaScreen {
             else client.setScreen(new MultiplayerWarningScreen(this));
         }).tip(tr("Multijugador"), tr("Únete a servidores")));
         y += bh + gap + 3;
-        // fila de 5 botones: ajustes · idioma · (reservado) · realms · menú de Nova
-        int s = 16, g = 3, bx = cx - (5 * s + 4 * g) / 2;
+        // fila de 6 botones: ajustes · idioma · skins · servidores · realms · menú de Nova
+        int s = 16, g = 3, bx = cx - (6 * s + 5 * g) / 2;
         addDrawableChild(new NovaButton(bx, y, s, s, Text.empty(), NovaGfx.I_GEAR, NovaButton.NORMAL,
                 b -> client.setScreen(new OptionsScreen(this, client.options))).tip(tr("Ajustes"), tr("Opciones del juego")));
         addDrawableChild(new NovaButton(bx + (s + g), y, s, s, Text.empty(), NovaGfx.I_EARTH, NovaButton.NORMAL,
@@ -111,9 +111,12 @@ public class NovaTitleScreen extends NovaScreen {
         });
         skins.tip(tr("Skins"), tr("Cambia, guarda y elimina tus skins"));
         addDrawableChild(skins);
-        addDrawableChild(new NovaButton(bx + 3 * (s + g), y, s, s, Text.empty(), NovaGfx.I_REALMS, NovaButton.NORMAL,
+        addDrawableChild(new NovaButton(bx + 3 * (s + g), y, s, s, Text.empty(), NovaGfx.I_SERVER, panel == 4 ? NovaButton.SELECTED : NovaButton.NORMAL, b -> {
+            panel = 4; svScroll = 0; clearAndInit();
+        }).tip(tr("Servidores"), tr("Entra a tu último servidor o a tus favoritos")));
+        addDrawableChild(new NovaButton(bx + 4 * (s + g), y, s, s, Text.empty(), NovaGfx.I_REALMS, NovaButton.NORMAL,
                 b -> client.setScreen(new RealmsMainScreen(this))).tip("Realms", tr("Mundos online de Minecraft")));
-        addDrawableChild(new NovaButton(bx + 4 * (s + g), y, s, s, Text.empty(), NovaGfx.I_NOVA, panel == 2 ? NovaButton.SELECTED : NovaButton.NORMAL, b -> {
+        addDrawableChild(new NovaButton(bx + 5 * (s + g), y, s, s, Text.empty(), NovaGfx.I_NOVA, panel == 2 ? NovaButton.SELECTED : NovaButton.NORMAL, b -> {
             panel = 2;
             clearAndInit();
         }).tip(tr("Menú de Nova"), tr("Fondo, colores y más")));
@@ -130,6 +133,7 @@ public class NovaTitleScreen extends NovaScreen {
         if (panel == 1) buildProfile(name);
         else if (panel == 2) { snapshot(); buildNova(); }
         else if (panel == 3) buildSkins();
+        else if (panel == 4) buildServers();
     }
 
     static boolean tested2, tested3;
@@ -432,6 +436,75 @@ public class NovaTitleScreen extends NovaScreen {
         ph = (y + 12 + 6) - py;
     }
 
+    // ---------------------------------------------------------------- panel de servidores (el botón del servidor)
+    private static int svScroll, svRows = 4;
+
+    void buildServers() {
+        java.util.List<NovaServers.Srv> F = NovaServers.favs();
+        NovaServers.Srv last = NovaServers.last();
+        int ib = 15, gap = 2;
+        int fixed = 8 + 12 + 10 + 20 + 6 + 10 + 8;
+        int maxRows = Math.max(2, Math.min(6, (height - 20 - fixed) / 17));
+        svScroll = Math.max(0, Math.min(svScroll, Math.max(0, F.size() - maxRows)));
+        int rows = Math.max(1, Math.min(maxRows, F.size()));
+        svRows = rows;
+        pw = Math.min(250, width - 16);
+        ph = fixed + rows * 17;
+        px = (width - pw) / 2; py = Math.max(6, (height - ph) / 2);
+        int x = px + 8, w = pw - 16, y = py + 8;
+        java.util.List<String> want = new java.util.ArrayList<>();
+        if (last != null) want.add(last.addr);
+        for (int i = svScroll; i < Math.min(F.size(), svScroll + rows); i++) want.add(F.get(i).addr);
+        final java.util.List<Object[]> pings = new java.util.ArrayList<>();   // {dirección, x derecha, y}
+        addDrawable((c, mx, my, d) -> {
+            c.fill(0, 0, width, height, 0xA0020208);
+            drawPanelBg(c);
+            for (Object[] l : labels) txt(c, (String) l[0], (int) l[1], (int) l[2], (float) l[3], (int) l[4], (boolean) l[5], (int) l[6]);
+            NovaServers.refresh(want);
+            for (Object[] pg : pings) {
+                NovaServers.Res r = NovaServers.result((String) pg[0]);
+                String t; int col;
+                if (r == null || !r.done) { t = "…"; col = 0xFF9A9AC0; }
+                else if (!r.ok) { t = tr("Sin respuesta"); col = 0xFFFF7A86; }
+                else {
+                    t = r.ms + " ms" + (r.max > 0 ? "  ·  " + r.online + "/" + r.max : "");
+                    col = r.ms < 80 ? 0xFF3DDC84 : r.ms < 200 ? 0xFFFFC857 : 0xFFFF9A5A;
+                }
+                txt(c, t, (int) pg[1], (int) pg[2], 5.6f, col, false, 1);
+            }
+        });
+        labels.add(new Object[] { tr("Servidores"), x, y, 8.6f, 0xFFFFFFFF, true, 0 });
+        labels.add(new Object[] { tr("Pulsa Esc para cerrar"), px + pw - 8, y + 2, 5.6f, 0xFF7C7CA0, false, 1 });
+        y += 12;
+        labels.add(new Object[] { tr("ÚLTIMO SERVIDOR"), x, y, 5.6f, 0xFF9A9AC0, true, 0 });
+        y += 10;
+        int jw = 40;
+        if (last == null) {
+            labels.add(new Object[] { tr("Aún no has entrado en ningún servidor"), x + 2, y + 6, 5.8f, 0xFF9A9AC0, false, 0 });
+        } else {
+            labels.add(new Object[] { shorten(last.name, 24), x + 4, y + 3, 7f, 0xFFFFFFFF, true, 0 });
+            labels.add(new Object[] { shorten(last.addr, 34), x + 4, y + 13, 5.4f, 0xFF7C7CA0, false, 0 });
+            pings.add(new Object[] { last.addr, x + w - jw - 8, y + 6 });
+            final NovaServers.Srv ls = last;
+            addDrawableChild(new NovaButton(x + w - jw - 2, y + 2, jw, 16, Text.literal(tr("Entrar")), NovaGfx.I_PLAY, NovaButton.PRIMARY,
+                    b -> NovaServers.join(client, this, ls)).tip(tr("Entrar"), tr("Conecta directamente a este servidor")));
+        }
+        y += 20 + 6;
+        labels.add(new Object[] { tr("FAVORITOS DEL LAUNCHER"), x, y, 5.6f, 0xFF9A9AC0, true, 0 });
+        if (F.size() > rows) labels.add(new Object[] { (svScroll + 1) + "–" + Math.min(F.size(), svScroll + rows) + " / " + F.size() + tr("  ·  rueda del ratón"), px + pw - 8, y, 5.6f, 0xFF7C7CA0, false, 1 });
+        y += 10;
+        if (F.isEmpty()) labels.add(new Object[] { tr("Añade servidores en la pestaña Servidores del launcher"), x + 2, y + 4, 5.8f, 0xFF9A9AC0, false, 0 });
+        for (int i = svScroll; i < Math.min(F.size(), svScroll + rows); i++) {
+            final NovaServers.Srv f = F.get(i);
+            addDrawableChild(new NovaButton(x, y, w - jw - 2 - 78, ib, Text.literal(shorten(f.name, 18)), NovaGfx.I_SERVER, NovaButton.NORMAL,
+                    b -> NovaServers.join(client, this, f)).tip(shorten(f.name, 26), tr("Entrar a {0}", f.addr)));
+            pings.add(new Object[] { f.addr, x + w - jw - 6, y + 4 });
+            addDrawableChild(new NovaButton(x + w - jw, y, jw, ib, Text.literal(tr("Entrar")), NovaGfx.I_PLAY, NovaButton.PRIMARY,
+                    b -> NovaServers.join(client, this, f)).tip(tr("Entrar"), tr("Conecta directamente a este servidor")));
+            y += 17;
+        }
+    }
+
     static String shorten(String s, int n) { return s.length() <= n ? s : s.substring(0, n - 1) + "…"; }
 
     void commitName(String file) {
@@ -457,7 +530,7 @@ public class NovaTitleScreen extends NovaScreen {
         clearAndInit();
     }
 
-    boolean modal() { return panel == 2 || panel == 3; }
+    boolean modal() { return panel == 2 || panel == 3 || panel == 4; }
 
     boolean inPanel(double mx, double my) { return mx >= px - 2 && mx <= px + pw + 2 && my >= py - 2 && my <= py + ph + 2; }
 
@@ -465,7 +538,7 @@ public class NovaTitleScreen extends NovaScreen {
     protected boolean nClick(double mx, double my, int button) {
         if (modal()) {   // los paneles de Nova y de skins son modales: un clic fuera los cierra (el de Nova, sin guardar)
             if (inPanel(mx, my)) { clickTopmost(mx, my, button); return true; }
-            if (panel == 3) closeSkins(); else closeNova(false);
+            if (panel == 3) closeSkins(); else if (panel == 4) closeSkins(); else closeNova(false);
             return true;
         }
         if (clickTopmost(mx, my, button)) return true;
@@ -491,7 +564,7 @@ public class NovaTitleScreen extends NovaScreen {
             return true;
         }
         if (key == 256 && panel == 2) { closeNova(false); return true; }
-        if (key == 256 && panel == 3) { closeSkins(); return true; }
+        if (key == 256 && (panel == 3 || panel == 4)) { closeSkins(); return true; }
         if (key == 256 && panel != 0) { panel = 0; confirmDel = null; clearAndInit(); return true; }
         return superKey(key, scan, mods);
     }
@@ -514,6 +587,11 @@ public class NovaTitleScreen extends NovaScreen {
             int ns = skScroll + (amount < 0 ? 1 : -1);
             if (ns < 0 || ns > Math.max(0, NovaSkins.list().size() - 1)) return true;
             skScroll = ns; clearAndInit(); return true;
+        }
+        if (panel == 4 && inPanel(mx, my)) {
+            int ns = svScroll + (amount < 0 ? 1 : -1);
+            if (ns < 0 || ns > Math.max(0, NovaServers.favs().size() - svRows)) return true;
+            svScroll = ns; clearAndInit(); return true;
         }
         if (panel != 2 || !inPanel(mx, my)) return false;
         int total = NovaBgs.list().size();

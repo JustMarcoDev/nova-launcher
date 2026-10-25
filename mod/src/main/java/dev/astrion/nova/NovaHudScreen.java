@@ -30,7 +30,7 @@ public class NovaHudScreen extends NovaScreen {
         NovaTitleScreen.ensure(client);
         NovaSettings.load();
         int pw = Math.min(262, width - 16), x = (width - pw) / 2, gap = 3, ib = 15;
-        int rows = 5, total = rows * ib + (rows - 1) * gap;
+        int rows = 6, total = rows * ib + (rows - 1) * gap;
         int y = height - total - 10;
         // 1) un botón por elemento
         int n = NovaHud.ALL.length, bw = (pw - (n - 1) * gap) / n;
@@ -51,6 +51,9 @@ public class NovaHudScreen extends NovaScreen {
         // 3) mostrar que uso Nova
         addDrawableChild(new NovaButton(x, y, pw, ib, Text.literal(tr("Mostrar que uso Nova") + ": " + (NovaSettings.showNova ? tr("Sí") : tr("No"))), NovaSettings.showNova ? NovaGfx.I_CHECK : -1, NovaSettings.showNova ? NovaButton.SELECTED : NovaButton.NORMAL, b -> { NovaSettings.showNova = !NovaSettings.showNova; clearAndInit(); })
                 .tip(tr("Mostrar que uso Nova"), tr("Los demás jugadores con Nova ven el logo junto a tu nombre")));
+        y += ib + gap;
+        addDrawableChild(new NovaButton(x, y, pw, ib, Text.literal(tr("Capa de Nova") + ": " + (NovaSettings.showCape ? tr("Sí") : tr("No"))), NovaSettings.showCape ? NovaGfx.I_CHECK : -1, NovaSettings.showCape ? NovaButton.SELECTED : NovaButton.NORMAL, b -> { NovaSettings.showCape = !NovaSettings.showCape; clearAndInit(); })
+                .tip(tr("Capa de Nova"), tr("Los jugadores con Nova llevan una capa de Nova (la ves en ellos y ellos en ti)")));
         y += ib + gap;
         // 4) restablecer y listo
         addDrawableChild(new NovaButton(x, y, half, ib, Text.literal(tr("Restablecer")), NovaGfx.I_SWAP, NovaButton.NORMAL, b -> { NovaHud.resetPositions(); clearAndInit(); })

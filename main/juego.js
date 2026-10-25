@@ -15,7 +15,7 @@ const { LOWRAM, MAN, cfgFile, li, load, rd, rmAsync, root, running, send, wr } =
 const { get, isOnline, run } = R; // red
 const { dl } = R; // descargas
 const { accState, saveAcc } = R; // cuentas
-const { NOVA_MC, NOVA_REMOTE_ID, fondosDir, fondosScan, fondosWatch, novaBg, novaBgGet, novaDir, novaModResolve, novaPickBg } = R; // mod-nova
+const { NOVA_MC, NOVA_REMOTE_ID, fondosDir, fondosScan, fondosWatch, novaBg, novaBgGet, novaDir, novaModResolve, novaPickBg, novaServersWrite } = R; // mod-nova
 const { novaSkinFor } = R; // skins
 const { fabric, fabricBundled, forge } = R; // cargadores
 const { modernQP, syncServers } = R; // servidores
@@ -116,7 +116,7 @@ ipcMain.handle('play', async (e, { id, server, world, safe }) => {
       : nova ? 'Nova: menú de Nova activado (Fabric incluido en el launcher).\n'
       : (!ins.ld || ins.ld === 'Vanilla' || ins.ld === 'Fabric') ? (NOVA_MC.includes(ins.mc) ? 'Nova: el menú de Nova no se pudo activar; se juega con el menú normal.\n' : 'Nova: el menú de Nova solo está disponible en Minecraft ' + NOVA_MC[0] + ' a ' + NOVA_MC[NOVA_MC.length - 1] + '; esta versión usa el menú normal.\n')
       : 'Nova: el menú de Nova solo está disponible en Nova y Fabric; ' + ins.ld + ' usa el menú normal.\n';
-    if (nova) { fondosScan().catch(() => {}); fondosWatch(); }
+    if (nova) { fondosScan().catch(() => {}); fondosWatch(); novaServersWrite(cfg.myServers); }
     if (nova) o.customArgs.push('-Dnova.dir=' + novaDir(), '-Dnova.skin=' + (await novaSkinFor(act)).file, '-Dnova.premium=' + (act.type === 'microsoft' ? '1' : '0'), '-Dnova.presence=' + (process.env.NOVA_PRESENCE || (() => { try { return require('../package.json').novaPresence || ''; } catch { return ''; } })()), '-Dnova.user=' + act.name, '-Dnova.bg=' + (novaBg() || ''), '-Dnova.bg2=' + (novaBg('nova-nebulosa.nvb') || ''), '-Dnova.bg3=' + (novaBg('nova-earth.nvb') || ''), '-Dnova.lowpower=' + (LOWRAM ? 'true' : 'false'), '-Dfabric.addMods=' + nj, '-Dnova.version=' + app.getVersion(), '-Dnova.loader=' + (ins.ld === 'Fabric' ? 'Fabric' : 'Nova'));
     if (ins.ld === 'Forge' || ins.ld === 'NeoForge') o.version.custom = await forge(ins.ld, ins.mc, java, ins.loaderVersion);
     if (server && server.host) o.quickPlay = { type: modernQP(ins.mc) ? 'multiplayer' : 'legacy', identifier: server.host + (server.port && +server.port !== 25565 ? ':' + server.port : '') };

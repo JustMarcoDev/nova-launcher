@@ -18,6 +18,8 @@ final class NovaSettings {
     static int accent = COLORS[0];
     /** «Mostrar que uso Nova»: enseña el logo de Nova junto a tu nombre a los demás jugadores que usan Nova (lista de jugadores). */
     static boolean showNova = true;
+    /** «Capa de Nova»: los jugadores que usan Nova llevan una capa de Nova (la ven solo quienes también usan Nova). */
+    static boolean showCape = true;
     private static boolean loaded;
 
     static File dir() { return DIR.isEmpty() ? null : new File(DIR); }
@@ -36,6 +38,7 @@ final class NovaSettings {
             JsonObject o = JsonParser.parseString(new String(Files.readAllBytes(f.toPath()), StandardCharsets.UTF_8)).getAsJsonObject();
             if (o.has("bg")) bg = o.get("bg").getAsString();
             if (o.has("showNova")) showNova = o.get("showNova").getAsBoolean();
+            if (o.has("showCape")) showCape = o.get("showCape").getAsBoolean();
             if (o.has("hud") && o.get("hud").isJsonObject()) NovaHud.read(o.getAsJsonObject("hud"));
             if (o.has("accent")) { int a = o.get("accent").getAsInt(); for (int c : COLORS) if (c == a) accent = a; }
         } catch (Throwable ignored) { }
@@ -52,6 +55,7 @@ final class NovaSettings {
             o.addProperty("bg", bg);
             o.addProperty("accent", accent);
             o.addProperty("showNova", showNova);
+            o.addProperty("showCape", showCape);
             o.add("hud", NovaHud.write());
             Files.write(f.toPath(), o.toString().getBytes(StandardCharsets.UTF_8));
         } catch (Throwable ignored) { }

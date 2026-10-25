@@ -232,6 +232,13 @@ function novaModJar(mc) {
   return dst;
 }
 
+// Servidores favoritos del launcher -> nova/servers.json (el mod los enseña en su panel «Servidores»)
+function novaServersWrite(list) {
+  try {
+    const fav = (list || []).filter(z => z && z.host).map(z => ({ name: String(z.name || z.host), host: String(z.host), port: +z.port > 0 ? +z.port : 25565 }));
+    fs.writeFileSync(path.join(novaDir(), 'servers.json'), JSON.stringify({ fav }));
+  } catch {}
+}
 
 // Lo que usan otros módulos
-Object.assign(R, { NOVA_MC, NOVA_REMOTE_ID, fondosDir, fondosScan, fondosWatch, modManifest, novaBg, novaBgGet, novaDir, novaModResolve, novaPickBg, novaSkin });
+Object.assign(R, { NOVA_MC, NOVA_REMOTE_ID, fondosDir, fondosScan, fondosWatch, modManifest, novaBg, novaBgGet, novaDir, novaModResolve, novaPickBg, novaServersWrite, novaSkin });

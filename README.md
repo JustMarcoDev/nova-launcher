@@ -158,9 +158,14 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 
 ## Regla de versiones: mod y launcher van juntos
 
-Cada vez que cambia el mod (`mod/`) se publica una versión nueva del launcher: mientras dure la fase de pruebas, una beta más (`0.2.15-beta.14`, `beta.15`… `beta.19`…). La versión del mod se lee de `package.json`, así que siempre coincide con la del launcher. El launcher se actualiza solo y el usuario recibe el mod nuevo con él.
+Cada vez que cambia el mod (`mod/`) se publica una versión nueva del launcher: mientras dure la fase de pruebas, una beta más (`0.2.15-beta.14`, `beta.15`… `beta.20`…). La versión del mod se lee de `package.json`, así que siempre coincide con la del launcher. El launcher se actualiza solo y el usuario recibe el mod nuevo con él.
 
 ## Historial de actualizaciones
+
+### 0.2.15-beta.20 — Servidores en el menú de Nova y capa de Nova
+
+- **Botón «Servidores» en la pantalla de título** (el icono de la torre de servidores, entre Skins y Realms). Abre un panel con la tarjeta **«Último servidor»** (el último en el que entraste, con su ping y un botón **Entrar**) y tus **favoritos de la pestaña Servidores del launcher**, cada uno con su ping, jugadores y botón Entrar. Se entra directo, sin pasar por la lista de Multijugador. El launcher escribe los favoritos en `nova/servers.json`; el mod apunta el último servidor en `nova/last-server.json`. Funciona en las 19 versiones (capas `conn-a/b/c/d` en `mod/src/compat/`).
+- **Capa de Nova entre jugadores de Nova**: con la misma información de presencia que ya dibuja el logo en el tabulador, el mod pone una capa de Nova (y alas de elytra) a los jugadores que usan Nova. Se puede quitar en el menú de Nova → HUD → «Capa de Nova». Solo con cuenta premium y con el servidor de presencia desplegado (`novaPresence` en `package.json`); mientras no lo esté no aparece entre jugadores reales.
 
 ### 0.2.15-beta.19 — Instalador «solo para mí», icono del .exe y main.js en módulos
 

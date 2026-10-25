@@ -125,6 +125,18 @@ final class NovaLang {
         p("Pulsa una tecla…", "Press a key…", "Appuie sur une touche…", "Drücke eine Taste…", "Premi un tasto…", "Pressione uma tecla…");
         p("Tecla de zoom", "Zoom key", "Touche de zoom", "Zoom-Taste", "Tasto zoom", "Tecla de zoom");
         p("Pulsa y luego la tecla que quieras (Esc cancela)", "Click, then press the key you want (Esc cancels)", "Clique, puis appuie sur la touche voulue (Échap annule)", "Klicken, dann die gewünschte Taste drücken (Esc bricht ab)", "Clicca, poi premi il tasto che vuoi (Esc annulla)", "Clique e depois pressione a tecla que quiser (Esc cancela)");
+        p("Servidores", "Servers", "Serveurs", "Server", "Server", "Servidores");
+        p("Entra a tu último servidor o a tus favoritos", "Join your last server or your favorites", "Rejoins ton dernier serveur ou tes favoris", "Tritt deinem letzten Server oder deinen Favoriten bei", "Entra nel tuo ultimo server o nei preferiti", "Entre no seu último servidor ou nos favoritos");
+        p("ÚLTIMO SERVIDOR", "LAST SERVER", "DERNIER SERVEUR", "ZULETZT BESUCHTER SERVER", "ULTIMO SERVER", "ÚLTIMO SERVIDOR");
+        p("FAVORITOS DEL LAUNCHER", "LAUNCHER FAVORITES", "FAVORIS DU LAUNCHER", "FAVORITEN DES LAUNCHERS", "PREFERITI DEL LAUNCHER", "FAVORITOS DO LAUNCHER");
+        p("Aún no has entrado en ningún servidor", "You haven't joined any server yet", "Tu n'as encore rejoint aucun serveur", "Du bist noch keinem Server beigetreten", "Non sei ancora entrato in nessun server", "Você ainda não entrou em nenhum servidor");
+        p("Añade servidores en la pestaña Servidores del launcher", "Add servers in the launcher's Servers tab", "Ajoute des serveurs dans l'onglet Serveurs du launcher", "Füge Server im Reiter Server des Launchers hinzu", "Aggiungi server nella scheda Server del launcher", "Adicione servidores na aba Servidores do launcher");
+        p("Entrar", "Join", "Rejoindre", "Beitreten", "Entra", "Entrar");
+        p("Conecta directamente a este servidor", "Connects straight to this server", "Se connecte directement à ce serveur", "Verbindet direkt mit diesem Server", "Si connette direttamente a questo server", "Conecta direto a este servidor");
+        p("Entrar a {0}", "Join {0}", "Rejoindre {0}", "{0} beitreten", "Entra in {0}", "Entrar em {0}");
+        p("Sin respuesta", "No response", "Pas de réponse", "Keine Antwort", "Nessuna risposta", "Sem resposta");
+        p("Capa de Nova", "Nova cape", "Cape Nova", "Nova-Umhang", "Mantello di Nova", "Capa do Nova");
+        p("Los jugadores con Nova llevan una capa de Nova (la ves en ellos y ellos en ti)", "Players using Nova wear a Nova cape (you see theirs and they see yours)", "Les joueurs Nova portent une cape Nova (tu vois la leur, ils voient la tienne)", "Nova-Spieler tragen einen Nova-Umhang (du siehst ihren, sie deinen)", "I giocatori con Nova indossano un mantello di Nova (tu vedi il loro, loro il tuo)", "Jogadores com Nova usam uma capa do Nova (você vê a deles e eles a sua)");
         p("Mostrar que uso Nova", "Show that I use Nova", "Montrer que j'utilise Nova", "Zeigen, dass ich Nova nutze", "Mostra che uso Nova", "Mostrar que uso o Nova");
         p("Los demás jugadores con Nova ven el logo junto a tu nombre", "Other Nova players see the logo next to your name", "Les autres joueurs Nova voient le logo à côté de ton nom", "Andere Nova-Spieler sehen das Logo neben deinem Namen", "Gli altri giocatori Nova vedono il logo accanto al tuo nome", "Outros jogadores com Nova veem o logo ao lado do seu nome");
         p("Restablecer", "Reset", "Réinitialiser", "Zurücksetzen", "Ripristina", "Restaurar");
