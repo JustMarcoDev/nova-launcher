@@ -66,13 +66,13 @@ const w = dom.window, sleep = ms => new Promise(r => setTimeout(r, ms));
       // Panel «Añadir a esta instancia»: lo que ya tiene sale como instalado, y hay botones para shaders y texturas
       const seen = []; api.http = async ({ url }) => { seen.push(url); return { total_hits: 2, hits: [{ project_id: 'p1', slug: 'sodium', title: 'Sodium', description: 'x', icon_url: '' }, { project_id: 'p2', slug: 'lithium', title: 'Lithium', description: 'y', icon_url: '' }] }; };
       api.modsProjects = async () => ({ ids: ['p1'], files: [] });
-      g('msr').click(); await sleep(400);
+      g('msr').click(); for (let t = 0; t < 40 && !(w.document.querySelectorAll('#adl button').length); t++) await sleep(100);
       const bs = [...w.document.querySelectorAll('#adl button')];
       if (bs.length !== 2 || bs[0].textContent.indexOf('Instalado') < 0 || !bs[0].disabled || bs[1].textContent !== 'Instalar' || bs[1].disabled) errors.push('Añadir a la instancia: lo que ya está no sale como instalado');
       if (!seen.some(u => u.includes('versions%3A') || u.includes('1.21.1'))) errors.push('Añadir a la instancia: no filtra por la versión de la instancia');
       const kb = [...w.document.querySelectorAll('#adk button')].map(b => b.textContent).join('|');
       if (kb !== 'Mods|Shaders|Texturas') errors.push('Añadir a la instancia: faltan los botones de shaders y texturas (' + kb + ')');
-      [...w.document.querySelectorAll('#adk button')][1].click(); await sleep(400);
+      [...w.document.querySelectorAll('#adk button')][1].click(); for (let t = 0; t < 40 && !seen.some(u => u.includes('project_type%3Ashader')); t++) await sleep(100);
       if (!seen.some(u => u.includes('project_type%3Ashader'))) errors.push('Añadir a la instancia: el botón de shaders no busca shaders');
       delete api.http; delete api.modsProjects;
       w.eval('closeModal()'); await sleep(400);

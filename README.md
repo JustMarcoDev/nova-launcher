@@ -158,9 +158,16 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 
 ## Regla de versiones: mod y launcher van juntos
 
-Cada vez que cambia el mod (`mod/`) se publica una versión nueva del launcher: mientras dure la fase de pruebas, una beta más (`0.2.15-beta.14`, `beta.15`… `beta.22`…). La versión del mod se lee de `package.json`, así que siempre coincide con la del launcher. El launcher se actualiza solo y el usuario recibe el mod nuevo con él.
+Cada vez que cambia el mod (`mod/`) se publica una versión nueva del launcher: mientras dure la fase de pruebas, una beta más (`0.2.15-beta.14`, `beta.15`… `beta.22`) hasta cerrar la `0.2.15`. La versión del mod se lee de `package.json`, así que siempre coincide con la del launcher. El launcher se actualiza solo y el usuario recibe el mod nuevo con él.
 
 ## Historial de actualizaciones
+
+### 0.2.15 — Versión estable: repaso del código y más ligera
+
+- **Repaso de archivos**: se quitó `assets/nova-pack` (un paquete de recursos de la 0.2.14-beta.10 que ningún código usaba) y `docs/` y `novapack/` ya no se meten en el instalador (siguen en el repositorio como documentación). Se quitó una función sin uso y se limpiaron los espacios sobrantes. Los `.bat` vuelven a guardarse con fin de línea de Windows (CRLF) y un `.gitattributes` evita que se cambie solo.
+- **Fondo animado más barato**: el disco del agujero negro ya no redibuja un lienzo fijo de 1400×480 cada fotograma, sino solo la zona que se ve; el resplandor tampoco rellena toda la pantalla. Con la calidad «Media» y «Baja» el disco se dibuja a menor resolución (85 % y 70 %); con «Alta» se ve igual que antes. Al cambiar el tamaño de la ventana el fondo se rehace una vez por fotograma, no en cada evento.
+- **Arranque**: Discord, el acceso directo del escritorio y la corrección de iconos anclados se hacen unos segundos después de abrir la ventana (leer los accesos directos de Windows uno a uno bloqueaba el arranque).
+- Medido en un navegador sin tarjeta gráfica: el coste de cada fotograma baja de unos 48 ms a 37 ms en «Alta», y de 29 ms a 22 ms en «Media» y a 16 ms en «Baja».
 
 ### 0.2.15-beta.22 — Panel «Añadir a esta instancia»
 

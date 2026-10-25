@@ -1,6 +1,6 @@
 {
   "name": "nova-launcher",
-  "version": "0.2.15-beta.22",
+  "version": "0.2.15",
   "novaPresence": "",
   "description": "Nova Launcher para Minecraft",
   "author": "Astrion Studio",
@@ -62,7 +62,9 @@
       "!assets/nova-earth.nvb",
       "!assets/nova-nebulosa.nvb",
       "!js/vista-previa.js",
-      "!mod/**"
+      "!mod/**",
+      "!docs/**",
+      "!novapack/**"
     ]
   }
 }

@@ -3,11 +3,11 @@
 const cv=$("cv"),x=cv.getContext("2d",{alpha:false}),rnd=Math.random,K=6.35,SQ=.18,DLw=1400,DLh=480;
 let W,HT,ST=[],cx=0,cy=0,R=50,al=1,T=0,ang=0,last=0,HR=null,hc=0,b1,b2,c1,c2,SPR=null,spK="",C8=[];
 addEventListener("focus",()=>{dirty=30});
-const Q={alta:{n:900,f:60,b:1},media:{n:380,f:60,b:0},baja:{n:0,f:30,b:0},off:{n:500,f:0,b:0}};
+const Q={alta:{n:900,f:60,b:1,d:1},media:{n:380,f:60,b:0,d:.85},baja:{n:0,f:30,b:0,d:.7},off:{n:500,f:0,b:0,d:1}};let HDS=1;   // d: resolución del disco (1 = completa); bajarla ahorra mucho en equipos justos
 const DL=document.createElement("canvas");DL.width=DLw;DL.height=DLh;const lc=DL.getContext("2d");
 const D=Array.from({length:900},()=>{const r=1.4+Math.pow(rnd(),1.6)*4.9,t=(r-1.4)/4.9;return{r,t,b:Math.min(7,(t*8)|0),a:rnd()*6.283,z:rnd()-.5,s:rnd()*.6+.7}});
 const rs=()=>{W=cv.width=innerWidth;HT=cv.height=innerHeight;const n=Math.round(320*((cfg.stars==null?100:cfg.stars)/100));ST=Array.from({length:n},()=>({x:rnd()*W,y:rnd()*HT,r:rnd()*1.1+.2,p:rnd()*6.3}));b1=document.createElement("canvas");b1.width=(W>>2)||1;b1.height=(HT>>2)||1;b2=document.createElement("canvas");b2.width=(W>>3)||1;b2.height=(HT>>3)||1;c1=b1.getContext("2d");c2=b2.getContext("2d");HR=null;dirty=60};
-addEventListener("resize",rs);rs();
+let rsF=0;addEventListener("resize",()=>{cancelAnimationFrame(rsF);rsF=requestAnimationFrame(rs)});rs();   // al cambiar el tamaño se rehace una sola vez por fotograma, no en cada evento
 function mkSpr(h,s){const S=512,m=S/2,mk=()=>{const c=document.createElement("canvas");c.width=c.height=S;return c},P=[];
 const base=mk(),g=base.getContext("2d"),rg=g.createRadialGradient(m,m,0,m,m,m);
 rg.addColorStop(.19,`hsla(${h+8},${s}%,96%,0)`);rg.addColorStop(.212,`hsla(${h+8},${s}%,96%,.95)`);rg.addColorStop(.3,`hsla(${h},${s}%,72%,.72)`);rg.addColorStop(.5,`hsla(${h-14},${s}%,52%,.38)`);rg.addColorStop(.8,`hsla(${h-26},${s}%,36%,.13)`);rg.addColorStop(1,`hsla(${h-30},${s}%,30%,0)`);
@@ -15,19 +15,19 @@ g.fillStyle=rg;g.fillRect(0,0,S,S);P.push(base);
 [[.212,.4,170],[.4,.65,260],[.65,1,320]].forEach(([a,b,n])=>{const c=mk(),q=c.getContext("2d");q.globalCompositeOperation="lighter";
 for(let i=0;i<n;i++){const f=a+rnd()*(b-a),r=m*f*.995,t=(f-.212)/.788;q.strokeStyle=`hsla(${h-t*28},${s}%,${92-t*44}%,${(.1+rnd()*.28)*(1-t*.75)})`;q.lineWidth=.7+rnd()*(1+t*1.8);const st=rnd()*6.283;q.beginPath();q.arc(m,m,r,st,st+.08+rnd()*.7);q.stroke()}P.push(c)});
 return P}
-function half(front,tl,Rb,h0,s0){const l=lc;l.setTransform(1,0,0,1,0,0);l.globalCompositeOperation="source-over";l.clearRect(0,0,DLw,DLh);
-l.translate(DLw/2,DLh/2);l.rotate(tl);l.save();l.beginPath();l.rect(-DLw,front?0:-DLh,2*DLw,DLh);l.clip();
+function half(front,tl,Rb,h0,s0){const l=lc,S0=K*Rb,ww=Math.min(DLw/2,Math.ceil(S0)+4),hh=Math.min(DLh/2,Math.ceil(Math.max(Rb*1.95,S0*(Math.abs(Math.sin(tl))+SQ)))+6),rx=DLw/2-ww*HDS,ry=DLh/2-hh*HDS,rw=2*ww*HDS,rh=2*hh*HDS;l.setTransform(1,0,0,1,0,0);l.globalCompositeOperation="source-over";l.clearRect(rx,ry,rw,rh);
+l.translate(DLw/2,DLh/2);l.scale(HDS,HDS);l.rotate(tl);l.save();l.beginPath();l.rect(-DLw,front?0:-DLh,2*DLw,DLh);l.clip();
 const rr=Rb*(front?1.5:1.95),ag=l.createRadialGradient(0,0,Rb*.98,0,0,rr),u=front?.35:1;
 ag.addColorStop(0,`hsla(${h0+8},${s0}%,97%,${.95*u})`);ag.addColorStop(.1,`hsla(${h0+6},${s0}%,86%,${.7*u})`);ag.addColorStop(.35,`hsla(${h0-6},${s0}%,62%,${.36*u})`);ag.addColorStop(1,`hsla(${h0-20},${s0}%,45%,0)`);
 l.fillStyle=ag;l.beginPath();l.arc(0,0,rr,0,6.283);l.fill();
 const S=K*Rb,sp=[0,1.2,.55,.25];l.save();l.scale(1,SQ);SPR.forEach((im,i)=>{l.save();l.rotate(ang*sp[i]);l.drawImage(im,-S,-S,2*S,2*S);l.restore()});l.restore();l.restore();
-l.setTransform(1,0,0,1,0,0);l.globalCompositeOperation="destination-in";const gr=l.createLinearGradient(0,0,DLw,0);gr.addColorStop(0,"rgba(0,0,0,.4)");gr.addColorStop(.5,"rgba(0,0,0,.85)");gr.addColorStop(1,"rgba(0,0,0,1)");l.fillStyle=gr;l.fillRect(0,0,DLw,DLh);
-x.globalCompositeOperation="lighter";x.globalAlpha=al;x.drawImage(DL,cx-DLw/2,cy-DLh/2)}
+l.setTransform(1,0,0,1,0,0);l.globalCompositeOperation="destination-in";const gr=l.createLinearGradient(DLw/2*(1-HDS),0,DLw/2*(1+HDS),0);gr.addColorStop(0,"rgba(0,0,0,.4)");gr.addColorStop(.5,"rgba(0,0,0,.85)");gr.addColorStop(1,"rgba(0,0,0,1)");l.fillStyle=gr;l.fillRect(rx,ry,rw,rh);
+x.globalCompositeOperation="lighter";x.globalAlpha=al;x.drawImage(DL,rx,ry,rw,rh,cx-ww,cy-hh,2*ww,2*hh)}
 // Modo juego: con Minecraft abierto las animaciones siguen, pero a pocos FPS para dejar la potencia al juego
 let GM=false,RAF=0;
 function gameMode(on){const g=!!on&&cfg.gameMode!==false;if(g===GM)return;GM=g;document.documentElement.classList.toggle("gm",g);if(!RAF){dirty=60;RAF=requestAnimationFrame(frame)}}
 function frame(now){RAF=requestAnimationFrame(frame);
-const q=Q[cfg.quality]||Q.alta,pg=RUN&&cfg.pauseGame!==false,cap=+cfg.fps||60;let f=q.f?Math.min(q.f,cap):0;if(pg&&f)f=Math.min(f,30);if(GM&&f)f=Math.min(f,document.hasFocus()?24:12);
+const q=Q[cfg.quality]||Q.alta;HDS=q.d;const pg=RUN&&cfg.pauseGame!==false,cap=+cfg.fps||60;let f=q.f?Math.min(q.f,cap):0;if(pg&&f)f=Math.min(f,30);if(GM&&f)f=Math.min(f,document.hasFocus()?24:12);
 if(document.hidden)return;if(f&&A&&cfg.pauseBlur!==false&&!document.hasFocus())f=Math.min(f,RUN?12:15);
 if(!f){if(dirty<=0)return}else{if(al<.02)f=Math.min(f,24);if(now-last<1000/f-3)return}
 last=now;dirty--;const k=f?60/f:0,sp=(cfg.rmotion?.15:1)*k*((cfg.bhSpeed==null?100:cfg.bhSpeed)/100);T+=.016*k;ang+=.0065*sp;
@@ -41,7 +41,7 @@ x.globalCompositeOperation="source-over";x.globalAlpha=1;x.fillStyle=BG;x.fillRe
 x.fillStyle="#fff";const te=Rb*1.7,lens=vis&&cfg.bhLens!==false;
 for(const s of ST){let px=s.x,py=s.y,m=1;if(lens){const dx=px-cx,dy=py-cy,d=Math.hypot(dx,dy)||1;if(d<Rb*14){const dd=(d+Math.sqrt(d*d+4*te*te))/2;px=cx+dx/d*dd;py=cy+dy/d*dd;m=Math.min(2.2,dd/d)}}x.globalAlpha=(.2+.22*Math.sin(T*1.1+s.p))*(.5+.5*al)*(1+(m-1)*.3);x.fillRect(px,py,s.r*m,s.r*m)}
 if(vis){x.globalCompositeOperation="lighter";
-const g=x.createRadialGradient(cx,cy,Rb*.9,cx,cy,Rb*7.5);g.addColorStop(0,`hsla(${h0},${s0}%,55%,${.26*al})`);g.addColorStop(.4,`hsla(${h0-12},${s0}%,40%,${.07*al})`);g.addColorStop(1,`hsla(${h0},${s0}%,40%,0)`);x.globalAlpha=1;x.fillStyle=g;x.fillRect(0,0,W,HT);
+const g=x.createRadialGradient(cx,cy,Rb*.9,cx,cy,Rb*7.5);g.addColorStop(0,`hsla(${h0},${s0}%,55%,${.26*al})`);g.addColorStop(.4,`hsla(${h0-12},${s0}%,40%,${.07*al})`);g.addColorStop(1,`hsla(${h0},${s0}%,40%,0)`);x.globalAlpha=1;x.fillStyle=g;{const gr7=Rb*7.5;x.fillRect(cx-gr7,cy-gr7,2*gr7,2*gr7)}
 half(false,tl,Rb,h0,s0);
 x.globalCompositeOperation="source-over";x.globalAlpha=1;x.fillStyle="#000";x.beginPath();x.arc(cx,cy,Rb,0,6.283);x.fill();
 x.globalCompositeOperation="lighter";x.beginPath();x.arc(cx,cy,Rb*1.015,0,6.283);
