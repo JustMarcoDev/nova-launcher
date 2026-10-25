@@ -79,6 +79,8 @@ function shotMarkers(t, id) {
   if (/\[Nova\] captura: /.test(t)) { send('shot:new', id); }
   let m = t.match(/\[NOVA:SHOTCOPY:([^\]]+)\]/);
   if (m) { const p = ok(m[1]); if (p) { const im = nativeImage.createFromPath(p); if (!im.isEmpty()) clipboard.writeImage(im); } }
+  m = t.match(/\[NOVA:SHOTVIEW:([^\]]+)\]/);
+  if (m) { const p = ok(m[1]); if (p) shell.openPath(p); }
   m = t.match(/\[NOVA:SHOTOPEN:([^\]]+)\]/);
   if (m) { const p = ok(m[1]); if (p) shell.showItemInFolder(p); }
 }

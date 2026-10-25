@@ -6,7 +6,6 @@ import net.minecraft.util.Util;
 
 /** Botón de Nova: cristal oscuro con borde de acento, esquinas redondeadas y brillo animado. */
 public class NovaButton extends NovaButtonBase {
-    static final int ACCENT = 0xFF8B6CFF;
     static final int NORMAL = 0, PRIMARY = 1, DANGER = 2, SELECTED = 3;
 
     private final int icon;

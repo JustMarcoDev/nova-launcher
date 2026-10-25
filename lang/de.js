@@ -1106,5 +1106,10 @@ window.LANGS.de={name:"Deutsch",d:{
 "Sin datos todavía":"Noch keine Daten",
 "Aún no has entrado a ningún servidor desde el launcher":"Du bist dem Launcher aus noch keinem Server beigetreten",
 "Incluye {1} jugadas antes de que existieran las estadísticas (sin fecha: no salen en el gráfico).":"Enthält {1}, die vor den Statistiken gespielt wurden (ohne Datum: nicht im Diagramm).",
-"Quitar este botón":"Diese Schaltfläche entfernen"
+"Quitar este botón":"Diese Schaltfläche entfernen",
+"Crear instancia con esto":"Instanz damit erstellen",
+"Con sus propios mundos, mods y ajustes. No abre el juego.":"Mit eigenen Welten, Mods und Einstellungen. Das Spiel wird nicht gestartet.",
+"Instancia «{1}» creada ✓":"Instanz „{1}“ erstellt ✓",
+"Escribe un nombre":"Gib einen Namen ein",
+"En la vista previa no se pueden crear instancias":"In der Vorschau können keine Instanzen erstellt werden"
 }};

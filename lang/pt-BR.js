@@ -1106,5 +1106,10 @@ window.LANGS["pt-BR"]={name:"Português (Brasil)",d:{
 "Sin datos todavía":"Ainda sem dados",
 "Aún no has entrado a ningún servidor desde el launcher":"Você ainda não entrou em nenhum servidor pelo launcher",
 "Incluye {1} jugadas antes de que existieran las estadísticas (sin fecha: no salen en el gráfico).":"Inclui {1} jogadas antes de existirem as estatísticas (sem data: não aparecem no gráfico).",
-"Quitar este botón":"Remover este botão"
+"Quitar este botón":"Remover este botão",
+"Crear instancia con esto":"Criar instância com isto",
+"Con sus propios mundos, mods y ajustes. No abre el juego.":"Com seus próprios mundos, mods e configurações. Não abre o jogo.",
+"Instancia «{1}» creada ✓":"Instância «{1}» criada ✓",
+"Escribe un nombre":"Digite um nome",
+"En la vista previa no se pueden crear instancias":"Na prévia não é possível criar instâncias"
 }};

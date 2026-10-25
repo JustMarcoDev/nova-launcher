@@ -227,8 +227,7 @@ function statsEnd(key, ms) {
 }
 ipcMain.handle('stats:get', async () => {
   const d = statsLoad();
-  let shots = 0;
-  for (const i of li()) { try { shots += (await fs.promises.readdir(path.join(iDir(i.id), 'screenshots'))).filter(f => /\.(png|jpe?g)$/i.test(f)).length; } catch {} }
+  const shots = (await Promise.all(li().map(async i => { try { return (await fs.promises.readdir(path.join(iDir(i.id), 'screenshots'))).filter(f => /\.(png|jpe?g)$/i.test(f)).length; } catch { return 0; } }))).reduce((a, b) => a + b, 0);
   return { sessions: d.sessions.map(({ key, ...r }) => r), before: d.before || [], shots };
 });
 

@@ -94,12 +94,14 @@ ipcMain.handle('text:save', async (e, { name, text }) => {
 const shotsDir = id => path.join(iDir(id), 'screenshots');
 const shotPath = (id, f) => { f = path.basename(String(f)); const p = path.join(shotsDir(getIns(id).id), f); if (!fs.existsSync(p)) throw new Error('Captura no encontrada'); return p; };
 ipcMain.handle('shots:list', async (e, id) => {
-  const ids = id === 'all' ? li().map(i => i.id) : [getIns(id).id], out = [];
-  for (const i of ids) {
-    let es = []; try { es = await fs.promises.readdir(shotsDir(i)); } catch { continue; }
-    for (const f of es) { if (!/\.(png|jpe?g)$/i.test(f)) continue; const p = path.join(shotsDir(i), f); try { const st = await fs.promises.stat(p); out.push({ inst: i, file: f, date: st.mtimeMs, size: st.size, url: pathToFileURL(p).href }); } catch {} }
-  }
-  return out.sort((a, b) => b.date - a.date).slice(0, 600);
+  const ids = id === 'all' ? li().map(i => i.id) : [getIns(id).id];
+  // se lee cada carpeta y se mira cada archivo a la vez (con muchas capturas el recorrido uno a uno tardaba)
+  const parts = await Promise.all(ids.map(async i => {
+    let es = []; try { es = await fs.promises.readdir(shotsDir(i)); } catch { return []; }
+    const r = await Promise.all(es.filter(f => /\.(png|jpe?g)$/i.test(f)).map(async f => { const p = path.join(shotsDir(i), f); try { const st = await fs.promises.stat(p); return { inst: i, file: f, date: st.mtimeMs, size: st.size, url: pathToFileURL(p).href }; } catch { return null; } }));
+    return r.filter(Boolean);
+  }));
+  return parts.flat().sort((a, b) => b.date - a.date).slice(0, 600);
 });
 ipcMain.handle('shots:open', (e, { id, file }) => shell.openPath(shotPath(id, file)));
 ipcMain.handle('shots:copy', (e, { id, file }) => { const im = nativeImage.createFromPath(shotPath(id, file)); if (im.isEmpty()) throw new Error('No se pudo leer la imagen'); clipboard.writeImage(im); return true; });

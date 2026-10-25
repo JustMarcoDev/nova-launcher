@@ -11,7 +11,6 @@ final class NovaSettings {
     static final int[] COLORS = { 0xFF8B6CFF, 0xFF4D8BFF, 0xFF2FD3E0, 0xFF3DDC84, 0xFFFF5FA8, 0xFFFF9A3D, 0xFFFF4D5E, 0xFFDADAF0 };
 
     static final String DIR = System.getProperty("nova.dir", "");
-    static final String USER = System.getProperty("nova.user", "");
     static final boolean PREMIUM = "1".equals(System.getProperty("nova.premium", "0"));
 
     static String bg = "hole";

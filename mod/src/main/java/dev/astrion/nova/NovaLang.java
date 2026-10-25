@@ -28,7 +28,6 @@ final class NovaLang {
         return 1;
     }
 
-    static boolean spanish() { return lang() == 0; }
 
     static String tr(String es, Object... args) {
         int l = lang();
@@ -50,8 +49,6 @@ final class NovaLang {
         p("Opciones del juego", "Game options", "Options du jeu", "Spieloptionen", "Opzioni di gioco", "Opções do jogo");
         p("Idioma", "Language", "Langue", "Sprache", "Lingua", "Idioma");
         p("Cambia el idioma del juego", "Change the game language", "Change la langue du jeu", "Ändere die Spielsprache", "Cambia la lingua del gioco", "Mude o idioma do jogo");
-        p("Próximamente", "Coming soon", "Bientôt", "Demnächst", "Prossimamente", "Em breve");
-        p("Aún no disponible", "Not available yet", "Pas encore disponible", "Noch nicht verfügbar", "Non ancora disponibile", "Ainda não disponível");
         p("Mundos online de Minecraft", "Minecraft online worlds", "Mondes en ligne de Minecraft", "Online-Welten von Minecraft", "Mondi online di Minecraft", "Mundos online do Minecraft");
         p("Menú de Nova", "Nova menu", "Menu Nova", "Nova-Menü", "Menu di Nova", "Menu do Nova");
         p("Fondo, colores y más", "Background, colors and more", "Fond, couleurs et plus", "Hintergrund, Farben und mehr", "Sfondo, colori e altro", "Fundo, cores e mais");
@@ -85,6 +82,10 @@ final class NovaLang {
         p("Añadir", "Add", "Ajouter", "Hinzufügen", "Aggiungi", "Adicionar");
         p("Añadir foto o vídeo", "Add photo or video", "Ajouter une photo ou une vidéo", "Foto oder Video hinzufügen", "Aggiungi foto o video", "Adicionar foto ou vídeo");
         p("Elige un archivo de tu PC", "Pick a file from your PC", "Choisis un fichier de ton PC", "Wähle eine Datei von deinem PC", "Scegli un file dal tuo PC", "Escolha um arquivo do seu PC");
+        p("Abrir", "Open", "Ouvrir", "Öffnen", "Apri", "Abrir");
+        p("Carpeta", "Folder", "Dossier", "Ordner", "Cartella", "Pasta");
+        p("¡Copiada!", "Copied!", "Copiée !", "Kopiert!", "Copiata!", "Copiada!");
+        p("Abre el chat para usar los botones", "Open the chat to use the buttons", "Ouvre le chat pour utiliser les boutons", "Öffne den Chat, um die Schaltflächen zu nutzen", "Apri la chat per usare i pulsanti", "Abre o chat para usar os botões");
         p("Abrir carpeta", "Open folder", "Ouvrir le dossier", "Ordner öffnen", "Apri cartella", "Abrir pasta");
         p("Carpeta de fondos", "Backgrounds folder", "Dossier des fonds", "Hintergrund-Ordner", "Cartella degli sfondi", "Pasta de fundos");
         p("Arrastra aquí tus fotos", "Drop your photos here", "Glisse tes photos ici", "Zieh deine Fotos hierher", "Trascina qui le tue foto", "Arraste suas fotos aqui");
@@ -113,7 +114,6 @@ final class NovaLang {
         p("No se pudo descargar: pulsa para reintentar", "Download failed: click to retry", "Échec du téléchargement : clique pour réessayer", "Download fehlgeschlagen: zum Wiederholen klicken", "Download non riuscito: clicca per riprovare", "Falha no download: clique para tentar de novo");
         p("Pulsa para descargar este fondo", "Click to download this background", "Clique pour télécharger ce fond", "Klicken, um diesen Hintergrund herunterzuladen", "Clicca per scaricare questo sfondo", "Clique para baixar este fundo");
         p("Editar HUD", "Edit HUD", "Modifier le HUD", "HUD bearbeiten", "Modifica HUD", "Editar HUD");
-        p("Arrastra los elementos para colocarlos", "Drag the elements to place them", "Fais glisser les éléments pour les placer", "Ziehe die Elemente an ihren Platz", "Trascina gli elementi per posizionarli", "Arraste os elementos para posicioná-los");
         p("Coordenadas", "Coordinates", "Coordonnées", "Koordinaten", "Coordinate", "Coordenadas");
         p("Teclas", "Keys", "Touches", "Tasten", "Tasti", "Teclas");
         p("Activado: pulsa para ocultarlo", "On: click to hide it", "Activé : clique pour le masquer", "An: klicken zum Ausblenden", "Attivo: clicca per nasconderlo", "Ativado: clique para ocultar");
@@ -147,13 +147,16 @@ final class NovaLang {
         p(" · Con cuenta sin conexión solo lo ves tú", " · With an offline account only you can see it", " · Avec un compte hors ligne, toi seul le vois", " · Mit einem Offline-Konto siehst nur du es", " · Con un account offline lo vedi solo tu", " · Com conta offline só tu vês");
         p("Mods", "Mods", "Mods", "Mods", "Mod", "Mods");
         p("Los mods que tienes instalados", "The mods you have installed", "Les mods que tu as installés", "Die Mods, die du installiert hast", "I mod che hai installato", "Os mods que tens instalados");
+        p("Escribe para buscar un mod…", "Type to search for a mod…", "Écris pour chercher un mod…", "Tippe, um einen Mod zu suchen…", "Scrivi per cercare un mod…", "Escreve para procurar um mod…");
+        p("Ningún mod coincide", "No mod matches", "Aucun mod ne correspond", "Kein Mod passt", "Nessun mod corrisponde", "Nenhum mod corresponde");
+        p("Pulsa para abrir su página", "Click to open its page", "Clique pour ouvrir sa page", "Klicken, um die Seite zu öffnen", "Clicca per aprire la sua pagina", "Clica para abrir a página");
+        p("Carpeta de mods", "Mods folder", "Dossier des mods", "Mods-Ordner", "Cartella dei mod", "Pasta de mods");
+        p("Abre la carpeta mods de esta instancia", "Opens this instance's mods folder", "Ouvre le dossier mods de cette instance", "Öffnet den Mods-Ordner dieser Instanz", "Apre la cartella mods di questa istanza", "Abre a pasta mods desta instância");
         p("Mods instalados", "Installed mods", "Mods installés", "Installierte Mods", "Mod installati", "Mods instalados");
         p("No hay mods instalados", "No mods installed", "Aucun mod installé", "Keine Mods installiert", "Nessun mod installato", "Nenhum mod instalado");
         p("Novedades de Nova", "What's new in Nova", "Nouveautés de Nova", "Neues in Nova", "Novità di Nova", "Novidades do Nova");
         p("Captura guardada", "Screenshot saved", "Capture enregistrée", "Screenshot gespeichert", "Screenshot salvato", "Captura salva");
-        p("5 s", "5 s", "5 s", "5 s", "5 s", "5 s");
         p("Copiar", "Copy", "Copier", "Kopieren", "Copia", "Copiar");
-        p("Abrir carpeta", "Open folder", "Ouvrir le dossier", "Ordner öffnen", "Apri cartella", "Abrir pasta");
         p("Mostrar que uso Nova", "Show that I use Nova", "Montrer que j'utilise Nova", "Zeigen, dass ich Nova nutze", "Mostra che uso Nova", "Mostrar que uso o Nova");
         p("Los demás jugadores con Nova ven el logo junto a tu nombre", "Other Nova players see the logo next to your name", "Les autres joueurs Nova voient le logo à côté de ton nom", "Andere Nova-Spieler sehen das Logo neben deinem Namen", "Gli altri giocatori Nova vedono il logo accanto al tuo nome", "Outros jogadores com Nova veem o logo ao lado do seu nome");
         p("Restablecer", "Reset", "Réinitialiser", "Zurücksetzen", "Ripristina", "Restaurar");

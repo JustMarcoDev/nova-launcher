@@ -31,6 +31,31 @@ $("il").onclick=async e=>{
   if(a==="fav"){try{await(A||DA).instUpdate(id,{fav:!i.fav});await loadI()}catch(x){flash(em(x))}return}
   if(a==="del"){if(!confirm("¿Borrar «"+i.name+"» con sus mundos, mods y copias de seguridad? No se puede deshacer."))return;try{await api.delInst(id);await loadI();flash("Instancia borrada")}catch(x){flash(em(x))}return}
   if(a==="play"){pick(i.mc,i.type||"release",i.ld);sel.inst=i.id;show("home");play(i.id)}else if(a==="mods")openMods(id);else if(a==="shots")openShots(id);else openOpts(id)};
+// --- Crear una instancia a mano (sin lanzar el juego) ---
+function openCreate(pre){
+  pre=pre||{};let ld=pre.ld||"Vanilla",type=pre.type||"release",mc=pre.mc||sel.mc,nmT=false;
+  const dn=()=>LDN(ld)+" "+mc;
+  modal(`<div class="hd"><div class="iic">${IC("box")}</div><div style="min-width:0"><h3>Crear instancia</h3><span class="sub">Con sus propios mundos, mods y ajustes. No abre el juego.</span></div><button class="btn sm x" data-x>Cerrar</button></div>
+<div class="fr"><label>Nombre</label><input id="cnm" type="text" maxlength="40" autocomplete="off"></div>
+<label class="wl">Cargador</label><div class="chips" id="cld"></div>
+<label class="wl">Tipo de versión</label><div class="chips" id="ctf"></div>
+<div class="fr"><label>Versión de Minecraft</label><select id="cmc"></select></div>
+<div class="acts"><button class="btn" data-x>Cancelar</button><button class="btn pr" id="cgo">Crear instancia</button></div>`);
+  const nm=$("cnm");nm.value=dn();nm.oninput=()=>{nmT=true};
+  const draw=()=>{
+    if(!LD[ld](mc)){ld="Vanilla"}
+    chips($("cld"),Object.keys(LD).map(k=>[k,LDN(k),!LD[k](mc)]),ld,k=>{ld=k;draw()});
+    chips($("ctf"),Object.entries(TN).filter(([k])=>k!=="all"),type,k=>{type=k;draw()});
+    let list=V.filter(v=>v.type===type&&LD[ld](v.id));if(!list.find(v=>v.id===mc))list.unshift({id:mc,type});
+    $("cmc").innerHTML=list.slice(0,300).map(v=>`<option ${v.id===mc?"selected":""}>${esc(v.id)}</option>`).join("");
+    if(!nmT)nm.value=dn()};
+  $("cmc").onchange=e=>{mc=e.target.value;const v=V.find(z=>z.id===mc);if(v)type=v.type;draw()};
+  draw();nm.focus();nm.select();
+  $("cgo").onclick=async()=>{const b=$("cgo"),name=nm.value.trim().slice(0,40);if(!name){flash("Escribe un nombre");return}
+    if(!A){flash("En la vista previa no se pueden crear instancias");return}
+    b.disabled=true;try{const i=await A.saveInst({name,mc,ld,type,manual:true});await loadI();closeModal();flash("Instancia «"+name+"» creada ✓");if(i&&i.id&&$("inst").classList.contains("on"))ri()}catch(e){flash(em(e));b.disabled=false}};
+}
+$("icr").onclick=()=>openCreate({mc:sel.mc,ld:sel.ld,type:sel.type});
 $("ish").onclick=()=>openShots("all");$("imo2").onclick=()=>openImport();
 $("imp").onclick=async()=>{if(!A){pv("imp");return}
 const b=$("imp");b.disabled=true;try{const r=await A.instImport();if(r&&!r.canceled){await loadI();flash("Instancia importada: "+r.ins.name+(r.failed&&r.failed.length?" (faltan "+r.failed.length+" archivos)":""))}}catch(e){flash("No se pudo importar: "+em(e))}finally{b.disabled=false}};

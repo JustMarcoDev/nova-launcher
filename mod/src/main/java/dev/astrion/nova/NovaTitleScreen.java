@@ -23,8 +23,6 @@ public class NovaTitleScreen extends NovaScreen {
     static boolean loaded, tested;
 
     static final String LOADER = System.getProperty("nova.loader", "Nova");
-    static final String VERSION = System.getProperty("nova.version", FabricLoader.getInstance()
-            .getModContainer("nova-menu").map(m -> m.getMetadata().getVersion().getFriendlyString()).orElse(""));
 
     private final long born = Util.getMeasuringTimeMs();
 
@@ -176,7 +174,7 @@ public class NovaTitleScreen extends NovaScreen {
         skins.tip(tr("Skins"), tr("Cambia, guarda y elimina tus skins"));
         addDrawableChild(skins);
         addDrawableChild(new NovaButton(bx + 3 * (s + g), y, s, s, Text.empty(), NovaGfx.I_MODS, panel == 5 ? NovaButton.SELECTED : NovaButton.NORMAL, b -> {
-            panel = 5; mdScroll = 0; clearAndInit();
+            panel = 5; mdScroll = 0; mdQ.setLength(0); clearAndInit();
         }).tip(tr("Mods"), tr("Los mods que tienes instalados")));
         addDrawableChild(new NovaButton(bx + 4 * (s + g), y, s, s, Text.empty(), NovaGfx.I_SERVER, panel == 4 ? NovaButton.SELECTED : NovaButton.NORMAL, b -> {
             panel = 4; svScroll = 0; clearAndInit();
@@ -309,9 +307,8 @@ public class NovaTitleScreen extends NovaScreen {
         scroll = Math.max(0, Math.min(scroll, Math.max(0, L.size() - maxRows)));
         int rows = Math.min(maxRows, L.size());
         pw = Math.min(262, width - 16);
-        ph = fixed + rows * 17 + (L.size() > rows ? 0 : 0);
+        ph = fixed + rows * 17;
         px = (width - pw) / 2; py = Math.max(6, (height - ph) / 2);
-        final int phF = ph;
         addDrawable((c, mx, my, d) -> {
             c.fill(0, 0, width, height, 0xA0020208);   // atenúa lo de detrás: el panel va por encima de todo
             drawPanelBg(c);
@@ -587,9 +584,10 @@ public class NovaTitleScreen extends NovaScreen {
 
     // ---------------------------------------------------------------- panel de mods instalados
     private static int mdScroll, mdRows = 8;
-    private static java.util.List<String[]> modList;
+    private static final StringBuilder mdQ = new StringBuilder();   // lo que se escribe en el buscador del panel
+    private static java.util.List<String[]> modList;                // {nombre, versión, id, descripción, web}
 
-    /** {nombre, versión, id} de cada mod instalado; sin los módulos internos de otros mods, sin el propio juego ni Java. */
+    /** Los mods instalados, sin los módulos internos de otros mods, el propio juego, Java ni el cargador. */
     static java.util.List<String[]> mods() {
         if (modList == null) {
             java.util.List<String[]> l = new java.util.ArrayList<>();
@@ -598,46 +596,88 @@ public class NovaTitleScreen extends NovaScreen {
                     net.fabricmc.loader.api.metadata.ModMetadata md = m.getMetadata();
                     String id = md.getId();
                     if (m.getContainingMod().isPresent() || id.equals("minecraft") || id.equals("java") || id.equals("fabricloader") || "builtin".equals(md.getType())) continue;
-                    l.add(new String[] { md.getName() == null || md.getName().isEmpty() ? id : md.getName(), md.getVersion().getFriendlyString(), id });
+                    String web = md.getContact().get("homepage").orElse("");
+                    if (!web.startsWith("https://")) web = "";
+                    l.add(new String[] { md.getName() == null || md.getName().isEmpty() ? id : md.getName(), md.getVersion().getFriendlyString(), id, md.getDescription() == null ? "" : md.getDescription().replaceAll("\\s+", " ").trim(), web });
                 }
             } catch (Throwable ignored) { }
-            l.sort((a, b) -> a[0].compareToIgnoreCase(b[0]));
+            l.sort((x, y) -> x[0].compareToIgnoreCase(y[0]));
             modList = l;
         }
         return modList;
     }
 
+    /** Los mods que pasan el filtro del buscador (por nombre o id). */
+    static java.util.List<String[]> modsShown() {
+        String q = mdQ.toString().trim().toLowerCase(java.util.Locale.ROOT);
+        if (q.isEmpty()) return mods();
+        java.util.List<String[]> r = new java.util.ArrayList<>();
+        for (String[] m : mods()) if (m[0].toLowerCase(java.util.Locale.ROOT).contains(q) || m[2].toLowerCase(java.util.Locale.ROOT).contains(q)) r.add(m);
+        return r;
+    }
+
     void buildMods() {
-        java.util.List<String[]> M = mods();
-        int fixed = 8 + 12 + 6 + 8;
-        int maxRows = Math.max(3, Math.min(10, (height - 20 - fixed) / 14));
-        mdRows = Math.max(1, Math.min(maxRows, M.size()));
+        java.util.List<String[]> all = mods(), M = modsShown();
+        int rh = 14, fixed = 8 + 12 + 18 + 6 + 17 + 8;   // título, buscador, hueco, fila de botones y márgenes
+        int maxRows = Math.max(3, Math.min(9, (height - 20 - fixed) / rh));
+        mdRows = Math.max(1, Math.min(maxRows, Math.max(1, M.size())));
         mdScroll = Math.max(0, Math.min(mdScroll, Math.max(0, M.size() - mdRows)));
-        pw = Math.min(250, width - 16);
-        ph = fixed + mdRows * 14 + 4;
+        pw = Math.min(262, width - 16);
+        ph = fixed + mdRows * rh;
         px = (width - pw) / 2; py = Math.max(6, (height - ph) / 2);
         int x = px + 8, w = pw - 16, y = py + 8;
+        final int sx = x, sw = w;
+        final int listTop = y + 12 + 18;
         addDrawable((c, mx, my, d) -> {
             c.fill(0, 0, width, height, 0xA0020208);
             drawPanelBg(c);
             for (Object[] l : labels) txt(c, (String) l[0], (int) l[1], (int) l[2], (float) l[3], (int) l[4], (boolean) l[5], (int) l[6]);
+            // buscador
+            int fy = py + 8 + 12;
+            NovaButton.panel(c, sx, fy, sw, 14, 3, 0xA0080818, mdQ.length() > 0 ? 0xFF6C5CE7 : 0xFF3A3A66);
+            String q = mdQ.toString();
+            boolean caret = ((Util.getMeasuringTimeMs() / 500) & 1) == 0;
+            if (q.isEmpty()) txt(c, tr("Escribe para buscar un mod…"), sx + 6, fy + 4, 5.8f, 0xFF7C7CA0, false, 0);
+            else txt(c, shorten(q, 36) + (caret ? "|" : ""), sx + 6, fy + 4, 6.4f, 0xFFFFFFFF, false, 0);
         });
-        labels.add(new Object[] { tr("Mods instalados") + " (" + M.size() + ")", x, y, 8.6f, 0xFFFFFFFF, true, 0 });
+        labels.add(new Object[] { tr("Mods instalados") + " (" + (M.size() == all.size() ? String.valueOf(all.size()) : M.size() + "/" + all.size()) + ")", x, y, 8.6f, 0xFFFFFFFF, true, 0 });
         labels.add(new Object[] { tr("Pulsa Esc para cerrar"), px + pw - 8, y + 2, 5.6f, 0xFF7C7CA0, false, 1 });
-        y += 14;
-        if (M.isEmpty()) labels.add(new Object[] { tr("No hay mods instalados"), x + 2, y + 4, 5.8f, 0xFF9A9AC0, false, 0 });
+        y = listTop;
+        if (M.isEmpty()) labels.add(new Object[] { all.isEmpty() ? tr("No hay mods instalados") : tr("Ningún mod coincide"), x + 4, y + 4, 5.8f, 0xFF9A9AC0, false, 0 });
+        final java.util.List<Object[]> rowTxt = new java.util.ArrayList<>();   // se dibujan encima de los botones de fila
+        int bx2 = x, bw2 = w - 6;
         for (int i = mdScroll; i < Math.min(M.size(), mdScroll + mdRows); i++) {
-            String[] m = M.get(i);
-            final int ry = y;
-            addDrawable((c, mx, my, d) -> c.fill(x, ry, x + w, ry + 12, (i0(ry) & 1) == 0 ? 0x30FFFFFF : 0x18FFFFFF));
-            labels.add(new Object[] { shorten(m[0], 30), x + 4, y + 2, 6.4f, 0xFFFFFFFF, false, 0 });
-            labels.add(new Object[] { shorten(m[1], 16), x + w - 4, y + 2, 5.6f, 0xFF9A9AC0, false, 1 });
-            y += 14;
+            final String[] m = M.get(i);
+            String desc = m[3].isEmpty() ? m[2] : (m[3].length() > 110 ? m[3].substring(0, 109) + "…" : m[3]);
+            NovaButton row = new NovaButton(bx2, y, bw2, 12, Text.empty(), -1, NovaButton.NORMAL, b -> { if (!m[4].isEmpty()) Util.getOperatingSystem().open(m[4]); });
+            row.tip(m[0] + "  " + m[1], desc + (m[4].isEmpty() ? "" : "  ·  " + tr("Pulsa para abrir su página")));
+            addDrawableChild(row);
+            rowTxt.add(new Object[] { shorten(m[0], 30), bx2 + 4, y + 2, 0, 0 });
+            rowTxt.add(new Object[] { shorten(m[1], 16), bx2 + bw2 - 4, y + 2, 1, 0 });
+            y += rh;
         }
-        if (M.size() > mdRows) labels.add(new Object[] { (mdScroll + 1) + "–" + Math.min(M.size(), mdScroll + mdRows) + " / " + M.size() + tr("  ·  rueda del ratón"), px + pw - 8, y + 1, 5.6f, 0xFF7C7CA0, false, 1 });
+        // barra de desplazamiento
+        if (M.size() > mdRows) {
+            final int trackTop = listTop, trackH = mdRows * rh - 2, total = M.size(), vis = mdRows, first = mdScroll;
+            addDrawable((c, mx, my, d) -> {
+                c.fill(sx + sw - 3, trackTop, sx + sw - 1, trackTop + trackH, 0x30FFFFFF);
+                int th = Math.max(8, trackH * vis / total), ty = trackTop + (trackH - th) * first / Math.max(1, total - vis);
+                c.fill(sx + sw - 3, ty, sx + sw - 1, ty + th, 0xFF6C5CE7);
+            });
+        }
+        addDrawable((c, mx, my, d) -> {
+            for (Object[] r : rowTxt) {
+                boolean right = (int) r[3] == 1;
+                txt(c, (String) r[0], (int) r[1], (int) r[2], right ? 5.6f : 6.4f, right ? 0xFF9A9AC0 : 0xFFFFFFFF, false, (int) r[3]);
+            }
+        });
+        // pie: abrir la carpeta de mods y cerrar
+        int fy2 = py + ph - 8 - 15, half = (w - 3) / 2;
+        addDrawableChild(new NovaButton(x, fy2, half, 15, Text.literal(tr("Carpeta de mods")), NovaGfx.I_FOLDER, NovaButton.NORMAL, b -> System.out.println("[NOVA:OPENMODS]"))
+                .tip(tr("Carpeta de mods"), tr("Abre la carpeta mods de esta instancia")));
+        addDrawableChild(new NovaButton(x + half + 3, fy2, w - half - 3, 15, Text.literal(tr("Listo")), NovaGfx.I_CHECK, NovaButton.PRIMARY, b -> closeSkins()));
+        if (M.size() > mdRows) labels.add(new Object[] { (mdScroll + 1) + "–" + Math.min(M.size(), mdScroll + mdRows) + " / " + M.size(), px + pw - 8, fy2 - 10, 5.4f, 0xFF7C7CA0, false, 1 });
     }
-
-    private static int i0(int v) { return v / 14; }
 
     static String shorten(String s, int n) { return s.length() <= n ? s : s.substring(0, n - 1) + "…"; }
 
@@ -698,6 +738,8 @@ public class NovaTitleScreen extends NovaScreen {
             if (key == 259) { if (buf.length() > 0) buf.setLength(buf.length() - 1); clearAndInit(); return true; }
             return true;
         }
+        if (panel == 5 && key == 259) { if (mdQ.length() > 0) { mdQ.setLength(mdQ.length() - 1); mdScroll = 0; clearAndInit(); } return true; }
+        if (key == 256 && panel == 5 && mdQ.length() > 0) { mdQ.setLength(0); mdScroll = 0; clearAndInit(); return true; }   // el primer Esc borra la búsqueda
         if (key == 256 && panel == 2) { closeNova(false); return true; }
         if (key == 256 && (panel == 3 || panel == 4 || panel == 5)) { closeSkins(); return true; }
         if (key == 256 && panel != 0) { panel = 0; confirmDel = null; clearAndInit(); return true; }
@@ -708,6 +750,10 @@ public class NovaTitleScreen extends NovaScreen {
     protected boolean nChar(char chr, int mods) {
         if (editing != null) {
             if (chr >= 32 && chr != 127 && buf.length() < 28) { buf.append(chr); clearAndInit(); }
+            return true;
+        }
+        if (panel == 5) {
+            if (chr >= 32 && chr != 127 && mdQ.length() < 30) { mdQ.append(chr); mdScroll = 0; clearAndInit(); }
             return true;
         }
         return superChar(chr, mods);
@@ -725,7 +771,7 @@ public class NovaTitleScreen extends NovaScreen {
         }
         if (panel == 5 && inPanel(mx, my)) {
             int ns = mdScroll + (amount < 0 ? 1 : -1);
-            if (ns < 0 || ns > Math.max(0, mods().size() - mdRows)) return true;
+            if (ns < 0 || ns > Math.max(0, modsShown().size() - mdRows)) return true;
             mdScroll = ns; clearAndInit(); return true;
         }
         if (panel == 4 && inPanel(mx, my)) {
