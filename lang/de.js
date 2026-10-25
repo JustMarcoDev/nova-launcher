@@ -1096,4 +1096,14 @@ window.LANGS.de={name:"Deutsch",d:{
 "Abrir carpeta de mods":"Mods-Ordner öffnen",
 "Instancia guardada ✓":"Instanz gespeichert ✓",
 "Filtrar mods…":"Mods filtern…",
-"Desactivado por defecto: nada se descarga hasta que pulses Jugar. Si lo activas, al elegir una versión se descargan Java, librerías y cargador para que Jugar abra el juego al instante":"Standardmäßig aus: nichts wird heruntergeladen, bis du auf Spielen klickst. Wenn aktiviert, werden beim Wählen einer Version Java, Bibliotheken und Loader geladen, damit Spielen sofort startet"}};
+"Desactivado por defecto: nada se descarga hasta que pulses Jugar. Si lo activas, al elegir una versión se descargan Java, librerías y cargador para que Jugar abra el juego al instante":"Standardmäßig aus: nichts wird heruntergeladen, bis du auf Spielen klickst. Wenn aktiviert, werden beim Wählen einer Version Java, Bibliotheken und Loader geladen, damit Spielen sofort startet",
+"Estadísticas":"Statistiken",
+"Tu tiempo de juego: por semana, por instancia, por versión y por servidor.":"Deine Spielzeit: pro Woche, pro Instanz, pro Version und pro Server.",
+"Partidas":"Spielsitzungen",
+"Horas por semana":"Stunden pro Woche",
+"últimas 8 semanas":"letzte 8 Wochen",
+"Aún no hay partidas con fecha. Juega y aparecerán aquí.":"Noch keine datierten Sitzungen. Spiele, und sie erscheinen hier.",
+"Sin datos todavía":"Noch keine Daten",
+"Aún no has entrado a ningún servidor desde el launcher":"Du bist dem Launcher aus noch keinem Server beigetreten",
+"Incluye {1} jugadas antes de que existieran las estadísticas (sin fecha: no salen en el gráfico).":"Enthält {1}, die vor den Statistiken gespielt wurden (ohne Datum: nicht im Diagramm)."
+}};

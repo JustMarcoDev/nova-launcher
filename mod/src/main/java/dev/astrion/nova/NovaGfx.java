@@ -111,7 +111,7 @@ public final class NovaGfx {
         return r;
     }
 
-    public static final int I_USER = 0, I_GEAR = 1, I_CLOSE = 2, I_EARTH = 6, I_NOVA = 8, I_LOCK = 9, I_REALMS = 10, I_USERS = 11, I_CHECK = 12, I_PLUS = 13, I_HEAD = 14, I_EDIT = 15, I_SWAP = 16, I_TRASH = 17, I_FOLDER = 18, I_RESIZE = 19, I_SERVER = 20, I_PLAY = 21;
+    public static final int I_USER = 0, I_GEAR = 1, I_CLOSE = 2, I_EARTH = 6, I_NOVA = 8, I_LOCK = 9, I_REALMS = 10, I_USERS = 11, I_CHECK = 12, I_PLUS = 13, I_HEAD = 14, I_EDIT = 15, I_SWAP = 16, I_TRASH = 17, I_FOLDER = 18, I_RESIZE = 19, I_SERVER = 20, I_PLAY = 21, I_BOLT = 22;
 
     static void person(Graphics2D g, double cx, double top, double s) {
         g.fill(new Ellipse2D.Double(cx - 0.17 * s, top, 0.34 * s, 0.34 * s));
@@ -274,6 +274,14 @@ public final class NovaGfx {
                 q.fill(t2);
                 q.setStroke(new BasicStroke(0.08f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
                 q.draw(t2);
+                break;
+            }
+            case I_BOLT: {   // rayo del «Modo FPS»
+                Path2D t3 = new Path2D.Double();
+                t3.moveTo(0.58, 0.10); t3.lineTo(0.26, 0.56); t3.lineTo(0.46, 0.56); t3.lineTo(0.40, 0.90); t3.lineTo(0.74, 0.42); t3.lineTo(0.53, 0.42); t3.closePath();
+                q.fill(t3);
+                q.setStroke(new BasicStroke(0.06f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                q.draw(t3);
                 break;
             }
             case I_HEAD: {

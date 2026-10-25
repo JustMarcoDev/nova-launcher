@@ -203,5 +203,34 @@ ipcMain.handle('import:run', async (e, dir) => {
 });
 
 
+// ---- Estadísticas de juego: stats.json guarda cada partida (instancia, versión, cargador, servidor, inicio y duración)
+// Las partidas anteriores a esta función solo tienen el tiempo total de cada instancia: se importa como «previo».
+const statsFile = path.join(root, 'stats.json');
+function statsLoad() {
+  const d = rd(statsFile, null);
+  if (d && Array.isArray(d.sessions)) return d;
+  const o = { v: 1, sessions: [], before: li().filter(i => i.playMs > 0).map(i => ({ id: i.id, name: i.name, mc: i.mc, ld: i.ld || 'Vanilla', ms: i.playMs })) };
+  try { wr(statsFile, o); } catch {}
+  return o;
+}
+function statsStart(ins, server) {
+  const d = statsLoad(), key = Date.now() + '-' + Math.random().toString(36).slice(2, 6);
+  d.sessions.push({ key, id: ins.id, name: ins.name, mc: ins.mc, ld: ins.ld || 'Vanilla', server: server && server.host ? String(server.name || server.host) : '', start: Date.now(), ms: 0 });
+  if (d.sessions.length > 5000) d.sessions.splice(0, d.sessions.length - 5000);
+  try { wr(statsFile, d); } catch {}
+  return key;
+}
+function statsEnd(key, ms) {
+  if (!key) return;
+  const d = statsLoad(), s = d.sessions.find(x => x.key === key);
+  if (s) { s.ms = Math.max(0, Math.round(ms)); try { wr(statsFile, d); } catch {} }
+}
+ipcMain.handle('stats:get', async () => {
+  const d = statsLoad();
+  let shots = 0;
+  for (const i of li()) { try { shots += (await fs.promises.readdir(path.join(iDir(i.id), 'screenshots'))).filter(f => /\.(png|jpe?g)$/i.test(f)).length; } catch {} }
+  return { sessions: d.sessions.map(({ key, ...r }) => r), before: d.before || [], shots };
+});
+
 // Lo que usan otros módulos
-Object.assign(R, { autoBackup, bkList, ensureFabricApi, getIns, iDir, importInstanceFile, safeName, upIns });
+Object.assign(R, { statsStart, statsEnd, autoBackup, bkList, ensureFabricApi, getIns, iDir, importInstanceFile, safeName, upIns });

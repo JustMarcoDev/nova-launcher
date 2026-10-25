@@ -3,6 +3,7 @@ const { JSDOM, VirtualConsole } = require('jsdom'), inline = require('./inline.j
 const errors = [], vc = new VirtualConsole(); vc.on('jsdomError', e => errors.push((e.detail && e.detail.message) || e.message)); vc.on('error', m => errors.push(String(m)));
 const mock = { accAddOffline: { accounts: [{ id: 'o1', type: 'offline', name: 'Marco_1' }], active: 'o1' }, insts: [], versions: { v: [{ id: '1.21.1', type: 'release' }], src: 'mojang' }, cfg: { _first: false, setupDone: true, seenVersion: '99.0.0' }, sys: { total: 16 }, ver: '0.0.0', updGet: { s: 'idle' }, discordGet: { s: 'off' }, worldLast: null, srvStatus: {}, shotsList: [], bkList: [], modsList: [], releases: [], dqState: { active: 0, paused: false, limit: 0, speed: 0 } };
 mock.skinList = { skins: [{ id: 'sabc1', name: 'Prueba', model: 'slim', data: 'data:image/png;base64,iVBORw0KGgo=' }], sel: 'sabc1', acc: { type: 'offline', name: 'Marco_1' } };
+const _n = Date.now(); mock.statsGet = { sessions: [0, 1, 2, 3, 4, 5].map(k => ({ id: 'i' + (k % 2), name: ['Survival', 'Skyblock'][k % 2], mc: ['1.21.4', '1.20.1'][k % 2], ld: 'Fabric', server: k % 3 === 0 ? 'play.test.net' : '', start: _n - k * 864e5 * 3, ms: (k + 1) * 9e5 })), before: [{ id: 'i0', name: 'Survival', mc: '1.21.4', ld: 'Fabric', ms: 72e5 }], shots: 7 };
 const EV = {}, api = new Proxy({ on(c, f) { EV[c] = f; }, win() {}, zoom() {}, folder() {}, open() {}, filePath: () => '' }, { get: (t, k) => k in t ? t[k] : async () => (k in mock ? JSON.parse(JSON.stringify(mock[k])) : (k === 'http' ? Promise.reject(new Error('sin red')) : undefined)) });
 const dom = new JSDOM(inline(), { runScripts: 'dangerously', pretendToBeVisual: true, url: 'file:///x/index.html', virtualConsole: vc, beforeParse(w) {
   w.HTMLCanvasElement.prototype.getContext = () => new Proxy({}, { get: (t, k) => k === 'measureText' ? () => ({ width: 0 }) : () => ({ addColorStop() {} }), set: () => true });
@@ -11,7 +12,7 @@ const dom = new JSDOM(inline(), { runScripts: 'dangerously', pretendToBeVisual: 
 const w = dom.window, sleep = ms => new Promise(r => setTimeout(r, ms));
 (async () => {
   await sleep(1500);
-  const need = ['home', 'vers', 'mods', 'srv', 'inst', 'con', 'soc', 'set', 'sk'];
+  const need = ['home', 'vers', 'mods', 'srv', 'inst', 'con', 'soc', 'set', 'sk', 'sta'];
   for (const p of need) { const b = w.document.querySelector(`nav [data-p=${p}]`); if (!b) { errors.push('falta el botón de ' + p); continue; } b.click(); await sleep(150); if (!w.document.getElementById(p).classList.contains('on')) errors.push('no se abre la pestaña ' + p); }
   for (const s of w.document.querySelectorAll('#sn button')) { try { s.click(); } catch (e) { errors.push('ajustes: ' + e.message); } await sleep(10); }
   w.document.querySelector('nav [data-p=home]').click();
@@ -37,7 +38,7 @@ const w = dom.window, sleep = ms => new Promise(r => setTimeout(r, ms));
     if ($m().querySelector('[data-x]')) errors.push('Perfil: la ventana obligatoria no debe tener botón de cerrar');
     w.eval('closeModal()'); w.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); $m().click();
     if (!$m().classList.contains('on')) errors.push('Perfil: la ventana obligatoria se pudo cerrar sin crear perfil');
-    w.document.getElementById('aan').value = 'Marco_1'; w.document.getElementById('aag').click(); await sleep(200);
+    w.document.getElementById('aan').value = 'Marco_1'; w.document.getElementById('aag').click(); for (let k = 0; k < 40 && $m().classList.contains('on'); k++) await sleep(100);
     if ($m().classList.contains('on')) errors.push('Perfil: no se cerró tras crear el perfil'); if (w.eval('needProfile()') !== false) errors.push('Perfil: sigue exigiéndose tras crearlo');
     w.eval('openAddAcc()'); if (!$m().querySelector('[data-x]')) errors.push('Perfil: el formulario normal sí debe poder cerrarse'); w.eval('closeModal()'); if ($m().classList.contains('on')) errors.push('Perfil: el formulario normal no se cerró');
   }
@@ -114,6 +115,16 @@ const w = dom.window, sleep = ms => new Promise(r => setTimeout(r, ms));
     if (g('sku').textContent !== 'Aplicar a mi cuenta') errors.push('Skin: el botón de Microsoft debe decir «Aplicar a mi cuenta»');
     w.document.querySelector('nav [data-p=home]').click();
   }
+  // Pestaña Estadísticas: gráfico de 8 semanas, tres listas de top 5 y el total de capturas
+  {
+    const g = id => w.document.getElementById(id);
+    w.document.querySelector('nav [data-p=sta]').click(); await sleep(300);
+    if (g('stp').querySelectorAll('.stbar').length !== 8) errors.push('Estadísticas: el gráfico debe tener 8 barras (' + g('stp').querySelectorAll('.stbar').length + ')');
+    if (g('stp').querySelectorAll('.stg3 .card').length !== 3) errors.push('Estadísticas: faltan las listas de instancias, versiones y servidores');
+    if ([...g('stp').querySelectorAll('.stbig')].map(e => e.textContent).join() !== '7,3 h,6,7') errors.push('Estadísticas: no sale el total de capturas (' + [...g('stp').querySelectorAll('.stbig')].map(e => e.textContent).join() + ')');
+    if (!/antes de que existieran/.test(g('stp').textContent)) errors.push('Estadísticas: falta el aviso del tiempo jugado de antes');
+    w.document.querySelector('nav [data-p=home]').click();
+  }
   // Textos sin traducir: todo lo que se ve en español debe tener su traducción (si no, un cambio de redacción deja el idioma a medias sin avisar).
   // Los textos que son datos (nombres, versiones, cifras) se apuntan en tests/lang-baseline.json; cualquier texto nuevo que no esté traducido ni apuntado falla.
   {
@@ -127,5 +138,5 @@ const w = dom.window, sleep = ms => new Promise(r => setTimeout(r, ms));
     else { const base = new Set(JSON.parse(fs.readFileSync(bf, 'utf8'))), nuevos = [...seen].filter(t => !base.has(t)); if (nuevos.length) { errors.push('Textos sin traducir (añádelos a lang/*.js; si son datos y no hay que traducirlos, a tests/lang-baseline.json):\n    · ' + nuevos.slice(0, 25).join('\n    · ')); } }
   }
   if (errors.length) { console.log('FALLOS en la interfaz:'); errors.forEach(e => console.log(' ✕ ' + e)); process.exit(1); }
-  console.log('Interfaz correcta: arranca, abre las 9 pestañas y los ajustes sin errores'); process.exit(0);
+  console.log('Interfaz correcta: arranca, abre las 10 pestañas y los ajustes sin errores'); process.exit(0);
 })();

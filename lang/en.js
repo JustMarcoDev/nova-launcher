@@ -1096,4 +1096,14 @@ window.LANGS.en={name:"English (US)",d:{
 "Abrir carpeta de mods":"Open mods folder",
 "Instancia guardada ✓":"Instance saved ✓",
 "Filtrar mods…":"Filter mods…",
-"Desactivado por defecto: nada se descarga hasta que pulses Jugar. Si lo activas, al elegir una versión se descargan Java, librerías y cargador para que Jugar abra el juego al instante":"Off by default: nothing downloads until you press Play. If you turn it on, choosing a version downloads Java, libraries and the loader so Play opens the game instantly"}};
+"Desactivado por defecto: nada se descarga hasta que pulses Jugar. Si lo activas, al elegir una versión se descargan Java, librerías y cargador para que Jugar abra el juego al instante":"Off by default: nothing downloads until you press Play. If you turn it on, choosing a version downloads Java, libraries and the loader so Play opens the game instantly",
+"Estadísticas":"Statistics",
+"Tu tiempo de juego: por semana, por instancia, por versión y por servidor.":"Your play time: by week, by instance, by version and by server.",
+"Partidas":"Sessions",
+"Horas por semana":"Hours per week",
+"últimas 8 semanas":"last 8 weeks",
+"Aún no hay partidas con fecha. Juega y aparecerán aquí.":"No dated sessions yet. Play and they will show up here.",
+"Sin datos todavía":"No data yet",
+"Aún no has entrado a ningún servidor desde el launcher":"You haven't joined any server from the launcher yet",
+"Incluye {1} jugadas antes de que existieran las estadísticas (sin fecha: no salen en el gráfico).":"Includes {1} played before statistics existed (undated: not shown in the chart)."
+}};

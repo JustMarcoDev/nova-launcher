@@ -20,6 +20,13 @@ final class NovaSettings {
     static boolean showNova = true;
     /** «Capa de Nova»: los jugadores que usan Nova llevan una capa de Nova (la ven solo quienes también usan Nova). */
     static boolean showCape = true;
+    /** «Modo FPS»: activo o no, y las opciones de vídeo de antes para poder restaurarlas. */
+    static boolean fpsOn;
+    static String fpsParticles = "", fpsClouds = "";
+    static boolean fpsShadows = true;
+    static int fpsView, fpsSim;
+    /** Versión de las «Novedades de Nova» que ya se vio (para no volver a enseñarlas). */
+    static String newsSeen = "";
     private static boolean loaded;
 
     static File dir() { return DIR.isEmpty() ? null : new File(DIR); }
@@ -39,6 +46,16 @@ final class NovaSettings {
             if (o.has("bg")) bg = o.get("bg").getAsString();
             if (o.has("showNova")) showNova = o.get("showNova").getAsBoolean();
             if (o.has("showCape")) showCape = o.get("showCape").getAsBoolean();
+            if (o.has("fps") && o.get("fps").isJsonObject()) {
+                JsonObject fo = o.getAsJsonObject("fps");
+                fpsOn = fo.has("on") && fo.get("on").getAsBoolean();
+                if (fo.has("particles")) fpsParticles = fo.get("particles").getAsString();
+                if (fo.has("clouds")) fpsClouds = fo.get("clouds").getAsString();
+                if (fo.has("shadows")) fpsShadows = fo.get("shadows").getAsBoolean();
+                if (fo.has("view")) fpsView = fo.get("view").getAsInt();
+                if (fo.has("sim")) fpsSim = fo.get("sim").getAsInt();
+            }
+            if (o.has("newsSeen")) newsSeen = o.get("newsSeen").getAsString();
             if (o.has("hud") && o.get("hud").isJsonObject()) NovaHud.read(o.getAsJsonObject("hud"));
             if (o.has("accent")) { int a = o.get("accent").getAsInt(); for (int c : COLORS) if (c == a) accent = a; }
         } catch (Throwable ignored) { }
@@ -56,6 +73,11 @@ final class NovaSettings {
             o.addProperty("accent", accent);
             o.addProperty("showNova", showNova);
             o.addProperty("showCape", showCape);
+            JsonObject fo = new JsonObject();
+            fo.addProperty("on", fpsOn); fo.addProperty("particles", fpsParticles); fo.addProperty("clouds", fpsClouds);
+            fo.addProperty("shadows", fpsShadows); fo.addProperty("view", fpsView); fo.addProperty("sim", fpsSim);
+            o.add("fps", fo);
+            o.addProperty("newsSeen", newsSeen);
             o.add("hud", NovaHud.write());
             Files.write(f.toPath(), o.toString().getBytes(StandardCharsets.UTF_8));
         } catch (Throwable ignored) { }

@@ -27,6 +27,69 @@ public class NovaTitleScreen extends NovaScreen {
             .getModContainer("nova-menu").map(m -> m.getMetadata().getVersion().getFriendlyString()).orElse(""));
 
     private final long born = Util.getMeasuringTimeMs();
+
+    // «Novedades de Nova»: el launcher pasa las notas de la versión con -Dnova.news=<archivo>
+    private static String newsText, newsVer = "";
+    private java.util.List<String> newsLines;
+    private int nx, ny, nw, nh;
+
+    private static String news() {
+        if (newsText == null) {
+            newsText = "";
+            try {
+                String f = System.getProperty("nova.news", "");
+                if (!f.isEmpty() && java.nio.file.Files.isRegularFile(java.nio.file.Path.of(f)))
+                    newsText = new String(java.nio.file.Files.readAllBytes(java.nio.file.Path.of(f)), java.nio.charset.StandardCharsets.UTF_8).trim();
+                if (newsText.startsWith("ver:")) {   // primera línea: versión del jar al que pertenecen las notas
+                    int nl = newsText.indexOf('\n');
+                    newsVer = (nl < 0 ? newsText.substring(4) : newsText.substring(4, nl)).trim();
+                    newsText = nl < 0 ? "" : newsText.substring(nl + 1).trim();
+                }
+            } catch (Throwable ignored) { }
+        }
+        return newsText;
+    }
+
+    private boolean newsOpen() { return !modal() && !news().isEmpty() && !newsVer.isEmpty() && !newsVer.equals(NovaSettings.newsSeen); }
+
+    private int tw(String s, float px) {
+        if (NovaGfx.ok) { try { return NovaGfx.text(client, s, px, 0xFFFFFFFF, false).w(); } catch (Throwable e) { NovaGfx.ok = false; } }
+        return textRenderer.getWidth(s) * 3 / 4;
+    }
+
+    private void layoutNews() {
+        nw = Math.min(170, width / 2 - 20);
+        newsLines = new java.util.ArrayList<>();
+        for (String para : news().split("\\R")) {
+            String cur = "";
+            for (String word : para.trim().split("\\s+")) {
+                String nx2 = cur.isEmpty() ? word : cur + " " + word;
+                if (!cur.isEmpty() && tw(nx2, 5.8f) > nw - 14) { newsLines.add(cur); cur = word; } else cur = nx2;
+            }
+            if (!cur.isEmpty()) newsLines.add(cur);
+            if (newsLines.size() >= 9) break;
+        }
+        if (newsLines.size() > 9) newsLines = newsLines.subList(0, 9);
+        nh = 26 + newsLines.size() * 9 + 6;
+        nx = 8; ny = height - nh - 22;
+    }
+
+    private void drawNews(DrawContext c, int mx, int my) {
+        if (!newsOpen()) return;
+        if (newsLines == null) layoutNews();
+        NovaButton.panel(c, nx, ny, nw, nh, 4, 0xE6141428, 0xFF6C5CE7);
+        txt(c, tr("Novedades de Nova") + " " + newsVer, nx + 7, ny + 7, 6.8f, 0xFFFFFFFF, true, 0);
+        boolean hot = mx >= nx + nw - 16 && mx <= nx + nw - 4 && my >= ny + 3 && my <= ny + 15;
+        txt(c, "×", nx + nw - 10, ny + 5, 9f, hot ? 0xFFFFFFFF : 0xFF9A9AC0, true, 2);
+        for (int i = 0; i < newsLines.size(); i++) txt(c, newsLines.get(i), nx + 7, ny + 23 + i * 9, 5.8f, 0xFFC8C8E6, false, 0);
+    }
+
+    private boolean newsClick(double mx, double my) {
+        if (!newsOpen() || newsLines == null) return false;
+        if (mx < nx || mx > nx + nw || my < ny || my > ny + nh) return false;
+        if (mx >= nx + nw - 16 && my <= ny + 15) { NovaSettings.newsSeen = newsVer; NovaSettings.save(); }
+        return true;
+    }
     private final LogoDrawer logo = new LogoDrawer(false);
     private int top;
     /** Panel abierto: 0 ninguno · 1 perfil · 2 menú de Nova */
@@ -74,6 +137,7 @@ public class NovaTitleScreen extends NovaScreen {
 
     @Override
     protected void init() {
+        newsLines = null;
         ensure(client);
         NovaBg.start(client);
         if (System.getProperty("nova.selftest") != null && !tested) {
@@ -120,6 +184,18 @@ public class NovaTitleScreen extends NovaScreen {
             panel = 2;
             clearAndInit();
         }).tip(tr("Menú de Nova"), tr("Fondo, colores y más")));
+        // Modo FPS: una barra debajo de la fila; con el modo activo se parte en «Modo FPS ✓» y «Restaurar»
+        y += s + g;
+        if (!NovaFps.on()) {
+            addDrawableChild(new NovaButton(cx - bw / 2, y, bw, 14, Text.literal(tr("Modo FPS")), NovaGfx.I_BOLT, NovaButton.NORMAL, b -> { NovaFps.enable(client); clearAndInit(); })
+                    .tip(tr("Modo FPS"), tr("Partículas mínimas, sin nubes ni sombras, distancia 8: más rendimiento")));
+        } else {
+            int hw = (bw - g) / 2;
+            addDrawableChild(new NovaButton(cx - bw / 2, y, hw, 14, Text.literal(tr("Modo FPS")), NovaGfx.I_CHECK, NovaButton.SELECTED, b -> { })
+                    .tip(tr("Modo FPS activo"), tr("Tus opciones de vídeo de antes están guardadas")));
+            addDrawableChild(new NovaButton(cx - bw / 2 + hw + g, y, bw - hw - g, 14, Text.literal(tr("Restaurar")), NovaGfx.I_SWAP, NovaButton.NORMAL, b -> { NovaFps.restore(client); clearAndInit(); })
+                    .tip(tr("Restaurar"), tr("Vuelve a tus opciones de vídeo de antes")));
+        }
         // perfil (arriba izquierda)
         int nw = Math.max(40, Math.min(120, (int) (name.length() * 3.9) + 20));
         addDrawableChild(new NovaButton(6, 6, nw, 12, Text.literal(name), NovaGfx.I_HEAD, panel == 1 ? NovaButton.SELECTED : NovaButton.NORMAL, b -> {
@@ -536,6 +612,7 @@ public class NovaTitleScreen extends NovaScreen {
 
     @Override
     protected boolean nClick(double mx, double my, int button) {
+        if (button == 0 && newsClick(mx, my)) return true;
         if (modal()) {   // los paneles de Nova y de skins son modales: un clic fuera los cierra (el de Nova, sin guardar)
             if (inPanel(mx, my)) { clickTopmost(mx, my, button); return true; }
             if (panel == 3) closeSkins(); else if (panel == 4) closeSkins(); else closeNova(false);
@@ -659,6 +736,7 @@ public class NovaTitleScreen extends NovaScreen {
         NovaCompat.blit(c, MARK, mx0, height - 14, 9, 9, 0, 0, 64, 64, 64, 64, 0.7f);
         txt(c, n, width - 7, height - 14, 6.5f, 0xB8FFFFFF, true, 1);
         if (!modal()) txt(c, tr("Sin afiliación, respaldo ni distribución de Mojang o Microsoft"), width / 2, height - 10, 5.5f, 0x58FFFFFF, false, 2);
+        drawNews(c, mx, my);
         tooltip(c);
     }
 

@@ -137,6 +137,17 @@ final class NovaLang {
         p("Sin respuesta", "No response", "Pas de réponse", "Keine Antwort", "Nessuna risposta", "Sem resposta");
         p("Capa de Nova", "Nova cape", "Cape Nova", "Nova-Umhang", "Mantello di Nova", "Capa do Nova");
         p("Los jugadores con Nova llevan una capa de Nova (la ves en ellos y ellos en ti)", "Players using Nova wear a Nova cape (you see theirs and they see yours)", "Les joueurs Nova portent une cape Nova (tu vois la leur, ils voient la tienne)", "Nova-Spieler tragen einen Nova-Umhang (du siehst ihren, sie deinen)", "I giocatori con Nova indossano un mantello di Nova (tu vedi il loro, loro il tuo)", "Jogadores com Nova usam uma capa do Nova (você vê a deles e eles a sua)");
+        p("Modo FPS", "FPS mode", "Mode FPS", "FPS-Modus", "Modalità FPS", "Modo FPS");
+        p("Partículas mínimas, sin nubes ni sombras, distancia 8: más rendimiento", "Minimal particles, no clouds or shadows, distance 8: more performance", "Particules minimales, sans nuages ni ombres, distance 8 : plus de performances", "Minimale Partikel, keine Wolken oder Schatten, Distanz 8: mehr Leistung", "Particelle minime, niente nuvole né ombre, distanza 8: più prestazioni", "Partículas mínimas, sem nuvens nem sombras, distância 8: mais desempenho");
+        p("Modo FPS activo", "FPS mode on", "Mode FPS activé", "FPS-Modus aktiv", "Modalità FPS attiva", "Modo FPS ativo");
+        p("Tus opciones de vídeo de antes están guardadas", "Your previous video options are saved", "Tes anciennes options vidéo sont enregistrées", "Deine bisherigen Videooptionen sind gespeichert", "Le tue opzioni video precedenti sono salvate", "Suas opções de vídeo anteriores estão salvas");
+        p("Restaurar", "Restore", "Restaurer", "Wiederherstellen", "Ripristina", "Restaurar");
+        p("Vuelve a tus opciones de vídeo de antes", "Goes back to your previous video options", "Revient à tes anciennes options vidéo", "Stellt deine bisherigen Videooptionen wieder her", "Torna alle tue opzioni video precedenti", "Volta às suas opções de vídeo anteriores");
+        p("Novedades de Nova", "What's new in Nova", "Nouveautés de Nova", "Neues in Nova", "Novità di Nova", "Novidades do Nova");
+        p("Captura guardada", "Screenshot saved", "Capture enregistrée", "Screenshot gespeichert", "Screenshot salvato", "Captura salva");
+        p("5 s", "5 s", "5 s", "5 s", "5 s", "5 s");
+        p("Copiar", "Copy", "Copier", "Kopieren", "Copia", "Copiar");
+        p("Abrir carpeta", "Open folder", "Ouvrir le dossier", "Ordner öffnen", "Apri cartella", "Abrir pasta");
         p("Mostrar que uso Nova", "Show that I use Nova", "Montrer que j'utilise Nova", "Zeigen, dass ich Nova nutze", "Mostra che uso Nova", "Mostrar que uso o Nova");
         p("Los demás jugadores con Nova ven el logo junto a tu nombre", "Other Nova players see the logo next to your name", "Les autres joueurs Nova voient le logo à côté de ton nom", "Andere Nova-Spieler sehen das Logo neben deinem Namen", "Gli altri giocatori Nova vedono il logo accanto al tuo nome", "Outros jogadores com Nova veem o logo ao lado do seu nome");
         p("Restablecer", "Reset", "Réinitialiser", "Zurücksetzen", "Ripristina", "Restaurar");

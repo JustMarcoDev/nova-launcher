@@ -27,6 +27,7 @@ const go=async()=>{const g=$("aag"),er=$("aae");er.textContent="";g.disabled=tru
 if(r&&r.error){er.textContent=r.error;g.disabled=false;g.textContent=force?"Continuar":"Añadir";return}applyAccs(r);MLOCK=false;closeModal(true);try{buildSet()}catch{}flash(force?"Perfil creado ✓":"Cuenta añadida ✓");if(done)done()}catch(x){er.textContent=em(x);g.disabled=false;g.textContent=force?"Continuar":"Añadir"}};
 $("aag").onclick=go;$("aan").onkeydown=e=>{if(e.key==="Enter")go()}}
 // --- Capturas ---
+let SHOTRL=null;
 async function openShots(id){const api=A||DA;let L=[],cur=id||"all",lb=-1;
 modal(`<div class="hd"><div class="iic">${IC("camera")}</div><div style="min-width:0"><h3>Capturas</h3><span class="sub" id="shs">Cargando…</span></div><button class="btn sm x" data-x>Cerrar</button></div><div class="chips" id="shf" style="margin-bottom:12px"></div><div id="shb"></div>`,"wide2");
 const nm=i=>(I.find(x=>x.id===i)||{name:"Instancia"}).name,vis=()=>L.filter(s=>cur==="all"||s.inst===cur);
@@ -42,4 +43,6 @@ try{if(a==="back"){lb=-1;draw()}else if(a==="prev"){lb=(lb-1+v.length)%v.length;
 else if(a==="open")await api.shotsOpen({id:s.inst,file:s.file});
 else if(a==="copy"){await api.shotsCopy({id:s.inst,file:s.file});if(A)flash("Captura copiada ✓")}
 else if(a==="del"){if(!confirm("¿Borrar esta captura? Irá a la papelera."))return;await api.shotsDelete({id:s.inst,file:s.file});L=L.filter(z=>!(z.inst===s.inst&&z.file===s.file));lb=-1;draw();flash("Captura borrada")}}catch(x){flash(em(x))}};
-try{L=await api.shotsList("all")}catch(x){flash(em(x))}if(cur!=="all"&&!L.some(s=>s.inst===cur)&&!L.length)cur="all";draw()}
+const rl=async()=>{try{L=await api.shotsList("all")}catch(x){flash(em(x))}if(cur!=="all"&&!L.some(s=>s.inst===cur)&&!L.length)cur="all";if($("shb"))draw()};
+SHOTRL=()=>{if(!$("shf")||!$("mdl").classList.contains("on")){SHOTRL=null;return}rl()};
+await rl()}

@@ -3,7 +3,7 @@
 // Mundos de cada instancia y último mundo jugado
 // (Parte del proceso principal; main.js carga todos los módulos. Mira «Estructura» en el README.)
 // =====================================================================================
-const { dialog, ipcMain } = require('electron');
+const { clipboard, dialog, ipcMain, nativeImage, shell } = require('electron');
 const fs = require('fs');
 const path = require('path');
 const { S, R } = require('./compartido');
@@ -72,5 +72,16 @@ ipcMain.handle('world:last', () => {
 });
 
 
+// ---- Capturas con aviso: el mod escribe «[Nova] captura: <ruta>» y, al pulsar sus botones, [NOVA:SHOTCOPY:<ruta>] / [NOVA:SHOTOPEN:<ruta>]
+// Solo se aceptan rutas dentro de la carpeta screenshots de esa instancia.
+function shotMarkers(t, id) {
+  const ok = f => { try { const d = path.join(iDir(id), 'screenshots') + path.sep, p = path.resolve(String(f).trim()); return p.startsWith(d) && /\.(png|jpe?g)$/i.test(p) && fs.existsSync(p) ? p : null; } catch { return null; } };
+  if (/\[Nova\] captura: /.test(t)) { send('shot:new', id); }
+  let m = t.match(/\[NOVA:SHOTCOPY:([^\]]+)\]/);
+  if (m) { const p = ok(m[1]); if (p) { const im = nativeImage.createFromPath(p); if (!im.isEmpty()) clipboard.writeImage(im); } }
+  m = t.match(/\[NOVA:SHOTOPEN:([^\]]+)\]/);
+  if (m) { const p = ok(m[1]); if (p) shell.showItemInFolder(p); }
+}
+
 // Lo que usan otros módulos
-Object.assign(R, { dirSize, importWorldZips });
+Object.assign(R, { dirSize, importWorldZips, shotMarkers });

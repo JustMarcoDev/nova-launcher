@@ -4182,3 +4182,20 @@ html[data-cb=Grises] {
 .mr.ad .btn.ok{color:#3ddc84;border-color:rgba(61,220,132,.4);opacity:1}
 #adl{max-height:52vh;overflow:auto;display:grid;gap:6px;margin-top:8px}
 .adm{text-align:center;margin-top:8px}
+
+/* Estadísticas */
+.stk { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.stbig { font-size: 26px; color: var(--ac); font-weight: 700; }
+.stcc small { text-transform: none; letter-spacing: 0; margin-left: 6px; opacity: .8; }
+.stc { width: 100%; max-width: 640px; height: auto; display: block; }
+.stbar { fill: var(--ac); }
+.stg { stroke: currentColor; stroke-opacity: .12; }
+.stt { fill: currentColor; fill-opacity: .6; font-size: 9px; }
+.stg3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.stl { display: flex; align-items: center; gap: 8px; margin: 7px 0; }
+.stn { width: 16px; color: var(--m); font-size: 12px; text-align: center; }
+.stb { flex: 1; min-width: 0; }
+.stb b { display: block; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stb i { display: block; height: 4px; border-radius: 3px; margin-top: 3px; background: var(--ac); }
+.stl small { color: var(--m); white-space: nowrap; }
+@media (max-width: 900px) { .stk, .stg3 { grid-template-columns: 1fr; } }

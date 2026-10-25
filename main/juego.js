@@ -15,11 +15,12 @@ const { LOWRAM, MAN, cfgFile, li, load, rd, rmAsync, root, running, send, wr } =
 const { get, isOnline, run } = R; // red
 const { dl } = R; // descargas
 const { accState, saveAcc } = R; // cuentas
-const { NOVA_MC, NOVA_REMOTE_ID, fondosDir, fondosScan, fondosWatch, novaBg, novaBgGet, novaDir, novaModResolve, novaPickBg, novaServersWrite } = R; // mod-nova
+const { NOVA_MC, NOVA_REMOTE_ID, fondosDir, fondosScan, fondosWatch, novaBg, novaBgGet, novaDir, novaModResolve, novaNews, novaPickBg, novaServersWrite } = R; // mod-nova
 const { novaSkinFor } = R; // skins
 const { fabric, fabricBundled, forge } = R; // cargadores
 const { modernQP, syncServers } = R; // servidores
-const { ensureFabricApi, upIns } = R; // instancias
+const { ensureFabricApi, statsEnd, statsStart, upIns } = R; // instancias
+const { shotMarkers } = R; // mundos
 // De módulos que se cargan después (funciones: se buscan al llamarlas):
 const discordSet = (...a) => R.discordSet(...a); // discord
 const gameHide = (...a) => R.gameHide(...a); // sistema
@@ -117,17 +118,17 @@ ipcMain.handle('play', async (e, { id, server, world, safe }) => {
       : (!ins.ld || ins.ld === 'Vanilla' || ins.ld === 'Fabric') ? (NOVA_MC.includes(ins.mc) ? 'Nova: el menú de Nova no se pudo activar; se juega con el menú normal.\n' : 'Nova: el menú de Nova solo está disponible en Minecraft ' + NOVA_MC[0] + ' a ' + NOVA_MC[NOVA_MC.length - 1] + '; esta versión usa el menú normal.\n')
       : 'Nova: el menú de Nova solo está disponible en Nova y Fabric; ' + ins.ld + ' usa el menú normal.\n';
     if (nova) { fondosScan().catch(() => {}); fondosWatch(); novaServersWrite(cfg.myServers); }
-    if (nova) o.customArgs.push('-Dnova.dir=' + novaDir(), '-Dnova.skin=' + (await novaSkinFor(act)).file, '-Dnova.premium=' + (act.type === 'microsoft' ? '1' : '0'), '-Dnova.presence=' + (process.env.NOVA_PRESENCE || (() => { try { return require('../package.json').novaPresence || ''; } catch { return ''; } })()), '-Dnova.user=' + act.name, '-Dnova.bg=' + (novaBg() || ''), '-Dnova.bg2=' + (novaBg('nova-nebulosa.nvb') || ''), '-Dnova.bg3=' + (novaBg('nova-earth.nvb') || ''), '-Dnova.lowpower=' + (LOWRAM ? 'true' : 'false'), '-Dfabric.addMods=' + nj, '-Dnova.version=' + app.getVersion(), '-Dnova.loader=' + (ins.ld === 'Fabric' ? 'Fabric' : 'Nova'));
+    if (nova) o.customArgs.push('-Dnova.dir=' + novaDir(), '-Dnova.skin=' + (await novaSkinFor(act)).file, '-Dnova.premium=' + (act.type === 'microsoft' ? '1' : '0'), '-Dnova.presence=' + (process.env.NOVA_PRESENCE || (() => { try { return require('../package.json').novaPresence || ''; } catch { return ''; } })()), '-Dnova.user=' + act.name, '-Dnova.bg=' + (novaBg() || ''), '-Dnova.bg2=' + (novaBg('nova-nebulosa.nvb') || ''), '-Dnova.bg3=' + (novaBg('nova-earth.nvb') || ''), '-Dnova.lowpower=' + (LOWRAM ? 'true' : 'false'), '-Dfabric.addMods=' + nj, '-Dnova.version=' + app.getVersion(), ...(novaNews() ? ['-Dnova.news=' + novaNews()] : []), '-Dnova.loader=' + (ins.ld === 'Fabric' ? 'Fabric' : 'Nova'));
     if (ins.ld === 'Forge' || ins.ld === 'NeoForge') o.version.custom = await forge(ins.ld, ins.mc, java, ins.loaderVersion);
     if (server && server.host) o.quickPlay = { type: modernQP(ins.mc) ? 'multiplayer' : 'legacy', identifier: server.host + (server.port && +server.port !== 25565 ? ':' + server.port : '') };
     if (world && !server && modernQP(ins.mc)) o.quickPlay = { type: 'singleplayer', identifier: String(world) };
         try { syncServers(dir, (cfg.myServers || []).filter(z => z && z.host).map(z => ({ name: String(z.name || z.host), ip: String(z.host) + (z.port && +z.port !== 25565 ? ':' + z.port : '') }))); } catch {}
-    const l = new Client(), tail = [], lg = openLog(ins, java, ram), since = Date.now(); let t0 = 0;
+    const l = new Client(), tail = [], lg = openLog(ins, java, ram), since = Date.now(); let t0 = 0, sk = '';
     send('log', '── ' + ins.name + ' · Minecraft ' + ins.mc + ' · ' + (ins.ld || 'Vanilla') + ' · ' + (act.name) + ' ──\n'); send('log', novaMsg);
     l.on('progress', p => send('progress', p));
-    l.on('data', d => { const t = String(d); { const pk = t.match(/\[NOVA:PICKBG(?::([^\]]+))?\]/); if (pk) novaPickBg(pk[1]); const gb = t.match(/\[NOVA:GETBG:(nebula|earth)\]/); if (gb) novaBgGet(NOVA_REMOTE_ID[gb[1]]); if (t.includes('[NOVA:OPENDIR]')) shell.openPath(fondosDir()); } if (t.includes('[NOVA:SETTINGS]') || t.includes('[NOVA:SHOW]')) { try { if (S.win) { if (S.win.isMinimized()) S.win.restore(); S.win.show(); S.win.focus(); if (t.includes('[NOVA:SETTINGS]')) send('nav', 'set'); } } catch {} } try { lg.w.write(t.endsWith('\n') ? t : t + '\n'); } catch {} for (const ln of t.split(/\r?\n/)) if (ln) tail.push(ln); if (tail.length > 500) tail.splice(0, tail.length - 300); send('log', t); });
+    l.on('data', d => { const t = String(d); if (t.includes('[Nova] captura') || t.includes('[NOVA:SHOT')) { try { shotMarkers(t, id); } catch {} } { const pk = t.match(/\[NOVA:PICKBG(?::([^\]]+))?\]/); if (pk) novaPickBg(pk[1]); const gb = t.match(/\[NOVA:GETBG:(nebula|earth)\]/); if (gb) novaBgGet(NOVA_REMOTE_ID[gb[1]]); if (t.includes('[NOVA:OPENDIR]')) shell.openPath(fondosDir()); } if (t.includes('[NOVA:SETTINGS]') || t.includes('[NOVA:SHOW]')) { try { if (S.win) { if (S.win.isMinimized()) S.win.restore(); S.win.show(); S.win.focus(); if (t.includes('[NOVA:SETTINGS]')) send('nav', 'set'); } } catch {} } try { lg.w.write(t.endsWith('\n') ? t : t + '\n'); } catch {} for (const ln of t.split(/\r?\n/)) if (ln) tail.push(ln); if (tail.length > 500) tail.splice(0, tail.length - 300); send('log', t); });
     l.on('close', code => {
-      running.delete(id); try { lg.w.end(); } catch {} if (t0) { const cur = li().find(i => i.id === id) || {}; upIns(id, { playMs: (cur.playMs || 0) + (Date.now() - t0), lastPlayed: Date.now() }); } discordSet(null); send('running', running.size ? 1 : 0); send('progress', null);
+      running.delete(id); try { lg.w.end(); } catch {} if (t0) { statsEnd(sk, Date.now() - t0); const cur = li().find(i => i.id === id) || {}; upIns(id, { playMs: (cur.playMs || 0) + (Date.now() - t0), lastPlayed: Date.now() }); } discordSet(null); send('running', running.size ? 1 : 0); send('progress', null);
       const crashed = !!code && tail.length > 0;
       send('status', crashed ? 'Minecraft se cerró con un error' : 'Minecraft cerrado');
       if (running.size === 0 || crashed) { if (S.win.isMinimized()) S.win.restore(); S.win.show(); S.win.focus(); }
@@ -136,7 +137,7 @@ ipcMain.handle('play', async (e, { id, server, world, safe }) => {
     discordSet({ details: 'Preparando Minecraft ' + ins.mc, state: (ins.ld || 'Vanilla') + ' · Nova Launcher', startTimestamp: Date.now() });
     send('status', 'Descargando archivos del juego…');
     if (!(await l.launch(o))) throw new Error('No se pudo iniciar Minecraft');
-    running.add(id); t0 = Date.now(); upIns(id, { lastPlayed: t0 });
+    running.add(id); t0 = Date.now(); try { sk = statsStart(ins, server); } catch {} upIns(id, { lastPlayed: t0 });
     send('running', 1); discordSet({ details: server && server.name ? 'En ' + server.name + ' · ' + ins.mc : 'Jugando a Minecraft ' + ins.mc, state: (ins.ld || 'Vanilla') + ' · Nova Launcher', startTimestamp: Date.now() }); send('status', 'Minecraft en ejecución'); if (cfg.closeOnLaunch) S.win.hide(); else if (cfg.gameMode !== false && cfg.conOpen === false) gameHide();
     return { ok: true };
   } catch (err) { send('status', 'Error: ' + err.message); send('progress', null); return { ok: false }; }
