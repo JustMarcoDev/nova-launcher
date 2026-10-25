@@ -95,6 +95,16 @@ ipcMain.handle('mods:check', async (e, { id, hashes }) => {
   }
   return out;
 });
+// Qué proyectos de Modrinth (y qué archivos) ya hay en una instancia, para marcar «ya instalado» en el catálogo
+const pcache = new Map();
+ipcMain.handle('mods:projects', async (e, { id }) => {
+  const L = await listMods(id), need = L.map(m => m.sha1).filter(h => !pcache.has(h));
+  for (let i = 0; i < need.length; i += 400) {
+    const part = need.slice(i, i + 400);
+    try { const cur = await post('https://api.modrinth.com/v2/version_files', { hashes: part, algorithm: 'sha1' }); for (const h of part) pcache.set(h, cur[h] ? cur[h].project_id : ''); } catch {}
+  }
+  return { ids: [...new Set(L.map(m => pcache.get(m.sha1)).filter(Boolean))], files: L.map(m => m.file.toLowerCase().replace(/\.disabled$/, '')) };
+});
 ipcMain.handle('mods:toggle', (e, { id, file }) => {
   const p = modFile(id, file), n = /\.disabled$/i.test(p) ? p.replace(/\.disabled$/i, '') : p + '.disabled';
   if (fs.existsSync(n)) throw new Error('Ya existe un archivo con ese nombre'); mvSync(p, n); return path.basename(n);

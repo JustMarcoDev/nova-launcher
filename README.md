@@ -158,9 +158,13 @@ Es una lista (en inglés, *changelog*) con todo lo que cambia en cada versión d
 
 ## Regla de versiones: mod y launcher van juntos
 
-Cada vez que cambia el mod (`mod/`) se publica una versión nueva del launcher: mientras dure la fase de pruebas, una beta más (`0.2.15-beta.14`, `beta.15`… `beta.20`…). La versión del mod se lee de `package.json`, así que siempre coincide con la del launcher. El launcher se actualiza solo y el usuario recibe el mod nuevo con él.
+Cada vez que cambia el mod (`mod/`) se publica una versión nueva del launcher: mientras dure la fase de pruebas, una beta más (`0.2.15-beta.14`, `beta.15`… `beta.21`…). La versión del mod se lee de `package.json`, así que siempre coincide con la del launcher. El launcher se actualiza solo y el usuario recibe el mod nuevo con él.
 
 ## Historial de actualizaciones
+
+### 0.2.15-beta.21 — El catálogo de mods marca los que ya tiene la instancia
+
+- Al buscar mods desde una instancia (o con una instancia seleccionada), los que ya están en ella —por ejemplo Sodium dentro de un modpack— salen con la marca **«✓ Ya está en «nombre»»**. Al elegir dónde instalar, las instancias que ya lo tienen lo indican. Se reconoce por la huella del archivo en Modrinth (así también los que trae un modpack con otro nombre de archivo) y, si no, por el nombre del archivo. Con CurseForge solo funciona la segunda forma.
 
 ### 0.2.15-beta.20 — Servidores en el menú de Nova y capa de Nova
 
