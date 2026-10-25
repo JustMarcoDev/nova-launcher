@@ -143,6 +143,12 @@ final class NovaLang {
         p("Tus opciones de vídeo de antes están guardadas", "Your previous video options are saved", "Tes anciennes options vidéo sont enregistrées", "Deine bisherigen Videooptionen sind gespeichert", "Le tue opzioni video precedenti sono salvate", "Suas opções de vídeo anteriores estão salvas");
         p("Restaurar", "Restore", "Restaurer", "Wiederherstellen", "Ripristina", "Restaurar");
         p("Vuelve a tus opciones de vídeo de antes", "Goes back to your previous video options", "Revient à tes anciennes options vidéo", "Stellt deine bisherigen Videooptionen wieder her", "Torna alle tue opzioni video precedenti", "Volta às suas opções de vídeo anteriores");
+        p(" · Aún no hay servidor de presencia: de momento solo lo ves tú", " · There is no presence server yet: for now only you can see it", " · Pas encore de serveur de présence : pour l'instant, toi seul le vois", " · Es gibt noch keinen Präsenzserver: vorerst siehst nur du es", " · Non c'è ancora un server di presenza: per ora lo vedi solo tu", " · Ainda não há servidor de presença: por agora só tu vês");
+        p(" · Con cuenta sin conexión solo lo ves tú", " · With an offline account only you can see it", " · Avec un compte hors ligne, toi seul le vois", " · Mit einem Offline-Konto siehst nur du es", " · Con un account offline lo vedi solo tu", " · Com conta offline só tu vês");
+        p("Mods", "Mods", "Mods", "Mods", "Mod", "Mods");
+        p("Los mods que tienes instalados", "The mods you have installed", "Les mods que tu as installés", "Die Mods, die du installiert hast", "I mod che hai installato", "Os mods que tens instalados");
+        p("Mods instalados", "Installed mods", "Mods installés", "Installierte Mods", "Mod installati", "Mods instalados");
+        p("No hay mods instalados", "No mods installed", "Aucun mod installé", "Keine Mods installiert", "Nessun mod installato", "Nenhum mod instalado");
         p("Novedades de Nova", "What's new in Nova", "Nouveautés de Nova", "Neues in Nova", "Novità di Nova", "Novidades do Nova");
         p("Captura guardada", "Screenshot saved", "Capture enregistrée", "Screenshot gespeichert", "Screenshot salvato", "Captura salva");
         p("5 s", "5 s", "5 s", "5 s", "5 s", "5 s");

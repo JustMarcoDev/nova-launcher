@@ -1105,5 +1105,6 @@ window.LANGS["pt-BR"]={name:"Português (Brasil)",d:{
 "Aún no hay partidas con fecha. Juega y aparecerán aquí.":"Ainda não há sessões com data. Jogue e elas aparecerão aqui.",
 "Sin datos todavía":"Ainda sem dados",
 "Aún no has entrado a ningún servidor desde el launcher":"Você ainda não entrou em nenhum servidor pelo launcher",
-"Incluye {1} jugadas antes de que existieran las estadísticas (sin fecha: no salen en el gráfico).":"Inclui {1} jogadas antes de existirem as estatísticas (sem data: não aparecem no gráfico)."
+"Incluye {1} jugadas antes de que existieran las estadísticas (sin fecha: no salen en el gráfico).":"Inclui {1} jogadas antes de existirem as estatísticas (sem data: não aparecem no gráfico).",
+"Quitar este botón":"Remover este botão"
 }};

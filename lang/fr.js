@@ -1105,5 +1105,6 @@ window.LANGS.fr={name:"Français",d:{
 "Aún no hay partidas con fecha. Juega y aparecerán aquí.":"Pas encore de parties datées. Joue et elles apparaîtront ici.",
 "Sin datos todavía":"Pas encore de données",
 "Aún no has entrado a ningún servidor desde el launcher":"Tu n'as encore rejoint aucun serveur depuis le launcher",
-"Incluye {1} jugadas antes de que existieran las estadísticas (sin fecha: no salen en el gráfico).":"Inclut {1} jouées avant l'existence des statistiques (sans date : absentes du graphique)."
+"Incluye {1} jugadas antes de que existieran las estadísticas (sin fecha: no salen en el gráfico).":"Inclut {1} jouées avant l'existence des statistiques (sans date : absentes du graphique).",
+"Quitar este botón":"Retirer ce bouton"
 }};

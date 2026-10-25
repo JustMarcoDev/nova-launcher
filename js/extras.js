@@ -1,10 +1,16 @@
 // Continuar el último mundo y arrastrar y soltar
 let LASTW=null;
+// La X quita el botón «Continuar» hasta que juegues otro mundo (o ese mismo otra vez)
+const contKey=w=>w?w.inst+"|"+w.name+"|"+(w.date||w.last||""):"";
+let CGONE="";
+const contGone=()=>{try{return localStorage.getItem("nova.contGone")||CGONE}catch{return CGONE}};
 async function contRefresh(){
   let w=null;try{w=A?await A.worldLast():demoWorld()}catch{}
-  LASTW=w;const b=$("cont");if(!b)return;b.hidden=!w;if(w)$("cons").textContent=w.name+" · "+w.instName;
+  LASTW=w;const b=$("cont");if(!b)return;b.hidden=!w||contKey(w)===contGone();if(w)$("cons").textContent=w.name+" · "+w.instName;
 }
 {const _l=loadI;loadI=async function(){const r=await _l.apply(this,arguments);try{contRefresh()}catch{}return r}}
+const contX=e=>{e.stopPropagation();e.preventDefault();CGONE=contKey(LASTW);try{localStorage.setItem("nova.contGone",CGONE)}catch{}$("cont").hidden=true};
+$("contx").onclick=contX;$("contx").onkeydown=e=>{if(e.key==="Enter"||e.key===" ")contX(e)};
 $("cont").onclick=async()=>{
   if(!LASTW)return;if(!A){pvPlay();return}
   const b=$("cont");b.disabled=true;try{await launch({id:LASTW.inst,world:LASTW.name})}catch(e){flash(em(e))}finally{b.disabled=false}

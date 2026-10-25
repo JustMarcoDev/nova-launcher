@@ -1105,5 +1105,6 @@ window.LANGS.en={name:"English (US)",d:{
 "Aún no hay partidas con fecha. Juega y aparecerán aquí.":"No dated sessions yet. Play and they will show up here.",
 "Sin datos todavía":"No data yet",
 "Aún no has entrado a ningún servidor desde el launcher":"You haven't joined any server from the launcher yet",
-"Incluye {1} jugadas antes de que existieran las estadísticas (sin fecha: no salen en el gráfico).":"Includes {1} played before statistics existed (undated: not shown in the chart)."
+"Incluye {1} jugadas antes de que existieran las estadísticas (sin fecha: no salen en el gráfico).":"Includes {1} played before statistics existed (undated: not shown in the chart).",
+"Quitar este botón":"Remove this button"
 }};

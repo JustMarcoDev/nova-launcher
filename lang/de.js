@@ -1105,5 +1105,6 @@ window.LANGS.de={name:"Deutsch",d:{
 "Aún no hay partidas con fecha. Juega y aparecerán aquí.":"Noch keine datierten Sitzungen. Spiele, und sie erscheinen hier.",
 "Sin datos todavía":"Noch keine Daten",
 "Aún no has entrado a ningún servidor desde el launcher":"Du bist dem Launcher aus noch keinem Server beigetreten",
-"Incluye {1} jugadas antes de que existieran las estadísticas (sin fecha: no salen en el gráfico).":"Enthält {1}, die vor den Statistiken gespielt wurden (ohne Datum: nicht im Diagramm)."
+"Incluye {1} jugadas antes de que existieran las estadísticas (sin fecha: no salen en el gráfico).":"Enthält {1}, die vor den Statistiken gespielt wurden (ohne Datum: nicht im Diagramm).",
+"Quitar este botón":"Diese Schaltfläche entfernen"
 }};

@@ -111,7 +111,7 @@ public final class NovaGfx {
         return r;
     }
 
-    public static final int I_USER = 0, I_GEAR = 1, I_CLOSE = 2, I_EARTH = 6, I_NOVA = 8, I_LOCK = 9, I_REALMS = 10, I_USERS = 11, I_CHECK = 12, I_PLUS = 13, I_HEAD = 14, I_EDIT = 15, I_SWAP = 16, I_TRASH = 17, I_FOLDER = 18, I_RESIZE = 19, I_SERVER = 20, I_PLAY = 21, I_BOLT = 22;
+    public static final int I_USER = 0, I_GEAR = 1, I_CLOSE = 2, I_EARTH = 6, I_NOVA = 8, I_LOCK = 9, I_REALMS = 10, I_USERS = 11, I_CHECK = 12, I_PLUS = 13, I_HEAD = 14, I_EDIT = 15, I_SWAP = 16, I_TRASH = 17, I_FOLDER = 18, I_RESIZE = 19, I_SERVER = 20, I_PLAY = 21, I_BOLT = 22, I_MODS = 23;
 
     static void person(Graphics2D g, double cx, double top, double s) {
         g.fill(new Ellipse2D.Double(cx - 0.17 * s, top, 0.34 * s, 0.34 * s));
@@ -274,6 +274,14 @@ public final class NovaGfx {
                 q.fill(t2);
                 q.setStroke(new BasicStroke(0.08f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
                 q.draw(t2);
+                break;
+            }
+            case I_MODS: {   // tres bloques y uno que encaja: «mods»
+                q.setStroke(new BasicStroke(0.075f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                q.draw(new RoundRectangle2D.Double(0.14, 0.14, 0.34, 0.34, 0.08, 0.08));
+                q.draw(new RoundRectangle2D.Double(0.14, 0.52, 0.34, 0.34, 0.08, 0.08));
+                q.draw(new RoundRectangle2D.Double(0.52, 0.52, 0.34, 0.34, 0.08, 0.08));
+                q.fill(new RoundRectangle2D.Double(0.56, 0.12, 0.30, 0.30, 0.08, 0.08));
                 break;
             }
             case I_BOLT: {   // rayo del «Modo FPS»

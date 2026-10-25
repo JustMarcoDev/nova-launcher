@@ -50,15 +50,21 @@ public class NovaHudScreen extends NovaScreen {
         y += ib + gap;
         // 3) mostrar que uso Nova
         addDrawableChild(new NovaButton(x, y, pw, ib, Text.literal(tr("Mostrar que uso Nova") + ": " + (NovaSettings.showNova ? tr("Sí") : tr("No"))), NovaSettings.showNova ? NovaGfx.I_CHECK : -1, NovaSettings.showNova ? NovaButton.SELECTED : NovaButton.NORMAL, b -> { NovaSettings.showNova = !NovaSettings.showNova; clearAndInit(); })
-                .tip(tr("Mostrar que uso Nova"), tr("Los demás jugadores con Nova ven el logo junto a tu nombre")));
+                .tip(tr("Mostrar que uso Nova"), tr("Los demás jugadores con Nova ven el logo junto a tu nombre") + presenceNote()));
         y += ib + gap;
         addDrawableChild(new NovaButton(x, y, pw, ib, Text.literal(tr("Capa de Nova") + ": " + (NovaSettings.showCape ? tr("Sí") : tr("No"))), NovaSettings.showCape ? NovaGfx.I_CHECK : -1, NovaSettings.showCape ? NovaButton.SELECTED : NovaButton.NORMAL, b -> { NovaSettings.showCape = !NovaSettings.showCape; clearAndInit(); })
-                .tip(tr("Capa de Nova"), tr("Los jugadores con Nova llevan una capa de Nova (la ves en ellos y ellos en ti)")));
+                .tip(tr("Capa de Nova"), tr("Los jugadores con Nova llevan una capa de Nova (la ves en ellos y ellos en ti)") + presenceNote()));
         y += ib + gap;
         // 4) restablecer y listo
         addDrawableChild(new NovaButton(x, y, half, ib, Text.literal(tr("Restablecer")), NovaGfx.I_SWAP, NovaButton.NORMAL, b -> { NovaHud.resetPositions(); clearAndInit(); })
                 .tip(tr("Restablecer"), tr("Vuelve a las posiciones de fábrica")));
         addDrawableChild(new NovaButton(x + half + gap, y, pw - half - gap, ib, Text.literal(tr("Listo")), NovaGfx.I_CHECK, NovaButton.PRIMARY, b -> close()));
+    }
+
+    /** Aviso honesto: sin servidor de presencia o sin cuenta Microsoft, los demás no pueden verte (tú sí te ves). */
+    private static String presenceNote() {
+        String w = NovaPresence.why();
+        return w.isEmpty() ? "" : w.equals("sin-servidor") ? tr(" · Aún no hay servidor de presencia: de momento solo lo ves tú") : tr(" · Con cuenta sin conexión solo lo ves tú");
     }
 
     @Override

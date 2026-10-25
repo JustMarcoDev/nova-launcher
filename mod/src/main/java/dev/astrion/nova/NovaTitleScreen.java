@@ -163,8 +163,8 @@ public class NovaTitleScreen extends NovaScreen {
             else client.setScreen(new MultiplayerWarningScreen(this));
         }).tip(tr("Multijugador"), tr("Únete a servidores")));
         y += bh + gap + 3;
-        // fila de 6 botones: ajustes · idioma · skins · servidores · realms · menú de Nova
-        int s = 16, g = 3, bx = cx - (6 * s + 5 * g) / 2;
+        // fila de 7 botones: ajustes · idioma · skins · mods · servidores · realms · menú de Nova. Ocupa justo el ancho de los botones de arriba
+        int g = 2, s = (bw - 6 * g) / 7, bx = cx - bw / 2 + (bw - (7 * s + 6 * g)) / 2;
         addDrawableChild(new NovaButton(bx, y, s, s, Text.empty(), NovaGfx.I_GEAR, NovaButton.NORMAL,
                 b -> client.setScreen(new OptionsScreen(this, client.options))).tip(tr("Ajustes"), tr("Opciones del juego")));
         addDrawableChild(new NovaButton(bx + (s + g), y, s, s, Text.empty(), NovaGfx.I_EARTH, NovaButton.NORMAL,
@@ -175,25 +175,28 @@ public class NovaTitleScreen extends NovaScreen {
         });
         skins.tip(tr("Skins"), tr("Cambia, guarda y elimina tus skins"));
         addDrawableChild(skins);
-        addDrawableChild(new NovaButton(bx + 3 * (s + g), y, s, s, Text.empty(), NovaGfx.I_SERVER, panel == 4 ? NovaButton.SELECTED : NovaButton.NORMAL, b -> {
+        addDrawableChild(new NovaButton(bx + 3 * (s + g), y, s, s, Text.empty(), NovaGfx.I_MODS, panel == 5 ? NovaButton.SELECTED : NovaButton.NORMAL, b -> {
+            panel = 5; mdScroll = 0; clearAndInit();
+        }).tip(tr("Mods"), tr("Los mods que tienes instalados")));
+        addDrawableChild(new NovaButton(bx + 4 * (s + g), y, s, s, Text.empty(), NovaGfx.I_SERVER, panel == 4 ? NovaButton.SELECTED : NovaButton.NORMAL, b -> {
             panel = 4; svScroll = 0; clearAndInit();
         }).tip(tr("Servidores"), tr("Entra a tu último servidor o a tus favoritos")));
-        addDrawableChild(new NovaButton(bx + 4 * (s + g), y, s, s, Text.empty(), NovaGfx.I_REALMS, NovaButton.NORMAL,
+        addDrawableChild(new NovaButton(bx + 5 * (s + g), y, s, s, Text.empty(), NovaGfx.I_REALMS, NovaButton.NORMAL,
                 b -> client.setScreen(new RealmsMainScreen(this))).tip("Realms", tr("Mundos online de Minecraft")));
-        addDrawableChild(new NovaButton(bx + 5 * (s + g), y, s, s, Text.empty(), NovaGfx.I_NOVA, panel == 2 ? NovaButton.SELECTED : NovaButton.NORMAL, b -> {
+        addDrawableChild(new NovaButton(bx + 6 * (s + g), y, s, s, Text.empty(), NovaGfx.I_NOVA, panel == 2 ? NovaButton.SELECTED : NovaButton.NORMAL, b -> {
             panel = 2;
             clearAndInit();
         }).tip(tr("Menú de Nova"), tr("Fondo, colores y más")));
         // Modo FPS: una barra debajo de la fila; con el modo activo se parte en «Modo FPS ✓» y «Restaurar»
-        y += s + g;
+        y += s + 3;
         if (!NovaFps.on()) {
-            addDrawableChild(new NovaButton(cx - bw / 2, y, bw, 14, Text.literal(tr("Modo FPS")), NovaGfx.I_BOLT, NovaButton.NORMAL, b -> { NovaFps.enable(client); clearAndInit(); })
+            addDrawableChild(new NovaButton(cx - bw / 2, y, bw, bh, Text.literal(tr("Modo FPS")), NovaGfx.I_BOLT, NovaButton.NORMAL, b -> { NovaFps.enable(client); clearAndInit(); })
                     .tip(tr("Modo FPS"), tr("Partículas mínimas, sin nubes ni sombras, distancia 8: más rendimiento")));
         } else {
-            int hw = (bw - g) / 2;
-            addDrawableChild(new NovaButton(cx - bw / 2, y, hw, 14, Text.literal(tr("Modo FPS")), NovaGfx.I_CHECK, NovaButton.SELECTED, b -> { })
+            int hw = (bw - gap) / 2;
+            addDrawableChild(new NovaButton(cx - bw / 2, y, hw, bh, Text.literal(tr("Modo FPS")), NovaGfx.I_CHECK, NovaButton.SELECTED, b -> { })
                     .tip(tr("Modo FPS activo"), tr("Tus opciones de vídeo de antes están guardadas")));
-            addDrawableChild(new NovaButton(cx - bw / 2 + hw + g, y, bw - hw - g, 14, Text.literal(tr("Restaurar")), NovaGfx.I_SWAP, NovaButton.NORMAL, b -> { NovaFps.restore(client); clearAndInit(); })
+            addDrawableChild(new NovaButton(cx - bw / 2 + hw + gap, y, bw - hw - gap, bh, Text.literal(tr("Restaurar")), NovaGfx.I_SWAP, NovaButton.NORMAL, b -> { NovaFps.restore(client); clearAndInit(); })
                     .tip(tr("Restaurar"), tr("Vuelve a tus opciones de vídeo de antes")));
         }
         // perfil (arriba izquierda)
@@ -210,6 +213,7 @@ public class NovaTitleScreen extends NovaScreen {
         else if (panel == 2) { snapshot(); buildNova(); }
         else if (panel == 3) buildSkins();
         else if (panel == 4) buildServers();
+        else if (panel == 5) buildMods();
     }
 
     static boolean tested2, tested3;
@@ -581,6 +585,60 @@ public class NovaTitleScreen extends NovaScreen {
         }
     }
 
+    // ---------------------------------------------------------------- panel de mods instalados
+    private static int mdScroll, mdRows = 8;
+    private static java.util.List<String[]> modList;
+
+    /** {nombre, versión, id} de cada mod instalado; sin los módulos internos de otros mods, sin el propio juego ni Java. */
+    static java.util.List<String[]> mods() {
+        if (modList == null) {
+            java.util.List<String[]> l = new java.util.ArrayList<>();
+            try {
+                for (net.fabricmc.loader.api.ModContainer m : FabricLoader.getInstance().getAllMods()) {
+                    net.fabricmc.loader.api.metadata.ModMetadata md = m.getMetadata();
+                    String id = md.getId();
+                    if (m.getContainingMod().isPresent() || id.equals("minecraft") || id.equals("java") || id.equals("fabricloader") || "builtin".equals(md.getType())) continue;
+                    l.add(new String[] { md.getName() == null || md.getName().isEmpty() ? id : md.getName(), md.getVersion().getFriendlyString(), id });
+                }
+            } catch (Throwable ignored) { }
+            l.sort((a, b) -> a[0].compareToIgnoreCase(b[0]));
+            modList = l;
+        }
+        return modList;
+    }
+
+    void buildMods() {
+        java.util.List<String[]> M = mods();
+        int fixed = 8 + 12 + 6 + 8;
+        int maxRows = Math.max(3, Math.min(10, (height - 20 - fixed) / 14));
+        mdRows = Math.max(1, Math.min(maxRows, M.size()));
+        mdScroll = Math.max(0, Math.min(mdScroll, Math.max(0, M.size() - mdRows)));
+        pw = Math.min(250, width - 16);
+        ph = fixed + mdRows * 14 + 4;
+        px = (width - pw) / 2; py = Math.max(6, (height - ph) / 2);
+        int x = px + 8, w = pw - 16, y = py + 8;
+        addDrawable((c, mx, my, d) -> {
+            c.fill(0, 0, width, height, 0xA0020208);
+            drawPanelBg(c);
+            for (Object[] l : labels) txt(c, (String) l[0], (int) l[1], (int) l[2], (float) l[3], (int) l[4], (boolean) l[5], (int) l[6]);
+        });
+        labels.add(new Object[] { tr("Mods instalados") + " (" + M.size() + ")", x, y, 8.6f, 0xFFFFFFFF, true, 0 });
+        labels.add(new Object[] { tr("Pulsa Esc para cerrar"), px + pw - 8, y + 2, 5.6f, 0xFF7C7CA0, false, 1 });
+        y += 14;
+        if (M.isEmpty()) labels.add(new Object[] { tr("No hay mods instalados"), x + 2, y + 4, 5.8f, 0xFF9A9AC0, false, 0 });
+        for (int i = mdScroll; i < Math.min(M.size(), mdScroll + mdRows); i++) {
+            String[] m = M.get(i);
+            final int ry = y;
+            addDrawable((c, mx, my, d) -> c.fill(x, ry, x + w, ry + 12, (i0(ry) & 1) == 0 ? 0x30FFFFFF : 0x18FFFFFF));
+            labels.add(new Object[] { shorten(m[0], 30), x + 4, y + 2, 6.4f, 0xFFFFFFFF, false, 0 });
+            labels.add(new Object[] { shorten(m[1], 16), x + w - 4, y + 2, 5.6f, 0xFF9A9AC0, false, 1 });
+            y += 14;
+        }
+        if (M.size() > mdRows) labels.add(new Object[] { (mdScroll + 1) + "–" + Math.min(M.size(), mdScroll + mdRows) + " / " + M.size() + tr("  ·  rueda del ratón"), px + pw - 8, y + 1, 5.6f, 0xFF7C7CA0, false, 1 });
+    }
+
+    private static int i0(int v) { return v / 14; }
+
     static String shorten(String s, int n) { return s.length() <= n ? s : s.substring(0, n - 1) + "…"; }
 
     void commitName(String file) {
@@ -606,7 +664,7 @@ public class NovaTitleScreen extends NovaScreen {
         clearAndInit();
     }
 
-    boolean modal() { return panel == 2 || panel == 3 || panel == 4; }
+    boolean modal() { return panel == 2 || panel == 3 || panel == 4 || panel == 5; }
 
     boolean inPanel(double mx, double my) { return mx >= px - 2 && mx <= px + pw + 2 && my >= py - 2 && my <= py + ph + 2; }
 
@@ -615,7 +673,7 @@ public class NovaTitleScreen extends NovaScreen {
         if (button == 0 && newsClick(mx, my)) return true;
         if (modal()) {   // los paneles de Nova y de skins son modales: un clic fuera los cierra (el de Nova, sin guardar)
             if (inPanel(mx, my)) { clickTopmost(mx, my, button); return true; }
-            if (panel == 3) closeSkins(); else if (panel == 4) closeSkins(); else closeNova(false);
+            if (panel == 3) closeSkins(); else if (panel == 4 || panel == 5) closeSkins(); else closeNova(false);
             return true;
         }
         if (clickTopmost(mx, my, button)) return true;
@@ -641,7 +699,7 @@ public class NovaTitleScreen extends NovaScreen {
             return true;
         }
         if (key == 256 && panel == 2) { closeNova(false); return true; }
-        if (key == 256 && (panel == 3 || panel == 4)) { closeSkins(); return true; }
+        if (key == 256 && (panel == 3 || panel == 4 || panel == 5)) { closeSkins(); return true; }
         if (key == 256 && panel != 0) { panel = 0; confirmDel = null; clearAndInit(); return true; }
         return superKey(key, scan, mods);
     }
@@ -664,6 +722,11 @@ public class NovaTitleScreen extends NovaScreen {
             int ns = skScroll + (amount < 0 ? 1 : -1);
             if (ns < 0 || ns > Math.max(0, NovaSkins.list().size() - 1)) return true;
             skScroll = ns; clearAndInit(); return true;
+        }
+        if (panel == 5 && inPanel(mx, my)) {
+            int ns = mdScroll + (amount < 0 ? 1 : -1);
+            if (ns < 0 || ns > Math.max(0, mods().size() - mdRows)) return true;
+            mdScroll = ns; clearAndInit(); return true;
         }
         if (panel == 4 && inPanel(mx, my)) {
             int ns = svScroll + (amount < 0 ? 1 : -1);

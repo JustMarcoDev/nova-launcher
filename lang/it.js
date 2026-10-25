@@ -1105,5 +1105,6 @@ window.LANGS.it={name:"Italiano",d:{
 "Aún no hay partidas con fecha. Juega y aparecerán aquí.":"Ancora nessuna partita con data. Gioca e appariranno qui.",
 "Sin datos todavía":"Ancora nessun dato",
 "Aún no has entrado a ningún servidor desde el launcher":"Non sei ancora entrato in nessun server dal launcher",
-"Incluye {1} jugadas antes de que existieran las estadísticas (sin fecha: no salen en el gráfico).":"Include {1} giocate prima che esistessero le statistiche (senza data: non compaiono nel grafico)."
+"Incluye {1} jugadas antes de que existieran las estadísticas (sin fecha: no salen en el gráfico).":"Include {1} giocate prima che esistessero le statistiche (senza data: non compaiono nel grafico).",
+"Quitar este botón":"Rimuovi questo pulsante"
 }};
