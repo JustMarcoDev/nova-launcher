@@ -155,6 +155,13 @@ const w = dom.window, sleep = ms => new Promise(r => setTimeout(r, ms));
     if (!/antes de que existieran/.test(g('stp').textContent)) errors.push('Estadísticas: falta el aviso del tiempo jugado de antes');
     w.document.querySelector('nav [data-p=home]').click();
   }
+  // Todos los menús (modales) llevan una X que los cierra; el modal obligatorio (perfil) no.
+  {
+    w.eval("openCreate({mc:'1.21.1',ld:'Fabric',type:'release'})");
+    let x = null; for (let i = 0; i < 40 && !x; i++) { await new Promise(r => setTimeout(r, 100)); x = w.document.querySelector('#mdl .mx'); }
+    if (!x) errors.push('Los menús no tienen la X de cerrar (#mdl .mx)');
+    else { x.click(); if (w.document.getElementById('mdl').classList.contains('on')) errors.push('La X no cierra el menú'); }
+  }
   // Textos sin traducir: todo lo que se ve en español debe tener su traducción (si no, un cambio de redacción deja el idioma a medias sin avisar).
   // Los textos que son datos (nombres, versiones, cifras) se apuntan en tests/lang-baseline.json; cualquier texto nuevo que no esté traducido ni apuntado falla.
   {

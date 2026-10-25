@@ -24,7 +24,7 @@ function head(){$("gs").textContent=`Minecraft ${sel.mc} con ${LDN(sel.ld)}`;con
 $("k1").textContent=curAcc().type==="microsoft"?"Microsoft":"Offline";$("k5").textContent=fPl(I.reduce((t,i)=>t+(i.playMs||0),0));$("k2").textContent=cfg.ram+" GB";$("k3").textContent=cfg.javaPath?"Personalizado":"Automático";$("k4").textContent=VER;rp();qi()}
 function pick(mc,type,ld){sel.inst=null;sel.mc=mc;sel.type=type;if(ld)sel.ld=ld;if(!LD[sel.ld](mc))sel.ld="Vanilla";if(tf!=="all")tf=type;head();save()}
 $("cp").onclick=e=>{e.stopPropagation();const p=$("pop"),on=!p.classList.contains("on");if(on){const r=$("cp").getBoundingClientRect(),below=innerHeight-r.bottom,need=Math.min(440,p.scrollHeight+30);p.classList.toggle("up",below<need&&r.top>below)}p.classList.toggle("on",on)};
-addEventListener("keydown",e=>{if(e.key==="Escape"){$("pop").classList.remove("on");$("um").classList.remove("on");closeModal()}
+addEventListener("keydown",e=>{if(e.key==="Escape"){const t=e.target;if(t&&t.matches&&t.matches("#mdl input,#mdl textarea,#mdl select")){if(t.value&&t.tagName!=="SELECT"){t.value="";t.dispatchEvent(new Event("input",{bubbles:true}))}t.blur();return}$("pop").classList.remove("on");$("um").classList.remove("on");closeModal()}
 if(cfg.shortcuts===false)return;const P=["home","vers","mods","srv","inst","con","soc","set","sk"];
 if(e.altKey&&/^[1-9]$/.test(e.key)){e.preventDefault();show(P[+e.key-1])}
 if(e.ctrlKey&&e.key==="Enter"){e.preventDefault();const g=$("go");g&&!g.disabled&&g.click()}});document.addEventListener("click",e=>{if(!e.target.closest(".pop"))$("pop").classList.remove("on")});
@@ -52,7 +52,7 @@ rpK="";rp();rv()}
 // Instancias (automáticas)
 async function loadI(){I=A?await A.insts():demoInsts();qi();ri()}
 async function ensure(){let i=(sel.inst&&I.find(x=>x.id===sel.inst&&x.mc===sel.mc&&x.ld===sel.ld))||I.find(x=>x.mc===sel.mc&&x.ld===sel.ld&&!x.novaPack&&!x.custom&&!x.manual);if(!i&&A){i=await A.saveInst({name:`${LDN(sel.ld)} ${sel.mc}`,mc:sel.mc,ld:sel.ld,type:sel.type});await loadI()}return i}
-function qi(){$("qi").innerHTML=I.length?[...I].sort((a,b)=>(!!b.fav-!!a.fav)||(b.lastPlayed||0)-(a.lastPlayed||0)).slice(0,6).map(i=>`<div class="row ${sel.inst?i.id===sel.inst:i.mc===sel.mc&&i.ld===sel.ld&&!i.novaPack&&!i.custom?"on":""}" data-i="${i.id}"><span class="n">${i.fav?"★ ":""}${i.name}</span><span class="s">${i.mc}</span></div>`).join(""):'<div style="color:var(--m)">Aún no hay instancias. Elige una versión y pulsa Lanzar juego: se crea sola.</div>';
+function qi(){const L=[...I].sort((a,b)=>(!!b.fav-!!a.fav)||(b.lastPlayed||0)-(a.lastPlayed||0)).slice(0,6),cur=(I.find(x=>x.id===sel.inst)||L.find(i=>i.mc===sel.mc&&i.ld===sel.ld&&!i.novaPack&&!i.custom)||{}).id;$("qi").innerHTML=I.length?L.map(i=>`<div class="row ${i.id===cur?"on":""}" data-i="${i.id}"><span class="rin">${IC(i.icon&&ICS.includes(i.icon)?i.icon:"box")}</span><span class="rt"><span class="n">${esc(i.name)}${i.fav?'<i class="rf">★</i>':""}</span><span class="rs2">${esc(LDN(i.ld||"Vanilla"))}${i.playMs?" · "+esc(fPl(i.playMs)):""}</span></span><span class="s">${esc(i.mc)}</span></div>`).join(""):'<div style="color:var(--m)">Aún no hay instancias. Elige una versión y pulsa Lanzar juego: se crea sola.</div>';
 $("qi").querySelectorAll(".row").forEach(r=>r.onclick=()=>{const i=I.find(x=>x.id===r.dataset.i);pick(i.mc,i.type||"release",i.ld);sel.inst=i.id;save();qi()})}
 // Jugar
 $("go").onclick=()=>play();

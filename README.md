@@ -162,6 +162,14 @@ Cada vez que cambia el mod (`mod/`) se publica una versión nueva del launcher: 
 
 ## Historial de actualizaciones
 
+### 0.2.16-beta.4 — X en todos los menús, HUD plegable y mods con iconos
+
+- **Launcher**: todos los menús (modales) llevan una X arriba a la derecha (menos el perfil obligatorio); Esc dentro de un buscador solo lo vacía y ya no cierra el menú de la instancia. «Crear instancia con esto» ocupa todo el ancho del desplegable y «Tus instancias» muestra icono, cargador, tiempo jugado y versión con una sola fila marcada. Se quitó CSS sin uso (`.ih`, `.inh`).
+- **Editar HUD (mod)**: los ajustes (elementos, zoom, Nova y capa) están en un panel que se pliega con «Ocultar panel» / «Mostrar panel»; plegado, solo quedan esa barra y «Listo» y los elementos activos se mueven sin estorbos. La pantalla pausa el mundo en un jugador, como Esc.
+- **Paneles del menú de Nova (mod)**: Servidores, Skins, Mods y Menú de Nova tienen una X de cierre (en lugar del texto «Pulsa Esc para cerrar»; Esc sigue funcionando).
+- **Panel de Mods (mod)**: cada mod con su icono (el de `fabric.mod.json`; si no tiene, su inicial), nombre, versión, autor y descripción, al estilo de Mod Menu.
+- **Código**: texto sin uso quitado de `NovaLang`.
+
 ### 0.2.16-beta.3 — Crear instancias, aviso de capturas y panel de mods mejorados, y limpieza
 
 - **Crear instancia**: botón «Crear instancia con esto» en el desplegable de Lanzar (usa la versión y el cargador elegidos) y botón «Crear instancia» en Instancias. Abre un diálogo con nombre, cargador, tipo y versión; no abre el juego. Estas instancias llevan `manual: true`, así que «Lanzar» no las reutiliza por su cuenta: se juegan desde la lista de instancias.

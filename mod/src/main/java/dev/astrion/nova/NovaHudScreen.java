@@ -19,6 +19,8 @@ public class NovaHudScreen extends NovaScreen {
     private float sizeX0, sizeY0, sizeUW, sizeUH;
     private int offX, offY;
     private boolean wasDown, listening;
+    /** Panel de ajustes abierto o plegado (se recuerda mientras el juego está abierto). */
+    private static boolean open = true;
 
     public NovaHudScreen(Screen parent) {
         super(Text.literal(tr("Editar HUD")));
@@ -30,8 +32,20 @@ public class NovaHudScreen extends NovaScreen {
         NovaTitleScreen.ensure(client);
         NovaSettings.load();
         int pw = Math.min(262, width - 16), x = (width - pw) / 2, gap = 3, ib = 15;
-        int rows = 6, total = rows * ib + (rows - 1) * gap;
+        int rows = open ? 6 : 1, total = rows * ib + (rows - 1) * gap;
         int y = height - total - 10;
+        if (open) buildPanel(x, y, pw, gap, ib); else addBar(x, y, pw, gap, ib);
+    }
+
+    /** Barra de abajo: abrir/plegar el panel y «Listo». */
+    private void addBar(int x, int y, int pw, int gap, int ib) {
+        int half = (pw - gap) / 2;
+        addDrawableChild(new NovaButton(x, y, half, ib, Text.literal(open ? tr("Ocultar panel") : tr("Mostrar panel")), -1, NovaButton.NORMAL, b -> { open = !open; clearAndInit(); })
+                .tip(tr("Panel de ajustes"), tr("Ábrelo o ciérralo para mover el HUD sin que estorbe")));
+        addDrawableChild(new NovaButton(x + half + gap, y, pw - half - gap, ib, Text.literal(tr("Listo")), NovaGfx.I_CHECK, NovaButton.PRIMARY, b -> close()));
+    }
+
+    private void buildPanel(int x, int y, int pw, int gap, int ib) {
         // 1) un botón por elemento
         int n = NovaHud.ALL.length, bw = (pw - (n - 1) * gap) / n;
         String[] names = { "FPS", "CPS", tr("Coordenadas"), tr("Teclas") };
@@ -55,10 +69,11 @@ public class NovaHudScreen extends NovaScreen {
         addDrawableChild(new NovaButton(x, y, pw, ib, Text.literal(tr("Capa de Nova") + ": " + (NovaSettings.showCape ? tr("Sí") : tr("No"))), NovaSettings.showCape ? NovaGfx.I_CHECK : -1, NovaSettings.showCape ? NovaButton.SELECTED : NovaButton.NORMAL, b -> { NovaSettings.showCape = !NovaSettings.showCape; clearAndInit(); })
                 .tip(tr("Capa de Nova"), tr("Los jugadores con Nova llevan una capa de Nova (la ves en ellos y ellos en ti)") + presenceNote()));
         y += ib + gap;
-        // 4) restablecer y listo
-        addDrawableChild(new NovaButton(x, y, half, ib, Text.literal(tr("Restablecer")), NovaGfx.I_SWAP, NovaButton.NORMAL, b -> { NovaHud.resetPositions(); clearAndInit(); })
+        // 4) restablecer
+        addDrawableChild(new NovaButton(x, y, pw, ib, Text.literal(tr("Restablecer")), NovaGfx.I_SWAP, NovaButton.NORMAL, b -> { NovaHud.resetPositions(); clearAndInit(); })
                 .tip(tr("Restablecer"), tr("Vuelve a las posiciones de fábrica")));
-        addDrawableChild(new NovaButton(x + half + gap, y, pw - half - gap, ib, Text.literal(tr("Listo")), NovaGfx.I_CHECK, NovaButton.PRIMARY, b -> close()));
+        y += ib + gap;
+        addBar(x, y, pw, gap, ib);
     }
 
     /** Aviso honesto: sin servidor de presencia o sin cuenta Microsoft, los demás no pueden verte (tú sí te ves). */
@@ -197,5 +212,5 @@ public class NovaHudScreen extends NovaScreen {
     protected boolean nChar(char chr, int mods) { return false; }
 
     @Override
-    public boolean shouldPause() { return false; }
+    public boolean shouldPause() { return true; }   // en un mundo de un jugador se para, como con Esc
 }

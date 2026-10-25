@@ -5,6 +5,7 @@
   "name": "Nova Menu",
   "description": "Menú principal de Nova Launcher",
   "authors": ["Astrion Studio"],
+  "icon": "assets/nova/icon.png",
   "license": "All-Rights-Reserved",
   "environment": "client",
   "entrypoints": {},
