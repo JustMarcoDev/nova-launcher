@@ -4,6 +4,7 @@ const errors = [], vc = new VirtualConsole(); vc.on('jsdomError', e => errors.pu
 const mock = { accAddOffline: { accounts: [{ id: 'o1', type: 'offline', name: 'Marco_1' }], active: 'o1' }, insts: [], versions: { v: [{ id: '1.21.1', type: 'release' }], src: 'mojang' }, cfg: { _first: false, setupDone: true, seenVersion: '99.0.0' }, sys: { total: 16 }, ver: '0.0.0', updGet: { s: 'idle' }, discordGet: { s: 'off' }, worldLast: null, srvStatus: {}, shotsList: [], bkList: [], modsList: [], releases: [], dqState: { active: 0, paused: false, limit: 0, speed: 0 } };
 mock.skinList = { skins: [{ id: 'sabc1', name: 'Prueba', model: 'slim', data: 'data:image/png;base64,iVBORw0KGgo=' }], sel: 'sabc1', acc: { type: 'offline', name: 'Marco_1' } };
 const _n = Date.now(); mock.statsGet = { sessions: [0, 1, 2, 3, 4, 5].map(k => ({ id: 'i' + (k % 2), name: ['Survival', 'Skyblock'][k % 2], mc: ['1.21.4', '1.20.1'][k % 2], ld: 'Fabric', server: k % 3 === 0 ? 'play.test.net' : '', start: _n - k * 864e5 * 3, ms: (k + 1) * 9e5 })), before: [{ id: 'i0', name: 'Survival', mc: '1.21.4', ld: 'Fabric', ms: 72e5 }], shots: 7 };
+mock.worldLast = { inst: 'i1', name: 'Mundo de prueba', instName: 'Instancia', date: 123, mc: '1.21.4', ld: 'Vanilla' };
 const EV = {}, api = new Proxy({ on(c, f) { EV[c] = f; }, win() {}, zoom() {}, folder() {}, open() {}, filePath: () => '' }, { get: (t, k) => k in t ? t[k] : async () => (k in mock ? JSON.parse(JSON.stringify(mock[k])) : (k === 'http' ? Promise.reject(new Error('sin red')) : undefined)) });
 const dom = new JSDOM(inline(), { runScripts: 'dangerously', pretendToBeVisual: true, url: 'file:///x/index.html', virtualConsole: vc, beforeParse(w) {
   w.HTMLCanvasElement.prototype.getContext = () => new Proxy({}, { get: (t, k) => k === 'measureText' ? () => ({ width: 0 }) : () => ({ addColorStop() {} }), set: () => true });
@@ -114,6 +115,18 @@ const w = dom.window, sleep = ms => new Promise(r => setTimeout(r, ms));
     if (g('skcp').style.display === 'none' || !/Migrator/.test(g('skcl').textContent)) errors.push('Skin: no salen las capas de la cuenta Microsoft');
     if (g('sku').textContent !== 'Aplicar a mi cuenta') errors.push('Skin: el botón de Microsoft debe decir «Aplicar a mi cuenta»');
     w.document.querySelector('nav [data-p=home]').click();
+  }
+  // Botón «Continuar»: sale con el último mundo y la X lo quita hasta que cambie el mundo
+  {
+    const g = id => w.document.getElementById(id);
+    await w.eval('contRefresh()'); await sleep(50);
+    if (g('cont').hidden) errors.push('Continuar: debe verse con un mundo reciente');
+    g('contx').click(); await sleep(20);
+    if (!g('cont').hidden) errors.push('Continuar: la X no lo quitó');
+    await w.eval('contRefresh()'); await sleep(50);
+    if (!g('cont').hidden) errors.push('Continuar: no debe volver con el mismo mundo');
+    mock.worldLast = { ...mock.worldLast, date: 456 }; await w.eval('contRefresh()'); await sleep(50);
+    if (g('cont').hidden) errors.push('Continuar: debe volver cuando se juega el mundo otra vez');
   }
   // Pestaña Estadísticas: gráfico de 8 semanas, tres listas de top 5 y el total de capturas
   {

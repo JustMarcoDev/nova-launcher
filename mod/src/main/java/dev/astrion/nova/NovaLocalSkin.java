@@ -35,23 +35,30 @@ public final class NovaLocalSkin {
     private static void poll() {
         long now = System.currentTimeMillis();
         if (now - lastCheck < 1000) return;
+        MinecraftClient mc0 = MinecraftClient.getInstance();
+        if (mc0 == null || !mc0.isOnThread()) return;                  // las texturas solo se registran en el hilo de render (y no se gasta el turno si lo pide otro hilo)
         lastCheck = now;
+        reapOld(now);
         try {
-            MinecraftClient mc = MinecraftClient.getInstance();
-            if (mc == null || !mc.isOnThread()) return;                // las texturas solo se registran en el hilo de render
+            MinecraftClient mc = mc0;
             String dir = System.getProperty("nova.dir", "");
             if (dir.isEmpty()) return;
             File jf = new File(dir, "skin-local.json");
             if (!jf.isFile()) { clear(mc); return; }
             JsonObject o = JsonParser.parseString(new String(java.nio.file.Files.readAllBytes(jf.toPath()), java.nio.charset.StandardCharsets.UTF_8)).getAsJsonObject();
             var s = mc.getSession();
-            boolean on = o.has("on") && o.get("on").getAsBoolean() && s != null && o.has("user") && o.get("user").getAsString().equals(s.getUsername());
+            boolean on = o.has("on") && o.get("on").getAsBoolean() && s != null && o.has("user") && o.get("user").getAsString().equalsIgnoreCase(s.getUsername());
             long v = o.has("v") ? o.get("v").getAsLong() : 0;
             if (!on) { clear(mc); version = v; return; }
             if (v == version && id != null) return;
             File pf = new File(dir, "skin-local.png");
             BufferedImage img = pf.isFile() ? javax.imageio.ImageIO.read(pf) : null;
-            if (img == null || img.getWidth() != 64 || (img.getHeight() != 64 && img.getHeight() != 32)) { clear(mc); version = v; return; }
+            if (img == null || img.getWidth() != 64 || (img.getHeight() != 64 && img.getHeight() != 32)) {
+                // puede ser una lectura a medias: se reintenta cada segundo antes de darla por mala (y se sigue enseñando la skin anterior)
+                if (++fails >= 5) { clear(mc); version = v; fails = 0; }
+                return;
+            }
+            fails = 0;
             BufferedImage full = legacy(img);
             NativeImage ni = new NativeImage(NativeImage.Format.RGBA, 64, 64, false);
             for (int y = 0; y < 64; y++) for (int x = 0; x < 64; x++) NovaCompat.setPixel(ni, x, y, full.getRGB(x, y));
@@ -61,7 +68,7 @@ public final class NovaLocalSkin {
             id = n;
             slim = o.has("model") && "slim".equals(o.get("model").getAsString());
             version = v;
-            if (old != null) { try { mc.getTextureManager().destroyTexture(old); } catch (Throwable ignored) { } }
+            if (old != null) retire(old);
         } catch (Throwable e) { /* sin skin local: se ve la normal */ }
     }
 
@@ -69,7 +76,19 @@ public final class NovaLocalSkin {
         if (id == null) return;
         Identifier old = id;
         id = null;
-        try { mc.getTextureManager().destroyTexture(old); } catch (Throwable ignored) { }
+        retire(old);
+    }
+
+    // La textura anterior no se destruye al momento: algún fotograma aún puede llevarla y saldría la textura «no encontrada».
+    private static final java.util.ArrayDeque<Object[]> OLD = new java.util.ArrayDeque<>();
+    private static int fails;
+    private static void retire(Identifier old) { OLD.add(new Object[] { old, System.currentTimeMillis() + 3000 }); }
+    private static void reapOld(long now) {
+        MinecraftClient mc = MinecraftClient.getInstance();
+        while (!OLD.isEmpty() && (long) OLD.peek()[1] <= now) {
+            Identifier o = (Identifier) OLD.poll()[0];
+            try { mc.getTextureManager().destroyTexture(o); } catch (Throwable ignored) { }
+        }
     }
 
     public static boolean slim() { return slim; }
@@ -95,7 +114,7 @@ public final class NovaLocalSkin {
             Object p = e.getProfile();
             if (nameM == null) { for (String n : new String[] { "getName", "name" }) { try { nameM = p.getClass().getMethod(n); break; } catch (NoSuchMethodException ignored) { } } }
             var s = MinecraftClient.getInstance().getSession();
-            return s != null && String.valueOf(nameM.invoke(p)).equals(s.getUsername());
+            return s != null && String.valueOf(nameM.invoke(p)).equalsIgnoreCase(s.getUsername());
         } catch (Throwable t) { return false; }
     }
 }

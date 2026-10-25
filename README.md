@@ -162,6 +162,13 @@ Cada vez que cambia el mod (`mod/`) se publica una versión nueva del launcher: 
 
 ## Historial de actualizaciones
 
+### 0.2.16-beta.2 — Botón Mods en el menú, botones alineados y arreglos de Nova
+
+- **Launcher**: el botón «Continuar» tiene una X para quitarlo; vuelve a salir cuando juegas otro mundo (o ese mismo otra vez).
+- **Menú de Nova**: la fila de iconos ahora mide justo lo mismo que los botones de Un jugador / Multijugador / Modo FPS (antes quedaba más estrecha y los bordes no coincidían). Nuevo botón **Mods** junto al de skins: lista los mods instalados (nombre y versión; sin los módulos internos de otros mods) con rueda del ratón.
+- **Logo y capa de Nova**: con «Mostrar que uso Nova» y «Capa de Nova» activados, uno siempre se ve a sí mismo (antes dependían del servidor de presencia y no salía nada). Para ver a **otros** jugadores sigue haciendo falta desplegar el servidor de presencia (`servidor/README.md`) y rellenar `novaPresence` en `package.json`; mientras no esté, «Editar HUD» lo avisa. La capa ya no relee los ajustes por cada jugador y fotograma.
+- **Skin elegida**: ya no se pierde por lecturas a medias del archivo (se reintenta y se sigue viendo la anterior), el nombre de la cuenta se compara sin distinguir mayúsculas y la textura anterior se destruye con 3 s de margen para que no salga la de «no encontrada» al cambiar de skin.
+
 ### 0.2.16-beta.1 — Modo FPS, capturas con aviso, Estadísticas y novedades del mod
 
 - **Modo FPS** (menú de título y de pausa): el botón «Modo FPS» guarda tus opciones de vídeo en `menu.json` (`NovaSettings`) y aplica partículas mínimas, nubes y sombras de entidades desactivadas, distancia de renderizado 8, distancia de simulación 6 y animaciones de bloques reducidas (se actualizan una de cada dos veces). «Restaurar» devuelve los valores guardados. Las distancias nunca suben: si tenías menos de 8 o 6, se quedan como estaban. Funciona en las 19 versiones con dos capas nuevas de `mod/src/compat`: `opt-a`/`opt-b` (el paquete de `ParticlesMode` cambia en 1.21.2) y `shot-a`/`shot-b` (la firma de `ScreenshotRecorder.saveScreenshot` cambia en 1.21.6).

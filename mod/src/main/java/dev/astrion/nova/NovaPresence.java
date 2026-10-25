@@ -128,15 +128,28 @@ public final class NovaPresence {
         nova = out;
     }
 
-    /** ¿Este jugador de la lista usa Nova? (uno mismo solo si está verificado y no ocultó su logo). */
+    /** UUID de la sesión actual (no depende del servidor de presencia: sirve también con cuenta sin conexión). */
+    static UUID self() {
+        try { MinecraftClient mc = MinecraftClient.getInstance(); UUID u = mc.getSession().getUuidOrNull(); if (u != null) return u; } catch (Throwable ignored) { }
+        return me;
+    }
+
+    /** ¿Este jugador de la lista usa Nova? Uno mismo se ve siempre que no haya ocultado su logo; los demás, si el servidor de presencia los reconoce. */
     public static boolean has(PlayerListEntry e) {
         try {
-            if (!enabled()) return false;
             UUID u = uuid(e);
             if (u == null) return false;
-            if (u.equals(me)) return NovaSettings.showNova && token != null;
+            if (u.equals(self())) return NovaSettings.showNova;
+            if (!enabled()) return false;
             return nova.contains(u);
         } catch (Throwable t) { return false; }
+    }
+
+    /** Qué hace falta para que los demás vean a este jugador (vacío = todo en orden). Se enseña en «Editar HUD». */
+    static String why() {
+        if (URL.isEmpty()) return "sin-servidor";
+        if (!NovaSettings.PREMIUM) return "sin-premium";
+        return "";
     }
 
     /** Dibuja el logo en el hueco que deja el mixin delante del nombre (x,y = esquina de la fila, donde va la cabeza). */

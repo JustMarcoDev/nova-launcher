@@ -14,6 +14,7 @@ public final class NovaCape {
 
     private static final Identifier ID = Identifier.tryParse("nova:textures/cape/nova.png");
     private static boolean reg;
+    private static long lastLoad;
     /** Solo para pruebas (-Dnova.cape.test=1): todos los jugadores llevan la capa aunque no haya servidor de presencia. */
     private static final boolean TEST = System.getProperty("nova.cape.test") != null;
 
@@ -33,8 +34,10 @@ public final class NovaCape {
     /** ¿Debe llevar la capa de Nova este jugador de la lista? */
     public static boolean wants(PlayerListEntry e) {
         try {
-            NovaSettings.load();
-            return NovaSettings.showCape && (TEST || NovaPresence.has(e));
+            long now = System.currentTimeMillis();
+            if (now - lastLoad > 2000) { lastLoad = now; NovaSettings.load(); }   // los ajustes se releen como mucho cada 2 s (esto se llama por jugador y fotograma)
+            if (!NovaSettings.showCape) return false;
+            return TEST || NovaPresence.has(e);
         } catch (Throwable t) { return false; }
     }
 }
