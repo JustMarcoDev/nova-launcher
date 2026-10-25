@@ -13,7 +13,7 @@ contextBridge.exposeInMainWorld('api', {
   shotsList: id => r.invoke('shots:list', id), shotsOpen: o => r.invoke('shots:open', o), shotsCopy: o => r.invoke('shots:copy', o), shotsDelete: o => r.invoke('shots:delete', o), shotsFolder: id => r.invoke('shots:folder', id),
   clip: t => r.invoke('clip:text', t), saveText: o => r.invoke('text:save', o),
   worldsList: id => r.invoke('worlds:list', id), worldsCopy: o => r.invoke('worlds:copy', o), worldsImport: id => r.invoke('worlds:import', id),
-  modsHas: o => r.invoke('mods:has', o), modsBundle: o => r.invoke('mods:bundle', o),
+  modsHas: o => r.invoke('mods:has', o), modsProjects: o => r.invoke('mods:projects', o), modsBundle: o => r.invoke('mods:bundle', o),
   releases: () => r.invoke('app:releases'), rollback: o => r.invoke('app:rollback', o),
   importScan: () => r.invoke('import:scan'), importRun: d => r.invoke('import:run', d),
   settingsExport: o => r.invoke('settings:export', o), settingsImport: () => r.invoke('settings:import'),

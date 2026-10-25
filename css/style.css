@@ -4171,3 +4171,6 @@ html[data-cb=Grises] {
 .idh { margin: 10px 0 8px; display: flex; align-items: baseline; gap: 10px; font-size: 15px; }
 .idh span { color: var(--m); font-size: 12.5px; font-weight: 400; }
 .mbar .btn.pr { flex: none; }
+/* mod que ya está en la instancia */
+.inh{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;color:#3ddc84;background:rgba(61,220,132,.12);border:1px solid rgba(61,220,132,.35)}
+.wr .nm small.inh{display:block;width:max-content;margin-top:3px}
