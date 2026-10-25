@@ -10,7 +10,7 @@ contextBridge.exposeInMainWorld('api', {
   modsList: id => r.invoke('mods:list', id), modsPrecheck: o => r.invoke('mods:precheck', o), modsCheck: o => r.invoke('mods:check', o), modsToggle: o => r.invoke('mods:toggle', o), modsRemove: o => r.invoke('mods:remove', o), modsUpdate: o => r.invoke('mods:update', o), modsAdd: id => r.invoke('mods:add', id),
   bkList: id => r.invoke('bk:list', id), bkCreate: id => r.invoke('bk:create', id), bkRestore: o => r.invoke('bk:restore', o), bkDel: o => r.invoke('bk:del', o), bkOpen: id => r.invoke('bk:open', id), logOpen: f => r.invoke('log:open', f), logsFolder: () => r.invoke('logs:folder'),
   accAddOffline: n => r.invoke('acc:addOffline', n), accSwitch: id => r.invoke('acc:switch', id), accRemove: id => r.invoke('acc:remove', id),
-  shotsList: id => r.invoke('shots:list', id), shotsOpen: o => r.invoke('shots:open', o), shotsCopy: o => r.invoke('shots:copy', o), shotsDelete: o => r.invoke('shots:delete', o), shotsFolder: id => r.invoke('shots:folder', id),
+  statsGet: () => r.invoke('stats:get'), shotsList: id => r.invoke('shots:list', id), shotsOpen: o => r.invoke('shots:open', o), shotsCopy: o => r.invoke('shots:copy', o), shotsDelete: o => r.invoke('shots:delete', o), shotsFolder: id => r.invoke('shots:folder', id),
   clip: t => r.invoke('clip:text', t), saveText: o => r.invoke('text:save', o),
   worldsList: id => r.invoke('worlds:list', id), worldsCopy: o => r.invoke('worlds:copy', o), worldsImport: id => r.invoke('worlds:import', id),
   modsHas: o => r.invoke('mods:has', o), modsProjects: o => r.invoke('mods:projects', o), modsBundle: o => r.invoke('mods:bundle', o),

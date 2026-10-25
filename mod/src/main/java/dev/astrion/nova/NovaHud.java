@@ -230,6 +230,7 @@ public final class NovaHud {
             if (mc.options.hudHidden) return;
             if (mc.currentScreen instanceof NovaHudScreen) return;   // el editor dibuja su propia vista previa
             pollMouse(mc);
+            NovaShots.render(c, mc);
             int sw = c.getScaledWindowWidth(), sh = c.getScaledWindowHeight();
             for (El e : ALL) {
                 if (!e.on) continue;

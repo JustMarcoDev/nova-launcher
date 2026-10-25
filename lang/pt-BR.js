@@ -1096,4 +1096,14 @@ window.LANGS["pt-BR"]={name:"Português (Brasil)",d:{
 "Abrir carpeta de mods":"Abrir pasta de mods",
 "Instancia guardada ✓":"Instância salva ✓",
 "Filtrar mods…":"Filtrar mods…",
-"Desactivado por defecto: nada se descarga hasta que pulses Jugar. Si lo activas, al elegir una versión se descargan Java, librerías y cargador para que Jugar abra el juego al instante":"Desativado por padrão: nada é baixado até você clicar em Jogar. Se ativar, ao escolher uma versão baixa Java, bibliotecas e o loader para que Jogar abra o jogo na hora"}};
+"Desactivado por defecto: nada se descarga hasta que pulses Jugar. Si lo activas, al elegir una versión se descargan Java, librerías y cargador para que Jugar abra el juego al instante":"Desativado por padrão: nada é baixado até você clicar em Jogar. Se ativar, ao escolher uma versão baixa Java, bibliotecas e o loader para que Jogar abra o jogo na hora",
+"Estadísticas":"Estatísticas",
+"Tu tiempo de juego: por semana, por instancia, por versión y por servidor.":"O seu tempo de jogo: por semana, por instância, por versão e por servidor.",
+"Partidas":"Sessões",
+"Horas por semana":"Horas por semana",
+"últimas 8 semanas":"últimas 8 semanas",
+"Aún no hay partidas con fecha. Juega y aparecerán aquí.":"Ainda não há sessões com data. Jogue e elas aparecerão aqui.",
+"Sin datos todavía":"Ainda sem dados",
+"Aún no has entrado a ningún servidor desde el launcher":"Você ainda não entrou em nenhum servidor pelo launcher",
+"Incluye {1} jugadas antes de que existieran las estadísticas (sin fecha: no salen en el gráfico).":"Inclui {1} jogadas antes de existirem as estatísticas (sem data: não aparecem no gráfico)."
+}};

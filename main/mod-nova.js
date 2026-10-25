@@ -197,7 +197,18 @@ async function modManifest() {
   }
 }
 const modEntryOk = (e, mc) => !!e && !!verParse(e.version) && /^[0-9a-f]{64}$/.test(String(e.sha256 || '')) && typeof e.url === 'string' && e.url.startsWith(MODUP.base + 'download/') && e.url.endsWith('/nova-menu-' + mc + '.jar');
+// Notas de la versión del jar instalado: se guardan en nova/news.txt (primera línea «ver:<versión>») y el mod las enseña una vez con -Dnova.news
+let newsFile = '';
+const novaNews = () => newsFile;
+function newsWrite(version, notas) {
+  newsFile = '';
+  try {
+    const t = String(notas || '').trim().slice(0, 900); if (!t) return;
+    const f = path.join(novaDir(), 'news.txt'); fs.writeFileSync(f, 'ver:' + version + '\n' + t + '\n'); newsFile = f;
+  } catch {}
+}
 async function novaModResolve(mc) {
+  newsFile = '';
   const bundled = novaModJar(mc); if (!bundled) return null;
   try {
     const mine = app.getVersion(), sf = path.join(novaDir(), 'mod-updates.json'), st = rd(sf, {}), m = await modManifest(), e = m && m.jars && m.jars[mc];
@@ -210,11 +221,11 @@ async function novaModResolve(mc) {
         await dl(e.url, tmp);
         if (await hashFile(tmp, 'sha256') !== e.sha256.toLowerCase()) throw new Error('sha256 distinto');
         await mv(tmp, file); if (best && best.file !== file) drop(best.file);
-        best = { version: e.version, sha256: e.sha256.toLowerCase(), file }; st[mc] = best; wr(sf, st);
+        best = { version: e.version, sha256: e.sha256.toLowerCase(), file, notas: String(m.notas || '').slice(0, 900) }; st[mc] = best; wr(sf, st);
         send('log', 'Nova: menú de Nova actualizado a ' + e.version + ' (descargado y verificado).\n');
       } catch (er) { drop(tmp); send('log', 'Nova: no se pudo actualizar el menú (' + String(er && er.message || er).slice(0, 60) + '); se usa el incluido.\n'); }
     }
-    if (best && await hashFile(best.file, 'sha256').catch(() => '') === best.sha256) return best.file;   // se vuelve a comprobar antes de usarlo
+    if (best && await hashFile(best.file, 'sha256').catch(() => '') === best.sha256) { newsWrite(best.version, best.notas); return best.file; }   // se vuelve a comprobar antes de usarlo
     if (best) { drop(best.file); delete st[mc]; wr(sf, st); }
   } catch {}
   return bundled;
@@ -241,4 +252,4 @@ function novaServersWrite(list) {
 }
 
 // Lo que usan otros módulos
-Object.assign(R, { NOVA_MC, NOVA_REMOTE_ID, fondosDir, fondosScan, fondosWatch, modManifest, novaBg, novaBgGet, novaDir, novaModResolve, novaPickBg, novaServersWrite, novaSkin });
+Object.assign(R, { NOVA_MC, NOVA_REMOTE_ID, fondosDir, fondosScan, fondosWatch, modManifest, novaBg, novaBgGet, novaDir, novaModResolve, novaNews, novaPickBg, novaServersWrite, novaSkin });

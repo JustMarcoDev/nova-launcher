@@ -1096,4 +1096,14 @@ window.LANGS.fr={name:"Français",d:{
 "Abrir carpeta de mods":"Ouvrir le dossier des mods",
 "Instancia guardada ✓":"Instance enregistrée ✓",
 "Filtrar mods…":"Filtrer les mods…",
-"Desactivado por defecto: nada se descarga hasta que pulses Jugar. Si lo activas, al elegir una versión se descargan Java, librerías y cargador para que Jugar abra el juego al instante":"Désactivé par défaut : rien n'est téléchargé tant que tu n'appuies pas sur Jouer. Si tu l'actives, choisir une version télécharge Java, les bibliothèques et le chargeur pour que Jouer lance le jeu instantanément"}};
+"Desactivado por defecto: nada se descarga hasta que pulses Jugar. Si lo activas, al elegir una versión se descargan Java, librerías y cargador para que Jugar abra el juego al instante":"Désactivé par défaut : rien n'est téléchargé tant que tu n'appuies pas sur Jouer. Si tu l'actives, choisir une version télécharge Java, les bibliothèques et le chargeur pour que Jouer lance le jeu instantanément",
+"Estadísticas":"Statistiques",
+"Tu tiempo de juego: por semana, por instancia, por versión y por servidor.":"Ton temps de jeu : par semaine, par instance, par version et par serveur.",
+"Partidas":"Parties",
+"Horas por semana":"Heures par semaine",
+"últimas 8 semanas":"8 dernières semaines",
+"Aún no hay partidas con fecha. Juega y aparecerán aquí.":"Pas encore de parties datées. Joue et elles apparaîtront ici.",
+"Sin datos todavía":"Pas encore de données",
+"Aún no has entrado a ningún servidor desde el launcher":"Tu n'as encore rejoint aucun serveur depuis le launcher",
+"Incluye {1} jugadas antes de que existieran las estadísticas (sin fecha: no salen en el gráfico).":"Inclut {1} jouées avant l'existence des statistiques (sans date : absentes du graphique)."
+}};

@@ -162,6 +162,13 @@ Cada vez que cambia el mod (`mod/`) se publica una versión nueva del launcher: 
 
 ## Historial de actualizaciones
 
+### 0.2.16-beta.1 — Modo FPS, capturas con aviso, Estadísticas y novedades del mod
+
+- **Modo FPS** (menú de título y de pausa): el botón «Modo FPS» guarda tus opciones de vídeo en `menu.json` (`NovaSettings`) y aplica partículas mínimas, nubes y sombras de entidades desactivadas, distancia de renderizado 8, distancia de simulación 6 y animaciones de bloques reducidas (se actualizan una de cada dos veces). «Restaurar» devuelve los valores guardados. Las distancias nunca suben: si tenías menos de 8 o 6, se quedan como estaban. Funciona en las 19 versiones con dos capas nuevas de `mod/src/compat`: `opt-a`/`opt-b` (el paquete de `ParticlesMode` cambia en 1.21.2) y `shot-a`/`shot-b` (la firma de `ScreenshotRecorder.saveScreenshot` cambia en 1.21.6).
+- **Capturas con aviso**: al guardar una captura con F2 el mod enseña 5 s un aviso de Nova arriba a la derecha con miniatura y los botones «Copiar» y «Abrir carpeta» (solo se pueden pulsar con el cursor libre: chat, pausa, inventario). El mod escribe `[Nova] captura: <ruta>`; el launcher lo detecta y la galería de capturas se refresca sola (`main/mundos.js`, `js/cuentas.js`). Solo se aceptan rutas dentro de la carpeta `screenshots` de la instancia.
+- **Pestaña Estadísticas** (`js/estadisticas.js`, se carga al abrirla): cada partida se guarda en `stats.json` (instancia, versión, cargador, servidor, inicio y duración). Muestra las horas por semana de las últimas 8 semanas, el top 5 de instancias, versiones y servidores, y el total de capturas. El tiempo jugado de antes se importa como «previo»: cuenta en los totales y tops, pero no sale en el gráfico porque no tiene fecha. Usa el color de acento y no necesita conexión.
+- **Novedades del mod**: `nova-menu.json` lleva un campo `notas` con la entrada de esta versión de este Historial. Cuando el launcher instala un jar más nuevo, escribe las notas en `nova/news.txt` y arranca el juego con `-Dnova.news=<archivo>`; la pantalla de título enseña una tarjeta «Novedades de Nova» con una X, y al cerrarla guarda la versión vista en `NovaSettings` para no repetirla.
+
 ### 0.2.15 — Versión estable: repaso del código y más ligera
 
 - **Repaso de archivos**: se quitó `assets/nova-pack` (un paquete de recursos de la 0.2.14-beta.10 que ningún código usaba) y `docs/` y `novapack/` ya no se meten en el instalador (siguen en el repositorio como documentación). Se quitó una función sin uso y se limpiaron los espacios sobrantes. Los `.bat` vuelven a guardarse con fin de línea de Windows (CRLF) y un `.gitattributes` evita que se cambie solo.
