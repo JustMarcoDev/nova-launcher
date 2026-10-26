@@ -36,9 +36,11 @@ async function skLoad(){
   if(!SKD){SKD=sel?{...sel}:SKC&&SKC.skin&&SKC.skin.data?{data:SKC.skin.data,model:SKC.skin.variant,name:"Mi skin"}:null}
   skDraw();skShow();
 }
+function skLd(on){const e=$("skld");if(e)e.hidden=!on}
 async function skOpen(){
+  skLd(true);
   if(!SKV){
-    try{await skBundle()}catch(e){flash(em(e));return}
+    try{await skBundle()}catch(e){skLd(false);flash(em(e));return}
     const c=$("skc3");
     try{
       SKV=new skinview3d.SkinViewer({canvas:c,width:300,height:420});
@@ -46,7 +48,7 @@ async function skOpen(){
       SKV.animation=new skinview3d.WalkingAnimation();SKV.animation.speed=.7;
     }catch(e){SKV=null;$("skh").textContent="Tu equipo no admite la vista 3D (WebGL). Puedes usar la pestaña igualmente.";$("skh").style.display=""}
   }
-  skLoad();
+  try{await skLoad()}finally{skLd(false)}
 }
 function skRead(f){
   return new Promise((ok,no)=>{
