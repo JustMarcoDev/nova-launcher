@@ -4220,3 +4220,28 @@ html[data-cb=Grises] {
 #qi .rf { font-style: normal; color: #ffd93d; margin-left: 6px; font-size: 12px; }
 #qi .rs2 { color: var(--m); font-size: 11.5px; }
 #qi .s { flex: none; padding: 2px 9px; border-radius: 99px; background: rgba(255,255,255,.07); font-size: 11.5px; font-weight: 600; }
+
+/* Skins: pantalla de carga mientras se prepara la vista 3D y la lista (se oculta sola al terminar). */
+.skld { position: sticky; top: 0; z-index: 5; height: 0; overflow: visible; }
+.skld[hidden] { display: none; }
+.skld::before { content: ""; position: absolute; left: -26px; right: -26px; top: -22px; height: 100vh; background: color-mix(in srgb, var(--bg, #080a0f) 82%, transparent); backdrop-filter: blur(3px); animation: fadeUp .25s both; }
+.skld span { position: absolute; left: 50%; top: 38vh; transform: translateX(-50%); margin-top: 34px; color: var(--m); font-size: 13px; white-space: nowrap; animation: fadeUp .35s .1s both; }
+.skspin { position: absolute; left: 50%; top: 38vh; width: 28px; height: 28px; margin-left: -14px; border-radius: 50%; border: 3px solid color-mix(in srgb, var(--ac) 25%, transparent); border-top-color: var(--ac); animation: spin .8s linear infinite; }
+
+/* Estadísticas: al entrar, las tarjetas suben una tras otra, el gráfico crece desde abajo y las barras se llenan. */
+@keyframes stin { from { opacity: 0; transform: translateY(14px); } }
+@keyframes stbar { from { transform: scaleY(0); } }
+@keyframes stfill { from { transform: scaleX(0); } }
+#stp.go > *, #stp.go .stk > .card, #stp.go .stg3 > .card { animation: stin .5s cubic-bezier(.16,1,.3,1) both; }
+#stp.go .stk > .card:nth-child(2), #stp.go .stg3 > .card:nth-child(1) { animation-delay: .06s; }
+#stp.go .stk > .card:nth-child(3), #stp.go .stg3 > .card:nth-child(2) { animation-delay: .12s; }
+#stp.go .stg3 > .card:nth-child(3) { animation-delay: .18s; }
+#stp.go > .stcc { animation-delay: .1s; }
+#stp.go > .stg3 { animation: none; }
+#stp.go .stg3 > .card { animation-delay: .22s; }
+#stp.go .stg3 > .card:nth-child(2) { animation-delay: .29s; }
+#stp.go .stg3 > .card:nth-child(3) { animation-delay: .36s; }
+#stp.go .stbar { transform-box: fill-box; transform-origin: bottom; animation: stbar .7s cubic-bezier(.16,1,.3,1) both; animation-delay: calc(.25s + var(--i, 0) * .05s); }
+#stp.go .stb i { transform-origin: left; animation: stfill .8s cubic-bezier(.16,1,.3,1) both .4s; }
+#stp.go > .stk { animation: none; }
+@media (prefers-reduced-motion: reduce) { #stp.go *, .skld * { animation: none !important; } }

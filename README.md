@@ -162,6 +162,12 @@ Cada vez que cambia el mod (`mod/`) se publica una versión nueva del launcher: 
 
 ## Historial de actualizaciones
 
+### 0.2.16-beta.5 — Web de descarga, pantalla de carga en Skins y animación en Estadísticas
+
+- **Web de descarga**: la tarjeta «Web» de Redes (antes «Próximamente») y un botón en Ajustes → Acerca de abren https://justmarcodev.github.io/nova-launcher-web/.
+- **Skins**: al abrir la pestaña sale una pantalla de carga («Cargando skins…») mientras se prepara la vista 3D y la lista; se quita sola al terminar.
+- **Estadísticas**: al entrar, las tarjetas suben una tras otra, las barras del gráfico crecen desde abajo y las barras de los tops se llenan. Se desactiva con «reducir movimiento» del sistema.
+
 ### 0.2.16-beta.4 — X en todos los menús, HUD plegable y mods con iconos
 
 - **Launcher**: todos los menús (modales) llevan una X arriba a la derecha (menos el perfil obligatorio); Esc dentro de un buscador solo lo vacía y ya no cierra el menú de la instancia. «Crear instancia con esto» ocupa todo el ancho del desplegable y «Tus instancias» muestra icono, cargador, tiempo jugado y versión con una sola fila marcada. Se quitó CSS sin uso (`.ih`, `.inh`).
