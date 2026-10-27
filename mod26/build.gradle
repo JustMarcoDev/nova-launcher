@@ -1,0 +1,27 @@
+plugins {
+    id 'net.fabricmc.fabric-loom' version '1.19.3'
+}
+// La versión del mod es SIEMPRE la del launcher (../package.json)
+version = new groovy.json.JsonSlurper().parse(file('../package.json')).version
+group = 'dev.astrion.nova'
+base { archivesName = 'nova-menu-' + project.mc }
+
+repositories { mavenCentral() }
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.mc}"
+    implementation "net.fabricmc:fabric-loader:${project.loader}"
+}
+
+// Capas de compatibilidad por versión (src/compat/<capa>/java): se eligen con -Players=... (ver versions.txt)
+(project.findProperty('layers') ?: 'sdl').toString().split(',').each { l -> sourceSets.main.java.srcDir "src/compat/${l.trim()}/java" }
+
+processResources {
+    inputs.property 'version', project.version
+    inputs.property 'mc', project.mc
+    filesMatching('fabric.mod.json') { expand 'version': project.version, 'mc': project.mc }
+}
+
+tasks.withType(JavaCompile).configureEach { options.release = 25; options.compilerArgs += ['-Xmaxerrs', '2000'] }
+java { sourceCompatibility = JavaVersion.VERSION_25; targetCompatibility = JavaVersion.VERSION_25 }
+jar { from('LICENSE') { rename { "${it}_nova-menu-${project.mc}" } } }

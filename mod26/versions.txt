@@ -1,0 +1,6 @@
+# Versiones de Minecraft 26.x con menú de Nova: "<minecraft> <capas>" (src/compat/<capa>). sdl = ventana SDL3 (26.3); glfw = ventana GLFW (26.1 y 26.2). El workflow «Crear version» compila una por línea con Java 25.
+26.1 glfw,gui1
+26.1.1 glfw,gui1
+26.1.2 glfw,gui1
+26.2 glfw,gui2
+26.3 sdl,gui2

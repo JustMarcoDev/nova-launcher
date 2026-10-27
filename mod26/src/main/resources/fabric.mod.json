@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "nova-menu",
+  "version": "${version}",
+  "name": "Nova Menu",
+  "description": "Menú principal de Nova Launcher",
+  "authors": ["Astrion Studio"],
+  "icon": "assets/nova/icon.png",
+  "license": "All-Rights-Reserved",
+  "environment": "client",
+  "entrypoints": {},
+  "mixins": ["nova.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.15.0",
+    "minecraft": "${mc}"
+  }
+}

@@ -20,7 +20,7 @@ const verParse = (...a) => R.verParse(...a); // actualizaciones
 // Menú de Nova dentro del juego: mod de Fabric incluido de fábrica (carpeta assets/mods), siempre activo.
 // Se carga con -Dfabric.addMods, así que no aparece en la carpeta mods de la instancia ni se puede borrar desde ahí.
 // Vanilla se lanza a través de Fabric para poder cargarlo; si algo falla se juega en vanilla normal.
-const NOVA_MC = ['1.20', '1.20.1', '1.20.2', '1.20.3', '1.20.4', '1.20.5', '1.20.6', '1.21', '1.21.1', '1.21.2', '1.21.3', '1.21.4', '1.21.5', '1.21.6', '1.21.7', '1.21.8', '1.21.9', '1.21.10', '1.21.11'];
+const NOVA_MC = ['1.20', '1.20.1', '1.20.2', '1.20.3', '1.20.4', '1.20.5', '1.20.6', '1.21', '1.21.1', '1.21.2', '1.21.3', '1.21.4', '1.21.5', '1.21.6', '1.21.7', '1.21.8', '1.21.9', '1.21.10', '1.21.11', '26.1', '26.1.1', '26.1.2', '26.2', '26.3'];
           // versiones de Minecraft con mod incluido (mismo orden que mod/versions.txt)
 // Vídeo de fondo del menú de Nova (frames JPEG empaquetados): fuera del jar para que el mod pese poco
 // ---- Menú de Nova dentro del juego: carpeta de datos, skin del jugador y fondo personalizado ----

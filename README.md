@@ -162,6 +162,14 @@ Cada vez que cambia el mod (`mod/`) se publica una versión nueva del launcher: 
 
 ## Historial de actualizaciones
 
+### 0.2.16-beta.9 — Menú de Nova en Minecraft 26.1 a 26.3
+
+- **5 versiones nuevas** con menú de Nova (título, pausa, HUD y chat mejorado), para Nova y para Fabric: **26.1, 26.1.1, 26.1.2, 26.2 y 26.3**. Ya son **24 versiones** (1.20 a 1.21.11 y 26.1 a 26.3). La lista está en `mod/versions.txt` (1.20–1.21.11), `mod26/versions.txt` (26.x) y `NOVA_MC` de `main/mod-nova.js`; `tests/check.js` comprueba que coinciden.
+- **Proyecto nuevo `mod26/`**: desde la 26.1 Minecraft ya no va ofuscado, así que no hay Yarn ni remapeo (Loom `net.fabricmc.fabric-loom`, nombres de Mojang, Java 25). Código único con **capas** en `mod26/src/compat/<capa>`, elegidas por versión en `mod26/versions.txt`: `sdl` (26.3: ventana SDL3 y teclas propias del juego) · `glfw` (26.1 y 26.2) · `gui1` (26.1.x: pantallas en `Minecraft`, chat en `Gui`) · `gui2` (26.2 y 26.3: `Gui` gestiona pantallas y `Hud` dibuja el HUD).
+- **Teclas sin números sueltos** (26.x): en la 26.3 las teclas ya no son códigos GLFW (Esc es 41, no 256); el menú de Nova usa `InputConstants.KEY_*` en vez de 256/257/259.
+- **Fabric incluido** en `assets/fabric` para las 26.x (loader 0.19.5). Java 25 se descarga solo (lo pide la propia versión de Minecraft).
+- El workflow «Crear version» instala Java 25 + Gradle 9.8 y compila también `mod26/` (24 jars en total).
+
 ### 0.2.16-beta.8 — Marcadores seguros, chat mejorado y aviso del Modo FPS
 
 - **Marcadores seguros**: el launcher inventa un código aleatorio por partida (`crypto.randomBytes(16).toString('hex')`) y lo pasa con `-Dnova.key=<código>`. El mod lo escribe en cada marcador: `[NOVA:<código>:SWITCH:id]`, `[NOVA:<código>:SETTINGS]`… (incluidas las capturas: `SHOTNEW`, `SHOTCOPY`, `SHOTVIEW`, `SHOTOPEN`). El launcher ignora cualquier línea con `[CHAT]` y cualquier marcador sin el código correcto, así que un mensaje de chat con `[NOVA:SETTINGS]`, `[NOVA:OPENMODS]` o `[NOVA:GETBG:earth]` ya no hace nada. La lectura vive en `main/marcas.js` (módulo puro, con prueba en `tests/marcas.js`) y el mod los escribe con `NovaMark`. Fuera del launcher (sin `nova.key`) el mod no escribe marcadores.

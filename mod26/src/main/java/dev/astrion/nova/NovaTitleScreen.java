@@ -1,0 +1,995 @@
+package dev.astrion.nova;
+
+import static dev.astrion.nova.NovaLang.tr;
+
+import com.mojang.realmsclient.RealmsMainScreen;
+import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.LogoRenderer;
+import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
+import net.minecraft.client.gui.screens.multiplayer.SafetyScreen;
+import net.minecraft.client.gui.screens.options.LanguageSelectScreen;
+import net.minecraft.client.gui.screens.worldselection.SelectWorldScreen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.Util;
+
+/** Pantalla de título de Nova Launcher: Minecraft «versión Nova». */
+public class NovaTitleScreen extends NovaScreen {
+    static final Identifier MARK = Identifier.tryParse("nova:textures/gui/mark.png");
+    static boolean loaded, tested;
+
+    static final String LOADER = System.getProperty("nova.loader", "Nova");
+
+    private final long born = Util.getMillis();
+
+    // «Novedades de Nova»: el launcher pasa las notas de la versión con -Dnova.news=<archivo>
+    private static String newsText, newsVer = "";
+    private java.util.List<String> newsLines;
+    private int nx, ny, nw, nh;
+
+    private static String news() {
+        if (newsText == null) {
+            newsText = "";
+            try {
+                String f = System.getProperty("nova.news", "");
+                if (!f.isEmpty() && java.nio.file.Files.isRegularFile(java.nio.file.Path.of(f)))
+                    newsText = new String(java.nio.file.Files.readAllBytes(java.nio.file.Path.of(f)), java.nio.charset.StandardCharsets.UTF_8).trim();
+                if (newsText.startsWith("ver:")) {   // primera línea: versión del jar al que pertenecen las notas
+                    int nl = newsText.indexOf('\n');
+                    newsVer = (nl < 0 ? newsText.substring(4) : newsText.substring(4, nl)).trim();
+                    newsText = nl < 0 ? "" : newsText.substring(nl + 1).trim();
+                }
+            } catch (Throwable ignored) { }
+        }
+        return newsText;
+    }
+
+    private boolean newsOpen() { return !modal() && !news().isEmpty() && !newsVer.isEmpty() && !newsVer.equals(NovaSettings.newsSeen); }
+
+    private int tw(String s, float px) {
+        if (NovaGfx.ok) { try { return NovaGfx.text(minecraft, s, px, 0xFFFFFFFF, false).w(); } catch (Throwable e) { NovaGfx.ok = false; } }
+        return font.width(s) * 3 / 4;
+    }
+
+    private void layoutNews() {
+        nw = Math.min(170, width / 2 - 20);
+        newsLines = new java.util.ArrayList<>();
+        for (String para : news().split("\\R")) {
+            String cur = "";
+            for (String word : para.trim().split("\\s+")) {
+                String nx2 = cur.isEmpty() ? word : cur + " " + word;
+                if (!cur.isEmpty() && tw(nx2, 5.8f) > nw - 14) { newsLines.add(cur); cur = word; } else cur = nx2;
+            }
+            if (!cur.isEmpty()) newsLines.add(cur);
+            if (newsLines.size() >= 9) break;
+        }
+        if (newsLines.size() > 9) newsLines = newsLines.subList(0, 9);
+        nh = 26 + newsLines.size() * 9 + 6;
+        nx = 8; ny = height - nh - 22;
+    }
+
+    private void drawNews(GuiGraphicsExtractor c, int mx, int my) {
+        if (!newsOpen()) return;
+        if (newsLines == null) layoutNews();
+        NovaButton.panel(c, nx, ny, nw, nh, 4, 0xE6141428, 0xFF6C5CE7);
+        txt(c, tr("Novedades de Nova") + " " + newsVer, nx + 7, ny + 7, 6.8f, 0xFFFFFFFF, true, 0);
+        boolean hot = mx >= nx + nw - 16 && mx <= nx + nw - 4 && my >= ny + 3 && my <= ny + 15;
+        txt(c, "×", nx + nw - 10, ny + 5, 9f, hot ? 0xFFFFFFFF : 0xFF9A9AC0, true, 2);
+        for (int i = 0; i < newsLines.size(); i++) txt(c, newsLines.get(i), nx + 7, ny + 23 + i * 9, 5.8f, 0xFFC8C8E6, false, 0);
+    }
+
+    private boolean newsClick(double mx, double my) {
+        if (!newsOpen() || newsLines == null) return false;
+        if (mx < nx || mx > nx + nw || my < ny || my > ny + nh) return false;
+        if (mx >= nx + nw - 16 && my <= ny + 15) { NovaSettings.newsSeen = newsVer; NovaSettings.save(); }
+        return true;
+    }
+    private final LogoRenderer logo = new LogoRenderer(false);
+    private int top;
+    /** Panel abierto: 0 ninguno · 1 perfil · 2 menú de Nova */
+    private static int panel;
+    private int px, py, pw, ph;
+    private final java.util.List<Object[]> labels = new java.util.ArrayList<>();   // {texto, x, y, px, argb, negrita, ancla}
+    private NovaButton hoverBtn;
+    private long hoverSince, lastPoll;
+
+    public NovaTitleScreen() {
+        super(Component.literal("Nova"));
+        panel = 0;
+    }
+
+    static void ensure(Minecraft mc) {
+        if (!loaded) {
+            loaded = true;
+            // Sin Fabric API los recursos del mod no entran en el gestor de recursos: los registramos a mano.
+            NovaGfx.ok = true;
+            reg(mc, "textures/gui/mark.png");
+            NovaSettings.load();
+            NovaGfx.setAccent(NovaSettings.accent);
+            NovaSkin.load();
+        }
+    }
+
+    static void reg(Minecraft mc, String path) {
+        try (java.io.InputStream in = NovaTitleScreen.class.getResourceAsStream("/assets/nova/" + path)) {
+            if (in == null) return;
+            com.mojang.blaze3d.platform.NativeImage img = com.mojang.blaze3d.platform.NativeImage.read(in);
+            net.minecraft.client.renderer.texture.DynamicTexture tex = NovaCompat.newTex(img);
+            if (path.contains("mark")) { try { NovaCompat.smooth(tex); } catch (Throwable ignored) { } }
+            mc.getTextureManager().register(Identifier.tryParse("nova:" + path), tex);
+        } catch (Exception e) {
+            // se queda con la textura de «no encontrada»
+        }
+    }
+
+    static String mcVersion() {
+        return NovaCompat.gameVersion();
+    }
+
+    @Override public boolean shouldCloseOnEsc() { return false; }
+    @Override public boolean isPauseScreen() { return false; }
+
+    @Override
+    protected void init() {
+        newsLines = null;
+        ensure(minecraft);
+        NovaBg.start(minecraft);
+        if (System.getProperty("nova.selftest") != null && !tested) {
+            tested = true;
+            minecraft.execute(() -> { NovaGui.setScreen(minecraft, null); System.out.println("[NOVA-TEST] " + NovaGui.screen(minecraft).getClass().getName()); });
+        }
+        if (System.getProperty("nova.pause") != null && !tested3) { tested3 = true; minecraft.execute(() -> NovaGui.setScreen(minecraft, new NovaPauseScreen())); }   // solo para pruebas
+        String forced = System.getProperty("nova.panel", "");
+        if (!forced.isEmpty() && !tested2) { tested2 = true; panel = forced.equals("nova") ? 2 : forced.equals("profile") ? 1 : forced.equals("skins") ? 3 : forced.equals("servers") ? 4 : forced.equals("mods") ? 5 : 0; }
+        labels.clear();
+        int cx = width / 2;
+        int bw = Math.min(124, width - 20), bh = 16, gap = 3;
+        int ly = ly();
+        top = ly + 38;
+        int y = top;
+        String name = minecraft.getUser().getName();
+        if (!modal()) {   // con el menú de Nova abierto (modal) los botones de debajo ni existen: no pueden recibir clics
+        addRenderableWidget(new NovaButton(cx - bw / 2, y, bw, bh, Component.translatable("menu.singleplayer"), NovaGfx.I_USER, NovaButton.PRIMARY,
+                b -> NovaGui.setScreen(minecraft, new SelectWorldScreen(this))).tip(tr("Un jugador"), tr("Crea o abre tus mundos")));
+        y += bh + gap;
+        addRenderableWidget(new NovaButton(cx - bw / 2, y, bw, bh, Component.translatable("menu.multiplayer"), NovaGfx.I_USERS, NovaButton.PRIMARY, b -> {
+            if (minecraft.options.skipMultiplayerWarning) NovaGui.setScreen(minecraft, new JoinMultiplayerScreen(this));
+            else NovaGui.setScreen(minecraft, new SafetyScreen(this));
+        }).tip(tr("Multijugador"), tr("Únete a servidores")));
+        y += bh + gap + 3;
+        // fila de 7 botones: ajustes · idioma · skins · mods · servidores · realms · menú de Nova. Ocupa justo el ancho de los botones de arriba
+        int g = 2, s = (bw - 6 * g) / 7, bx = cx - bw / 2 + (bw - (7 * s + 6 * g)) / 2;
+        addRenderableWidget(new NovaButton(bx, y, s, s, Component.empty(), NovaGfx.I_GEAR, NovaButton.NORMAL,
+                b -> NovaGui.setScreen(minecraft, NovaVer.options(this, minecraft.options, false))).tip(tr("Ajustes"), tr("Opciones del juego")));
+        addRenderableWidget(new NovaButton(bx + (s + g), y, s, s, Component.empty(), NovaGfx.I_EARTH, NovaButton.NORMAL,
+                b -> NovaGui.setScreen(minecraft, new LanguageSelectScreen(this, minecraft.options, minecraft.getLanguageManager()))).tip(tr("Idioma"), tr("Cambia el idioma del juego")));
+        NovaButton skins = new NovaButton(bx + 2 * (s + g), y, s, s, Component.empty(), NovaGfx.I_HEAD, panel == 3 ? NovaButton.SELECTED : NovaButton.NORMAL, b -> {
+            panel = 3; skScroll = 0; skMsg = ""; skView = NovaSkins.current(); confirmDel = null;
+            rebuildWidgets();
+        });
+        skins.tip(tr("Skins"), tr("Cambia, guarda y elimina tus skins"));
+        addRenderableWidget(skins);
+        addRenderableWidget(new NovaButton(bx + 3 * (s + g), y, s, s, Component.empty(), NovaGfx.I_MODS, panel == 5 ? NovaButton.SELECTED : NovaButton.NORMAL, b -> {
+            panel = 5; mdScroll = 0; mdQ.setLength(0); rebuildWidgets();
+        }).tip(tr("Mods"), tr("Los mods que tienes instalados")));
+        addRenderableWidget(new NovaButton(bx + 4 * (s + g), y, s, s, Component.empty(), NovaGfx.I_SERVER, panel == 4 ? NovaButton.SELECTED : NovaButton.NORMAL, b -> {
+            panel = 4; svScroll = 0; rebuildWidgets();
+        }).tip(tr("Servidores"), tr("Entra a tu último servidor o a tus favoritos")));
+        addRenderableWidget(new NovaButton(bx + 5 * (s + g), y, s, s, Component.empty(), NovaGfx.I_REALMS, NovaButton.NORMAL,
+                b -> NovaGui.setScreen(minecraft, new RealmsMainScreen(this))).tip("Realms", tr("Mundos online de Minecraft")));
+        addRenderableWidget(new NovaButton(bx + 6 * (s + g), y, s, s, Component.empty(), NovaGfx.I_NOVA, panel == 2 ? NovaButton.SELECTED : NovaButton.NORMAL, b -> {
+            panel = 2;
+            rebuildWidgets();
+        }).tip(tr("Menú de Nova"), tr("Fondo, colores y más")));
+        // Modo FPS: una barra debajo de la fila; con el modo activo se parte en «Modo FPS ✓» y «Restaurar»
+        y += s + 3;
+        if (!NovaFps.on()) {
+            addRenderableWidget(new NovaButton(cx - bw / 2, y, bw, bh, Component.literal(tr("Modo FPS")), NovaGfx.I_BOLT, NovaButton.NORMAL, b -> { NovaFps.enable(minecraft); rebuildWidgets(); })
+                    .tip(tr("Modo FPS"), tr("Partículas mínimas, sin nubes ni sombras, distancia 8: más rendimiento")));
+        } else {
+            int hw = (bw - gap) / 2;
+            addRenderableWidget(new NovaButton(cx - bw / 2, y, hw, bh, Component.literal(tr("Modo FPS")), NovaGfx.I_CHECK, NovaButton.SELECTED, b -> { })
+                    .tip(tr("Modo FPS activo"), tr("Tus opciones de vídeo de antes están guardadas")));
+            addRenderableWidget(new NovaButton(cx - bw / 2 + hw + gap, y, bw - hw - gap, bh, Component.literal(tr("Restaurar")), NovaGfx.I_SWAP, NovaButton.NORMAL, b -> { NovaFps.restore(minecraft); rebuildWidgets(); })
+                    .tip(tr("Restaurar"), tr("Vuelve a tus opciones de vídeo de antes")));
+        }
+        // perfil (arriba izquierda)
+        int nw = Math.max(40, Math.min(120, (int) (name.length() * 3.9) + 20));
+        addRenderableWidget(new NovaButton(6, 6, nw, 12, Component.literal(name), NovaGfx.I_HEAD, panel == 1 ? NovaButton.SELECTED : NovaButton.NORMAL, b -> {
+            panel = panel == 1 ? 0 : 1; acList = false;
+            rebuildWidgets();
+        }).tip(tr("Perfil"), tr("Tu skin y tu cuenta")));
+        // cerrar el juego (arriba derecha)
+        addRenderableWidget(new NovaButton(width - 18, 6, 12, 12, Component.empty(), NovaGfx.I_CLOSE, NovaButton.DANGER, b -> minecraft.stop())
+                .tip(tr("Salir del juego"), tr("Cierra Minecraft")));
+        }
+        if (panel == 1) buildProfile(name);
+        else if (panel == 2) { snapshot(); buildNova(); }
+        else if (panel == 3) buildSkins();
+        else if (panel == 4) buildServers();
+        else if (panel == 5) buildMods();
+    }
+
+    static boolean tested2, tested3;
+
+    // ---------------------------------------------------------------- cambios pendientes del menú de Nova
+    // El fondo y el color se ven al instante, pero solo se guardan al pulsar «Confirmar cambios»; si se cierra sin confirmar, vuelven a como estaban.
+    private static String savedBg;
+    private static int savedAccent;
+    private static boolean snap;
+
+    private void snapshot() {
+        if (snap) return;
+        snap = true; savedBg = NovaSettings.bg; savedAccent = NovaSettings.accent;
+    }
+
+    private boolean dirty() { return snap && (!NovaSettings.bg.equals(savedBg) || NovaSettings.accent != savedAccent); }
+
+    /** Cierra el menú de Nova. Con keep=true guarda lo elegido; si no, deshace lo que no se confirmó. */
+    void closeNova(boolean keep) {
+        if (keep) NovaSettings.save();
+        else if (snap) {
+            if (NovaSettings.accent != savedAccent) { NovaSettings.accent = savedAccent; NovaGfx.setAccent(savedAccent); }
+            if (!NovaSettings.bg.equals(savedBg)) {
+                NovaSettings.bg = NovaBgs.find(savedBg) == null ? "hole" : savedBg;
+                NovaBg.switchTo(minecraft, NovaSettings.bgPath());
+            }
+        }
+        snap = false; panel = 0; editing = null; confirmDel = null;
+        rebuildWidgets();
+    }
+
+    // ---------------------------------------------------------------- panel de perfil
+    // ---- cambiar de usuario: solo las cuentas que tiene el launcher (accounts.json) ----
+    private static boolean acList;          // el panel de perfil enseña la lista de cuentas
+    private static String acBusy = "";      // nombre al que se está cambiando (el launcher reabre el juego)
+
+    /** Cuentas del launcher: {id, nombre, tipo, activa("1"/"0"), ruta de su skin o ""}. Vacío si el launcher no dejó el archivo. */
+    static java.util.List<String[]> accounts() {
+        java.util.List<String[]> out = new java.util.ArrayList<>();
+        try {
+            java.io.File d = NovaSettings.dir(), f = d == null ? null : new java.io.File(d, "accounts.json");
+            if (f == null || !f.isFile()) return out;
+            com.google.gson.JsonObject o = com.google.gson.JsonParser.parseString(new String(java.nio.file.Files.readAllBytes(f.toPath()), java.nio.charset.StandardCharsets.UTF_8)).getAsJsonObject();
+            String act = o.has("active") ? o.get("active").getAsString() : "";
+            for (com.google.gson.JsonElement e : o.getAsJsonArray("accounts")) {
+                com.google.gson.JsonObject a = e.getAsJsonObject();
+                String id = a.get("id").getAsString();
+                if (!id.matches("[\\w-]{1,40}")) continue;
+                out.add(new String[] { id, a.get("name").getAsString(), a.has("type") ? a.get("type").getAsString() : "offline", id.equals(act) ? "1" : "0", a.has("skin") && !a.get("skin").isJsonNull() ? a.get("skin").getAsString() : "" });
+            }
+        } catch (Throwable ignored) { }
+        return out;
+    }
+
+    private static final java.util.Map<String, NovaGfx.Tex> HEADS = new java.util.HashMap<>();
+
+    /** Cara de una cuenta: de su skin; si no tiene (o no se puede leer), la de Steve. */
+    private NovaGfx.Tex accHead(String[] a) {
+        java.io.File f = a[4].isEmpty() ? null : new java.io.File(a[4]);
+        String key = "acchead|" + a[0] + "|" + (f != null && f.isFile() ? f.lastModified() : 0) + "|" + NovaSkin.steve();
+        if (HEADS.containsKey(key)) return HEADS.get(key);
+        NovaGfx.Tex t = null;
+        try {
+            java.awt.image.BufferedImage im = null;
+            try { if (f != null && f.isFile()) im = javax.imageio.ImageIO.read(f); } catch (Throwable ignored) { }
+            if (im == null || im.getWidth() != 64) im = NovaSkin.steve();
+            if (im != null) t = NovaGfx.skin(minecraft, NovaSkin.headOf(im), key);
+        } catch (Throwable e) { t = null; }
+        HEADS.put(key, t);
+        return t;
+    }
+
+    void buildProfile(String name) {
+        final java.util.List<String[]> accs = accounts();
+        final boolean list = acList && accs.size() > 1;
+        int fs = height >= 220 ? 3 : 2;
+        pw = 118;
+        int shown = Math.min(accs.size(), 6);
+        if (list) ph = 10 + 11 + 5 + shown * 16 + 4 + 15 + 8;
+        else ph = 10 + 32 * fs + 8 + 11 + 5 + 12 + 5 + 8 + 10 + (accs.size() > 1 ? 21 : 0);
+        px = 6; py = 24;
+        final int fsz = fs;
+        addRenderableOnly((c, mx, my, d) -> {
+            drawPanelBg(c);
+            int cx = px + pw / 2, y = py + 10;
+            if (list) { txt(c, acBusy.isEmpty() ? tr("Cambiar de usuario") : tr("Cambiando de usuario…"), cx, y, 7.4f, 0xFFFFFFFF, true, 2); return; }
+            NovaSkin.load();
+            boolean drawn = false;
+            if (NovaGfx.ok && NovaSkin.body != null) {
+                try {
+                    NovaGfx.Tex t = NovaGfx.skin(minecraft, NovaSkin.body, "skin|body|" + NovaSkin.ver);
+                    t.drawSized(c, cx - 8 * fsz, y, 16 * fsz, 32 * fsz, 1f);
+                    drawn = true;
+                } catch (Throwable e) { NovaGfx.ok = false; }
+            }
+            if (!drawn) silhouette(c, cx, y, 32 * fsz);
+            y += 32 * fsz + 8;
+            txt(c, name, cx, y, 8.4f, 0xFFFFFFFF, true, 2);
+            y += 11 + 5;
+            int pc = NovaSettings.PREMIUM ? 0x3DDC84 : 0xFFB347;
+            try {
+                NovaGfx.Tex p = NovaGfx.pill(minecraft, NovaSettings.PREMIUM ? "Premium" : "No premium", pc, NovaSettings.PREMIUM ? NovaGfx.I_CHECK : -1);
+                p.draw(c, cx - p.w() / 2, y, 1f);
+            } catch (Throwable e) { NovaGfx.ok = false; }
+            y += 12 + 5;
+            txt(c, NovaSettings.PREMIUM ? (tr("Cuenta de Microsoft")) : (tr("Cuenta sin conexión")), cx, y, 5.8f, 0xFF9A9AC0, false, 2);
+        });
+        int bx = px + 6, bw = pw - 12;
+        if (list) {
+            int y = py + 10 + 11 + 5;
+            final java.util.List<Object[]> heads = new java.util.ArrayList<>();
+            for (int i = 0; i < shown; i++) {
+                final String[] a = accs.get(i);
+                boolean cur = a[3].equals("1");
+                String lab = "    " + shorten(a[1], 12) + (a[2].equals("microsoft") ? "  MS" : "") + (cur ? "  ✓" : "");
+                NovaButton b = new NovaButton(bx, y, bw, 14, Component.literal(lab), -1, cur ? NovaButton.SELECTED : NovaButton.NORMAL, x -> {
+                    if (cur || !acBusy.isEmpty()) return;
+                    acBusy = a[1];
+                    NovaMark.say("SWITCH", a[0]);   // el launcher activa la cuenta y vuelve a abrir el juego con ella
+                    rebuildWidgets();
+                });
+                b.tip(a[1], cur ? tr("Es el usuario que estás usando") : tr("Cambiar a este usuario: el juego se reinicia"));
+                addRenderableWidget(b);
+                heads.add(new Object[] { a, bx + 4, y + 2 });
+                y += 16;
+            }
+            addRenderableOnly((c, mx, my, d) -> {   // las caras van encima de los botones
+                for (Object[] h : heads) {
+                    NovaGfx.Tex t = accHead((String[]) h[0]);
+                    if (t != null) t.drawSized(c, (int) h[1], (int) h[2], 10, 10, 1f);
+                }
+            });
+            addRenderableWidget(new NovaButton(bx, y + 4, bw, 15, Component.literal(tr("Volver")), -1, NovaButton.NORMAL, x -> { acList = false; rebuildWidgets(); }));
+        } else if (accs.size() > 1) {
+            addRenderableWidget(new NovaButton(bx, py + ph - 8 - 15, bw, 15, Component.literal(tr("Cambiar de usuario")), NovaGfx.I_SWAP, NovaButton.NORMAL, x -> { acList = true; acBusy = ""; rebuildWidgets(); })
+                    .tip(tr("Cambiar de usuario"), tr("Solo las cuentas que tienes en el launcher")));
+        }
+    }
+
+    void silhouette(GuiGraphicsExtractor c, int cx, int y, int size) {
+        try {
+            int s = Math.max(1, (int) Math.round(minecraft.getWindow().getGuiScale()));
+            NovaGfx.Tex t = NovaGfx.button(minecraft, size / 2, size / 2, "", NovaGfx.I_USER, NovaButton.NORMAL, false, false);
+            t.draw(c, cx - size / 4 - 5, y + size / 4 - 5, 0.9f);
+        } catch (Throwable e) { NovaGfx.ok = false; }
+    }
+
+    void drawPanelBg(GuiGraphicsExtractor c) {
+        if (NovaGfx.ok) {
+            try { NovaGfx.panel(minecraft, pw, ph).draw(c, px - 8, py - 8, 1f); return; }
+            catch (Throwable e) { NovaGfx.ok = false; }
+        }
+        NovaButton.panel(c, px, py, pw, ph, 6, 0xF010102A, 0xFF4A3C8C);
+    }
+
+    // ---------------------------------------------------------------- panel de Nova (centrado, sobre todo lo demás)
+    private String editing;            // archivo cuyo nombre se está editando
+    private final StringBuilder buf = new StringBuilder();
+    private String confirmDel;         // archivo pendiente de confirmar el borrado
+    private int scroll;
+    private String sig = "";
+    private final java.util.Set<String> known = new java.util.HashSet<>();
+
+    void buildNova() {
+        java.util.List<NovaBgs.Entry> L = NovaBgs.list();
+        int fixed = 8 + 12 + 10 + 18 + 10 + 11 + 20 + 15 + 8 + 17;
+        int maxRows = Math.max(2, Math.min(6, (height - 20 - fixed) / 17));
+        scroll = Math.max(0, Math.min(scroll, Math.max(0, L.size() - maxRows)));
+        int rows = Math.min(maxRows, L.size());
+        pw = Math.min(262, width - 16);
+        ph = fixed + rows * 17;
+        px = (width - pw) / 2; py = Math.max(6, (height - ph) / 2);
+        addRenderableOnly((c, mx, my, d) -> {
+            c.fill(0, 0, width, height, 0xA0020208);   // atenúa lo de detrás: el panel va por encima de todo
+            drawPanelBg(c);
+            for (Object[] l : labels) txt(c, (String) l[0], (int) l[1], (int) l[2], (float) l[3], (int) l[4], (boolean) l[5], (int) l[6]);
+        });
+        int x = px + 8, w = pw - 16, y = py + 8;
+        labels.add(new Object[] { tr("Menú de Nova"), x, y, 8.6f, 0xFFFFFFFF, true, 0 });
+        addX(() -> closeNova(false));
+        y += 12;
+        labels.add(new Object[] { tr("FONDO"), x, y, 5.6f, 0xFF9A9AC0, true, 0 });
+        if (L.size() > rows) labels.add(new Object[] { (scroll + 1) + "–" + (scroll + rows) + " / " + L.size() + (tr("  ·  rueda del ratón")), px + pw - 8, y, 5.6f, 0xFF7C7CA0, false, 1 });
+        y += 10;
+        int ib = 15, gap = 2;
+        for (int i = scroll; i < scroll + rows; i++) {
+            NovaBgs.Entry e = L.get(i);
+            boolean sel = e.id.equals(NovaSettings.bg);
+            boolean mine = e.file != null;
+            if (mine && e.file.equals(confirmDel)) {
+                labels.add(new Object[] { tr("¿Eliminar «{0}»?", shorten(e.name, 24)), x + 2, y + 4, 6.4f, 0xFFFF9AA4, false, 0 });
+                final String f = e.file;
+                addRenderableWidget(new NovaButton(x + w - 2 * ib - gap - 36, y, 36 + ib, ib, Component.literal(tr("Sí, eliminar")), NovaGfx.I_TRASH, NovaButton.DANGER, b -> {
+                    boolean wasSel = NovaSettings.bg.equals("f:" + f);
+                    NovaBgs.delete(f); confirmDel = null;
+                    if (wasSel) { NovaSettings.bg = "hole"; NovaBg.switchTo(minecraft, NovaSettings.bgPath()); }
+                    if (("f:" + f).equals(savedBg)) savedBg = "hole";   // el fondo guardado ya no existe
+                    rebuildWidgets();
+                }).tip(tr("Eliminar"), tr("Borra la foto o el vídeo")));
+                addRenderableWidget(new NovaButton(x + w - ib, y, ib, ib, Component.empty(), NovaGfx.I_CLOSE, NovaButton.NORMAL, b -> { confirmDel = null; rebuildWidgets(); })
+                        .tip(tr("Cancelar"), tr("No borrar nada")));
+                y += 17; continue;
+            }
+            int reserve = mine ? 3 * (ib + gap) : 0;
+            if (mine && e.file.equals(editing)) {
+                addRenderableWidget(new NovaButton(x, y, w - ib - gap, ib, Component.literal(buf + "|"), -1, NovaButton.SELECTED, b -> {})
+                        .tip(tr("Nuevo nombre"), tr("Escribe y pulsa Intro")));
+                final String f = e.file;
+                addRenderableWidget(new NovaButton(x + w - ib, y, ib, ib, Component.empty(), NovaGfx.I_CHECK, NovaButton.PRIMARY, b -> commitName(f))
+                        .tip(tr("Guardar nombre"), tr("Confirma el nombre")));
+                y += 17; continue;
+            }
+            String label = e.name;
+            if (!e.ready) label += e.error ? tr("  (error)") : e.remote && !e.working ? tr("  (descargar)") : "  " + Math.round(e.progress * 100) + "%";
+            NovaButton b = new NovaButton(x, y, w - reserve, ib, Component.literal(label), sel ? NovaGfx.I_CHECK : -1, sel ? NovaButton.SELECTED : NovaButton.NORMAL, bb -> {
+                if (e.remote && !e.ready) { NovaBgs.request(e); rebuildWidgets(); return; }   // por descargar: se lo pide al launcher
+                NovaSettings.bg = e.id;
+                NovaBg.switchTo(minecraft, NovaSettings.bgPath());
+                rebuildWidgets();
+            });
+            b.active = e.ready || (e.remote && !e.working);
+            b.tip(shorten(e.name, 26), e.ready ? (tr("Usar este fondo")) : e.remote ? (e.working ? tr("Descargando el fondo…") : e.error ? tr("No se pudo descargar: pulsa para reintentar") : tr("Pulsa para descargar este fondo")) : e.error ? (tr("No se pudo convertir")) : (tr("Preparando el fondo…")));
+            addRenderableWidget(b);
+            if (mine) {
+                final String f = e.file; final String nm = e.name;
+                int bx = x + w - 3 * ib - 2 * gap;
+                addRenderableWidget(new NovaButton(bx, y, ib, ib, Component.empty(), NovaGfx.I_EDIT, NovaButton.NORMAL, bb -> { editing = f; buf.setLength(0); buf.append(nm); confirmDel = null; rebuildWidgets(); })
+                        .tip(tr("Cambiar nombre"), tr("Ponle el nombre que quieras")));
+                addRenderableWidget(new NovaButton(bx + ib + gap, y, ib, ib, Component.empty(), NovaGfx.I_SWAP, NovaButton.NORMAL, bb -> NovaMark.say("PICKBG", f))
+                        .tip(tr("Cambiar archivo"), tr("Elige otra foto o vídeo")));
+                addRenderableWidget(new NovaButton(bx + 2 * (ib + gap), y, ib, ib, Component.empty(), NovaGfx.I_TRASH, NovaButton.NORMAL, bb -> { confirmDel = f; editing = null; rebuildWidgets(); })
+                        .tip(tr("Eliminar"), tr("Borra la foto o el vídeo")));
+            }
+            y += 17;
+        }
+        int half = (w - gap) / 2;
+        NovaButton add = new NovaButton(x, y, half, ib, Component.literal(tr("Añadir")), NovaGfx.I_PLUS, NovaButton.NORMAL, b -> NovaMark.say("PICKBG"));
+        add.active = !NovaSettings.DIR.isEmpty();
+        add.tip(tr("Añadir foto o vídeo"), tr("Elige un archivo de tu PC"));
+        addRenderableWidget(add);
+        NovaButton open = new NovaButton(x + half + gap, y, w - half - gap, ib, Component.literal(tr("Abrir carpeta")), NovaGfx.I_FOLDER, NovaButton.NORMAL, b -> NovaMark.say("OPENDIR"));
+        open.active = !NovaSettings.DIR.isEmpty();
+        open.tip(tr("Carpeta de fondos"), tr("Arrastra aquí tus fotos"));
+        addRenderableWidget(open);
+        y += ib + 3;
+        labels.add(new Object[] { tr("Arrastra fotos o vídeos a la carpeta y aparecen aquí"), x, y, 5.4f, 0xFF7C7CA0, false, 0 });
+        y += 11;
+        labels.add(new Object[] { tr("COLOR DE LOS BOTONES"), x, y, 5.6f, 0xFF9A9AC0, true, 0 });
+        y += 9;
+        int n = NovaSettings.COLORS.length, d = 14, sp = (w - n * d) / (n - 1);
+        for (int i = 0; i < n; i++) {
+            final int col = NovaSettings.COLORS[i];
+            NovaButton sw = new NovaButton(x + i * (d + sp), y, d, d, Component.empty(), -1, NovaButton.NORMAL, b -> {
+                NovaSettings.accent = col;
+                NovaGfx.setAccent(col);
+                rebuildWidgets();
+            });
+            sw.swatch(col & 0xFFFFFF, col == NovaSettings.accent);
+            sw.tip(tr("Color de acento"), tr("Cambia el color de los botones"));
+            addRenderableWidget(sw);
+        }
+        y += d + 5;
+        addRenderableWidget(new NovaButton(x, y, w, ib, Component.literal(tr("Ajustes del launcher")), NovaGfx.I_GEAR, NovaButton.NORMAL, b -> NovaMark.say("SETTINGS"))
+                .tip(tr("Ajustes del launcher"), tr("Abre Nova Launcher")));
+        y += ib + gap;
+        addRenderableWidget(new NovaButton(x, y, w, ib, Component.literal(tr("Editar HUD")), NovaGfx.I_EDIT, NovaButton.NORMAL, b -> NovaGui.setScreen(minecraft, new NovaHudScreen(this)))
+                .tip(tr("Editar HUD"), tr("Mueve FPS, CPS, coordenadas y teclas")));
+        y += ib + gap + 1;
+        NovaButton ok = new NovaButton(x, y, w, ib, Component.literal(tr("Confirmar cambios")), NovaGfx.I_CHECK, dirty() ? NovaButton.PRIMARY : NovaButton.NORMAL, b -> closeNova(true));
+        ok.tip(tr("Confirmar cambios"), dirty() ? (tr("Guarda el fondo y el color elegidos")) : (tr("Sin cambios por guardar")));
+        addRenderableWidget(ok);
+        ph = (y + ib + 8) - py;
+        sig = NovaBgs.signature();
+        known.clear();
+        for (NovaBgs.Entry e : L) if (e.ready) known.add(e.id);
+    }
+
+    // ---------------------------------------------------------------- panel de skins (el botón de la cabeza)
+    private static int skScroll;
+    private static String skView = "", skMsg = "";
+
+    void closeSkins() { panel = 0; confirmDel = null; rebuildWidgets(); }
+
+    void buildSkins() {
+        java.util.List<NovaSkins.E> L = NovaSkins.list();
+        String cur = NovaSkins.current();
+        if (skView.isEmpty() || L.stream().noneMatch(e -> e.id.equals(skView))) skView = L.stream().anyMatch(e -> e.id.equals(cur)) ? cur : (L.isEmpty() ? "" : L.get(0).id);
+        int fixed = 8 + 12 + 12 + 17 + 17 + 12 + 17 + 8;
+        int maxRows = Math.max(4, Math.min(6, (height - 20 - fixed) / 17));
+        skScroll = Math.max(0, Math.min(skScroll, Math.max(0, L.size() - maxRows)));
+        int rows = Math.max(4, Math.min(maxRows, L.size()));   // 4 filas como mínimo: la vista previa es alta
+        pw = Math.min(268, width - 16);
+        ph = fixed + rows * 17;
+        px = (width - pw) / 2; py = Math.max(6, (height - ph) / 2);
+        final NovaSkins.E view = L.stream().filter(e -> e.id.equals(skView)).findFirst().orElse(null);
+        final int pvw = 48;
+        int x = px + 8, w = pw - 16, y = py + 8;
+        final int figX = x + pvw / 2, figY = y + 24;
+        addRenderableOnly((c, mx, my, d) -> {
+            c.fill(0, 0, width, height, 0xA0020208);
+            drawPanelBg(c);
+            for (Object[] l : labels) txt(c, (String) l[0], (int) l[1], (int) l[2], (float) l[3], (int) l[4], (boolean) l[5], (int) l[6]);
+            if (view != null && NovaGfx.ok) {
+                try {
+                    java.awt.image.BufferedImage im = NovaSkins.read(view.png());
+                    if (im != null) {
+                        NovaGfx.Tex t = NovaGfx.skin(minecraft, NovaSkin.figureOf(im), "skin|prev|" + view.id + "|" + view.png().lastModified());
+                        int k = height >= 200 ? 2 : 1;
+                        t.drawSized(c, figX - 8 * k, figY, 16 * k, 32 * k, 1f);
+                    }
+                } catch (Throwable e) { NovaGfx.ok = false; }
+            }
+        });
+        labels.add(new Object[] { tr("Skins"), x, y, 8.6f, 0xFFFFFFFF, true, 0 });
+        addX(this::closeSkins);
+        y += 12;
+        labels.add(new Object[] { tr("TUS SKINS"), x, y, 5.6f, 0xFF9A9AC0, true, 0 });
+        if (L.size() > rows) labels.add(new Object[] { (skScroll + 1) + "–" + Math.min(L.size(), skScroll + rows) + " / " + L.size() + tr("  ·  rueda del ratón"), px + pw - 8, y, 5.6f, 0xFF7C7CA0, false, 1 });
+        y += 12;
+        int ib = 15, gap = 2, lx = x + pvw + 4, lw = w - pvw - 4, mw = 30, listTop = y;
+        if (L.isEmpty()) labels.add(new Object[] { tr("Aún no tienes skins: sube una desde el launcher"), lx, y + 4, 5.8f, 0xFF9A9AC0, false, 0 });
+        for (int i = skScroll; i < Math.min(L.size(), skScroll + rows); i++) {
+            final NovaSkins.E e = L.get(i);
+            boolean using = e.id.equals(cur), shown = e.id.equals(skView);
+            if (e.id.equals(confirmDel)) {
+                labels.add(new Object[] { tr("¿Eliminar «{0}»?", shorten(e.name, 20)), lx + 2, y + 4, 6.2f, 0xFFFF9AA4, false, 0 });
+                addRenderableWidget(new NovaButton(lx + lw - ib - gap - 36 - ib, y, 36 + ib, ib, Component.literal(tr("Sí, eliminar")), NovaGfx.I_TRASH, NovaButton.DANGER, b -> {
+                    try { NovaSkins.delete(e); skMsg = tr("Skin eliminada"); } catch (Throwable ex) { skMsg = tr("No se pudo eliminar"); }
+                    confirmDel = null; rebuildWidgets();
+                }).tip(tr("Eliminar"), tr("Borra la skin de tu lista")));
+                addRenderableWidget(new NovaButton(lx + lw - ib, y, ib, ib, Component.empty(), NovaGfx.I_CLOSE, NovaButton.NORMAL, b -> { confirmDel = null; rebuildWidgets(); }).tip(tr("Cancelar"), tr("No borrar nada")));
+                y += 17; continue;
+            }
+            addRenderableWidget(new NovaButton(lx, y, lw - mw - ib - 2 * gap, ib, Component.literal(shorten(e.name, 18)), using ? NovaGfx.I_CHECK : -1, using ? NovaButton.SELECTED : shown ? NovaButton.PRIMARY : NovaButton.NORMAL, b -> {
+                try { NovaSkins.use(e); skView = e.id; skMsg = tr("Skin puesta: la ves en un momento"); } catch (Throwable ex) { skMsg = tr("No se pudo poner la skin"); }
+                rebuildWidgets();
+            }).tip(shorten(e.name, 26), using ? tr("En uso") : tr("Usar esta skin")));
+            addRenderableWidget(new NovaButton(lx + lw - mw - ib - gap, y, mw, ib, Component.literal(e.slim ? tr("Fina") : tr("Clásica")), -1, NovaButton.NORMAL, b -> {
+                try { NovaSkins.setSlim(e, !e.slim); skView = e.id; } catch (Throwable ex) { skMsg = tr("No se pudo cambiar"); }
+                rebuildWidgets();
+            }).tip(tr("Modelo"), tr("Brazos finos (3 px) o clásicos (4 px)")));
+            addRenderableWidget(new NovaButton(lx + lw - ib, y, ib, ib, Component.empty(), NovaGfx.I_TRASH, NovaButton.NORMAL, b -> { confirmDel = e.id; rebuildWidgets(); })
+                    .tip(tr("Eliminar"), tr("Borra la skin de tu lista")));
+            y += 17;
+        }
+        y = Math.max(y, listTop + rows * 17);
+        int half = (w - gap) / 2;
+        NovaButton save = new NovaButton(x, y, half, ib, Component.literal(tr("Guardar la actual")), NovaGfx.I_PLUS, NovaButton.NORMAL, b -> {
+            try {
+                Object[] r = NovaSkins.saveCurrent();
+                if (r == null) skMsg = tr("No hay ninguna skin que guardar");
+                else { skView = ((NovaSkins.E) r[0]).id; skMsg = (Boolean) r[1] ? tr("Ya la tenías guardada") : tr("Skin guardada"); }
+            } catch (Throwable ex) { skMsg = tr("No se pudo guardar"); }
+            rebuildWidgets();
+        });
+        save.active = NovaSkins.available();
+        save.tip(tr("Guardar la actual"), tr("Guarda la skin que llevas ahora en tu lista"));
+        addRenderableWidget(save);
+        NovaButton open = new NovaButton(x + half + gap, y, w - half - gap, ib, Component.literal(tr("Abrir carpeta")), NovaGfx.I_FOLDER, NovaButton.NORMAL, b -> NovaSkins.openFolder());
+        open.active = NovaSkins.available();
+        open.tip(tr("Carpeta de skins"), tr("Suelta aquí archivos .png de 64×64 y aparecen en la lista"));
+        addRenderableWidget(open);
+        y += ib + gap;
+        NovaButton none = new NovaButton(x, y, half, ib, Component.literal(tr("Quitar skin")), NovaGfx.I_CLOSE, NovaButton.NORMAL, b -> {
+            try { NovaSkins.unset(); skMsg = tr("Vuelves a tu skin de siempre"); } catch (Throwable ex) { skMsg = tr("No se pudo quitar"); }
+            rebuildWidgets();
+        });
+        none.active = !cur.isEmpty();
+        none.tip(tr("Quitar skin"), tr("Vuelves a la skin de tu cuenta"));
+        addRenderableWidget(none);
+        addRenderableWidget(new NovaButton(x + half + gap, y, w - half - gap, ib, Component.literal(tr("Listo")), NovaGfx.I_CHECK, NovaButton.PRIMARY, b -> closeSkins()));
+        y += ib + 4;
+        labels.add(new Object[] { skMsg.isEmpty() ? (NovaSettings.PREMIUM ? tr("Solo la ves tú; para que todos la vean, aplícala desde el launcher") : tr("Solo la ves tú")) : skMsg, x, y, 5.4f, skMsg.isEmpty() ? 0xFF7C7CA0 : 0xFFB8B8E8, false, 0 });
+        ph = (y + 12 + 6) - py;
+    }
+
+    // ---------------------------------------------------------------- panel de servidores (el botón del servidor)
+    private static int svScroll, svRows = 4;
+
+    void buildServers() {
+        java.util.List<NovaServers.Srv> F = NovaServers.favs();
+        NovaServers.Srv last = NovaServers.last();
+        int ib = 15, gap = 2;
+        int fixed = 8 + 12 + 10 + 20 + 6 + 10 + 8;
+        int maxRows = Math.max(2, Math.min(6, (height - 20 - fixed) / 17));
+        svScroll = Math.max(0, Math.min(svScroll, Math.max(0, F.size() - maxRows)));
+        int rows = Math.max(1, Math.min(maxRows, F.size()));
+        svRows = rows;
+        pw = Math.min(250, width - 16);
+        ph = fixed + rows * 17;
+        px = (width - pw) / 2; py = Math.max(6, (height - ph) / 2);
+        int x = px + 8, w = pw - 16, y = py + 8;
+        java.util.List<String> want = new java.util.ArrayList<>();
+        if (last != null) want.add(last.addr);
+        for (int i = svScroll; i < Math.min(F.size(), svScroll + rows); i++) want.add(F.get(i).addr);
+        final java.util.List<Object[]> pings = new java.util.ArrayList<>();   // {dirección, x derecha, y}
+        addRenderableOnly((c, mx, my, d) -> {
+            c.fill(0, 0, width, height, 0xA0020208);
+            drawPanelBg(c);
+            for (Object[] l : labels) txt(c, (String) l[0], (int) l[1], (int) l[2], (float) l[3], (int) l[4], (boolean) l[5], (int) l[6]);
+            NovaServers.refresh(want);
+            for (Object[] pg : pings) {
+                NovaServers.Res r = NovaServers.result((String) pg[0]);
+                String t; int col;
+                if (r == null || !r.done) { t = "…"; col = 0xFF9A9AC0; }
+                else if (!r.ok) { t = tr("Sin respuesta"); col = 0xFFFF7A86; }
+                else {
+                    t = r.ms + " ms" + (r.max > 0 ? "  ·  " + r.online + "/" + r.max : "");
+                    col = r.ms < 80 ? 0xFF3DDC84 : r.ms < 200 ? 0xFFFFC857 : 0xFFFF9A5A;
+                }
+                txt(c, t, (int) pg[1], (int) pg[2], 5.6f, col, false, 1);
+            }
+        });
+        labels.add(new Object[] { tr("Servidores"), x, y, 8.6f, 0xFFFFFFFF, true, 0 });
+        addX(this::closeSkins);
+        y += 12;
+        labels.add(new Object[] { tr("ÚLTIMO SERVIDOR"), x, y, 5.6f, 0xFF9A9AC0, true, 0 });
+        y += 10;
+        int jw = 40;
+        if (last == null) {
+            labels.add(new Object[] { tr("Aún no has entrado en ningún servidor"), x + 2, y + 6, 5.8f, 0xFF9A9AC0, false, 0 });
+        } else {
+            labels.add(new Object[] { shorten(last.name, 24), x + 4, y + 3, 7f, 0xFFFFFFFF, true, 0 });
+            labels.add(new Object[] { shorten(last.addr, 34), x + 4, y + 13, 5.4f, 0xFF7C7CA0, false, 0 });
+            pings.add(new Object[] { last.addr, x + w - jw - 8, y + 6 });
+            final NovaServers.Srv ls = last;
+            addRenderableWidget(new NovaButton(x + w - jw - 2, y + 2, jw, 16, Component.literal(tr("Entrar")), NovaGfx.I_PLAY, NovaButton.PRIMARY,
+                    b -> NovaServers.join(minecraft, this, ls)).tip(tr("Entrar"), tr("Conecta directamente a este servidor")));
+        }
+        y += 20 + 6;
+        labels.add(new Object[] { tr("FAVORITOS DEL LAUNCHER"), x, y, 5.6f, 0xFF9A9AC0, true, 0 });
+        if (F.size() > rows) labels.add(new Object[] { (svScroll + 1) + "–" + Math.min(F.size(), svScroll + rows) + " / " + F.size() + tr("  ·  rueda del ratón"), px + pw - 8, y, 5.6f, 0xFF7C7CA0, false, 1 });
+        y += 10;
+        if (F.isEmpty()) labels.add(new Object[] { tr("Añade servidores en la pestaña Servidores del launcher"), x + 2, y + 4, 5.8f, 0xFF9A9AC0, false, 0 });
+        for (int i = svScroll; i < Math.min(F.size(), svScroll + rows); i++) {
+            final NovaServers.Srv f = F.get(i);
+            addRenderableWidget(new NovaButton(x, y, w - jw - 2 - 78, ib, Component.literal(shorten(f.name, 18)), NovaGfx.I_SERVER, NovaButton.NORMAL,
+                    b -> NovaServers.join(minecraft, this, f)).tip(shorten(f.name, 26), tr("Entrar a {0}", f.addr)));
+            pings.add(new Object[] { f.addr, x + w - jw - 6, y + 4 });
+            addRenderableWidget(new NovaButton(x + w - jw, y, jw, ib, Component.literal(tr("Entrar")), NovaGfx.I_PLAY, NovaButton.PRIMARY,
+                    b -> NovaServers.join(minecraft, this, f)).tip(tr("Entrar"), tr("Conecta directamente a este servidor")));
+            y += 17;
+        }
+    }
+
+    // ---------------------------------------------------------------- panel de mods instalados
+    private static int mdScroll, mdRows = 8;
+    private static final StringBuilder mdQ = new StringBuilder();   // lo que se escribe en el buscador del panel
+    private static java.util.List<String[]> modList;                // {nombre, versión, id, descripción, web}
+
+    /** Los mods instalados, sin los módulos internos de otros mods, el propio juego, Java ni el cargador. */
+    static java.util.List<String[]> mods() {
+        if (modList == null) {
+            java.util.List<String[]> l = new java.util.ArrayList<>();
+            try {
+                for (net.fabricmc.loader.api.ModContainer m : FabricLoader.getInstance().getAllMods()) {
+                    net.fabricmc.loader.api.metadata.ModMetadata md = m.getMetadata();
+                    String id = md.getId();
+                    if (m.getContainingMod().isPresent() || id.equals("minecraft") || id.equals("java") || id.equals("fabricloader") || "builtin".equals(md.getType())) continue;
+                    String web = md.getContact().get("homepage").orElse("");
+                    if (!web.startsWith("https://")) web = "";
+                    l.add(new String[] { md.getName() == null || md.getName().isEmpty() ? id : md.getName(), md.getVersion().getFriendlyString(), id, md.getDescription() == null ? "" : md.getDescription().replaceAll("\\s+", " ").trim(), web, author(md) });
+                }
+            } catch (Throwable ignored) { }
+            l.sort((x, y) -> x[0].compareToIgnoreCase(y[0]));
+            modList = l;
+        }
+        return modList;
+    }
+
+    private static String author(net.fabricmc.loader.api.metadata.ModMetadata md) {
+        StringBuilder b = new StringBuilder();
+        for (net.fabricmc.loader.api.metadata.Person a : md.getAuthors()) { if (b.length() > 0) b.append(", "); b.append(a.getName()); }
+        return b.toString();
+    }
+
+    private static final java.util.Map<String, NovaGfx.Tex> ICONS = new java.util.HashMap<>();
+
+    /** Icono del mod (el de su fabric.mod.json), cargado una sola vez; null si no tiene o no se pudo leer. */
+    private NovaGfx.Tex modIcon(String id) {
+        if (ICONS.containsKey(id)) return ICONS.get(id);
+        NovaGfx.Tex t = null;
+        try {
+            net.fabricmc.loader.api.ModContainer m = FabricLoader.getInstance().getModContainer(id).orElse(null);
+            String ip = m == null ? null : m.getMetadata().getIconPath(64).orElse(null);
+            java.nio.file.Path f = ip == null ? null : m.findPath(ip).orElse(null);
+            if (f != null) {
+                java.awt.image.BufferedImage im;
+                try (java.io.InputStream in = java.nio.file.Files.newInputStream(f)) { im = javax.imageio.ImageIO.read(in); }
+                if (im != null) {
+                    if (im.getWidth() > 64) {   // se reduce: no hace falta más para 16 px
+                        java.awt.image.BufferedImage sm = new java.awt.image.BufferedImage(64, 64, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+                        java.awt.Graphics2D g = sm.createGraphics();
+                        g.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION, java.awt.RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+                        g.drawImage(im, 0, 0, 64, 64, null); g.dispose(); im = sm;
+                    }
+                    t = NovaGfx.skin(minecraft, im, "modicon|" + id);
+                }
+            }
+        } catch (Throwable ignored) { }
+        ICONS.put(id, t);
+        return t;
+    }
+
+    /** Los mods que pasan el filtro del buscador (por nombre o id). */
+    static java.util.List<String[]> modsShown() {
+        String q = mdQ.toString().trim().toLowerCase(java.util.Locale.ROOT);
+        if (q.isEmpty()) return mods();
+        java.util.List<String[]> r = new java.util.ArrayList<>();
+        for (String[] m : mods()) if (m[0].toLowerCase(java.util.Locale.ROOT).contains(q) || m[2].toLowerCase(java.util.Locale.ROOT).contains(q)) r.add(m);
+        return r;
+    }
+
+    void buildMods() {
+        java.util.List<String[]> all = mods(), M = modsShown();
+        int rh = 22, fixed = 8 + 12 + 18 + 6 + 17 + 8;   // título, buscador, hueco, fila de botones y márgenes
+        int maxRows = Math.max(2, Math.min(6, (height - 20 - fixed) / rh));
+        mdRows = Math.max(1, Math.min(maxRows, Math.max(1, M.size())));
+        mdScroll = Math.max(0, Math.min(mdScroll, Math.max(0, M.size() - mdRows)));
+        pw = Math.min(262, width - 16);
+        ph = fixed + mdRows * rh;
+        px = (width - pw) / 2; py = Math.max(6, (height - ph) / 2);
+        int x = px + 8, w = pw - 16, y = py + 8;
+        final int sx = x, sw = w;
+        final int listTop = y + 12 + 18;
+        addRenderableOnly((c, mx, my, d) -> {
+            c.fill(0, 0, width, height, 0xA0020208);
+            drawPanelBg(c);
+            for (Object[] l : labels) txt(c, (String) l[0], (int) l[1], (int) l[2], (float) l[3], (int) l[4], (boolean) l[5], (int) l[6]);
+            // buscador
+            int fy = py + 8 + 12;
+            NovaButton.panel(c, sx, fy, sw, 14, 3, 0xA0080818, mdQ.length() > 0 ? 0xFF6C5CE7 : 0xFF3A3A66);
+            String q = mdQ.toString();
+            boolean caret = ((Util.getMillis() / 500) & 1) == 0;
+            if (q.isEmpty()) txt(c, tr("Escribe para buscar un mod…"), sx + 6, fy + 4, 5.8f, 0xFF7C7CA0, false, 0);
+            else txt(c, shorten(q, 36) + (caret ? "|" : ""), sx + 6, fy + 4, 6.4f, 0xFFFFFFFF, false, 0);
+        });
+        labels.add(new Object[] { tr("Mods instalados") + " (" + (M.size() == all.size() ? String.valueOf(all.size()) : M.size() + "/" + all.size()) + ")", x, y, 8.6f, 0xFFFFFFFF, true, 0 });
+        addX(this::closeSkins);
+        y = listTop;
+        if (M.isEmpty()) labels.add(new Object[] { all.isEmpty() ? tr("No hay mods instalados") : tr("Ningún mod coincide"), x + 4, y + 4, 5.8f, 0xFF9A9AC0, false, 0 });
+        final java.util.List<Object[]> rowTxt = new java.util.ArrayList<>();   // se dibujan encima de los botones de fila
+        int bx2 = x, bw2 = w - 6;
+        for (int i = mdScroll; i < Math.min(M.size(), mdScroll + mdRows); i++) {
+            final String[] m = M.get(i);
+            String desc = m[3].isEmpty() ? m[2] : (m[3].length() > 110 ? m[3].substring(0, 109) + "…" : m[3]);
+            NovaButton row = new NovaButton(bx2, y, bw2, rh - 2, Component.empty(), -1, NovaButton.NORMAL, b -> { if (!m[4].isEmpty()) NovaVer.openUrl(m[4]); });
+            row.tip(m[0] + "  " + m[1], desc + (m[5].isEmpty() ? "" : "  ·  " + m[5]) + (m[4].isEmpty() ? "" : "  ·  " + tr("Pulsa para abrir su página")));
+            addRenderableWidget(row);
+            rowTxt.add(new Object[] { m, bx2, y, bw2 });
+            y += rh;
+        }
+        // barra de desplazamiento
+        if (M.size() > mdRows) {
+            final int trackTop = listTop, trackH = mdRows * rh - 2, total = M.size(), vis = mdRows, first = mdScroll;
+            addRenderableOnly((c, mx, my, d) -> {
+                c.fill(sx + sw - 3, trackTop, sx + sw - 1, trackTop + trackH, 0x30FFFFFF);
+                int th = Math.max(8, trackH * vis / total), ty = trackTop + (trackH - th) * first / Math.max(1, total - vis);
+                c.fill(sx + sw - 3, ty, sx + sw - 1, ty + th, 0xFF6C5CE7);
+            });
+        }
+        addRenderableOnly((c, mx, my, d) -> {
+            for (Object[] r : rowTxt) {
+                String[] m = (String[]) r[0];
+                int rx = (int) r[1], ry = (int) r[2], rw = (int) r[3];
+                NovaGfx.Tex ic = modIcon(m[2]);
+                if (ic != null) ic.drawSized(c, rx + 3, ry + 2, 16, 16, 1f);
+                else {   // sin icono: la inicial en un cuadro
+                    c.fill(rx + 3, ry + 2, rx + 19, ry + 18, 0xFF2A2A55);
+                    txt(c, m[0].isEmpty() ? "?" : m[0].substring(0, 1).toUpperCase(java.util.Locale.ROOT), rx + 11, ry + 6, 7.6f, 0xFFB8B8F0, true, 2);
+                }
+                txt(c, shorten(m[0], 28), rx + 24, ry + 3, 6.4f, 0xFFFFFFFF, true, 0);
+                txt(c, shorten(m[1], 14), rx + rw - 5, ry + 3, 5.6f, 0xFF9A9AC0, false, 1);
+                String sub = (m[5].isEmpty() ? "" : m[5] + " · ") + (m[3].isEmpty() ? m[2] : m[3]);
+                txt(c, shorten(sub, 46), rx + 24, ry + 12, 5.4f, 0xFF8484AC, false, 0);
+            }
+        });
+        // pie: abrir la carpeta de mods y cerrar
+        int fy2 = py + ph - 8 - 15, half = (w - 3) / 2;
+        addRenderableWidget(new NovaButton(x, fy2, half, 15, Component.literal(tr("Carpeta de mods")), NovaGfx.I_FOLDER, NovaButton.NORMAL, b -> NovaMark.say("OPENMODS"))
+                .tip(tr("Carpeta de mods"), tr("Abre la carpeta mods de esta instancia")));
+        addRenderableWidget(new NovaButton(x + half + 3, fy2, w - half - 3, 15, Component.literal(tr("Listo")), NovaGfx.I_CHECK, NovaButton.PRIMARY, b -> closeSkins()));
+        if (M.size() > mdRows) labels.add(new Object[] { (mdScroll + 1) + "–" + Math.min(M.size(), mdScroll + mdRows) + " / " + M.size(), px + pw - 8, fy2 - 10, 5.4f, 0xFF7C7CA0, false, 1 });
+    }
+
+    /** X para cerrar el panel abierto (arriba a la derecha). */
+    private void addX(Runnable r) {
+        addRenderableWidget(new NovaButton(px + pw - 8 - 12, py + 6, 12, 12, Component.empty(), NovaGfx.I_CLOSE, NovaButton.DANGER, b -> r.run())
+                .tip(tr("Cerrar"), tr("Cierra este panel (también con Esc)")));
+    }
+
+    static String shorten(String s, int n) { return s.length() <= n ? s : s.substring(0, n - 1) + "…"; }
+
+    void commitName(String file) {
+        NovaBgs.rename(file, buf.toString());
+        editing = null; buf.setLength(0);
+        rebuildWidgets();
+    }
+
+    /** Mientras el panel está abierto, sigue la carpeta de fondos y la conversión que hace el launcher. */
+    void poll() {
+        long now = Util.getMillis();
+        if (panel != 2 || editing != null || now - lastPoll < 700) return;
+        lastPoll = now;
+        String s = NovaBgs.signature();
+        if (s.equals(sig)) return;
+        // un fondo nuevo que acaba de quedar listo se activa solo
+        for (NovaBgs.Entry e : NovaBgs.list()) {
+            if (e.ready && (!e.builtin || NovaBgs.awaiting.remove(e.id)) && !known.contains(e.id) && !known.isEmpty()) {
+                NovaSettings.bg = e.id; NovaBg.switchTo(minecraft, NovaSettings.bgPath());
+                break;
+            }
+        }
+        rebuildWidgets();
+    }
+
+    boolean modal() { return panel == 2 || panel == 3 || panel == 4 || panel == 5; }
+
+    boolean inPanel(double mx, double my) { return mx >= px - 2 && mx <= px + pw + 2 && my >= py - 2 && my <= py + ph + 2; }
+
+    @Override
+    protected boolean nClick(double mx, double my, int button) {
+        if (button == 0 && newsClick(mx, my)) return true;
+        if (modal()) {   // los paneles de Nova y de skins son modales: un clic fuera los cierra (el de Nova, sin guardar)
+            if (inPanel(mx, my)) { clickTopmost(mx, my, button); return true; }
+            if (panel == 3) closeSkins(); else if (panel == 4 || panel == 5) closeSkins(); else closeNova(false);
+            return true;
+        }
+        if (clickTopmost(mx, my, button)) return true;
+        if (panel != 0 && !(mx >= px && mx <= px + pw && my >= py && my <= py + ph)) { panel = 0; rebuildWidgets(); return true; }
+        return false;
+    }
+
+    /** Entrega el clic al botón que está DEBAJO del cursor a la vista (el último que se dibujó), no al primero de la lista. */
+    private boolean clickTopmost(double mx, double my, int button) {
+        java.util.List<? extends net.minecraft.client.gui.components.events.GuiEventListener> ch = children();
+        for (int i = ch.size() - 1; i >= 0; i--) {
+            if (NovaScreen.childClick(ch.get(i), mx, my, button)) return true;
+        }
+        return false;
+    }
+
+    @Override
+    protected boolean nKey(int key, int scan, int mods) {
+        if (editing != null) {
+            if (key == com.mojang.blaze3d.platform.InputConstants.KEY_RETURN || key == com.mojang.blaze3d.platform.InputConstants.KEY_NUMPADENTER) { commitName(editing); return true; }
+            if (key == com.mojang.blaze3d.platform.InputConstants.KEY_ESCAPE) { editing = null; rebuildWidgets(); return true; }
+            if (key == com.mojang.blaze3d.platform.InputConstants.KEY_BACKSPACE) { if (buf.length() > 0) buf.setLength(buf.length() - 1); rebuildWidgets(); return true; }
+            return true;
+        }
+        if (panel == 5 && key == com.mojang.blaze3d.platform.InputConstants.KEY_BACKSPACE) { if (mdQ.length() > 0) { mdQ.setLength(mdQ.length() - 1); mdScroll = 0; rebuildWidgets(); } return true; }
+        if (key == com.mojang.blaze3d.platform.InputConstants.KEY_ESCAPE && panel == 5 && mdQ.length() > 0) { mdQ.setLength(0); mdScroll = 0; rebuildWidgets(); return true; }   // el primer Esc borra la búsqueda
+        if (key == com.mojang.blaze3d.platform.InputConstants.KEY_ESCAPE && panel == 2) { closeNova(false); return true; }
+        if (key == com.mojang.blaze3d.platform.InputConstants.KEY_ESCAPE && (panel == 3 || panel == 4 || panel == 5)) { closeSkins(); return true; }
+        if (key == com.mojang.blaze3d.platform.InputConstants.KEY_ESCAPE && panel != 0) { panel = 0; confirmDel = null; rebuildWidgets(); return true; }
+        return superKey(key, scan, mods);
+    }
+
+    @Override
+    protected boolean nChar(char chr, int mods) {
+        if (editing != null) {
+            if (chr >= 32 && chr != 127 && buf.length() < 28) { buf.append(chr); rebuildWidgets(); }
+            return true;
+        }
+        if (panel == 5) {
+            if (chr >= 32 && chr != 127 && mdQ.length() < 30) { mdQ.append(chr); mdScroll = 0; rebuildWidgets(); }
+            return true;
+        }
+        return superChar(chr, mods);
+    }
+
+    // 1.20.1 usa (x, y, delta) y 1.21 (x, y, horizontal, vertical): se declaran las dos sin @Override
+    public boolean mouseScrolled(double mx, double my, double amount) { return wheel(mx, my, amount); }
+    public boolean mouseScrolled(double mx, double my, double h, double v) { return wheel(mx, my, v); }
+
+    private boolean wheel(double mx, double my, double amount) {
+        if (panel == 3 && inPanel(mx, my)) {
+            int ns = skScroll + (amount < 0 ? 1 : -1);
+            if (ns < 0 || ns > Math.max(0, NovaSkins.list().size() - 1)) return true;
+            skScroll = ns; rebuildWidgets(); return true;
+        }
+        if (panel == 5 && inPanel(mx, my)) {
+            int ns = mdScroll + (amount < 0 ? 1 : -1);
+            if (ns < 0 || ns > Math.max(0, modsShown().size() - mdRows)) return true;
+            mdScroll = ns; rebuildWidgets(); return true;
+        }
+        if (panel == 4 && inPanel(mx, my)) {
+            int ns = svScroll + (amount < 0 ? 1 : -1);
+            if (ns < 0 || ns > Math.max(0, NovaServers.favs().size() - svRows)) return true;
+            svScroll = ns; rebuildWidgets(); return true;
+        }
+        if (panel != 2 || !inPanel(mx, my)) return false;
+        int total = NovaBgs.list().size();
+        int ns = scroll + (amount < 0 ? 1 : -1);
+        if (ns < 0 || ns > Math.max(0, total - 1)) return true;
+        scroll = ns;
+        rebuildWidgets();
+        return true;
+    }
+
+    int ly() { return Math.max(26, (height - 104) / 2 - 2); }
+
+    void txt(GuiGraphicsExtractor c, String str, int x, int y, float px, int argb, boolean bold, int anchor) {
+        if (NovaGfx.ok) {
+            try {
+                NovaGfx.Tex t = NovaGfx.text(minecraft, str, px, argb, bold);
+                int dx = anchor == 1 ? -t.w() : anchor == 2 ? -t.w() / 2 : 0;
+                t.draw(c, x + dx, y, 1f);
+                return;
+            } catch (Throwable e) { NovaGfx.ok = false; }
+        }
+        int tw = font.width(str);
+        c.text(font, str, anchor == 1 ? x - tw : anchor == 2 ? x - tw / 2 : x, y + 1, argb, true);
+    }
+
+    // 1.20.x: renderBackground(c); 1.21: renderBackground(c, mx, my, delta)
+    public void renderBackground(GuiGraphicsExtractor c) { renderBackground(c, 0, 0, 0f); }
+
+    public void renderBackground(GuiGraphicsExtractor c, int mx, int my, float delta) {
+        float t = (Util.getMillis() - born) / 1000f;
+        c.fill(0, 0, width, height, 0xFF04040C);
+        if (!NovaBg.draw(c, width, height, Math.min(1f, t / 0.9f))) c.fillGradient(0, 0, width, height, NovaGfx.shade(NovaGfx.accent, 0.16f, 255), 0xFF020208);
+        c.fillGradient(0, 0, width, height, 0x10000000, 0x90000008);   // oscurece un poco abajo para leer los textos
+    }
+
+    @Override
+    public void removed() {
+        if (snap) {   // se sale de la pantalla con cambios sin confirmar: se deshacen
+            if (NovaSettings.accent != savedAccent) { NovaSettings.accent = savedAccent; NovaGfx.setAccent(savedAccent); }
+            if (!NovaSettings.bg.equals(savedBg)) NovaSettings.bg = NovaBgs.find(savedBg) == null ? "hole" : savedBg;
+        }
+        snap = false;
+        NovaBg.stop(minecraft);
+        super.removed();
+    }
+
+    @Override
+    public void extractRenderState(GuiGraphicsExtractor c, int mx, int my, float delta) {
+        poll();
+        super.extractRenderState(c, mx, my, delta);   // fondo + botones
+        float fade = Math.min(1f, (Util.getMillis() - born) / 600f);
+        // logo del propio juego (LogoDrawer), reducido
+        float k = 0.62f;
+        NovaCompat.pushScale(c, k);
+        if (!modal()) logo.extractRenderState(c, (int) (width / k), fade, (int) (ly() / k));   // el panel de Nova va por encima de todo
+        NovaCompat.popScale(c);
+
+        // abajo izquierda: versión
+        txt(c, (tr("Versión: ")) + mcVersion() + "/" + LOADER, 7, height - 14, 6.5f, 0xB8FFFFFF, false, 0);
+        // abajo derecha: logo de Nova Launcher, blanco y translúcido
+        String n = "NOVA LAUNCHER";
+        int tw = font.width(n) * 3 / 4 + 2;
+        if (NovaGfx.ok) { try { tw = NovaGfx.text(minecraft, n, 6.5f, 0xB8FFFFFF, true).w(); } catch (Throwable e) { NovaGfx.ok = false; } }
+        int mx0 = width - 7 - tw - 3 - 9;
+        NovaCompat.blit(c, MARK, mx0, height - 14, 9, 9, 0, 0, 64, 64, 64, 64, 0.7f);
+        txt(c, n, width - 7, height - 14, 6.5f, 0xB8FFFFFF, true, 1);
+        if (!modal()) txt(c, tr("Sin afiliación, respaldo ni distribución de Mojang o Microsoft"), width / 2, height - 10, 5.5f, 0x58FFFFFF, false, 2);
+        drawNews(c, mx, my);
+        tooltip(c);
+    }
+
+    void tooltip(GuiGraphicsExtractor c) {
+        NovaButton h = null;
+        for (net.minecraft.client.gui.components.events.GuiEventListener e : children()) {
+            if (e instanceof NovaButton nb && !nb.tipTitle.isEmpty() && nb.isHovered() && (!modal() || inPanel(nb.getX() + 1, nb.getY() + 1))) { h = nb; break; }
+        }
+        String demo = System.getProperty("nova.tipdemo", "");   // solo para pruebas: fuerza un tooltip sin ratón
+        if (!demo.isEmpty()) { int k = 0; for (net.minecraft.client.gui.components.events.GuiEventListener e : children()) if (e instanceof NovaButton nb && !nb.tipTitle.isEmpty() && k++ == Integer.parseInt(demo)) h = nb; }
+        long now = Util.getMillis();
+        if (h != hoverBtn) { hoverBtn = h; hoverSince = now; }
+        if (h == null || !NovaGfx.ok) return;
+        float a = Math.min(1f, (now - hoverSince - 350) / 160f);
+        if (a <= 0f) return;
+        try {
+            NovaGfx.Tex t = NovaGfx.tooltip(minecraft, h.tipTitle, h.tipDesc);
+            int bw = t.w() - 10, bh = t.h() - 10;
+            int tx = h.getX() + h.getWidth() / 2 - bw / 2, ty = h.getY() + h.getHeight() + 3;
+            if (ty + bh > height - 2) ty = h.getY() - bh - 3;
+            tx = Math.max(2, Math.min(width - bw - 2, tx));
+            t.draw(c, tx - 5, ty - 5, a);
+        } catch (Throwable e) { NovaGfx.ok = false; }
+    }
+}

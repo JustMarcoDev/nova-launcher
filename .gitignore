@@ -1,6 +1,9 @@
 mod/build/
 mod/.gradle/
 mod/run/
+mod26/build/
+mod26/.gradle/
+mod26/run/
 node_modules/
 dist/
 out/

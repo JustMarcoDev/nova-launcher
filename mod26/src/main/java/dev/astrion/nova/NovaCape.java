@@ -1,0 +1,41 @@
+package dev.astrion.nova;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.PlayerInfo;
+import net.minecraft.resources.Identifier;
+
+/**
+ * Capa de Nova: los jugadores que usan Nova (los que el servidor de presencia reconoce, los mismos que llevan el logo en la lista TAB)
+ * llevan una capa de Nova que solo ven quienes también usan Nova. Si el jugador ya tiene una capa de verdad, se respeta la suya.
+ * Se activa o se quita en «Editar HUD» → «Capa de Nova».
+ */
+public final class NovaCape {
+    private NovaCape() { }
+
+    private static final Identifier ID = Identifier.tryParse("nova:textures/cape/nova.png");
+    private static boolean reg;
+    /** Solo para pruebas (-Dnova.cape.test=1): todos los jugadores llevan la capa aunque no haya servidor de presencia. */
+    private static final boolean TEST = System.getProperty("nova.cape.test") != null;
+
+    /** Textura de la capa (se registra la primera vez, en el hilo de render), o null si aún no se puede. */
+    public static Identifier id() {
+        if (!reg) {
+            try {
+                Minecraft mc = Minecraft.getInstance();
+                if (mc == null || !mc.isSameThread()) return null;
+                reg = true;
+                NovaTitleScreen.reg(mc, "textures/cape/nova.png");
+            } catch (Throwable t) { return null; }
+        }
+        return ID;
+    }
+
+    /** ¿Debe llevar la capa de Nova este jugador de la lista? */
+    public static boolean wants(PlayerInfo e) {
+        try {
+            NovaSettings.load();   // solo lee el archivo la primera vez
+            if (!NovaSettings.showCape) return false;
+            return TEST || NovaPresence.has(e);
+        } catch (Throwable t) { return false; }
+    }
+}
