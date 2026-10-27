@@ -53,9 +53,9 @@ jobs:
         working-directory: mod26
         run: |
           mkdir -p ../assets/mods
-          tr -d '\r' < versions.txt | grep -v '^#' | grep -v '^$' | while read -r MC; do
+          tr -d '\r' < versions.txt | grep -v '^#' | grep -v '^$' | while read -r MC LAYERS; do
             echo "== Menú de Nova para Minecraft $MC"
-            OUT=$(gradle build --no-daemon -q -Pmc="$MC" 2>&1 < /dev/null) || { echo "::error::Falló la compilación del menú para $MC: $(echo "$OUT" | tail -c 1800 | tr '\n' '|')"; exit 1; }
+            OUT=$(gradle build --no-daemon -q -Pmc="$MC" -Players="${LAYERS:-sdl,gui2}" 2>&1 < /dev/null) || { echo "::error::Falló la compilación del menú para $MC: $(echo "$OUT" | tail -c 1800 | tr '\n' '|')"; exit 1; }
             JAR=$(ls build/libs/nova-menu-$MC-*.jar | grep -v sources | head -1)
             cp "$JAR" "../assets/mods/nova-menu-$MC.jar"
           done
