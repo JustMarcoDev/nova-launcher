@@ -4245,3 +4245,17 @@ html[data-cb=Grises] {
 #stp.go .stb i { transform-origin: left; animation: stfill .8s cubic-bezier(.16,1,.3,1) both .4s; }
 #stp.go > .stk { animation: none; }
 @media (prefers-reduced-motion: reduce) { #stp.go *, .skld * { animation: none !important; } }
+
+/* Cambio de cuenta: pantalla de carga a pantalla completa; al acabar se desvanece y deja ver el Inicio. */
+.swo { position: fixed; inset: 0; z-index: 9000; display: flex; align-items: center; justify-content: center; background: color-mix(in srgb, var(--bg, #080a0f) 94%, transparent); backdrop-filter: blur(8px); animation: fadeUp .25s both; transition: opacity .4s; }
+.swo.out { opacity: 0; pointer-events: none; }
+.swc { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+.swc img { width: 72px; height: 72px; border-radius: 16px; image-rendering: pixelated; box-shadow: 0 0 0 2px color-mix(in srgb, var(--ac) 55%, transparent), 0 0 38px color-mix(in srgb, var(--ac) 35%, transparent); margin-bottom: 10px; animation: swp 1.2s ease-in-out infinite; }
+.swc .sws { color: var(--m); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+.swc b { font-size: 22px; }
+.swb { width: 220px; height: 4px; border-radius: 3px; background: color-mix(in srgb, var(--ac) 18%, transparent); overflow: hidden; margin-top: 12px; }
+.swb i { display: block; height: 100%; width: 100%; background: var(--ac); border-radius: 3px; transform-origin: left; animation: swl 1.8s cubic-bezier(.4,0,.2,1) both; }
+.swt { color: var(--m); font-size: 12px; min-height: 16px; }
+@keyframes swl { from { transform: scaleX(0); } }
+@keyframes swp { 50% { transform: scale(1.05); } }
+@media (prefers-reduced-motion: reduce) { .swc img, .swb i { animation: none; } }

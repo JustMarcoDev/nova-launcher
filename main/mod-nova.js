@@ -244,6 +244,13 @@ function novaModJar(mc) {
 }
 
 // Servidores favoritos del launcher -> nova/servers.json (el mod los enseña en su panel «Servidores»)
+// Cuentas del launcher para el mod («Cambiar de usuario»): solo nombre, tipo e id; nunca los tokens.
+function novaAccountsWrite() {
+  try {
+    const st = R.accState();
+    fs.writeFileSync(path.join(novaDir(), 'accounts.json'), JSON.stringify({ active: st.act.id, accounts: st.a.map(x => ({ id: x.id, name: String(x.name || ''), type: x.type === 'microsoft' ? 'microsoft' : 'offline' })) }));
+  } catch {}
+}
 function novaServersWrite(list) {
   try {
     const fav = (list || []).filter(z => z && z.host).map(z => ({ name: String(z.name || z.host), host: String(z.host), port: +z.port > 0 ? +z.port : 25565 }));
@@ -252,4 +259,4 @@ function novaServersWrite(list) {
 }
 
 // Lo que usan otros módulos
-Object.assign(R, { NOVA_MC, NOVA_REMOTE_ID, fondosDir, fondosScan, fondosWatch, modManifest, novaBg, novaBgGet, novaDir, novaModResolve, novaNews, novaPickBg, novaServersWrite, novaSkin });
+Object.assign(R, { NOVA_MC, NOVA_REMOTE_ID, fondosDir, fondosScan, fondosWatch, modManifest, novaBg, novaBgGet, novaDir, novaModResolve, novaNews, novaPickBg, novaServersWrite, novaAccountsWrite, novaSkin });

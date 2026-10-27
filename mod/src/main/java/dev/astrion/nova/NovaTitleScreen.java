@@ -200,7 +200,7 @@ public class NovaTitleScreen extends NovaScreen {
         // perfil (arriba izquierda)
         int nw = Math.max(40, Math.min(120, (int) (name.length() * 3.9) + 20));
         addDrawableChild(new NovaButton(6, 6, nw, 12, Text.literal(name), NovaGfx.I_HEAD, panel == 1 ? NovaButton.SELECTED : NovaButton.NORMAL, b -> {
-            panel = panel == 1 ? 0 : 1;
+            panel = panel == 1 ? 0 : 1; acList = false;
             clearAndInit();
         }).tip(tr("Perfil"), tr("Tu skin y tu cuenta")));
         // cerrar el juego (arriba derecha)
@@ -244,15 +244,42 @@ public class NovaTitleScreen extends NovaScreen {
     }
 
     // ---------------------------------------------------------------- panel de perfil
+    // ---- cambiar de usuario: solo las cuentas que tiene el launcher (accounts.json) ----
+    private static boolean acList;          // el panel de perfil enseña la lista de cuentas
+    private static String acBusy = "";      // nombre al que se está cambiando (el launcher reabre el juego)
+
+    /** Cuentas del launcher: {id, nombre, tipo, activa("1"/"0")}. Vacío si el launcher no dejó el archivo. */
+    static java.util.List<String[]> accounts() {
+        java.util.List<String[]> out = new java.util.ArrayList<>();
+        try {
+            java.io.File d = NovaSettings.dir(), f = d == null ? null : new java.io.File(d, "accounts.json");
+            if (f == null || !f.isFile()) return out;
+            com.google.gson.JsonObject o = com.google.gson.JsonParser.parseString(new String(java.nio.file.Files.readAllBytes(f.toPath()), java.nio.charset.StandardCharsets.UTF_8)).getAsJsonObject();
+            String act = o.has("active") ? o.get("active").getAsString() : "";
+            for (com.google.gson.JsonElement e : o.getAsJsonArray("accounts")) {
+                com.google.gson.JsonObject a = e.getAsJsonObject();
+                String id = a.get("id").getAsString();
+                if (!id.matches("[\\w-]{1,40}")) continue;
+                out.add(new String[] { id, a.get("name").getAsString(), a.has("type") ? a.get("type").getAsString() : "offline", id.equals(act) ? "1" : "0" });
+            }
+        } catch (Throwable ignored) { }
+        return out;
+    }
+
     void buildProfile(String name) {
+        final java.util.List<String[]> accs = accounts();
+        final boolean list = acList && accs.size() > 1;
         int fs = height >= 220 ? 3 : 2;
         pw = 118;
-        ph = 10 + 32 * fs + 8 + 11 + 5 + 12 + 5 + 8 + 10;
+        int shown = Math.min(accs.size(), 6);
+        if (list) ph = 10 + 11 + 5 + shown * 16 + 4 + 15 + 8;
+        else ph = 10 + 32 * fs + 8 + 11 + 5 + 12 + 5 + 8 + 10 + (accs.size() > 1 ? 21 : 0);
         px = 6; py = 24;
         final int fsz = fs;
         addDrawable((c, mx, my, d) -> {
             drawPanelBg(c);
             int cx = px + pw / 2, y = py + 10;
+            if (list) { txt(c, acBusy.isEmpty() ? tr("Cambiar de usuario") : tr("Cambiando de usuario…"), cx, y, 7.4f, 0xFFFFFFFF, true, 2); return; }
             NovaSkin.load();
             boolean drawn = false;
             if (NovaGfx.ok && NovaSkin.body != null) {
@@ -274,6 +301,28 @@ public class NovaTitleScreen extends NovaScreen {
             y += 12 + 5;
             txt(c, NovaSettings.PREMIUM ? (tr("Cuenta de Microsoft")) : (tr("Cuenta sin conexión")), cx, y, 5.8f, 0xFF9A9AC0, false, 2);
         });
+        int bx = px + 6, bw = pw - 12;
+        if (list) {
+            int y = py + 10 + 11 + 5;
+            for (int i = 0; i < shown; i++) {
+                final String[] a = accs.get(i);
+                boolean cur = a[3].equals("1");
+                String lab = shorten(a[1], 14) + (a[2].equals("microsoft") ? "  MS" : "");
+                NovaButton b = new NovaButton(bx, y, bw, 14, Text.literal(lab), cur ? NovaGfx.I_CHECK : NovaGfx.I_HEAD, cur ? NovaButton.SELECTED : NovaButton.NORMAL, x -> {
+                    if (cur || !acBusy.isEmpty()) return;
+                    acBusy = a[1];
+                    System.out.println("[NOVA:SWITCH:" + a[0] + "]");   // el launcher activa la cuenta y vuelve a abrir el juego con ella
+                    clearAndInit();
+                });
+                b.tip(a[1], cur ? tr("Es el usuario que estás usando") : tr("Cambiar a este usuario: el juego se reinicia"));
+                addDrawableChild(b);
+                y += 16;
+            }
+            addDrawableChild(new NovaButton(bx, y + 4, bw, 15, Text.literal(tr("Volver")), -1, NovaButton.NORMAL, x -> { acList = false; clearAndInit(); }));
+        } else if (accs.size() > 1) {
+            addDrawableChild(new NovaButton(bx, py + ph - 8 - 15, bw, 15, Text.literal(tr("Cambiar de usuario")), NovaGfx.I_SWAP, NovaButton.NORMAL, x -> { acList = true; acBusy = ""; clearAndInit(); })
+                    .tip(tr("Cambiar de usuario"), tr("Solo las cuentas que tienes en el launcher")));
+        }
     }
 
     void silhouette(DrawContext c, int cx, int y, int size) {
