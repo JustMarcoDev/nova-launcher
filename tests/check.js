@@ -54,9 +54,9 @@ if (ver !== pkg.version) bad('VER en js/base.js (' + ver + ') no coincide con pa
 
 // Menú de Nova: versiones de mod/versions.txt = NOVA_MC de main.js, con su .jar; vídeo de fondo y avisos de licencias presentes
 {
-  const vs = rd('mod/versions.txt').split(/\r?\n/).filter(l => l.trim() && !l.startsWith('#')).map(l => l.split(/\s+/)[0]);
+  const vs = [...rd('mod/versions.txt').split(/\r?\n/), ...rd('mod26/versions.txt').split(/\r?\n/)].filter(l => l.trim() && !l.startsWith('#')).map(l => l.split(/\s+/)[0]);
   const nm = (main.match(/const NOVA_MC = \[([^\]]*)\]/) || [, ''])[1].split(',').map(x => x.replace(/['"\s]/g, '')).filter(Boolean);
-  if (vs.join() !== nm.join()) bad('mod/versions.txt (' + vs.join() + ') no coincide con NOVA_MC de main.js (' + nm.join() + ')');
+  if (vs.join() !== nm.join()) bad('mod/versions.txt + mod26/versions.txt (' + vs.join() + ') no coinciden con NOVA_MC de main.js (' + nm.join() + ')');
   // Los .jar y los .nvb no están en git: en el release se compilan/descargan antes; la revisión de cada push (NOVA_SIN_JARS=1) no los necesita
   if (!process.env.NOVA_SIN_JARS) for (const v of vs) if (!fs.existsSync(path.join(root, 'assets/mods/nova-menu-' + v + '.jar'))) bad('falta assets/mods/nova-menu-' + v + '.jar');
   const bg = path.join(root, 'assets/nova-bg.nvb');
