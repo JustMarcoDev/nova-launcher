@@ -24,11 +24,11 @@ const S=K*Rb,sp=[0,1.2,.55,.25];l.save();l.scale(1,SQ);SPR.forEach((im,i)=>{l.sa
 l.setTransform(1,0,0,1,0,0);l.globalCompositeOperation="destination-in";const gr=l.createLinearGradient(DLw/2*(1-HDS),0,DLw/2*(1+HDS),0);gr.addColorStop(0,"rgba(0,0,0,.4)");gr.addColorStop(.5,"rgba(0,0,0,.85)");gr.addColorStop(1,"rgba(0,0,0,1)");l.fillStyle=gr;l.fillRect(rx,ry,rw,rh);
 x.globalCompositeOperation="lighter";x.globalAlpha=al;x.drawImage(DL,rx,ry,rw,rh,cx-ww,cy-hh,2*ww,2*hh)}
 // Modo juego: con Minecraft abierto las animaciones siguen, pero a pocos FPS para dejar la potencia al juego
-let GM=false,RAF=0;
+let GM=false,RAF=0,HOMEON=true;new MutationObserver(()=>{HOMEON=$("home").classList.contains("on")}).observe($("home"),{attributes:true,attributeFilter:["class"]});
 function gameMode(on){const g=!!on&&cfg.gameMode!==false;if(g===GM)return;GM=g;document.documentElement.classList.toggle("gm",g);if(!RAF){dirty=60;RAF=requestAnimationFrame(frame)}}
 function frame(now){RAF=requestAnimationFrame(frame);
 const q=Q[cfg.quality]||Q.alta;HDS=q.d;const pg=RUN&&cfg.pauseGame!==false,cap=+cfg.fps||60;let f=q.f?Math.min(q.f,cap):0;if(pg&&f)f=Math.min(f,30);if(GM&&f)f=Math.min(f,document.hasFocus()?24:12);
-if(document.hidden)return;if(f&&A&&cfg.pauseBlur!==false&&!document.hasFocus())f=Math.min(f,RUN?12:15);
+if(document.hidden)return;if(f&&A&&cfg.pauseBlur!==false&&!document.hasFocus())f=Math.min(f,RUN?12:15);if(f&&!HOMEON)f=Math.min(f,30);   // fuera de Inicio el agujero negro es pequeño y tenue: 30 fps bastan y se ahorra la mitad de trabajo de pintado
 if(!f){if(dirty<=0)return}else{if(al<.02)f=Math.min(f,24);if(now-last<1000/f-3)return}
 last=now;dirty--;const k=f?60/f:0,sp=(cfg.rmotion?.15:1)*k*((cfg.bhSpeed==null?100:cfg.bhSpeed)/100);T+=.016*k;ang+=.0065*sp;
 if(hc--<=0||!HR){hc=15;HR=document.querySelector(".hero").getBoundingClientRect()}

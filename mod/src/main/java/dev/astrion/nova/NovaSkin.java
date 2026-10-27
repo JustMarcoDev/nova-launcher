@@ -11,6 +11,32 @@ final class NovaSkin {
     static boolean slim;
     static int ver;   // sube cada vez que cambia la skin (las texturas de la figura se piden con esta versión)
 
+    private static BufferedImage steveImg;
+
+    /** La skin de Steve del propio juego (se lee del jar de Minecraft, sin llevar ninguna copia); null si no se encuentra. */
+    static BufferedImage steve() {
+        if (steveImg == null) {
+            for (String p : new String[] { "/assets/minecraft/textures/entity/player/wide/steve.png", "/assets/minecraft/textures/entity/steve.png" }) {
+                try (java.io.InputStream in = NovaSkin.class.getResourceAsStream(p)) {
+                    if (in != null) { BufferedImage i = javax.imageio.ImageIO.read(in); if (i != null && i.getWidth() == 64) { steveImg = i; break; } }
+                } catch (Throwable ignored) { }
+            }
+        }
+        return steveImg;
+    }
+
+    /** Cabeza (8x8, con la capa de encima) de cualquier skin: la de la lista de usuarios. */
+    static BufferedImage headOf(BufferedImage s) {
+        BufferedImage os = skin;
+        try {
+            skin = s;
+            BufferedImage h = new BufferedImage(8, 8, BufferedImage.TYPE_INT_ARGB);
+            put(h, 8, 8, 8, 8, 0, 0, false);
+            put(h, 40, 8, 8, 8, 0, 0, false);
+            return h;
+        } finally { skin = os; }
+    }
+
     static void reload() { tried = false; skin = null; body = null; head = null; ver++; load(); }
 
     /** Figura de cuerpo de cualquier skin (para la vista previa de la lista). */
@@ -23,6 +49,7 @@ final class NovaSkin {
         if (tried) return;
         tried = true;
         try {
+            if (NovaSkins.steve() && steve() != null) { skin = steve(); build(); return; }   // sin skin elegida y cuenta sin conexión: Steve
             String p = System.getProperty("nova.skin", "");
             String dir = System.getProperty("nova.dir", "");
             if (!dir.isEmpty() && !NovaSkins.current().isEmpty()) p = new File(dir, "skin-local.png").getPath();   // la skin local puesta desde el launcher o desde aquí

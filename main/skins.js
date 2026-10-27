@@ -26,7 +26,10 @@ const pngWH = b => [b.readUInt32BE(16), b.readUInt32BE(20)];
 const dataUrl = b => 'data:image/png;base64,' + b.toString('base64');
 const skinFile = id => path.join(skinsDir(), id + '.png');
 const skinSelGet = accId => { const m = load().skinSel; return m && typeof m === 'object' ? m[accId] || '' : ''; };
-const skinSelSet = (accId, id) => { const c = load(), m = { ...(c.skinSel || {}) }; if (id) m[accId] = id; else delete m[accId]; wr(cfgFile, { ...c, skinSel: m }); };
+const skinSelSet = (accId, id) => { const c = load(), m = { ...(c.skinSel || {}) }; if (id) m[accId] = id; else delete m[accId]; wr(cfgFile, { ...c, skinSel: m }); try { R.novaAccountsWrite && R.novaAccountsWrite(); } catch {} };
+// Skin elegida de una cuenta (ruta del PNG o '') y esa misma como data URL (para los avatares del launcher)
+const accSkinFile = accId => { const id = skinSelGet(accId); return id && skinsIdx().some(z => z.id === id) && fs.existsSync(skinFile(id)) ? skinFile(id) : ''; };
+const accSkinData = accId => { const f = accSkinFile(accId); try { return f ? dataUrl(fs.readFileSync(f)) : ''; } catch { return ''; } };
 // Skin local en vivo: el launcher deja la skin elegida en <datos>/nova/skin-local.png y su descripción en skin-local.json;
 // el mod las vigila cada segundo, así que el cambio se ve sin reiniciar Minecraft (también en una partida individual y con cuentas de Microsoft).
 function skinLocalWrite(act) {
@@ -35,7 +38,9 @@ function skinLocalWrite(act) {
     let on = false;
     if (x && fs.existsSync(skinFile(id))) { fs.copyFileSync(skinFile(id), png + '.tmp'); fs.renameSync(png + '.tmp', png); on = true; }
     const j = path.join(dir, 'skin-local.json');
-    fs.writeFileSync(j + '.tmp', JSON.stringify({ on, user: act.name, model: on && x.model === 'slim' ? 'slim' : 'classic', v: Date.now(), id: on ? id : '' })); fs.renameSync(j + '.tmp', j);
+    // Cuenta sin conexión y sin skin elegida: el mod le pone la de Steve (si no, el juego reparte una por azar según el nombre)
+    const steve = !on && act.type !== 'microsoft';
+    fs.writeFileSync(j + '.tmp', JSON.stringify({ on: on || steve, steve, user: act.name, model: on && x.model === 'slim' ? 'slim' : 'classic', v: Date.now(), id: on ? id : '' })); fs.renameSync(j + '.tmp', j);
   } catch {}
 }
 // Si la skin se cambió desde el menú del juego (el mod marca «by: mod» en skin-local.json), el launcher adopta esa elección para la cuenta.
@@ -139,9 +144,9 @@ async function novaSkinFor(act) {
   skinSyncFromMod(); skinLocalWrite(act);
   const id = skinSelGet(act.id), x = id && skinsIdx().find(z => z.id === id);
   if (x && fs.existsSync(skinFile(id))) return { file: skinFile(id), model: x.model === 'slim' ? 'slim' : 'classic', local: true };
-  return { file: await novaSkin(act.name), model: '', local: false };
+  return { file: act.type === 'microsoft' ? await novaSkin(act.name) : '', model: '', local: false };   // sin conexión y sin skin: ninguna (el mod pone Steve)
 }
 
 
 // Lo que usan otros módulos
-Object.assign(R, { novaSkinFor });
+Object.assign(R, { novaSkinFor, accSkinFile, accSkinData });

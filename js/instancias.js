@@ -24,7 +24,7 @@ function ri(){
   else{const nf=L.filter(i=>i.fav).length;L.forEach((i,k)=>{if(nf&&k===0)h+='<div class="isep">Favoritas</div>';if(nf&&k===nf&&nf<L.length)h+='<div class="isep">Otras instancias</div>';h+=insRow(i)})}
   $("il").innerHTML=h;
 }
-$("iq").oninput=()=>{iQ=$("iq").value.trim().toLowerCase();ri()};
+let iqT=0;$("iq").oninput=()=>{clearTimeout(iqT);iqT=setTimeout(()=>{iQ=$("iq").value.trim().toLowerCase();ri()},120)};
 $("il").onclick=async e=>{
   const tg=e.target.closest(".etq");if(tg){iTag=tg.dataset.t;ri();return}
   const b=e.target.closest("button[data-a]");if(!b){const row=e.target.closest(".ir");if(row)openMods(row.dataset.i);return}const id=b.closest(".ir").dataset.i,i=I.find(x=>x.id===id),a=b.dataset.a;if(!i)return;
@@ -71,7 +71,7 @@ $("msr").onclick=()=>openAdd(id)}
 let L=[],M={};
 const sum=()=>{const n=L.filter(m=>M[m.sha1]&&M[m.sha1].update).length,b=$("mup");if(!b)return;b.style.display=n?"":"none";b.textContent=`Actualizar todo (${n})`;return n};
 const draw=()=>{const q=($("mq").value||"").toLowerCase();const rows=L.filter(m=>!q||m.file.toLowerCase().includes(q)||((M[m.sha1]||{}).title||"").toLowerCase().includes(q));
-$("mls").innerHTML=rows.length?rows.map(m=>{const i=M[m.sha1]||{},u=i.update;return `<div class="mr ${m.enabled?"":"off"}" data-f="${esc(m.file)}" data-h="${m.sha1}"><div class="ico">${i.icon?`<img src="${esc(i.icon)}" loading="lazy" onerror="this.remove()">`:IC("puzzle")}</div><div class="nm"><b>${esc(i.title||m.file.replace(/\.jar(\.disabled)?$/i,""))}</b><small>${esc(m.file.replace(/\.disabled$/,""))} · ${fSz(m.size)}${i.ver?" · v"+esc(i.ver):""}${i.title?"":" · archivo local"}</small></div>${u?`<button class="btn sm pr" data-a="up">Actualizar a ${esc(u.ver)}</button>`:""}<label class="tg" title="${m.enabled?"Desactivar":"Activar"}"><input type="checkbox" data-a="tg" ${m.enabled?"checked":""}><i></i></label><button class="btn sm dg" data-a="rm">Borrar</button></div>`}).join(""):`<div class="emp">${L.length?"Ningún mod coincide con el filtro.":"Esta instancia aún no tiene mods. Instálalos desde la pestaña Mods o añade un .jar."}</div>`};
+$("mls").innerHTML=rows.length?rows.map(m=>{const i=M[m.sha1]||{},u=i.update;return `<div class="mr ${m.enabled?"":"off"}" data-f="${esc(m.file)}" data-h="${m.sha1}"><div class="ico">${i.icon?`<img src="${esc(i.icon)}" loading="lazy" decoding="async" onerror="this.remove()">`:IC("puzzle")}</div><div class="nm"><b>${esc(i.title||m.file.replace(/\.jar(\.disabled)?$/i,""))}</b><small>${esc(m.file.replace(/\.disabled$/,""))} · ${fSz(m.size)}${i.ver?" · v"+esc(i.ver):""}${i.title?"":" · archivo local"}</small></div>${u?`<button class="btn sm pr" data-a="up">Actualizar a ${esc(u.ver)}</button>`:""}<label class="tg" title="${m.enabled?"Desactivar":"Activar"}"><input type="checkbox" data-a="tg" ${m.enabled?"checked":""}><i></i></label><button class="btn sm dg" data-a="rm">Borrar</button></div>`}).join(""):`<div class="emp">${L.length?"Ningún mod coincide con el filtro.":"Esta instancia aún no tiene mods. Instálalos desde la pestaña Mods o añade un .jar."}</div>`};
 const relist=async()=>{try{L=await api.modsList(id)}catch(e){L=[];flash(em(e))}draw();sum()};
 const load=async()=>{M={};await relist();$("mst").textContent=L.length+" mods";if(!L.length)return;$("mst").textContent=L.length+" mods · comprobando actualizaciones…";
 try{M=await api.modsCheck({id,hashes:L.map(m=>m.sha1)})}catch{$("mst").textContent=L.length+" mods · sin conexión con Modrinth";return}

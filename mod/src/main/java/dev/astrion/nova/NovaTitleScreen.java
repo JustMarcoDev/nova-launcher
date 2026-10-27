@@ -248,7 +248,7 @@ public class NovaTitleScreen extends NovaScreen {
     private static boolean acList;          // el panel de perfil enseña la lista de cuentas
     private static String acBusy = "";      // nombre al que se está cambiando (el launcher reabre el juego)
 
-    /** Cuentas del launcher: {id, nombre, tipo, activa("1"/"0")}. Vacío si el launcher no dejó el archivo. */
+    /** Cuentas del launcher: {id, nombre, tipo, activa("1"/"0"), ruta de su skin o ""}. Vacío si el launcher no dejó el archivo. */
     static java.util.List<String[]> accounts() {
         java.util.List<String[]> out = new java.util.ArrayList<>();
         try {
@@ -260,10 +260,28 @@ public class NovaTitleScreen extends NovaScreen {
                 com.google.gson.JsonObject a = e.getAsJsonObject();
                 String id = a.get("id").getAsString();
                 if (!id.matches("[\\w-]{1,40}")) continue;
-                out.add(new String[] { id, a.get("name").getAsString(), a.has("type") ? a.get("type").getAsString() : "offline", id.equals(act) ? "1" : "0" });
+                out.add(new String[] { id, a.get("name").getAsString(), a.has("type") ? a.get("type").getAsString() : "offline", id.equals(act) ? "1" : "0", a.has("skin") && !a.get("skin").isJsonNull() ? a.get("skin").getAsString() : "" });
             }
         } catch (Throwable ignored) { }
         return out;
+    }
+
+    private static final java.util.Map<String, NovaGfx.Tex> HEADS = new java.util.HashMap<>();
+
+    /** Cara de una cuenta: de su skin; si no tiene (o no se puede leer), la de Steve. */
+    private NovaGfx.Tex accHead(String[] a) {
+        java.io.File f = a[4].isEmpty() ? null : new java.io.File(a[4]);
+        String key = "acchead|" + a[0] + "|" + (f != null && f.isFile() ? f.lastModified() : 0) + "|" + NovaSkin.steve();
+        if (HEADS.containsKey(key)) return HEADS.get(key);
+        NovaGfx.Tex t = null;
+        try {
+            java.awt.image.BufferedImage im = null;
+            try { if (f != null && f.isFile()) im = javax.imageio.ImageIO.read(f); } catch (Throwable ignored) { }
+            if (im == null || im.getWidth() != 64) im = NovaSkin.steve();
+            if (im != null) t = NovaGfx.skin(client, NovaSkin.headOf(im), key);
+        } catch (Throwable e) { t = null; }
+        HEADS.put(key, t);
+        return t;
     }
 
     void buildProfile(String name) {
@@ -304,11 +322,12 @@ public class NovaTitleScreen extends NovaScreen {
         int bx = px + 6, bw = pw - 12;
         if (list) {
             int y = py + 10 + 11 + 5;
+            final java.util.List<Object[]> heads = new java.util.ArrayList<>();
             for (int i = 0; i < shown; i++) {
                 final String[] a = accs.get(i);
                 boolean cur = a[3].equals("1");
-                String lab = shorten(a[1], 14) + (a[2].equals("microsoft") ? "  MS" : "");
-                NovaButton b = new NovaButton(bx, y, bw, 14, Text.literal(lab), cur ? NovaGfx.I_CHECK : NovaGfx.I_HEAD, cur ? NovaButton.SELECTED : NovaButton.NORMAL, x -> {
+                String lab = "    " + shorten(a[1], 12) + (a[2].equals("microsoft") ? "  MS" : "") + (cur ? "  ✓" : "");
+                NovaButton b = new NovaButton(bx, y, bw, 14, Text.literal(lab), -1, cur ? NovaButton.SELECTED : NovaButton.NORMAL, x -> {
                     if (cur || !acBusy.isEmpty()) return;
                     acBusy = a[1];
                     System.out.println("[NOVA:SWITCH:" + a[0] + "]");   // el launcher activa la cuenta y vuelve a abrir el juego con ella
@@ -316,8 +335,15 @@ public class NovaTitleScreen extends NovaScreen {
                 });
                 b.tip(a[1], cur ? tr("Es el usuario que estás usando") : tr("Cambiar a este usuario: el juego se reinicia"));
                 addDrawableChild(b);
+                heads.add(new Object[] { a, bx + 4, y + 2 });
                 y += 16;
             }
+            addDrawable((c, mx, my, d) -> {   // las caras van encima de los botones
+                for (Object[] h : heads) {
+                    NovaGfx.Tex t = accHead((String[]) h[0]);
+                    if (t != null) t.drawSized(c, (int) h[1], (int) h[2], 10, 10, 1f);
+                }
+            });
             addDrawableChild(new NovaButton(bx, y + 4, bw, 15, Text.literal(tr("Volver")), -1, NovaButton.NORMAL, x -> { acList = false; clearAndInit(); }));
         } else if (accs.size() > 1) {
             addDrawableChild(new NovaButton(bx, py + ph - 8 - 15, bw, 15, Text.literal(tr("Cambiar de usuario")), NovaGfx.I_SWAP, NovaButton.NORMAL, x -> { acList = true; acBusy = ""; clearAndInit(); })

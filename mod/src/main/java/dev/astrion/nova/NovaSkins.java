@@ -111,6 +111,16 @@ final class NovaSkins {
     }
 
     /** Id de la skin que está puesta ahora, o "" si no hay ninguna local. */
+    /** ¿El launcher pidió la skin de Steve para este usuario? (cuenta sin conexión sin skin elegida) */
+    static boolean steve() {
+        try {
+            File f = new File(base(), "skin-local.json");
+            if (!f.isFile()) return false;
+            JsonObject o = JsonParser.parseString(new String(Files.readAllBytes(f.toPath()), StandardCharsets.UTF_8)).getAsJsonObject();
+            return o.has("steve") && o.get("steve").getAsBoolean() && o.has("on") && o.get("on").getAsBoolean() && o.has("user") && o.get("user").getAsString().equals(user());
+        } catch (Throwable t) { return false; }
+    }
+
     static String current() {
         try {
             File f = new File(base(), "skin-local.json");

@@ -4259,3 +4259,11 @@ html[data-cb=Grises] {
 @keyframes swl { from { transform: scaleX(0); } }
 @keyframes swp { 50% { transform: scale(1.05); } }
 @media (prefers-reduced-motion: reduce) { .swc img, .swb i { animation: none; } }
+
+/* Cara de una cuenta dibujada con su skin (la cabeza y la capa de encima, ampliadas sin suavizar). */
+.av { display: inline-block; flex: none; border-radius: 7px; image-rendering: pixelated; background-image: var(--u), var(--u); background-size: 800% 800%; background-repeat: no-repeat; background-position: 71.4286% 14.2857%, 14.2857% 14.2857%; background-color: color-mix(in srgb, var(--ac) 12%, transparent); }
+.acr .av { width: 30px !important; height: 30px !important; }
+.swc .av { border-radius: 16px; margin-bottom: 10px; box-shadow: 0 0 0 2px color-mix(in srgb, var(--ac) 55%, transparent), 0 0 38px color-mix(in srgb, var(--ac) 35%, transparent); animation: swp 1.2s ease-in-out infinite; }
+
+/* Rendimiento: las tarjetas de las listas largas (mods, instancias, skins) solo se pintan cuando están a la vista. */
+.mg2 > *, #il > .ins, .skg > * { content-visibility: auto; contain-intrinsic-size: auto 150px; }
