@@ -108,7 +108,7 @@ function smokeTest() {
   S.win.loadFile('index.html');
 }
 app.on('window-all-closed', () => app.quit());
-ipcMain.handle('cfg:get', () => { const c = load(), st = accState(c); return { ...c, lowRam: LOWRAM, ms: c.ms ? { name: c.ms.name } : null, accounts: st.a.map(({ token, ...r }) => r), activeAccount: st.act.id, _first: FIRST && !c.setupDone }; });
+ipcMain.handle('cfg:get', () => { const c = load(), st = accState(c); return { ...c, lowRam: LOWRAM, ms: c.ms ? { name: c.ms.name } : null, accounts: R.accOut().accounts, activeAccount: st.act.id, _first: FIRST && !c.setupDone }; });
 ipcMain.handle('sys', () => ({ total: Math.max(1, Math.round(os.totalmem() / 1073741824)) }));
 ipcMain.handle('zoom', (e, f) => { S.win.webContents.setZoomFactor(Math.min(1.6, Math.max(0.7, +f || 1))); });
 ipcMain.handle('cfg:set', (e, c) => { wr(cfgFile, { ...load(), ...c }); if ('myServers' in c) novaServersWrite(c.myServers); if (S.updater && 'autoDownload' in c) S.updater.autoDownload = c.autoDownload !== false; if ('discord' in c || 'discordId' in c) discordInit(); if ('tray' in c) trayInit(); if ('channel' in c && S.updater) { checkUpd().catch(() => {}); } return true; });

@@ -32,7 +32,7 @@ public class NovaHudScreen extends NovaScreen {
         NovaTitleScreen.ensure(client);
         NovaSettings.load();
         int pw = Math.min(262, width - 16), x = (width - pw) / 2, gap = 3, ib = 15;
-        int rows = open ? 6 : 1, total = rows * ib + (rows - 1) * gap;
+        int rows = open ? 7 : 1, total = rows * ib + (rows - 1) * gap;
         int y = height - total - 10;
         if (open) buildPanel(x, y, pw, gap, ib); else addBar(x, y, pw, gap, ib);
     }
@@ -69,7 +69,20 @@ public class NovaHudScreen extends NovaScreen {
         addDrawableChild(new NovaButton(x, y, pw, ib, Text.literal(tr("Capa de Nova") + ": " + (NovaSettings.showCape ? tr("Sí") : tr("No"))), NovaSettings.showCape ? NovaGfx.I_CHECK : -1, NovaSettings.showCape ? NovaButton.SELECTED : NovaButton.NORMAL, b -> { NovaSettings.showCape = !NovaSettings.showCape; clearAndInit(); })
                 .tip(tr("Capa de Nova"), tr("Los jugadores con Nova llevan una capa de Nova (la ves en ellos y ellos en ti)") + presenceNote()));
         y += ib + gap;
-        // 4) restablecer
+        // 4) chat mejorado: cuatro opciones por separado
+        int cw = (pw - 3 * gap) / 4;
+        String[] cn = { tr("Hora"), tr("Copiar"), tr("Buscar"), tr("Menciones") };
+        boolean[] cv = { NovaSettings.chatTime, NovaSettings.chatCopy, NovaSettings.chatSearch, NovaSettings.chatMention };
+        String[] ct = { tr("Pone [HH:mm] delante de cada mensaje del chat"), tr("Clic derecho sobre un mensaje del chat para copiarlo"), tr("Un buscador en el chat abierto que filtra el historial"), tr("Resalta con color y suena suave cuando alguien dice tu nombre") };
+        for (int i = 0; i < 4; i++) {
+            final int k = i;
+            addDrawableChild(new NovaButton(x + i * (cw + gap), y, cw, ib, Text.literal(cn[i]), cv[i] ? NovaGfx.I_CHECK : -1, cv[i] ? NovaButton.SELECTED : NovaButton.NORMAL, b -> {
+                if (k == 0) NovaSettings.chatTime = !NovaSettings.chatTime; else if (k == 1) NovaSettings.chatCopy = !NovaSettings.chatCopy; else if (k == 2) NovaSettings.chatSearch = !NovaSettings.chatSearch; else NovaSettings.chatMention = !NovaSettings.chatMention;
+                clearAndInit();
+            }).tip(tr("Chat") + ": " + cn[i], ct[i]));
+        }
+        y += ib + gap;
+        // 5) restablecer
         addDrawableChild(new NovaButton(x, y, pw, ib, Text.literal(tr("Restablecer")), NovaGfx.I_SWAP, NovaButton.NORMAL, b -> { NovaHud.resetPositions(); clearAndInit(); })
                 .tip(tr("Restablecer"), tr("Vuelve a las posiciones de fábrica")));
         y += ib + gap;

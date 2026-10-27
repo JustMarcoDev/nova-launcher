@@ -121,9 +121,9 @@ ipcMain.handle('skin:use', async (e, id) => {
     await mojang(tok, 'POST', '/minecraft/profile/skins', { body: fd });
   }
   skinSelSet(act.id, id); skinLocalWrite(act);
-  return { ...skinList(), mode: act.type === 'microsoft' ? 'microsoft' : 'offline' };
+  return { ...skinList(), mode: act.type === 'microsoft' ? 'microsoft' : 'offline', accs: R.accOut() };
 });
-ipcMain.handle('skin:unset', () => { const act = accState().act; skinSelSet(act.id, ''); skinLocalWrite(act); return skinList(); });
+ipcMain.handle('skin:unset', () => { const act = accState().act; skinSelSet(act.id, ''); skinLocalWrite(act); return { ...skinList(), accs: R.accOut() }; });
 // Skin y capas actuales de la cuenta Microsoft (para la vista previa y la lista de capas)
 ipcMain.handle('skin:current', async () => {
   const act = accState().act; if (act.type !== 'microsoft') return { offline: true };

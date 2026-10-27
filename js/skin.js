@@ -71,9 +71,9 @@ function skInit(){
   $("skmd").onclick=async e=>{const b=e.target.closest("button[data-m]");if(!b||!SKD)return;SKD.model=b.dataset.m;if(SKD.id){try{SKS=await SKA().skinModel({id:SKD.id,model:SKD.model})}catch(x){flash(em(x))}}skDraw();skShow()};
   $("sku").onclick=async()=>{
     const api=SKA();if(!api||!SKD||!SKD.data)return;
-    try{skBusy(true);if(!SKD.id)await skSave();const r=await api.skinUse(SKD.id);SKS=r;flash(r.mode==="microsoft"?"Skin cambiada en tu cuenta ✓ (puede tardar un momento en verse en el juego)":"Skin aplicada ✓ Solo tú la verás al jugar")}
+    try{skBusy(true);if(!SKD.id)await skSave();const r=await api.skinUse(SKD.id);SKS=r;if(r.accs)applyAccs(r.accs);flash(r.mode==="microsoft"?"Skin cambiada en tu cuenta ✓ (puede tardar un momento en verse en el juego)":"Skin aplicada ✓ Solo tú la verás al jugar")}
     catch(e){flash(em(e))}finally{skBusy(false);skDraw()}};
-  $("skx").onclick=async()=>{try{SKS=await SKA().skinUnset();flash("Vuelves a la skin de tu nombre");skDraw()}catch(e){flash(em(e))}};
+  $("skx").onclick=async()=>{try{SKS=await SKA().skinUnset();if(SKS.accs)applyAccs(SKS.accs);flash("Vuelves a la skin de tu nombre");skDraw()}catch(e){flash(em(e))}};
   const del=async id=>{if(!confirm(trad("¿Eliminar esta skin? Se borra de la carpeta del launcher.")))return;try{SKS=await SKA().skinDel(id);if(SKD&&SKD.id===id){SKD={...SKD,id:undefined}}skDraw();flash("Skin eliminada")}catch(x){flash(em(x))}};
   const ren=async()=>{const i=$("skni"),sv=SKS.skins.find(z=>z.id===(SKD&&SKD.id));if(!sv)return;
     if(i.hidden){i.value=sv.name;i.hidden=false;$("sknm").hidden=true;$("skrn").textContent=trad("Guardar nombre");i.focus();i.select();return}

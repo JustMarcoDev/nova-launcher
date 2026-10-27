@@ -20,7 +20,7 @@ function show(p){const f=TABF[p];if(f&&!LOK[f]){PEND=p;const b=document.querySel
  PEND="";document.querySelectorAll(".pg,nav button").forEach(e=>e.classList.remove("on"));$(p).classList.add("on");document.querySelector(`nav [data-p=${p}]`).classList.add("on");$("pt").textContent=PT[p];$("pop").classList.remove("on");dirty=60;HR=null;if(p==="set")setTimeout(renderU,0);if(p==="vers")rv();if(p==="inst")ri();if(p==="mods"){mchips();mods()}if(p==="srv")loadSrv();if(p==="con")rcon();if(p==="sk")skOpen();if(p==="sta")statsOpen();}
 // Selección de versión (sin crear instancias a mano)
 const save=()=>sv({last:sel});
-function head(){$("gs").textContent=`Minecraft ${sel.mc} con ${LDN(sel.ld)}`;const n=curAcc().name;$("hn").textContent=$("un").textContent=n;$("av").src="https://minotar.net/avatar/"+encodeURIComponent(n)+"/44";$("av").onerror=()=>$("av").style.display="none";
+function head(){$("gs").textContent=`Minecraft ${sel.mc} con ${LDN(sel.ld)}`;const n=curAcc().name;$("hn").textContent=$("un").textContent=n;$("av").innerHTML=accAv(curAcc(),22);
 $("k1").textContent=curAcc().type==="microsoft"?"Microsoft":"Offline";$("k5").textContent=fPl(I.reduce((t,i)=>t+(i.playMs||0),0));$("k2").textContent=cfg.ram+" GB";$("k3").textContent=cfg.javaPath?"Personalizado":"Automático";$("k4").textContent=VER;rp();qi()}
 function pick(mc,type,ld){sel.inst=null;sel.mc=mc;sel.type=type;if(ld)sel.ld=ld;if(!LD[sel.ld](mc))sel.ld="Vanilla";if(tf!=="all")tf=type;head();save()}
 $("cp").onclick=e=>{e.stopPropagation();const p=$("pop"),on=!p.classList.contains("on");if(on){const r=$("cp").getBoundingClientRect(),below=innerHeight-r.bottom,need=Math.min(440,p.scrollHeight+30);p.classList.toggle("up",below<need&&r.top>below)}p.classList.toggle("on",on)};

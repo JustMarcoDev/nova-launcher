@@ -72,18 +72,16 @@ ipcMain.handle('world:last', () => {
 });
 
 
-// ---- Capturas con aviso: el mod escribe «[Nova] captura: <ruta>» y, al pulsar sus botones, [NOVA:SHOTCOPY:<ruta>] / [NOVA:SHOTOPEN:<ruta>]
+// ---- Capturas con aviso: el mod escribe el marcador SHOTNEW al guardar una captura y SHOTCOPY / SHOTVIEW / SHOTOPEN al pulsar sus botones (main/marcas.js).
 // Solo se aceptan rutas dentro de la carpeta screenshots de esa instancia.
-function shotMarkers(t, id) {
-  const ok = f => { try { const d = path.join(iDir(id), 'screenshots') + path.sep, p = path.resolve(String(f).trim()); return p.startsWith(d) && /\.(png|jpe?g)$/i.test(p) && fs.existsSync(p) ? p : null; } catch { return null; } };
-  if (/\[Nova\] captura: /.test(t)) { send('shot:new', id); }
-  let m = t.match(/\[NOVA:SHOTCOPY:([^\]]+)\]/);
-  if (m) { const p = ok(m[1]); if (p) { const im = nativeImage.createFromPath(p); if (!im.isEmpty()) clipboard.writeImage(im); } }
-  m = t.match(/\[NOVA:SHOTVIEW:([^\]]+)\]/);
-  if (m) { const p = ok(m[1]); if (p) shell.openPath(p); }
-  m = t.match(/\[NOVA:SHOTOPEN:([^\]]+)\]/);
-  if (m) { const p = ok(m[1]); if (p) shell.showItemInFolder(p); }
+function shotAction(kind, f, id) {
+  let p = null;
+  try { const d = path.join(iDir(id), 'screenshots') + path.sep, r = path.resolve(String(f).trim()); if (r.startsWith(d) && /\.(png|jpe?g)$/i.test(r) && fs.existsSync(r)) p = r; } catch {}
+  if (!p) return;
+  if (kind === 'copy') { const im = nativeImage.createFromPath(p); if (!im.isEmpty()) clipboard.writeImage(im); }
+  else if (kind === 'view') shell.openPath(p);
+  else if (kind === 'open') shell.showItemInFolder(p);
 }
 
 // Lo que usan otros módulos
-Object.assign(R, { dirSize, importWorldZips, shotMarkers });
+Object.assign(R, { dirSize, importWorldZips, shotAction });

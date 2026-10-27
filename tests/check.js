@@ -73,5 +73,14 @@ if (ver !== pkg.version) bad('VER en js/base.js (' + ver + ') no coincide con pa
   if (!/signAndEditExecutable=true/.test(wf) || !/CSC_LINK/.test(wf)) bad('release.yml: falta escribir los datos del .exe y la firma opcional (CSC_LINK)');
 }
 
+// Marcadores seguros del mod (código por partida; el chat no puede pedirle nada al launcher)
+{
+  const r = require('child_process').spawnSync(process.execPath, [path.join(__dirname, 'marcas.js')], { encoding: 'utf8' });
+  if (r.status !== 0) bad('tests/marcas.js falló:\n' + (r.stdout || '') + (r.stderr || ''));
+  else console.log(r.stdout.trim());
+  const jg = rd('main/juego.js');
+  if (/\[NOVA:[A-Z]/.test(jg.replace(/\/\/.*$/gm, ''))) bad('main/juego.js: los marcadores se leen solo con main/marcas.js (con el código de la partida)');
+}
+
 if (fails.length) { console.log('\nFALLOS (' + fails.length + '):'); fails.forEach(f => console.log(' ✕ ' + f)); process.exit(1); }
 console.log('Revisión estática correcta · versión ' + pkg.version);
