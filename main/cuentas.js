@@ -31,7 +31,7 @@ function encryptOldTokens() {
     const st = accState(c); saveAcc(st.a, st.act.id);
   } catch {}
 }
-const accOut = () => { const st = accState(); return { accounts: st.a.map(({ token, pid, ...r }) => r), active: st.act.id }; };
+const accOut = () => { const st = accState(); return { accounts: st.a.map(({ token, pid, ...r }) => ({ ...r, skin: R.accSkinData ? R.accSkinData(r.id) : '' })), active: st.act.id }; };
 ipcMain.handle('acc:addOffline', (e, name) => {
   name = String(name || '').trim(); if (!/^[A-Za-z0-9_]{3,16}$/.test(name)) throw new Error('El nombre debe tener de 3 a 16 letras, números o _');
   const st = accState(); if (st.a.some(x => x.type === 'offline' && x.name.toLowerCase() === name.toLowerCase())) throw new Error('Ya tienes una cuenta offline con ese nombre');

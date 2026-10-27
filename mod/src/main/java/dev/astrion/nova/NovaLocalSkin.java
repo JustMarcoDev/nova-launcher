@@ -52,7 +52,8 @@ public final class NovaLocalSkin {
             if (!on) { clear(mc); version = v; return; }
             if (v == version && id != null) return;
             File pf = new File(dir, "skin-local.png");
-            BufferedImage img = pf.isFile() ? javax.imageio.ImageIO.read(pf) : null;
+            boolean steve = o.has("steve") && o.get("steve").getAsBoolean();
+            BufferedImage img = steve ? NovaSkin.steve() : pf.isFile() ? javax.imageio.ImageIO.read(pf) : null;
             if (img == null || img.getWidth() != 64 || (img.getHeight() != 64 && img.getHeight() != 32)) {
                 // puede ser una lectura a medias: se reintenta cada segundo antes de darla por mala (y se sigue enseñando la skin anterior)
                 if (++fails >= 5) { clear(mc); version = v; fails = 0; }

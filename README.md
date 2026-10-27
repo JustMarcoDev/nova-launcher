@@ -162,6 +162,12 @@ Cada vez que cambia el mod (`mod/`) se publica una versión nueva del launcher: 
 
 ## Historial de actualizaciones
 
+### 0.2.16-beta.7 — Skin propia de cada usuario y launcher más fluido
+
+- **Skin por usuario**: antes la skin descargada se guardaba siempre en `nova/skin.png`, así que si un usuario no tenía skin (por ejemplo una cuenta sin conexión) se le quedaba puesta la del anterior. Ahora cada nombre tiene su archivo (`nova/skin-<nombre>.png`). Una cuenta **sin conexión** sin skin elegida lleva la de **Steve**: el launcher lo marca con `steve: true` en `skin-local.json` y el mod la lee del propio jar de Minecraft (no se incluye ninguna copia). Las cuentas de Microsoft sin skin elegida usan la suya de Mojang.
+- **Caras de los usuarios**: el launcher deja en `accounts.json` la ruta de la skin de cada cuenta; la lista «Cambiar de usuario» del mod dibuja la cara de cada una (antes todas llevaban la del usuario actual). En el launcher, la lista de cuentas y la animación de cambio usan la skin elegida (cabeza y capa); sin skin, Steve (o la de Microsoft por su nombre).
+- **Más fluido**: el fondo animado va a 30 fps fuera de Inicio (se ve pequeño y tenue), las listas largas (mods, instancias, skins) usan `content-visibility: auto` para pintar solo lo visible, el buscador de instancias espera 120 ms y las imágenes de las listas se decodifican en segundo plano.
+
 ### 0.2.16-beta.6 — Cambiar de usuario desde el juego
 
 - **Mod**: el panel del botón de perfil (arriba a la izquierda) tiene «Cambiar de usuario» cuando el launcher tiene más de una cuenta. Solo salen las cuentas del launcher: el launcher escribe `nova/accounts.json` (id, nombre y tipo; nunca los tokens) al abrir el juego y cada vez que cambian las cuentas. Al elegir una, el mod escribe `[NOVA:SWITCH:<id>]`.

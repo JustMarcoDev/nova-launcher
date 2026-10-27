@@ -25,9 +25,11 @@ const NOVA_MC = ['1.20', '1.20.1', '1.20.2', '1.20.3', '1.20.4', '1.20.5', '1.20
 // Vídeo de fondo del menú de Nova (frames JPEG empaquetados): fuera del jar para que el mod pese poco
 // ---- Menú de Nova dentro del juego: carpeta de datos, skin del jugador y fondo personalizado ----
 function novaDir() { const d = path.join(root, 'nova'); try { fs.mkdirSync(d, { recursive: true }); } catch {} return d; }
-// Descarga la skin (si hay internet, con tiempo límite). Si falla se usa la última guardada; si no hay ninguna, va vacío.
+// Descarga la skin de un nombre (si hay internet, con tiempo límite) y la guarda aparte para cada nombre: así la skin de un usuario nunca se
+// queda puesta en otro. Si falla se usa la última guardada de ese nombre; si no hay ninguna, va vacío (sin skin: el mod pone la de Steve).
+const skinCache = name => path.join(novaDir(), 'skin-' + String(name).toLowerCase().replace(/[^\w-]/g, '_').slice(0, 40) + '.png');
 async function novaSkin(name) {
-  const dst = path.join(novaDir(), 'skin.png');
+  const dst = skinCache(name);
   try {
     const buf = await new Promise((ok, no) => {
       const rq = require('https').get('https://minotar.net/skin/' + encodeURIComponent(name) + '.png', { timeout: 4000 }, r => {
@@ -244,11 +246,22 @@ function novaModJar(mc) {
 }
 
 // Servidores favoritos del launcher -> nova/servers.json (el mod los enseña en su panel «Servidores»)
-// Cuentas del launcher para el mod («Cambiar de usuario»): solo nombre, tipo e id; nunca los tokens.
+// Cuentas del launcher para el mod («Cambiar de usuario»): id, nombre, tipo y la skin de cada una (solo la ruta; nunca los tokens).
+// Skin de una cuenta: la que eligió en el launcher; si es Microsoft y no eligió, la suya de Mojang (guardada aparte); si no hay, vacío (Steve).
+const SKPEND = new Set();
 function novaAccountsWrite() {
   try {
     const st = R.accState();
-    fs.writeFileSync(path.join(novaDir(), 'accounts.json'), JSON.stringify({ active: st.act.id, accounts: st.a.map(x => ({ id: x.id, name: String(x.name || ''), type: x.type === 'microsoft' ? 'microsoft' : 'offline' })) }));
+    const accounts = st.a.map(x => {
+      let skin = R.accSkinFile ? R.accSkinFile(x.id) : '';
+      if (!skin && x.type === 'microsoft') {
+        const c = skinCache(x.name);
+        if (fs.existsSync(c)) skin = c;
+        else if (!SKPEND.has(x.id)) { SKPEND.add(x.id); novaSkin(x.name).then(f => { SKPEND.delete(x.id); if (f) novaAccountsWrite(); }, () => SKPEND.delete(x.id)); }
+      }
+      return { id: x.id, name: String(x.name || ''), type: x.type === 'microsoft' ? 'microsoft' : 'offline', skin };
+    });
+    fs.writeFileSync(path.join(novaDir(), 'accounts.json'), JSON.stringify({ active: st.act.id, accounts }));
   } catch {}
 }
 function novaServersWrite(list) {
