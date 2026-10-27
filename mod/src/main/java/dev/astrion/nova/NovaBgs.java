@@ -109,7 +109,7 @@ final class NovaBgs {
     static void request(Entry e) {
         if (e == null || !e.remote || e.ready || e.working) return;
         awaiting.add(e.id);
-        System.out.println("[NOVA:GETBG:" + e.id + "]");
+        NovaMark.say("GETBG", e.id);
     }
 
     private static boolean askedSaved = false;

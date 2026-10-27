@@ -330,7 +330,7 @@ public class NovaTitleScreen extends NovaScreen {
                 NovaButton b = new NovaButton(bx, y, bw, 14, Text.literal(lab), -1, cur ? NovaButton.SELECTED : NovaButton.NORMAL, x -> {
                     if (cur || !acBusy.isEmpty()) return;
                     acBusy = a[1];
-                    System.out.println("[NOVA:SWITCH:" + a[0] + "]");   // el launcher activa la cuenta y vuelve a abrir el juego con ella
+                    NovaMark.say("SWITCH", a[0]);   // el launcher activa la cuenta y vuelve a abrir el juego con ella
                     clearAndInit();
                 });
                 b.tip(a[1], cur ? tr("Es el usuario que estás usando") : tr("Cambiar a este usuario: el juego se reinicia"));
@@ -440,7 +440,7 @@ public class NovaTitleScreen extends NovaScreen {
                 int bx = x + w - 3 * ib - 2 * gap;
                 addDrawableChild(new NovaButton(bx, y, ib, ib, Text.empty(), NovaGfx.I_EDIT, NovaButton.NORMAL, bb -> { editing = f; buf.setLength(0); buf.append(nm); confirmDel = null; clearAndInit(); })
                         .tip(tr("Cambiar nombre"), tr("Ponle el nombre que quieras")));
-                addDrawableChild(new NovaButton(bx + ib + gap, y, ib, ib, Text.empty(), NovaGfx.I_SWAP, NovaButton.NORMAL, bb -> System.out.println("[NOVA:PICKBG:" + f + "]"))
+                addDrawableChild(new NovaButton(bx + ib + gap, y, ib, ib, Text.empty(), NovaGfx.I_SWAP, NovaButton.NORMAL, bb -> NovaMark.say("PICKBG", f))
                         .tip(tr("Cambiar archivo"), tr("Elige otra foto o vídeo")));
                 addDrawableChild(new NovaButton(bx + 2 * (ib + gap), y, ib, ib, Text.empty(), NovaGfx.I_TRASH, NovaButton.NORMAL, bb -> { confirmDel = f; editing = null; clearAndInit(); })
                         .tip(tr("Eliminar"), tr("Borra la foto o el vídeo")));
@@ -448,11 +448,11 @@ public class NovaTitleScreen extends NovaScreen {
             y += 17;
         }
         int half = (w - gap) / 2;
-        NovaButton add = new NovaButton(x, y, half, ib, Text.literal(tr("Añadir")), NovaGfx.I_PLUS, NovaButton.NORMAL, b -> System.out.println("[NOVA:PICKBG]"));
+        NovaButton add = new NovaButton(x, y, half, ib, Text.literal(tr("Añadir")), NovaGfx.I_PLUS, NovaButton.NORMAL, b -> NovaMark.say("PICKBG"));
         add.active = !NovaSettings.DIR.isEmpty();
         add.tip(tr("Añadir foto o vídeo"), tr("Elige un archivo de tu PC"));
         addDrawableChild(add);
-        NovaButton open = new NovaButton(x + half + gap, y, w - half - gap, ib, Text.literal(tr("Abrir carpeta")), NovaGfx.I_FOLDER, NovaButton.NORMAL, b -> System.out.println("[NOVA:OPENDIR]"));
+        NovaButton open = new NovaButton(x + half + gap, y, w - half - gap, ib, Text.literal(tr("Abrir carpeta")), NovaGfx.I_FOLDER, NovaButton.NORMAL, b -> NovaMark.say("OPENDIR"));
         open.active = !NovaSettings.DIR.isEmpty();
         open.tip(tr("Carpeta de fondos"), tr("Arrastra aquí tus fotos"));
         addDrawableChild(open);
@@ -474,7 +474,7 @@ public class NovaTitleScreen extends NovaScreen {
             addDrawableChild(sw);
         }
         y += d + 5;
-        addDrawableChild(new NovaButton(x, y, w, ib, Text.literal(tr("Ajustes del launcher")), NovaGfx.I_GEAR, NovaButton.NORMAL, b -> System.out.println("[NOVA:SETTINGS]"))
+        addDrawableChild(new NovaButton(x, y, w, ib, Text.literal(tr("Ajustes del launcher")), NovaGfx.I_GEAR, NovaButton.NORMAL, b -> NovaMark.say("SETTINGS"))
                 .tip(tr("Ajustes del launcher"), tr("Abre Nova Launcher")));
         y += ib + gap;
         addDrawableChild(new NovaButton(x, y, w, ib, Text.literal(tr("Editar HUD")), NovaGfx.I_EDIT, NovaButton.NORMAL, b -> client.setScreen(new NovaHudScreen(this)))
@@ -791,7 +791,7 @@ public class NovaTitleScreen extends NovaScreen {
         });
         // pie: abrir la carpeta de mods y cerrar
         int fy2 = py + ph - 8 - 15, half = (w - 3) / 2;
-        addDrawableChild(new NovaButton(x, fy2, half, 15, Text.literal(tr("Carpeta de mods")), NovaGfx.I_FOLDER, NovaButton.NORMAL, b -> System.out.println("[NOVA:OPENMODS]"))
+        addDrawableChild(new NovaButton(x, fy2, half, 15, Text.literal(tr("Carpeta de mods")), NovaGfx.I_FOLDER, NovaButton.NORMAL, b -> NovaMark.say("OPENMODS"))
                 .tip(tr("Carpeta de mods"), tr("Abre la carpeta mods de esta instancia")));
         addDrawableChild(new NovaButton(x + half + 3, fy2, w - half - 3, 15, Text.literal(tr("Listo")), NovaGfx.I_CHECK, NovaButton.PRIMARY, b -> closeSkins()));
         if (M.size() > mdRows) labels.add(new Object[] { (mdScroll + 1) + "–" + Math.min(M.size(), mdScroll + mdRows) + " / " + M.size(), px + pw - 8, fy2 - 10, 5.4f, 0xFF7C7CA0, false, 1 });

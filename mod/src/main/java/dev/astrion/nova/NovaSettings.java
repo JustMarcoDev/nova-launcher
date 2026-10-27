@@ -24,6 +24,10 @@ final class NovaSettings {
     static String fpsParticles = "", fpsClouds = "";
     static boolean fpsShadows = true;
     static int fpsView, fpsSim;
+    /** «No volver a preguntar» del aviso «Va lento, ¿activar Modo FPS?». */
+    static boolean fpsNoAsk;
+    /** «Chat mejorado»: cuatro opciones que se activan por separado (todas apagadas de fábrica). */
+    static boolean chatTime, chatCopy, chatSearch, chatMention;
     /** Versión de las «Novedades de Nova» que ya se vio (para no volver a enseñarlas). */
     static String newsSeen = "";
     private static boolean loaded;
@@ -53,6 +57,14 @@ final class NovaSettings {
                 if (fo.has("shadows")) fpsShadows = fo.get("shadows").getAsBoolean();
                 if (fo.has("view")) fpsView = fo.get("view").getAsInt();
                 if (fo.has("sim")) fpsSim = fo.get("sim").getAsInt();
+                fpsNoAsk = fo.has("noAsk") && fo.get("noAsk").getAsBoolean();
+            }
+            if (o.has("chat") && o.get("chat").isJsonObject()) {
+                JsonObject co = o.getAsJsonObject("chat");
+                chatTime = co.has("time") && co.get("time").getAsBoolean();
+                chatCopy = co.has("copy") && co.get("copy").getAsBoolean();
+                chatSearch = co.has("search") && co.get("search").getAsBoolean();
+                chatMention = co.has("mention") && co.get("mention").getAsBoolean();
             }
             if (o.has("newsSeen")) newsSeen = o.get("newsSeen").getAsString();
             if (o.has("hud") && o.get("hud").isJsonObject()) NovaHud.read(o.getAsJsonObject("hud"));
@@ -75,7 +87,11 @@ final class NovaSettings {
             JsonObject fo = new JsonObject();
             fo.addProperty("on", fpsOn); fo.addProperty("particles", fpsParticles); fo.addProperty("clouds", fpsClouds);
             fo.addProperty("shadows", fpsShadows); fo.addProperty("view", fpsView); fo.addProperty("sim", fpsSim);
+            fo.addProperty("noAsk", fpsNoAsk);
             o.add("fps", fo);
+            JsonObject co = new JsonObject();
+            co.addProperty("time", chatTime); co.addProperty("copy", chatCopy); co.addProperty("search", chatSearch); co.addProperty("mention", chatMention);
+            o.add("chat", co);
             o.addProperty("newsSeen", newsSeen);
             o.add("hud", NovaHud.write());
             Files.write(f.toPath(), o.toString().getBytes(StandardCharsets.UTF_8));

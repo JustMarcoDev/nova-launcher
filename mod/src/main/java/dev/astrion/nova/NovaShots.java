@@ -17,7 +17,7 @@ import org.lwjgl.glfw.GLFW;
 /**
  * Aviso de Nova al guardar una captura (F2): miniatura, datos y los botones «Copiar», «Abrir» y «Carpeta» en la esquina de arriba a la derecha durante 5 s.
  * Los botones se pueden pulsar cuando el ratón está libre (chat, inventario, pausa); mientras el puntero esté encima, el aviso no se va.
- * El mod no copia imágenes ni abre carpetas por su cuenta: escribe marcadores que el launcher entiende ([NOVA:SHOTCOPY:ruta], [NOVA:SHOTVIEW:ruta], [NOVA:SHOTOPEN:ruta]).
+ * El mod no copia imágenes ni abre carpetas por su cuenta: escribe marcadores que el launcher entiende (con el código secreto de la partida: SHOTCOPY, SHOTVIEW, SHOTOPEN).
  */
 public final class NovaShots {
     private NovaShots() { }
@@ -49,7 +49,7 @@ public final class NovaShots {
             if (fl == null || fl.length == 0) return;
             File best = fl[0];
             for (File f : fl) if (f.lastModified() > best.lastModified()) best = f;
-            System.out.println("[Nova] captura: " + best.getAbsolutePath());
+            NovaMark.say("SHOTNEW", best.getAbsolutePath());
             BufferedImage th = null;
             try {
                 BufferedImage im = ImageIO.read(best);
@@ -141,20 +141,20 @@ public final class NovaShots {
         boolean down = free && GLFW.glfwGetMouseButton(mc.getWindow().getHandle(), 0) == GLFW.GLFW_PRESS;
         if (down && !wasDown) {
             if (hotX) { born = now - SHOW_MS + 150; }
-            else if (hit(bCopy, mx, my)) { System.out.println("[NOVA:SHOTCOPY:" + p + "]"); copiedAt = now; born = Math.max(born, now - SHOW_MS + 2600); }
-            else if (hit(bView, mx, my)) { System.out.println("[NOVA:SHOTVIEW:" + p + "]"); born = Math.min(born, now - SHOW_MS + 900); }
-            else if (hit(bDir, mx, my)) { System.out.println("[NOVA:SHOTOPEN:" + p + "]"); born = Math.min(born, now - SHOW_MS + 900); }
+            else if (hit(bCopy, mx, my)) { NovaMark.say("SHOTCOPY", p); copiedAt = now; born = Math.max(born, now - SHOW_MS + 2600); }
+            else if (hit(bView, mx, my)) { NovaMark.say("SHOTVIEW", p); born = Math.min(born, now - SHOW_MS + 900); }
+            else if (hit(bDir, mx, my)) { NovaMark.say("SHOTOPEN", p); born = Math.min(born, now - SHOW_MS + 900); }
         }
         wasDown = down;
     }
 
-    private static boolean hit(NovaButton b, double mx, double my) {
+    static boolean hit(NovaButton b, double mx, double my) {
         return mx >= b.getX() && mx < b.getX() + b.getWidth() && my >= b.getY() && my < b.getY() + b.getHeight();
     }
 
-    private static int withAlpha(int argb, float a) { return (((int) ((argb >>> 24) * a)) << 24) | (argb & 0xFFFFFF); }
+    static int withAlpha(int argb, float a) { return (((int) ((argb >>> 24) * a)) << 24) | (argb & 0xFFFFFF); }
 
-    private static void txt(DrawContext c, MinecraftClient mc, String s, int x, int y, float px, int argb, boolean bold, float a) {
+    static void txt(DrawContext c, MinecraftClient mc, String s, int x, int y, float px, int argb, boolean bold, float a) {
         if (NovaGfx.ok) {
             try { NovaGfx.text(mc, s, px, argb, bold).draw(c, x, y, a); return; } catch (Throwable e) { NovaGfx.ok = false; }
         }

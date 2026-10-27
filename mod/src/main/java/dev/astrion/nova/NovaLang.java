@@ -214,5 +214,20 @@ final class NovaLang {
         p("Vuelves a la skin de tu cuenta", "Back to your account's skin", "Retour à la skin de ton compte", "Zurück zur Skin deines Kontos", "Torni alla skin del tuo account", "De volta à skin da sua conta");
         p("Solo la ves tú; para que todos la vean, aplícala desde el launcher", "Only you see it; to show it to everyone, apply it from the launcher", "Toi seul la vois ; pour que tous la voient, applique-la depuis le launcher", "Nur du siehst sie; damit alle sie sehen, wende sie im Launcher an", "Solo tu la vedi; perché la vedano tutti, applicala dal launcher", "Só você a vê; para todos verem, aplique-a pelo launcher");
         p("Solo la ves tú", "Only you see it", "Toi seul la vois", "Nur du siehst sie", "Solo tu la vedi", "Só você a vê");
+        p("Hora", "Time", "Heure", "Uhrzeit", "Ora", "Hora");
+        p("Buscar", "Search", "Chercher", "Suchen", "Cerca", "Buscar");
+        p("Menciones", "Mentions", "Mentions", "Erwähnungen", "Menzioni", "Menções");
+        p("Chat", "Chat", "Chat", "Chat", "Chat", "Chat");
+        p("Pone [HH:mm] delante de cada mensaje del chat", "Puts [HH:mm] before every chat message", "Ajoute [HH:mm] devant chaque message du chat", "Setzt [HH:mm] vor jede Chatnachricht", "Mette [HH:mm] davanti a ogni messaggio della chat", "Coloca [HH:mm] antes de cada mensagem do chat");
+        p("Clic derecho sobre un mensaje del chat para copiarlo", "Right-click a chat message to copy it", "Clic droit sur un message du chat pour le copier", "Rechtsklick auf eine Chatnachricht zum Kopieren", "Clic destro su un messaggio della chat per copiarlo", "Clique direito em uma mensagem do chat para copiá-la");
+        p("Un buscador en el chat abierto que filtra el historial", "A search box in the open chat that filters the history", "Une barre de recherche dans le chat ouvert qui filtre l'historique", "Ein Suchfeld im offenen Chat, das den Verlauf filtert", "Una barra di ricerca nella chat aperta che filtra la cronologia", "Uma caixa de busca no chat aberto que filtra o histórico");
+        p("Resalta con color y suena suave cuando alguien dice tu nombre", "Highlights in colour and plays a soft sound when someone says your name", "Met en couleur et joue un son discret quand quelqu'un dit ton nom", "Hebt farbig hervor und spielt einen leisen Ton, wenn jemand deinen Namen sagt", "Evidenzia con un colore e fa un suono lieve quando qualcuno dice il tuo nome", "Destaca com cor e toca um som suave quando alguém diz seu nome");
+        p("Buscar en el chat…", "Search the chat…", "Chercher dans le chat…", "Im Chat suchen…", "Cerca nella chat…", "Buscar no chat…");
+        p("Mensaje copiado", "Message copied", "Message copié", "Nachricht kopiert", "Messaggio copiato", "Mensagem copiada");
+        p("Va lento, ¿activar Modo FPS?", "Running slow, turn on FPS mode?", "Ça rame, activer le mode FPS ?", "Es ruckelt, FPS-Modus aktivieren?", "Va lento, attivare la modalità FPS?", "Está lento, ativar o Modo FPS?");
+        p("Baja partículas, nubes y distancias para ir más fluido", "Lowers particles, clouds and distances for smoother play", "Réduit particules, nuages et distances pour plus de fluidité", "Senkt Partikel, Wolken und Distanzen für flüssigeres Spiel", "Abbassa particelle, nuvole e distanze per più fluidità", "Reduz partículas, nuvens e distâncias para ficar mais fluido");
+        p("Activar", "Turn on", "Activer", "Aktivieren", "Attiva", "Ativar");
+        p("No volver a preguntar", "Don't ask again", "Ne plus demander", "Nicht mehr fragen", "Non chiedere più", "Não perguntar de novo");
+        p("Modo FPS activado", "FPS mode on", "Mode FPS activé", "FPS-Modus an", "Modalità FPS attiva", "Modo FPS ativado");
     }
 }

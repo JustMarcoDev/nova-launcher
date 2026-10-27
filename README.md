@@ -162,6 +162,13 @@ Cada vez que cambia el mod (`mod/`) se publica una versión nueva del launcher: 
 
 ## Historial de actualizaciones
 
+### 0.2.16-beta.8 — Marcadores seguros, chat mejorado y aviso del Modo FPS
+
+- **Marcadores seguros**: el launcher inventa un código aleatorio por partida (`crypto.randomBytes(16).toString('hex')`) y lo pasa con `-Dnova.key=<código>`. El mod lo escribe en cada marcador: `[NOVA:<código>:SWITCH:id]`, `[NOVA:<código>:SETTINGS]`… (incluidas las capturas: `SHOTNEW`, `SHOTCOPY`, `SHOTVIEW`, `SHOTOPEN`). El launcher ignora cualquier línea con `[CHAT]` y cualquier marcador sin el código correcto, así que un mensaje de chat con `[NOVA:SETTINGS]`, `[NOVA:OPENMODS]` o `[NOVA:GETBG:earth]` ya no hace nada. La lectura vive en `main/marcas.js` (módulo puro, con prueba en `tests/marcas.js`) y el mod los escribe con `NovaMark`. Fuera del launcher (sin `nova.key`) el mod no escribe marcadores.
+- **Skins que coinciden**: el avatar de la barra de arriba usa la misma cabeza que la lista de cuentas (la skin elegida de esa cuenta; sin skin, Steve), y se actualiza al elegir o quitar una skin.
+- **Chat mejorado (mod)**: cuatro opciones que se activan por separado en «Editar HUD» (apagadas de fábrica): **Hora** (`[HH:mm]` delante de cada mensaje), **Copiar** (clic derecho sobre un mensaje del chat abierto lo copia sin la hora), **Buscar** (buscador sobre el chat abierto que filtra el historial; al cerrar el chat vuelve todo) y **Menciones** (resalta en amarillo y suena suave cuando alguien nombra al jugador; los mensajes propios no cuentan). Mixins `ChatHudMixin` (público `addMessage` y `refresh`, iguales en las 19 versiones) y `ChatScreenMixin` (`init`), sin depender de nada privado del chat, así que no necesita capas nuevas. Se guardan en `menu.json` (`chat`).
+- **Sugerir el Modo FPS (mod)**: durante la partida (sin menús abiertos), si la media de FPS de los últimos 10 s baja de 40 durante 2 minutos seguidos, sale una vez por sesión un aviso con el estilo del de capturas: «Va lento, ¿activar Modo FPS?», con **Activar** (aplica el Modo FPS) y **No volver a preguntar** (se guarda en `menu.json`). No sale si el Modo FPS ya está activo.
+
 ### 0.2.16-beta.7 — Skin propia de cada usuario y launcher más fluido
 
 - **Skin por usuario**: antes la skin descargada se guardaba siempre en `nova/skin.png`, así que si un usuario no tenía skin (por ejemplo una cuenta sin conexión) se le quedaba puesta la del anterior. Ahora cada nombre tiene su archivo (`nova/skin-<nombre>.png`). Una cuenta **sin conexión** sin skin elegida lleva la de **Steve**: el launcher lo marca con `steve: true` en `skin-local.json` y el mod la lee del propio jar de Minecraft (no se incluye ninguna copia). Las cuentas de Microsoft sin skin elegida usan la suya de Mojang.

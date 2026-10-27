@@ -227,10 +227,12 @@ public final class NovaHud {
             NovaPresence.frame(mc);
             NovaServers.frame(mc);
             if (TEST_EDIT && mc.currentScreen == null && ++testTick == 240) mc.setScreen(new NovaHudScreen(null));   // solo para pruebas (-Dnova.hudedit=1)
+            NovaChat.frame(c, mc);
             if (mc.options.hudHidden) return;
             if (mc.currentScreen instanceof NovaHudScreen) return;   // el editor dibuja su propia vista previa
             pollMouse(mc);
             NovaShots.render(c, mc);
+            NovaFps.frame(c, mc);
             int sw = c.getScaledWindowWidth(), sh = c.getScaledWindowHeight();
             for (El e : ALL) {
                 if (!e.on) continue;

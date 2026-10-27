@@ -4267,3 +4267,6 @@ html[data-cb=Grises] {
 
 /* Rendimiento: las tarjetas de las listas largas (mods, instancias, skins) solo se pintan cuando están a la vista. */
 .mg2 > *, #il > .ins, .skg > * { content-visibility: auto; contain-intrinsic-size: auto 150px; }
+
+#av { display: inline-flex; flex: none; }
+.pl .av, .pl .av0 { width: 22px; height: 22px; border-radius: calc(5px*var(--rs,1)); }

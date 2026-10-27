@@ -51,7 +51,7 @@ public class NovaPauseScreen extends Screen {
         }
         y += bh + gap;
         addDrawableChild(new NovaButton(x, y, bw, bh, Text.literal(tr("Abrir launcher")), NovaGfx.I_NOVA, NovaButton.NORMAL,
-                b -> System.out.println("[NOVA:SHOW]")));
+                b -> NovaMark.say("SHOW")));
         y += bh + gap + 3;
         boolean local = client.isInSingleplayer();
         addDrawableChild(new NovaButton(x, y, bw, bh, Text.literal(local ? tr("Guardar y salir") : tr("Desconectar")), NovaGfx.I_CLOSE, NovaButton.DANGER, b -> {
