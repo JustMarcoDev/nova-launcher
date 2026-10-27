@@ -22,7 +22,7 @@ function accState(c = load()) {
   if (!act) act = (c.ms && c.ms.token ? a.find(x => x.type === 'microsoft') : null) || a.find(x => x.type === 'offline') || a[0];
   return { a, act };
 }
-function saveAcc(a, actId) { const act = a.find(x => x.id === actId) || a[0]; wr(cfgFile, { ...load(), accounts: a.map(x => x.token ? { ...x, token: encTok(x.token) } : x), activeAccount: act.id, username: act.name, ms: act.type === 'microsoft' ? { name: act.name, token: encTok(act.token) } : null }); }
+function saveAcc(a, actId) { const act = a.find(x => x.id === actId) || a[0]; wr(cfgFile, { ...load(), accounts: a.map(x => x.token ? { ...x, token: encTok(x.token) } : x), activeAccount: act.id, username: act.name, ms: act.type === 'microsoft' ? { name: act.name, token: encTok(act.token) } : null }); try { R.novaAccountsWrite && R.novaAccountsWrite(); } catch {} }
 // Al arrancar: las sesiones guardadas sin cifrar de versiones anteriores se cifran una sola vez
 function encryptOldTokens() {
   try {
@@ -50,4 +50,4 @@ ipcMain.handle('acc:remove', (e, id) => { const st = accState(); if (st.a.length
 
 
 // Lo que usan otros módulos
-Object.assign(R, { accState, encryptOldTokens, saveAcc });
+Object.assign(R, { accOut, accState, encryptOldTokens, saveAcc });

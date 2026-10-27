@@ -13,8 +13,15 @@ try{if(b){const a=b.dataset.a;
 if(a==="rm"){const ac=cfg.accounts.find(x=>x.id===row.dataset.id);if(!confirm("¿Quitar la cuenta «"+ac.name+"» del launcher?"))return;applyAccs(await api.accRemove(row.dataset.id))}
 else if(a==="off")applyAccs(await api.accAddOffline($("aon").value.trim()));
 else if(a==="ms"){b.disabled=true;b.textContent="Esperando a Microsoft…";const r=await api.login();if(r&&r.error){er.textContent=r.error;b.disabled=false;b.textContent="Añadir cuenta de Microsoft";return}applyAccs(r)}}
-else if(row&&row.dataset.id!==cfg.activeAccount)applyAccs(await api.accSwitch(row.dataset.id));else return;
+else if(row&&row.dataset.id!==cfg.activeAccount){applyAccs(await api.accSwitch(row.dataset.id));accAnim()}else return;
 redraw()}catch(x){const z=$("aer");if(z)z.textContent=em(x)}}
+// Cambio de cuenta: pantalla de «cargando» corta (avatar, barra y pasos) y al acabar se ve el Inicio con la cuenta nueva.
+let SWB=false;
+function accAnim(){if(SWB)return;SWB=true;const a=curAcc(),o=document.createElement("div");o.className="swo";
+o.innerHTML=`<div class="swc"><img src="https://minotar.net/avatar/${encodeURIComponent(a.name)}/96" alt="" onerror="this.style.visibility='hidden'"><span class="sws">Cambiando de usuario</span><b>${esc(a.name)}</b><div class="swb"><i></i></div><small class="swt">Cargando perfil…</small></div>`;
+document.body.appendChild(o);try{accMenu(false);closeModal(true)}catch{}
+const T=["Cargando perfil…","Preparando la skin…","Cargando instancias…","Casi listo…"],t=o.querySelector(".swt");let k=0;const iv=setInterval(()=>{k=Math.min(k+1,T.length-1);t.textContent=T[k]},430);
+setTimeout(()=>{clearInterval(iv);try{show("home")}catch{}o.classList.add("out");setTimeout(()=>{o.remove();SWB=false},420)},1800)}
 function accMenu(on){const m=$("acm");if(on===undefined)on=!m.classList.contains("on");if(on){m.innerHTML="<h6>Cuentas</h6>"+accHtml();const r=$("plb").getBoundingClientRect();m.style.top=(r.bottom+8)+"px";m.style.left=Math.max(8,Math.min(innerWidth-300,r.right-292))+"px"}m.classList.toggle("on",on)}
 $("plb").onclick=e=>{e.stopPropagation();accMenu()};$("acm").onclick=e=>{e.stopPropagation();accClick(e,()=>{accMenu(true);buildSet()})};document.addEventListener("click",()=>accMenu(false));
 function openAccounts(){modal(`<div class="hd"><div class="iic">${IC("user")}</div><div style="min-width:0"><h3>Cuentas de Minecraft</h3><span class="sub">Cambia de cuenta aquí o desde tu nombre en la barra superior</span></div><button class="btn sm x" data-x>Cerrar</button></div><div id="acx">${accHtml()}</div>`);$("acx").onclick=e=>accClick(e,()=>{$("acx").innerHTML=accHtml();buildSet()})}

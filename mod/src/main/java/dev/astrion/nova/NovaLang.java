@@ -155,6 +155,12 @@ final class NovaLang {
         p("Ábrelo o ciérralo para mover el HUD sin que estorbe", "Open or close it to move the HUD without it getting in the way", "Ouvre-le ou ferme-le pour déplacer le HUD sans gêne", "Auf- oder zuklappen, um das HUD ungestört zu verschieben", "Aprilo o chiudilo per spostare l'HUD senza ingombro", "Abre ou fecha para mover o HUD sem atrapalhar");
         p("Cerrar", "Close", "Fermer", "Schließen", "Chiudi", "Fechar");
         p("Cierra este panel (también con Esc)", "Closes this panel (Esc works too)", "Ferme ce panneau (Échap aussi)", "Schließt dieses Panel (auch mit Esc)", "Chiude questo pannello (anche con Esc)", "Fecha este painel (Esc também funciona)");
+        p("Cambiar de usuario", "Switch user", "Changer d'utilisateur", "Benutzer wechseln", "Cambia utente", "Mudar de utilizador");
+        p("Cambiando de usuario…", "Switching user…", "Changement d'utilisateur…", "Benutzer wird gewechselt…", "Cambio utente…", "A mudar de utilizador…");
+        p("Volver", "Back", "Retour", "Zurück", "Indietro", "Voltar");
+        p("Solo las cuentas que tienes en el launcher", "Only the accounts you have in the launcher", "Seulement les comptes du launcher", "Nur die Konten aus dem Launcher", "Solo gli account del launcher", "Apenas as contas que tens no launcher");
+        p("Es el usuario que estás usando", "This is the user you are using", "C'est l'utilisateur actuel", "Das ist der aktuelle Benutzer", "È l'utente in uso", "É o utilizador que estás a usar");
+        p("Cambiar a este usuario: el juego se reinicia", "Switch to this user: the game restarts", "Passer à cet utilisateur : le jeu redémarre", "Zu diesem Benutzer wechseln: das Spiel startet neu", "Passa a questo utente: il gioco si riavvia", "Mudar para este utilizador: o jogo reinicia");
         p("Carpeta de mods", "Mods folder", "Dossier des mods", "Mods-Ordner", "Cartella dei mod", "Pasta de mods");
         p("Abre la carpeta mods de esta instancia", "Opens this instance's mods folder", "Ouvre le dossier mods de cette instance", "Öffnet den Mods-Ordner dieser Instanz", "Apre la cartella mods di questa istanza", "Abre a pasta mods desta instância");
         p("Mods instalados", "Installed mods", "Mods installés", "Installierte Mods", "Mod installati", "Mods instalados");

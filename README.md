@@ -162,6 +162,12 @@ Cada vez que cambia el mod (`mod/`) se publica una versión nueva del launcher: 
 
 ## Historial de actualizaciones
 
+### 0.2.16-beta.6 — Cambiar de usuario desde el juego
+
+- **Mod**: el panel del botón de perfil (arriba a la izquierda) tiene «Cambiar de usuario» cuando el launcher tiene más de una cuenta. Solo salen las cuentas del launcher: el launcher escribe `nova/accounts.json` (id, nombre y tipo; nunca los tokens) al abrir el juego y cada vez que cambian las cuentas. Al elegir una, el mod escribe `[NOVA:SWITCH:<id>]`.
+- **Launcher**: al recibir el marcador activa esa cuenta, cierra el juego (estás en el menú de título, no hay mundo abierto) y vuelve a abrir la misma instancia con el usuario nuevo (sin volver a entrar solo a un servidor o mundo). `play` ahora es la función `playGame`.
+- **Animación al cambiar de cuenta (launcher)**: pantalla de carga corta con el avatar, una barra y pasos («Cargando perfil…», «Preparando la skin…», «Cargando instancias…»); al acabar se desvanece y se ve Inicio con la cuenta nueva. También sale cuando el cambio viene del mod.
+
 ### 0.2.16-beta.5 — Web de descarga, pantalla de carga en Skins y animación en Estadísticas
 
 - **Web de descarga**: la tarjeta «Web» de Redes (antes «Próximamente») y un botón en Ajustes → Acerca de abren https://justmarcodev.github.io/nova-launcher-web/.
