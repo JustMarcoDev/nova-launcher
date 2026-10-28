@@ -162,6 +162,13 @@ Cada vez que cambia el mod (`mod/`) se publica una versión nueva del launcher: 
 
 ## Historial de actualizaciones
 
+### 0.2.16-beta.11 — Arreglos de 26.x y de las capturas
+
+- **Fondo del menú en 26.x**: desde la 26.x el fondo de una pantalla se dibuja en `extractBackground` (antes `renderBackground`); con el nombre viejo el juego nunca llamaba al fondo de Nova y el título salía negro.
+- **Zoom en 26.x**: `Camera.update()` guarda `calculateFov()` en un campo y arma con él la proyección; `getFov()` solo lo devuelve, tarde. `FovMixin` ahora cambia `calculateFov`.
+- **Ratón en 26.3 (SDL3)**: los botones se numeran 1 izquierdo, 2 central, 3 derecho (GLFW: 0, 2, 1). Nuevo `NovaVer.btn/raw` por capa. Además, desde la 26.x el juego solo apunta «botón pulsado» si ninguna pantalla se queda el clic, así que `MouseMixin` anota cada pulsación y `NovaInput.mouse` la usa. El editor del HUD ahora trabaja con los eventos de ratón (clic, soltar) y no mirando el estado.
+- **Capturas**: el launcher busca la captura por su nombre dentro de la carpeta `screenshots` de la instancia (la ruta que escribe el juego podía no coincidir por mayúsculas, `\.\` o acentos mal codificados); copia con respaldo `createFromBuffer`, y si no hay programa para abrirla la muestra en su carpeta.
+
 ### 0.2.16-beta.10 — Freelook, menú de Nova en Ajustes, controles copiados y más
 
 - **Freelook, sprint fijo y agacharse fijo** (24 versiones del mod): tres opciones separadas en «Editar HUD», apagadas de fábrica. Freelook gira la cámara sin girar al jugador mientras mantienes la tecla (Alt de fábrica, se cambia en «Editar HUD») y vuelve suave al soltarla. Sprint y agacharse fijos usan las opciones «alternar» de Minecraft y restauran las originales (guardadas como `orig` en `menu.json`). Elemento de HUD «Estado» opcional. Mixins nuevos `LookMixin` y `CameraRotMixin`.

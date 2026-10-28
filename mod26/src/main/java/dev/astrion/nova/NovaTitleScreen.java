@@ -926,10 +926,9 @@ public class NovaTitleScreen extends NovaScreen {
         c.text(font, str, anchor == 1 ? x - tw : anchor == 2 ? x - tw / 2 : x, y + 1, argb, true);
     }
 
-    // 1.20.x: renderBackground(c); 1.21: renderBackground(c, mx, my, delta)
-    public void renderBackground(GuiGraphicsExtractor c) { renderBackground(c, 0, 0, 0f); }
-
-    public void renderBackground(GuiGraphicsExtractor c, int mx, int my, float delta) {
+    // Desde la 26.x el fondo de una pantalla se dibuja en extractBackground (antes renderBackground): con el nombre viejo el juego nunca lo llamaba y se veía negro
+    @Override
+    public void extractBackground(GuiGraphicsExtractor c, int mx, int my, float delta) {
         float t = (Util.getMillis() - born) / 1000f;
         c.fill(0, 0, width, height, 0xFF04040C);
         if (!NovaBg.draw(c, width, height, Math.min(1f, t / 0.9f))) c.fillGradient(0, 0, width, height, NovaGfx.shade(NovaGfx.accent, 0.16f, 255), 0xFF020208);

@@ -50,7 +50,7 @@ $("shfo").onclick=()=>{const t=cur==="all"?(vis()[0]||{}).inst||(I[0]||{}).id:cu
 $("shb").onclick=async e=>{const t=e.target.closest(".shi"),b=e.target.closest("[data-s]"),v=vis();
 if(t){lb=+t.dataset.k;draw();return}if(!b)return;const s=v[lb];if(!s&&b.dataset.s!=="back")return;const a=b.dataset.s;
 try{if(a==="back"){lb=-1;draw()}else if(a==="prev"){lb=(lb-1+v.length)%v.length;draw()}else if(a==="next"){lb=(lb+1)%v.length;draw()}
-else if(a==="open")await api.shotsOpen({id:s.inst,file:s.file});
+else if(a==="open"){const m=await api.shotsOpen({id:s.inst,file:s.file});if(m&&typeof m==="string")flash(m)}
 else if(a==="copy"){await api.shotsCopy({id:s.inst,file:s.file});if(A)flash("Captura copiada ✓")}
 else if(a==="del"){if(!confirm("¿Borrar esta captura? Irá a la papelera."))return;await api.shotsDelete({id:s.inst,file:s.file});L=L.filter(z=>!(z.inst===s.inst&&z.file===s.file));lb=-1;draw();flash("Captura borrada")}}catch(x){flash(em(x))}};
 const rl=async()=>{try{L=await api.shotsList("all")}catch(x){flash(em(x))}if(cur!=="all"&&!L.some(s=>s.inst===cur)&&!L.length)cur="all";if($("shb"))draw()};

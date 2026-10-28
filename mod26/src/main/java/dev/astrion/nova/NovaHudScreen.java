@@ -5,6 +5,7 @@ import static dev.astrion.nova.NovaLang.tr;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.platform.InputConstants;
 
@@ -18,7 +19,9 @@ public class NovaHudScreen extends NovaScreen {
     private NovaHud.El drag, size;
     private float sizeX0, sizeY0, sizeUW, sizeUH;
     private int offX, offY;
-    private boolean wasDown;
+    /** Botón izquierdo pulsado ahora (lo marcan los eventos del ratón) y clic pendiente de atender en el siguiente fotograma. */
+    private boolean pressed, clickPending;
+    private int clickX, clickY;
     /** Qué tecla se está eligiendo: 0 ninguna, 1 zoom, 2 freelook. */
     private int listening;
     /** Panel de ajustes abierto o plegado (se recuerda mientras el juego está abierto). */
@@ -126,7 +129,6 @@ public class NovaHudScreen extends NovaScreen {
         super.extractRenderState(c, mx, my, delta);   // fondo (el juego oscurecido) y botones
         int sw = c.guiWidth(), sh = c.guiHeight();
         boolean sample = minecraft.player == null;
-        boolean down = NovaHud.mouseDown(minecraft, 0);
         // elementos: se miden y se dibujan; el último dibujado queda encima
         int[][] box = new int[NovaHud.ALL.length][];
         for (int i = 0; i < NovaHud.ALL.length; i++) {
@@ -135,21 +137,24 @@ public class NovaHudScreen extends NovaScreen {
             int[] s = NovaHud.sizeS(minecraft, e, sample), p = NovaHud.pos(e, sw, sh, s[0], s[1]);
             box[i] = new int[] { p[0], p[1], s[0], s[1] };
         }
-        if (down && !wasDown && !overWidget(mx, my)) {   // clic: primero la X (quitar), luego la esquina (tamaño) y por último el cuerpo (mover)
+        if (clickPending) {
+            clickPending = false;
+            int cx = clickX, cy = clickY;
+            if (DBG) { StringBuilder sb = new StringBuilder("[NOVA-HUD] atender " + cx + "," + cy + " cajas:"); for (int[] q : box) sb.append(q == null ? " -" : " " + java.util.Arrays.toString(q)); System.out.println(sb); }   // clic: primero la X (quitar), luego la esquina (tamaño) y por último el cuerpo (mover)
             for (int i = NovaHud.ALL.length - 1; i >= 0; i--) {
                 int[] b = box[i];
                 if (b == null) continue;
                 int[] xb = xBtn(b, sw), hb = handle(b);
-                if (in(mx, my, xb[0], xb[1], XS, XS)) { NovaHud.ALL[i].on = false; rebuildWidgets(); box[i] = null; break; }
-                if (in(mx, my, hb[0], hb[1], HS, HS)) {
+                if (in(cx, cy, xb[0], xb[1], XS, XS)) { NovaHud.ALL[i].on = false; rebuildWidgets(); box[i] = null; break; }
+                if (in(cx, cy, hb[0], hb[1], HS, HS)) {
                     size = NovaHud.ALL[i]; sizeX0 = b[0]; sizeY0 = b[1];
                     int[] u = NovaHud.size(minecraft, size, sample); sizeUW = u[0]; sizeUH = u[1];
                     break;
                 }
-                if (in(mx, my, b[0], b[1], b[2], b[3])) { drag = NovaHud.ALL[i]; offX = mx - b[0]; offY = my - b[1]; break; }
+                if (in(cx, cy, b[0], b[1], b[2], b[3])) { drag = NovaHud.ALL[i]; offX = cx - b[0]; offY = cy - b[1]; break; }
             }
         }
-        if (!down) { drag = null; size = null; }
+        if (!pressed) { drag = null; size = null; }
         if (size != null) {   // cambiar el tamaño: la esquina de arriba a la izquierda se queda quieta
             int i = java.util.Arrays.asList(NovaHud.ALL).indexOf(size);
             float k = NovaHud.clampS(Math.max((mx - sizeX0) / sizeUW, (my - sizeY0) / sizeUH));
@@ -169,7 +174,6 @@ public class NovaHudScreen extends NovaScreen {
             int[] p = NovaHud.pos(drag, sw, sh, b[2], b[3]);
             box[i][0] = p[0]; box[i][1] = p[1];
         }
-        wasDown = down;
         for (int i = 0; i < NovaHud.ALL.length; i++) {
             int[] b = box[i];
             if (b == null) continue;
@@ -202,6 +206,7 @@ public class NovaHudScreen extends NovaScreen {
         c.centeredText(font, tr("Arrastra: mover · Esquina: tamaño · X: quitar"), width / 2, 22, 0xFFB8B8D8);
     }
 
+    private static final boolean DBG = System.getProperty("nova.debughud") != null;
     private static final int XS = 13, HS = 13;
 
     private static boolean in(int mx, int my, int x, int y, int w, int h) { return mx >= x && mx < x + w && my >= y && my < y + h; }
@@ -219,8 +224,19 @@ public class NovaHudScreen extends NovaScreen {
 
     @Override
     protected boolean nClick(double mx, double my, int button) {
+        if (DBG) System.out.println("[NOVA-HUD] clic " + mx + "," + my + " b=" + button + " sobreWidget=" + overWidget((int) mx, (int) my));
         for (GuiEventListener ch : children()) if (ch.isMouseOver(mx, my) && childClick(ch, mx, my, button)) return true;
+        if (button == 0 && !overWidget((int) mx, (int) my)) {   // clic sobre el lienzo: se atiende al dibujar (ahí están las cajas de los elementos)
+            pressed = true; clickPending = true; clickX = (int) mx; clickY = (int) my;
+            return true;
+        }
         return false;
+    }
+
+    @Override
+    public boolean mouseReleased(MouseButtonEvent event) {
+        if (NovaVer.btn(event.button()) == 0) pressed = false;
+        return super.mouseReleased(event);
     }
 
     @Override

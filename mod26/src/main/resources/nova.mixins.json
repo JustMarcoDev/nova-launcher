@@ -3,6 +3,6 @@
   "minVersion": "0.8",
   "package": "dev.astrion.nova.mixin",
   "compatibilityLevel": "JAVA_21",
-  "client": ["MinecraftClientMixin", "HudMixin", "FovMixin", "PlayerListMixin", "SkinMixin", "SpriteAtlasMixin", "ScreenshotMixin", "ChatHudMixin", "ChatScreenMixin", "ScreenInvoker", "LookMixin", "CameraRotMixin"],
+  "client": ["MinecraftClientMixin", "HudMixin", "FovMixin", "MouseMixin", "PlayerListMixin", "SkinMixin", "SpriteAtlasMixin", "ScreenshotMixin", "ChatHudMixin", "ChatScreenMixin", "ScreenInvoker", "LookMixin", "CameraRotMixin"],
   "injectors": { "defaultRequire": 1 }
 }

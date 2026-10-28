@@ -27,6 +27,9 @@ final class NovaBg {
     private static int n, fps, w, h;
     private static int[] off;
     private static DynamicTexture tex;
+    private static boolean workerErr, drawErr;
+    private static final boolean DBG = System.getProperty("nova.debughud") != null;
+    private static long dbgT;
     private static final java.util.concurrent.ConcurrentLinkedQueue<Frame> queue = new java.util.concurrent.ConcurrentLinkedQueue<>();
     private static volatile boolean stop;
     private static Thread worker;
@@ -72,6 +75,7 @@ final class NovaBg {
     private static void start(Minecraft mc, String p0) {
         tried = true;
         String p = pick(mc, p0);
+        if (DBG) System.out.println("[NOVA-BG] start p0=" + p0 + " p=" + p);
         if (p == null || p.isEmpty()) return;
         try {
             RandomAccessFile f = new RandomAccessFile(p, "r");
@@ -99,8 +103,11 @@ final class NovaBg {
             worker.setDaemon(true);
             worker.start();
             ready = true;
+            if (DBG) System.out.println("[NOVA-BG] listo n=" + n + " " + w + "x" + h + "@" + fps);
         } catch (Throwable e) {
             ready = false;
+            System.out.println("[NOVA] fondo: no se pudo iniciar (" + p + "): " + e);
+            e.printStackTrace(System.out);
         }
     }
 
@@ -144,6 +151,7 @@ final class NovaBg {
             } catch (InterruptedException e) {
                 return;
             } catch (Throwable e) {
+                if (!workerErr) { workerErr = true; System.out.println("[NOVA] fondo: error al leer un fotograma: " + e); e.printStackTrace(System.out); }
                 try { Thread.sleep(200); } catch (InterruptedException ie) { return; }
             }
         }
@@ -151,6 +159,7 @@ final class NovaBg {
 
     /** Dibuja el vídeo cubriendo toda la pantalla (recortando lo que sobre). Devuelve false si no hay vídeo. */
     static boolean draw(GuiGraphicsExtractor c, int sw, int sh, float alpha) {
+        if (DBG && now() - dbgT > 3000) { dbgT = now(); System.out.println("[NOVA-BG] draw ready=" + ready + " shown=" + shown + " cola=" + queue.size()); }
         if (!ready) return false;
         long cur = (now() - t0) * fps / 1000L;
         Frame take = null;

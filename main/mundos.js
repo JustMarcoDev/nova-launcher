@@ -75,13 +75,34 @@ ipcMain.handle('world:last', () => {
 // ---- Capturas con aviso: el mod escribe el marcador SHOTNEW al guardar una captura y SHOTCOPY / SHOTVIEW / SHOTOPEN al pulsar sus botones (main/marcas.js).
 // Solo se aceptan rutas dentro de la carpeta screenshots de esa instancia.
 function shotAction(kind, f, id) {
+  // Solo cuenta el nombre del archivo (y se busca en la carpeta screenshots de esa instancia): la ruta que escribe el juego puede venir con otra
+  // forma (mayúsculas, «\.\», acentos mal codificados en la salida de Java) y entonces no coincidía con la nuestra y no pasaba nada.
   let p = null;
-  try { const d = path.join(iDir(id), 'screenshots') + path.sep, r = path.resolve(String(f).trim()); if (r.startsWith(d) && /\.(png|jpe?g)$/i.test(r) && fs.existsSync(r)) p = r; } catch {}
+  try {
+    const name = String(f).trim().split(/[\\/]/).pop(), d = path.join(iDir(id), 'screenshots');
+    if (/^[^\\/:*?"<>|]+\.(png|jpe?g)$/i.test(name) && fs.existsSync(path.join(d, name))) p = path.join(d, name);
+  } catch {}
   if (!p) return;
-  if (kind === 'copy') { const im = nativeImage.createFromPath(p); if (!im.isEmpty()) clipboard.writeImage(im); }
-  else if (kind === 'view') shell.openPath(p);
+  if (kind === 'copy') copyImageFile(p);
+  else if (kind === 'view') openFileOrFolder(p).catch(() => {});
   else if (kind === 'open') shell.showItemInFolder(p);
 }
 
+// Copia una imagen al portapapeles: primero con nativeImage.createFromPath y, si no la lee, desde los bytes del archivo
+function copyImageFile(p) {
+  let im = nativeImage.createFromPath(p);
+  if (im.isEmpty()) { try { im = nativeImage.createFromBuffer(fs.readFileSync(p)); } catch {} }
+  if (im.isEmpty()) throw new Error('No se pudo leer la imagen');
+  clipboard.writeImage(im);
+  return true;
+}
+
+// Abre el archivo con el programa de imágenes de Windows; si no hay ninguno (openPath devuelve un texto de error), enseña el archivo en su carpeta
+async function openFileOrFolder(p) {
+  let e = ''; try { e = await shell.openPath(p); } catch (x) { e = String(x && x.message || x); }
+  if (e) { shell.showItemInFolder(p); return false; }
+  return true;
+}
+
 // Lo que usan otros módulos
-Object.assign(R, { dirSize, importWorldZips, shotAction });
+Object.assign(R, { dirSize, importWorldZips, shotAction, copyImageFile, openFileOrFolder });
