@@ -18,9 +18,9 @@ abstract class NovaScreen extends Screen {
 
     protected boolean superKey(int key, int scan, int mods) { return super.keyPressed(new KeyEvent(key, scan, mods)); }
     protected boolean superChar(char chr, int mods) { return super.charTyped(new CharacterEvent(chr)); }
-    static boolean childClick(GuiEventListener e, double mx, double my, int button) { return e.mouseClicked(new MouseButtonEvent(mx, my, new MouseButtonInfo(button, 0)), false); }
+    static boolean childClick(GuiEventListener e, double mx, double my, int button) { return e.mouseClicked(new MouseButtonEvent(mx, my, new MouseButtonInfo(NovaVer.raw(button), 0)), false); }
 
-    @Override public boolean mouseClicked(MouseButtonEvent click, boolean doubled) { return nClick(click.x(), click.y(), click.button()); }
+    @Override public boolean mouseClicked(MouseButtonEvent click, boolean doubled) { return nClick(click.x(), click.y(), NovaVer.btn(click.button())); }
     @Override public boolean keyPressed(KeyEvent input) { return nKey(input.key(), NovaVer.scan(input), input.modifiers()); }
     @Override public boolean charTyped(CharacterEvent input) { return nChar((char) input.codepoint(), 0); }
 }

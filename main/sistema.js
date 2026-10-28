@@ -103,8 +103,8 @@ ipcMain.handle('shots:list', async (e, id) => {
   }));
   return parts.flat().sort((a, b) => b.date - a.date).slice(0, 600);
 });
-ipcMain.handle('shots:open', (e, { id, file }) => shell.openPath(shotPath(id, file)));
-ipcMain.handle('shots:copy', (e, { id, file }) => { const im = nativeImage.createFromPath(shotPath(id, file)); if (im.isEmpty()) throw new Error('No se pudo leer la imagen'); clipboard.writeImage(im); return true; });
+ipcMain.handle('shots:open', async (e, { id, file }) => { const p = shotPath(id, file); if (!(await R.openFileOrFolder(p))) return 'No hay un programa para abrir la imagen: se ha mostrado en su carpeta'; return ''; });
+ipcMain.handle('shots:copy', (e, { id, file }) => R.copyImageFile(shotPath(id, file)));
 ipcMain.handle('shots:delete', async (e, { id, file }) => { const p = shotPath(id, file); try { await shell.trashItem(p); } catch { fs.rmSync(p, { force: true }); } return true; });
 ipcMain.handle('shots:folder', (e, id) => { fs.mkdirSync(shotsDir(getIns(id).id), { recursive: true }); return shell.openPath(shotsDir(id)); });
 // ---- Diagnóstico ----

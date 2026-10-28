@@ -14,6 +14,11 @@ final class NovaVer {
     static final String KEY = "key";
     private NovaVer() { }
 
+    /** Botones del ratón: GLFW ya usa 0 izquierdo, 1 derecho, 2 central (btn pasa del número del juego al de Nova y raw hace lo contrario). */
+    static int btn(int raw) { return raw; }
+
+    static int raw(int nova) { return nova; }
+
     static int scan(KeyEvent e) { return e.scancode(); }
 
     static boolean keyDown(int key) { return InputConstants.isKeyDown(Minecraft.getInstance().getWindow(), key); }

@@ -12,6 +12,11 @@ final class NovaVer {
     static final String KEY = "keySdl";
     private NovaVer() { }
 
+    /** SDL3 numera los botones del ratón 1 izquierdo, 2 central, 3 derecho; Nova usa 0 izquierdo, 1 derecho, 2 central. */
+    static int btn(int raw) { return raw == 1 ? 0 : raw == 3 ? 1 : raw == 2 ? 2 : raw + 10; }
+
+    static int raw(int nova) { return nova == 0 ? 1 : nova == 1 ? 3 : nova == 2 ? 2 : nova; }
+
     static int scan(KeyEvent e) { return e.keycode(); }
 
     static boolean keyDown(int key) { return InputConstants.isKeyDown(key); }
