@@ -2,6 +2,7 @@
 // La clave es el texto en español tal como sale en la app; {1}, {2}… son partes variables (nombres, números).
 window.LANGS=window.LANGS||{};
 window.LANGS.it={name:"Italiano",d:{
+"Agachado fijo":"Accovacciato fisso",
 "No se pudo leer menu.json":"Impossibile leggere menu.json",
 "Generational ZGC":"Generational ZGC",
 "Fondo del menú":"Sfondo del menu",

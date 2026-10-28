@@ -2,6 +2,7 @@
 // La clave es el texto en español tal como sale en la app; {1}, {2}… son partes variables (nombres, números).
 window.LANGS=window.LANGS||{};
 window.LANGS.en={name:"English (US)",d:{
+"Agachado fijo":"Toggle sneak on",
 "No se pudo leer menu.json":"Couldn't read menu.json",
 "Generational ZGC":"Generational ZGC",
 "Fondo del menú":"Menu background",
