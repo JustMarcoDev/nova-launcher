@@ -1,0 +1,4 @@
+{
+  "_": "Versiones de Minecraft cuyo menú de Nova y Fabric van dentro del instalador (la última 26.x, la 1.21.11 y la 1.21.1). Las demás se descargan la primera vez que se lanzan. Si cambias esta lista, cambia también los patrones «!assets/...» de package.json (tests/check.js comprueba que coinciden).",
+  "versiones": ["26.3", "1.21.11", "1.21.1"]
+}

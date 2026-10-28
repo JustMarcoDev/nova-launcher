@@ -31,6 +31,8 @@ final class NovaSettings {
     /** Versión de las «Novedades de Nova» que ya se vio (para no volver a enseñarlas). */
     static String newsSeen = "";
     private static boolean loaded;
+    /** Fecha (lastModified) de menu.json cuando se leyó o guardó: el launcher puede cambiarlo con el juego abierto. */
+    private static long stamp;
 
     static File dir() { return DIR.isEmpty() ? null : new File(DIR); }
 
@@ -45,6 +47,7 @@ final class NovaSettings {
         try {
             File f = file();
             if (f == null || !f.isFile()) return;
+            stamp = f.lastModified();
             JsonObject o = JsonParser.parseString(new String(Files.readAllBytes(f.toPath()), StandardCharsets.UTF_8)).getAsJsonObject();
             if (o.has("bg")) bg = o.get("bg").getAsString();
             if (o.has("showNova")) showNova = o.get("showNova").getAsBoolean();
@@ -66,12 +69,23 @@ final class NovaSettings {
                 chatSearch = co.has("search") && co.get("search").getAsBoolean();
                 chatMention = co.has("mention") && co.get("mention").getAsBoolean();
             }
+            if (o.has("move") && o.get("move").isJsonObject()) NovaMove.read(o.getAsJsonObject("move"));
             if (o.has("newsSeen")) newsSeen = o.get("newsSeen").getAsString();
             if (o.has("hud") && o.get("hud").isJsonObject()) NovaHud.read(o.getAsJsonObject("hud"));
             if (o.has("accent")) { int a = o.get("accent").getAsInt(); for (int c : COLORS) if (c == a) accent = a; }
         } catch (Throwable ignored) { }
         if (NovaBgs.find(bg) == null) bg = "hole";
         NovaBgs.ensureSaved(bg);
+    }
+
+    /** Al volver al menú: si el launcher cambió menu.json (su fecha es otra), lo vuelve a leer. */
+    static void reloadIfChanged() {
+        try {
+            File f = file();
+            if (f == null || !f.isFile() || f.lastModified() == stamp) return;
+            loaded = false;
+            load();
+        } catch (Throwable ignored) { }
     }
 
     static void save() {
@@ -92,9 +106,11 @@ final class NovaSettings {
             JsonObject co = new JsonObject();
             co.addProperty("time", chatTime); co.addProperty("copy", chatCopy); co.addProperty("search", chatSearch); co.addProperty("mention", chatMention);
             o.add("chat", co);
+            o.add("move", NovaMove.write());
             o.addProperty("newsSeen", newsSeen);
             o.add("hud", NovaHud.write());
             Files.write(f.toPath(), o.toString().getBytes(StandardCharsets.UTF_8));
+            stamp = f.lastModified();
         } catch (Throwable ignored) { }
     }
 

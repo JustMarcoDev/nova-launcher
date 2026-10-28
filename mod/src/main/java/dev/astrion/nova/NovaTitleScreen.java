@@ -135,6 +135,7 @@ public class NovaTitleScreen extends NovaScreen {
 
     @Override
     protected void init() {
+        NovaSettings.reloadIfChanged();
         newsLines = null;
         ensure(client);
         NovaBg.start(client);

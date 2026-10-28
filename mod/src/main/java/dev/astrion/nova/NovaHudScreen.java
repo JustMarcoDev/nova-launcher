@@ -18,7 +18,9 @@ public class NovaHudScreen extends NovaScreen {
     private NovaHud.El drag, size;
     private float sizeX0, sizeY0, sizeUW, sizeUH;
     private int offX, offY;
-    private boolean wasDown, listening;
+    private boolean wasDown;
+    /** Qué tecla se está eligiendo: 0 ninguna, 1 zoom, 2 freelook. */
+    private int listening;
     /** Panel de ajustes abierto o plegado (se recuerda mientras el juego está abierto). */
     private static boolean open = true;
 
@@ -32,7 +34,7 @@ public class NovaHudScreen extends NovaScreen {
         NovaTitleScreen.ensure(client);
         NovaSettings.load();
         int pw = Math.min(262, width - 16), x = (width - pw) / 2, gap = 3, ib = 15;
-        int rows = open ? 7 : 1, total = rows * ib + (rows - 1) * gap;
+        int rows = open ? 9 : 1, total = rows * ib + (rows - 1) * gap;
         int y = height - total - 10;
         if (open) buildPanel(x, y, pw, gap, ib); else addBar(x, y, pw, gap, ib);
     }
@@ -48,7 +50,7 @@ public class NovaHudScreen extends NovaScreen {
     private void buildPanel(int x, int y, int pw, int gap, int ib) {
         // 1) un botón por elemento
         int n = NovaHud.ALL.length, bw = (pw - (n - 1) * gap) / n;
-        String[] names = { "FPS", "CPS", tr("Coordenadas"), tr("Teclas") };
+        String[] names = { "FPS", "CPS", tr("Coords"), tr("Teclas"), tr("Estado") };
         for (int i = 0; i < n; i++) {
             final NovaHud.El e = NovaHud.ALL[i];
             addDrawableChild(new NovaButton(x + i * (bw + gap), y, bw, ib, Text.literal(names[i]), e.on ? NovaGfx.I_CHECK : -1, e.on ? NovaButton.SELECTED : NovaButton.NORMAL, b -> { e.on = !e.on; clearAndInit(); })
@@ -59,8 +61,20 @@ public class NovaHudScreen extends NovaScreen {
         int half = (pw - gap) / 2;
         addDrawableChild(new NovaButton(x, y, half, ib, Text.literal(tr("Zoom") + ": " + (NovaHud.zoomOn ? tr("Sí") : tr("No"))), NovaHud.zoomOn ? NovaGfx.I_CHECK : -1, NovaHud.zoomOn ? NovaButton.SELECTED : NovaButton.NORMAL, b -> { NovaHud.zoomOn = !NovaHud.zoomOn; clearAndInit(); })
                 .tip(tr("Zoom"), tr("Mantén la tecla para acercar la vista")));
-        addDrawableChild(new NovaButton(x + half + gap, y, pw - half - gap, ib, Text.literal(listening ? tr("Pulsa una tecla…") : tr("Tecla de zoom") + ": " + NovaHud.keyName(NovaHud.zoomKey)), -1, listening ? NovaButton.PRIMARY : NovaButton.NORMAL, b -> { listening = true; clearAndInit(); })
+        addDrawableChild(new NovaButton(x + half + gap, y, pw - half - gap, ib, Text.literal(listening == 1 ? tr("Pulsa una tecla…") : tr("Tecla de zoom") + ": " + NovaHud.keyName(NovaHud.zoomKey)), -1, listening == 1 ? NovaButton.PRIMARY : NovaButton.NORMAL, b -> { listening = 1; clearAndInit(); })
                 .tip(tr("Tecla de zoom"), tr("Pulsa y luego la tecla que quieras (Esc cancela)")));
+        y += ib + gap;
+        // 2b) freelook: activar y tecla
+        addDrawableChild(new NovaButton(x, y, half, ib, Text.literal(tr("Freelook") + ": " + (NovaMove.freelook ? tr("Sí") : tr("No"))), NovaMove.freelook ? NovaGfx.I_CHECK : -1, NovaMove.freelook ? NovaButton.SELECTED : NovaButton.NORMAL, b -> { NovaMove.freelook = !NovaMove.freelook; clearAndInit(); })
+                .tip(tr("Freelook"), tr("Mantén la tecla para mirar alrededor sin girar al jugador; al soltarla la cámara vuelve suave")));
+        addDrawableChild(new NovaButton(x + half + gap, y, pw - half - gap, ib, Text.literal(listening == 2 ? tr("Pulsa una tecla…") : tr("Tecla de freelook") + ": " + NovaMove.keyName()), -1, listening == 2 ? NovaButton.PRIMARY : NovaButton.NORMAL, b -> { listening = 2; clearAndInit(); })
+                .tip(tr("Tecla de freelook"), tr("Pulsa y luego la tecla que quieras (Esc cancela)")));
+        y += ib + gap;
+        // 2c) sprint fijo y agacharse fijo
+        addDrawableChild(new NovaButton(x, y, half, ib, Text.literal(tr("Sprint fijo") + ": " + (NovaMove.sprintFixed ? tr("Sí") : tr("No"))), NovaMove.sprintFixed ? NovaGfx.I_CHECK : -1, NovaMove.sprintFixed ? NovaButton.SELECTED : NovaButton.NORMAL, b -> { NovaMove.sprintFixed = !NovaMove.sprintFixed; clearAndInit(); })
+                .tip(tr("Sprint fijo"), tr("Una pulsación de la tecla de correr lo activa y otra lo desactiva")));
+        addDrawableChild(new NovaButton(x + half + gap, y, pw - half - gap, ib, Text.literal(tr("Agacharse fijo") + ": " + (NovaMove.crouchFixed ? tr("Sí") : tr("No"))), NovaMove.crouchFixed ? NovaGfx.I_CHECK : -1, NovaMove.crouchFixed ? NovaButton.SELECTED : NovaButton.NORMAL, b -> { NovaMove.crouchFixed = !NovaMove.crouchFixed; clearAndInit(); })
+                .tip(tr("Agacharse fijo"), tr("Una pulsación de la tecla de agacharse lo activa y otra lo desactiva")));
         y += ib + gap;
         // 3) mostrar que uso Nova
         addDrawableChild(new NovaButton(x, y, pw, ib, Text.literal(tr("Mostrar que uso Nova") + ": " + (NovaSettings.showNova ? tr("Sí") : tr("No"))), NovaSettings.showNova ? NovaGfx.I_CHECK : -1, NovaSettings.showNova ? NovaButton.SELECTED : NovaButton.NORMAL, b -> { NovaSettings.showNova = !NovaSettings.showNova; clearAndInit(); })
@@ -211,9 +225,9 @@ public class NovaHudScreen extends NovaScreen {
 
     @Override
     protected boolean nKey(int key, int scan, int mods) {
-        if (listening) {
-            if (key != GLFW.GLFW_KEY_ESCAPE) NovaHud.zoomKey = key;
-            listening = false;
+        if (listening != 0) {
+            if (key != GLFW.GLFW_KEY_ESCAPE) { if (listening == 1) NovaHud.zoomKey = key; else NovaMove.freelookKey = key; }
+            listening = 0;
             clearAndInit();
             return true;
         }

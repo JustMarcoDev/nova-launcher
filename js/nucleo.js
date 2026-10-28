@@ -64,5 +64,6 @@ function lazyLoad(n){return LZ[n]||(LZ[n]=new Promise((ok,no)=>{const el=documen
   s.onload=()=>{LOK[n]=1;ok()};s.onerror=()=>{delete LZ[n];no(new Error("No se pudo cargar "+n+".js"))};s.src=el.getAttribute("src");document.head.appendChild(s)}))}
 function lazyFn(n,names,deps){for(const f of names){const stub=(...a)=>Promise.all([...(deps||[]),n].map(lazyLoad)).then(()=>{if(window[f]===stub)throw new Error("No se pudo cargar "+n);return window[f](...a)});window[f]=stub}}
 lazyFn("limpieza",["openClean"]);
+lazyFn("menu-nova",["nmInit"]);
 // Ctrl + K abre el buscador: la primera vez se carga su archivo
 addEventListener("keydown",function lk(e){if(LZ.buscador)return;if(e.ctrlKey&&!e.altKey&&e.key.toLowerCase()==="k"&&(typeof cfg==="undefined"||cfg.shortcuts!==false)){e.preventDefault();lazyLoad("buscador").then(()=>palOpen(true)).catch(()=>{})}});

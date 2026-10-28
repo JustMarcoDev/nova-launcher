@@ -6,7 +6,7 @@ Es opcional: si el servidor no responde, el mod simplemente no muestra nada.
 ## Desplegarlo (una vez, gratis)
 1. Cuenta gratuita en <https://dash.cloudflare.com>.
 2. En esta carpeta: `npx wrangler login`
-3. `npx wrangler kv namespace create NOVA` → copia el `id` en `wrangler.toml`.
+3. `npx wrangler kv namespace create NOVA` → copia el `id` en `wrangler.toml`. (El Durable Object no necesita crearse: lo crea la migración `new_sqlite_classes` del primer despliegue, que es la que admite el plan gratis.)
 4. `npx wrangler deploy` → te da una URL tipo `https://nova-presencia.TU-USUARIO.workers.dev`.
 5. Pon esa URL en el campo `novaPresence` de `package.json` (el launcher la pasa al mod como `-Dnova.presence`) y saca una versión nueva del launcher. Para probar sin recompilar: variable de entorno `NOVA_PRESENCE`.
 
@@ -14,6 +14,16 @@ Es opcional: si el servidor no responde, el mod simplemente no muestra nada.
 - `/challenge` da un `serverId` aleatorio. El mod hace `joinServer` en Mojang con ese id (necesita sesión premium real).
 - `/verify` comprueba con `sessionserver.mojang.com/hasJoined` que ese jugador lo hizo → devuelve un token. Así nadie puede suplantar un UUID.
 - `/heartbeat` (cada 30 s mientras estás en un servidor) mantiene tu UUID «activo» 2 minutos.
-- `/query` recibe los UUID de la lista TAB y devuelve cuáles usan Nova.
+- `/query` recibe los UUID de la lista TAB (como mucho 100) y devuelve cuáles usan Nova.
 
-No se guarda nada más que UUID activos (caducan solos) y tokens de 24 h.
+## Dónde se guarda cada cosa
+- **Durable Object `Presence`** (uno global, `idFromName('global')`): guarda **en memoria** el mapa `uuid → última vez visto`, los tokens activos y los contadores de peticiones. `/heartbeat` y `/query` ya no escriben ni leen KV, que en el plan gratis tiene muy pocas escrituras al día.
+- **KV (`NOVA`)**: solo el `serverId` de `/challenge` (caduca en 2 min) y los tokens de `/verify` (24 h), los dos con `expirationTtl`. Si el Durable Object se reinicia y no conoce un token, `/heartbeat` lo recupera de KV una vez y se lo vuelve a dar al Durable Object.
+- Un reinicio del Durable Object solo vacía el mapa de «activos», que de todas formas caduca a los 2 minutos.
+
+## Límites
+- **10 peticiones por minuto por IP y por token** (ventana de 60 s dentro del Durable Object; se pasa a 429 con `retry-after: 60`). Se cambia con la variable `RATE_LIMIT` de `wrangler.toml`. Ojo: varios jugadores detrás de la misma IP (un colegio, una familia) comparten el límite de IP; cada jugador usa unas 4 peticiones por minuto (heartbeat + consulta cada 30 s).
+- **100 UUID como máximo por consulta** (`/query`).
+- El plan gratis de Cloudflare permite unas 100 000 peticiones al día a Durable Objects: con un heartbeat y una consulta cada 30 s, unos 30 jugadores a la vez durante todo un día. Si hace falta más, plan de pago o subir el intervalo en el mod.
+
+No se guarda nada más que los UUID activos (caducan solos) y tokens de 24 h.

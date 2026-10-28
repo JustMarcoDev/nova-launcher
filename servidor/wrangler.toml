@@ -2,7 +2,22 @@ name = "nova-presencia"
 main = "worker.js"
 compatibility_date = "2024-09-01"
 
+# KV: solo para /challenge y los tokens de /verify (con caducidad).
 # Crea el KV con:  npx wrangler kv namespace create NOVA   y pega aquí el id que te devuelve
 [[kv_namespaces]]
 binding = "NOVA"
 id = "PEGA_AQUI_EL_ID_DEL_KV"
+
+# Durable Object global «Presence»: presencia en memoria y límites de peticiones.
+# new_sqlite_classes es la migración que admite el plan gratis de Cloudflare.
+[[durable_objects.bindings]]
+name = "PRESENCE"
+class_name = "Presence"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Presence"]
+
+# Opcional: peticiones por minuto por IP y por token (por defecto 10)
+# [vars]
+# RATE_LIMIT = "10"

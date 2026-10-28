@@ -40,6 +40,7 @@ function openCreate(pre){
 <label class="wl">Cargador</label><div class="chips" id="cld"></div>
 <label class="wl">Tipo de versión</label><div class="chips" id="ctf"></div>
 <div class="fr"><label>Versión de Minecraft</label><select id="cmc"></select></div>
+<label class="chk" style="display:flex;gap:8px;align-items:flex-start;margin:10px 0 2px;cursor:pointer"><input type="checkbox" id="ccc" checked style="margin-top:3px"><span><b>Usar mis controles</b><br><small style="color:var(--m)">Copia las teclas, sensibilidad, FOV, sonido, idioma y escala de la última instancia que jugaste. No toca los ajustes de vídeo ni los de otros mods.</small></span></label>
 <div class="acts"><button class="btn" data-x>Cancelar</button><button class="btn pr" id="cgo">Crear instancia</button></div>`);
   const nm=$("cnm");nm.value=dn();nm.oninput=()=>{nmT=true};
   const draw=()=>{
@@ -53,7 +54,7 @@ function openCreate(pre){
   draw();nm.focus();nm.select();
   $("cgo").onclick=async()=>{const b=$("cgo"),name=nm.value.trim().slice(0,40);if(!name){flash("Escribe un nombre");return}
     if(!A){flash("En la vista previa no se pueden crear instancias");return}
-    b.disabled=true;try{const i=await A.saveInst({name,mc,ld,type,manual:true});await loadI();closeModal();flash("Instancia «"+name+"» creada ✓");if(i&&i.id&&$("inst").classList.contains("on"))ri()}catch(e){flash(em(e));b.disabled=false}};
+    b.disabled=true;try{const i=await A.saveInst({name,mc,ld,type,manual:true,copyControls:!!($("ccc")&&$("ccc").checked)});await loadI();closeModal();flash("Instancia «"+name+"» creada ✓");if(i&&i.id&&$("inst").classList.contains("on"))ri()}catch(e){flash(em(e));b.disabled=false}};
 }
 $("icr").onclick=()=>openCreate({mc:sel.mc,ld:sel.ld,type:sel.type});
 $("ish").onclick=()=>openShots("all");$("imo2").onclick=()=>openImport();

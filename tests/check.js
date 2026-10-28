@@ -58,7 +58,17 @@ if (ver !== pkg.version) bad('VER en js/base.js (' + ver + ') no coincide con pa
   const nm = (main.match(/const NOVA_MC = \[([^\]]*)\]/) || [, ''])[1].split(',').map(x => x.replace(/['"\s]/g, '')).filter(Boolean);
   if (vs.join() !== nm.join()) bad('mod/versions.txt + mod26/versions.txt (' + vs.join() + ') no coinciden con NOVA_MC de main.js (' + nm.join() + ')');
   // Los .jar y los .nvb no están en git: en el release se compilan/descargan antes; la revisión de cada push (NOVA_SIN_JARS=1) no los necesita
+  // Instalador ligero: solo van dentro las versiones de assets/incluidas.json (su jar y su Fabric); el resto se descarga la primera vez
+  const inc = JSON.parse(rd('assets/incluidas.json')).versiones || [], files = (pkg.build && pkg.build.files) || [];
+  for (const v of inc) {
+    if (!vs.includes(v)) bad('assets/incluidas.json: ' + v + ' no está en las versiones del menú de Nova');
+    if (!fs.existsSync(path.join(root, 'assets/fabric/' + v + '.json'))) bad('assets/incluidas.json: falta assets/fabric/' + v + '.json');
+    if (!process.env.NOVA_SIN_JARS && !fs.existsSync(path.join(root, 'assets/mods/nova-menu-' + v + '.jar'))) bad('falta assets/mods/nova-menu-' + v + '.jar (versión incluida en el instalador)');
+    if (files.some(f => f === '!assets/mods/nova-menu-' + v + '.jar' || f === '!assets/fabric/' + v + '.json')) bad('package.json excluye la versión incluida ' + v);
+  }
+  for (const v of vs) if (!inc.includes(v)) for (const f of ['!assets/mods/nova-menu-' + v + '.jar', '!assets/fabric/' + v + '.json']) if (!files.includes(f)) bad('package.json: falta excluir ' + f + ' del instalador (no está en assets/incluidas.json)');
   if (!process.env.NOVA_SIN_JARS) for (const v of vs) if (!fs.existsSync(path.join(root, 'assets/mods/nova-menu-' + v + '.jar'))) bad('falta assets/mods/nova-menu-' + v + '.jar');
+  { const mj = JSON.parse(rd('assets/mirrors.json')); if (!Array.isArray(mj.rules) || !mj.rules.every(r => Array.isArray(r.match) && Array.isArray(r.mirrors))) bad('assets/mirrors.json: cada regla necesita «match» y «mirrors»'); }
   const bg = path.join(root, 'assets/nova-bg.nvb');
   if (!fs.existsSync(bg) || fs.readFileSync(bg).subarray(0, 4).toString() !== 'NVB1') bad('assets/nova-bg.nvb falta o no es un vídeo NVB1');
   if (!fs.existsSync(path.join(root, 'THIRD-PARTY-NOTICES.txt'))) bad('falta THIRD-PARTY-NOTICES.txt');

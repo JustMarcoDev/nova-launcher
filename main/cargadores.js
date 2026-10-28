@@ -25,7 +25,6 @@ async function loaderListNet(ld, mc) {
   if (ld === 'Fabric') {
     try { const L = await getRetry(`https://meta.fabricmc.net/v2/versions/loader/${mc}`); if (Array.isArray(L) && L.length) return L.map(x => ({ v: x.loader.version, stable: !!x.loader.stable })); }
     catch (e) { logErr('loader', e, { 'Qué se intentaba': 'Lista de versiones de Fabric para ' + mc, Dirección: 'meta.fabricmc.net' }); }
-    try { const L = await get(`https://bmclapi2.bangbang93.com/fabric-meta/v2/versions/loader/${mc}`); if (Array.isArray(L) && L.length) return L.map(x => ({ v: x.loader.version, stable: !!x.loader.stable })); } catch {}
     // segunda fuente: todas las versiones del cargador (sin filtrar por Minecraft; Fabric funciona con casi todas)
     const x = await get('https://maven.fabricmc.net/net/fabricmc/fabric-loader/maven-metadata.xml', 'text');
     const vs = [...x.matchAll(/<version>([^<]+)<\/version>/g)].map(m => m[1]).reverse();
@@ -72,13 +71,39 @@ function fabricBundled(mc) {
     return id;
   } catch { return null; }
 }
+// Las librerías de Fabric de las versiones que no van dentro del instalador se descargan aquí (con huella, servidores alternativos y barra de progreso)
+async function fabricLibs(id) {
+  const vf = path.join(root, 'versions', id, id + '.json'); if (!fs.existsSync(vf)) return;
+  const prof = JSON.parse(fs.readFileSync(vf, 'utf8'));
+  const need = [];
+  for (const l of prof.libraries || []) {
+    if (!l.url || !l.sha1) continue;
+    const [g, n, v] = String(l.name).split(':'), rel = g.replace(/\./g, '/') + '/' + n + '/' + v + '/' + n + '-' + v + '.jar', dst = path.join(root, 'libraries', rel);
+    if (!fs.existsSync(dst)) need.push({ url: l.url.replace(/\/?$/, '/') + rel, dst, sha1: l.sha1, size: +l.size || 0 });
+  }
+  if (!need.length) return;
+  send('status', 'Descargando Fabric…');
+  const total = need.reduce((a, x) => a + (x.size || 1), 0); let done = 0;
+  try {
+    for (const x of need) {
+      fs.mkdirSync(path.dirname(x.dst), { recursive: true }); let last = 0;
+      await dl(x.url, x.dst, { sha1: x.sha1, onProgress: c => { last = c; send('progress', { task: Math.min(total, done + c), total }); } });
+      done += x.size || last || 1;
+    }
+  } finally { send('progress', null); }
+}
 async function fabric(mc, want) {
+  const id = await fabricCore(mc, want);
+  try { await fabricLibs(id); } catch (e) { send('log', 'Fabric: no se pudieron descargar todas las librerías (' + String(e && e.message || e).slice(0, 80) + '); MCLC lo reintentará.\n'); }
+  return id;
+}
+async function fabricCore(mc, want) {
   send('status', 'Preparando Fabric…');
   let lv; try { lv = await loaderPick('Fabric', mc, want); }
   catch (x) { const vd = path.join(root, 'versions'), have = fs.existsSync(vd) && fs.readdirSync(vd).find(d => d.startsWith('fabric-loader-') && d.endsWith('-' + mc)); if (have) return have; const b = fabricBundled(mc); if (b) return b; throw x; }
   const id = `fabric-loader-${lv}-${mc}`, f = path.join(root, 'versions', id, id + '.json');
   if (!fs.existsSync(f)) {
-    try { let t; try { t = await get(`https://meta.fabricmc.net/v2/versions/loader/${mc}/${lv}/profile/json`, 'text'); } catch { t = await get(`https://bmclapi2.bangbang93.com/fabric-meta/v2/versions/loader/${mc}/${lv}/profile/json`, 'text'); } fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, t); }
+    try { const t = await get(`https://meta.fabricmc.net/v2/versions/loader/${mc}/${lv}/profile/json`, 'text');; /* los espejos (BMCLAPI) y la copia en disco los pone get() solo */ fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, t); }
     catch (x) { if (!want) { const b = fabricBundled(mc); if (b) return b; } throw x; }
   }
   return id;

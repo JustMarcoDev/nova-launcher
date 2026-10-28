@@ -162,6 +162,16 @@ Cada vez que cambia el mod (`mod/`) se publica una versión nueva del launcher: 
 
 ## Historial de actualizaciones
 
+### 0.2.16-beta.10 — Freelook, menú de Nova en Ajustes, controles copiados y más
+
+- **Freelook, sprint fijo y agacharse fijo** (24 versiones del mod): tres opciones separadas en «Editar HUD», apagadas de fábrica. Freelook gira la cámara sin girar al jugador mientras mantienes la tecla (Alt de fábrica, se cambia en «Editar HUD») y vuelve suave al soltarla. Sprint y agacharse fijos usan las opciones «alternar» de Minecraft y restauran las originales (guardadas como `orig` en `menu.json`). Elemento de HUD «Estado» opcional. Mixins nuevos `LookMixin` y `CameraRotMixin`.
+- **Ajustes → Menú de Nova** (`js/menu-nova.js`, `main/mod-nova.js`): lee y escribe `nova/menu.json`. Editor del HUD en un lienzo 16:9 con una captura tuya de fondo; Exportar/Importar (`.novahud` o código `NOVAHUD1:…`). El mod relee `menu.json` al volver al menú si cambió su `lastModified`.
+- **Copiar controles** al crear una instancia (`main/instancias.js`): casilla «Usar mis controles».
+- **Alternativas de conexión** (`main/red.js`, `assets/mirrors.json`): Node → Chromium → mirrors (BMCLAPI) → copia en disco, con sha1/sha512 y aviso «Usando un servidor alternativo».
+- **Instalador más ligero** (`assets/incluidas.json`): solo Fabric y el jar de 26.3, 1.21.11 y 1.21.1; el resto se descarga la primera vez.
+- **Servidor de presencia** con Durable Object (`servidor/`), sin KV en `/heartbeat` ni `/query`.
+- **Java moderno**: `-XX:+UseCompactObjectHeaders` en Java 25+ y ajuste «Recolector de memoria» (G1 o Generational ZGC), con vuelta a G1 si el juego falla en los primeros 30 s.
+
 ### 0.2.16-beta.9 — Menú de Nova en Minecraft 26.1 a 26.3
 
 - **5 versiones nuevas** con menú de Nova (título, pausa, HUD y chat mejorado), para Nova y para Fabric: **26.1, 26.1.1, 26.1.2, 26.2 y 26.3**. Ya son **24 versiones** (1.20 a 1.21.11 y 26.1 a 26.3). La lista está en `mod/versions.txt` (1.20–1.21.11), `mod26/versions.txt` (26.x) y `NOVA_MC` de `main/mod-nova.js`; `tests/check.js` comprueba que coinciden.

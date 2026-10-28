@@ -211,16 +211,19 @@ function newsWrite(version, notas) {
 }
 async function novaModResolve(mc) {
   newsFile = '';
-  const bundled = novaModJar(mc); if (!bundled) return null;
+  if (!NOVA_MC.includes(mc)) return null;
+  const bundled = novaModJar(mc);   // null si esta versión no va dentro del instalador (assets/incluidas.json): se descarga la primera vez
+  let best = null;
   try {
     const mine = app.getVersion(), sf = path.join(novaDir(), 'mod-updates.json'), st = rd(sf, {}), m = await modManifest(), e = m && m.jars && m.jars[mc];
     const drop = f => { try { fs.rmSync(f, { force: true }); } catch {} };
-    let best = st[mc] && st[mc].file && fs.existsSync(st[mc].file) ? st[mc] : null;
-    if (best && verCmp(best.version, mine) <= 0) { drop(best.file); best = null; }   // el launcher ya trae un jar igual o más nuevo
-    if (modEntryOk(e, mc) && verCmp(e.version, mine) > 0 && (!e.minLauncher || verCmp(mine, e.minLauncher) >= 0) && (!best || verCmp(e.version, best.version) > 0)) {
+    best = st[mc] && st[mc].file && fs.existsSync(st[mc].file) ? st[mc] : null;
+    if (best && bundled && verCmp(best.version, mine) <= 0) { drop(best.file); best = null; }   // el launcher ya trae un jar igual o más nuevo
+    if (modEntryOk(e, mc) && verCmp(e.version, mine) >= (bundled ? 1 : 0) && (!e.minLauncher || verCmp(mine, e.minLauncher) >= 0) && (!best || verCmp(e.version, best.version) > 0)) {
       const file = path.join(novaDir(), 'nova-menu-' + mc + '-' + e.version + '.jar'), tmp = file + '.dl';
       try {
-        await dl(e.url, tmp);
+        send('status', 'Descargando el menú de Nova para ' + mc + '…');
+        try { await dl(e.url, tmp, { onProgress: (c, t) => send('progress', { task: c, total: t }) }); } finally { send('progress', null); }
         if (await hashFile(tmp, 'sha256') !== e.sha256.toLowerCase()) throw new Error('sha256 distinto');
         await mv(tmp, file); if (best && best.file !== file) drop(best.file);
         best = { version: e.version, sha256: e.sha256.toLowerCase(), file, notas: String(m.notas || '').slice(0, 900) }; st[mc] = best; wr(sf, st);
@@ -228,8 +231,9 @@ async function novaModResolve(mc) {
       } catch (er) { drop(tmp); send('log', 'Nova: no se pudo actualizar el menú (' + String(er && er.message || er).slice(0, 60) + '); se usa el incluido.\n'); }
     }
     if (best && await hashFile(best.file, 'sha256').catch(() => '') === best.sha256) { newsWrite(best.version, best.notas); return best.file; }   // se vuelve a comprobar antes de usarlo
-    if (best) { drop(best.file); delete st[mc]; wr(sf, st); }
+    if (best) { drop(best.file); delete st[mc]; wr(sf, st); best = null; }
   } catch {}
+  if (!bundled) { send('log', 'Nova: el menú de Nova para ' + mc + ' no viene en el instalador y no se pudo descargar (sin conexión o sin copia en el disco); se juega sin el menú de Nova.\n'); send('status', 'Sin conexión: se juega sin el menú de Nova'); }
   return bundled;
 }
 function novaModJar(mc) {
@@ -270,6 +274,66 @@ function novaServersWrite(list) {
     fs.writeFileSync(path.join(novaDir(), 'servers.json'), JSON.stringify({ fav }));
   } catch {}
 }
+
+// ---- Configurar el menú de Nova desde el launcher: lee y escribe nova/menu.json (el mismo archivo que usa el mod, NovaSettings) ----
+// El mod relee el archivo al volver al menú si su fecha (lastModified) cambió. Solo se tocan los campos conocidos y el resto
+// (teclas, copia de las opciones de vídeo, «orig» del sprint fijo…) se conserva tal cual.
+const NMENU_ACCENTS = [0xFF8B6CFF, 0xFF4D8BFF, 0xFF2FD3E0, 0xFF3DDC84, 0xFFFF5FA8, 0xFFFF9A3D, 0xFFFF4D5E, 0xFFDADAF0].map(n => n | 0);
+const NMENU_EL = ['fps', 'cps', 'xyz', 'keys', 'state'];
+const nmenuFile = () => path.join(novaDir(), 'menu.json');
+const nmBool = v => (typeof v === 'boolean' ? v : undefined);
+const nmNum = (v, a, b) => (typeof v === 'number' && isFinite(v) ? Math.min(b, Math.max(a, v)) : undefined);
+function nmenuClean(i) {
+  const o = {}; if (!i || typeof i !== 'object') return o;
+  if (typeof i.bg === 'string' && /^(hole|nebula|earth|f:[^\\/:*?"<>|]{1,120})$/.test(i.bg)) o.bg = i.bg;
+  if (typeof i.accent === 'number' && NMENU_ACCENTS.includes(i.accent | 0)) o.accent = i.accent | 0;
+  for (const k of ['showNova', 'showCape']) if (nmBool(i[k]) !== undefined) o[k] = i[k];
+  if (i.chat && typeof i.chat === 'object') { o.chat = {}; for (const k of ['time', 'copy', 'search', 'mention']) if (nmBool(i.chat[k]) !== undefined) o.chat[k] = i.chat[k]; }
+  if (i.move && typeof i.move === 'object') { o.move = {}; for (const k of ['freelook', 'sprint', 'crouch']) if (i.move[k] && nmBool(i.move[k].on) !== undefined) o.move[k] = { on: i.move[k].on }; }
+  if (i.hud && typeof i.hud === 'object') {
+    o.hud = {};
+    for (const k of NMENU_EL) { const e = i.hud[k]; if (!e || typeof e !== 'object') continue; const r = {}; if (nmBool(e.on) !== undefined) r.on = e.on; const x = nmNum(e.x, 0, 1), y = nmNum(e.y, 0, 1), sc = nmNum(e.s, 0.5, 3); if (x !== undefined) r.x = x; if (y !== undefined) r.y = y; if (sc !== undefined) r.s = Math.round(sc * 100) / 100; o.hud[k] = r; }
+    if (i.hud.zoom && nmBool(i.hud.zoom.on) !== undefined) o.hud.zoom = { on: i.hud.zoom.on };
+  }
+  return o;
+}
+function nmenuMerge(a, b) { for (const k of Object.keys(b)) { if (b[k] && typeof b[k] === 'object' && !Array.isArray(b[k])) { a[k] = nmenuMerge(a[k] && typeof a[k] === 'object' ? a[k] : {}, b[k]); } else a[k] = b[k]; } return a; }
+function nmenuBgs() {
+  const L = [{ id: 'hole', name: 'Agujero negro' }, { id: 'nebula', name: 'Nebulosa' }, { id: 'earth', name: 'Earth' }];
+  try { const d = fondosDir(), names = fondosJson('nombres.json'); for (const f of fs.readdirSync(d).sort((a, b) => a.localeCompare(b))) if (/\.(png|jpe?g|webp|gif|mp4|webm|mov|mkv|avi)$/i.test(f)) L.push({ id: 'f:' + f, name: names[f] || f.replace(/\.[^.]+$/, '') }); } catch {}
+  return L;
+}
+ipcMain.handle('nmenu:get', () => {
+  let cfg = {}, mtime = 0; try { cfg = JSON.parse(fs.readFileSync(nmenuFile(), 'utf8')) || {}; mtime = fs.statSync(nmenuFile()).mtimeMs; } catch {}
+  return { cfg, mtime, bgs: nmenuBgs(), accents: NMENU_ACCENTS.map(n => '#' + (n >>> 0).toString(16).slice(2).padStart(6, '0')), accentVals: NMENU_ACCENTS };
+});
+ipcMain.handle('nmenu:set', (e, patch) => {
+  let cur = {}; try { cur = JSON.parse(fs.readFileSync(nmenuFile(), 'utf8')) || {}; } catch {}
+  const next = nmenuMerge(cur, nmenuClean(patch)), f = nmenuFile(), tmp = f + '.tmp';
+  try { fs.writeFileSync(tmp, JSON.stringify(next)); fs.renameSync(tmp, f); } catch (er) { try { fs.unlinkSync(tmp); } catch {} return { ok: false, why: String(er && er.message || er) }; }
+  return { ok: true, mtime: fs.statSync(f).mtimeMs };
+});
+// Captura de fondo para el editor del HUD: la última captura de pantalla de tus instancias (reducida a 960 px) o, si no hay, null
+ipcMain.handle('nmenu:shot', () => {
+  try {
+    const { nativeImage } = require('electron'); let best = null;
+    const ids = (R.getIns ? (rd(path.join(root, 'instances.json'), []) || []) : []).map(i => i.id);
+    for (const id of ids) { const d = path.join(R.iDir(id), 'screenshots'); let L = []; try { L = fs.readdirSync(d); } catch { continue; } for (const f of L) if (/\.png$/i.test(f)) { const p = path.join(d, f), m = fs.statSync(p).mtimeMs; if (!best || m > best.m) best = { p, m }; } }
+    if (!best) return null;
+    const im = nativeImage.createFromPath(best.p); if (im.isEmpty()) return null;
+    return im.resize({ width: 960, quality: 'good' }).toDataURL();
+  } catch { return null; }
+});
+ipcMain.handle('nmenu:export', async (e, text) => {
+  const r = await dialog.showSaveDialog(S.win || undefined, { title: 'Exportar mi HUD', defaultPath: path.join(app.getPath('downloads'), 'mi-hud.novahud'), filters: [{ name: 'HUD de Nova', extensions: ['novahud'] }] });
+  if (r.canceled || !r.filePath) return { ok: false, canceled: true };
+  try { fs.writeFileSync(r.filePath, String(text)); return { ok: true, file: r.filePath }; } catch (er) { return { ok: false, why: String(er && er.message || er) }; }
+});
+ipcMain.handle('nmenu:import', async () => {
+  const r = await dialog.showOpenDialog(S.win || undefined, { title: 'Importar un HUD', properties: ['openFile'], filters: [{ name: 'HUD de Nova', extensions: ['novahud', 'txt'] }] });
+  if (r.canceled || !r.filePaths[0]) return { ok: false, canceled: true };
+  try { const st = fs.statSync(r.filePaths[0]); if (st.size > 65536) return { ok: false, why: 'big' }; return { ok: true, text: fs.readFileSync(r.filePaths[0], 'utf8') }; } catch (er) { return { ok: false, why: String(er && er.message || er) }; }
+});
 
 // Lo que usan otros módulos
 Object.assign(R, { NOVA_MC, NOVA_REMOTE_ID, fondosDir, fondosScan, fondosWatch, modManifest, novaBg, novaBgGet, novaDir, novaModResolve, novaNews, novaPickBg, novaServersWrite, novaAccountsWrite, novaSkin });

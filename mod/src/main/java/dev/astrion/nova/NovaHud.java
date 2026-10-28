@@ -4,6 +4,7 @@ import static dev.astrion.nova.NovaLang.tr;
 
 import com.google.gson.JsonObject;
 import java.util.ArrayDeque;
+import java.util.List;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.option.KeyBinding;
@@ -33,7 +34,9 @@ public final class NovaHud {
     public static final El CPS = new El("cps", true, 0.010f, 0.085f);
     public static final El XYZ = new El("xyz", true, 0.010f, 0.150f);
     public static final El KEYS = new El("keys", true, 0.010f, 0.420f);
-    public static final El[] ALL = { FPS, CPS, XYZ, KEYS };
+    /** «Estado»: enseña si el freelook, el sprint fijo y el agacharse fijo están en marcha (apagado de fábrica). */
+    public static final El STATE = new El("state", false, 0.010f, 0.600f);
+    public static final El[] ALL = { FPS, CPS, XYZ, KEYS, STATE };
 
     /** Zoom con tecla: activo, tecla (GLFW) y cuánto acerca (el campo de visión se multiplica por este número). */
     public static boolean zoomOn = true;
@@ -130,6 +133,7 @@ public final class NovaHud {
     /** Tamaño del elemento tal como se dibuja ahora. */
     public static int[] size(MinecraftClient mc, El e, boolean sample) {
         if (e == KEYS) return new int[] { KW, KH };
+        if (e == STATE) { int w = 0; List<String[]> st = NovaMove.states(mc, sample); for (String[] z : st) w = Math.max(w, mc.textRenderer.getWidth(z[0])); return new int[] { w + 20, st.size() * 11 + 3 }; }
         String[] L = lines(mc, e, sample);
         int w = 0;
         for (String s : L) w = Math.max(w, mc.textRenderer.getWidth(s));
@@ -186,6 +190,16 @@ public final class NovaHud {
             c.fill(x + KW / 2 - 12, y + 3 * row + 5, x + KW / 2 + 12, y + 3 * row + 7, j ? 0xFF101018 : 0xFFFFFFFF);
             return;
         }
+        if (e == STATE) {
+            List<String[]> st = NovaMove.states(mc, sample); int[] sz0 = size(mc, e, sample);
+            NovaButton.panel(c, x, y, sz0[0], sz0[1], 3, 0x9A0C0C14, border());
+            for (int i = 0; i < st.size(); i++) {
+                boolean on = "1".equals(st.get(i)[1]);
+                c.fill(x + 6, y + 5 + i * 11, x + 11, y + 10 + i * 11, on ? NovaSettings.accent : 0xFF555566);
+                c.drawText(mc.textRenderer, st.get(i)[0], x + 15, y + 3 + i * 11, on ? 0xFFFFFFFF : 0xFFB8B8D8, true);
+            }
+            return;
+        }
         String[] L = lines(mc, e, sample);
         int[] sz = size(mc, e, sample);
         if (e == XYZ) {
@@ -226,6 +240,7 @@ public final class NovaHud {
             NovaSettings.load();
             NovaPresence.frame(mc);
             NovaServers.frame(mc);
+            NovaMove.tick(mc);
             if (TEST_EDIT && mc.currentScreen == null && ++testTick == 240) mc.setScreen(new NovaHudScreen(null));   // solo para pruebas (-Dnova.hudedit=1)
             NovaChat.frame(c, mc);
             if (mc.options.hudHidden) return;
@@ -235,7 +250,7 @@ public final class NovaHud {
             NovaFps.frame(c, mc);
             int sw = c.getScaledWindowWidth(), sh = c.getScaledWindowHeight();
             for (El e : ALL) {
-                if (!e.on) continue;
+                if (!e.on || (e == STATE && NovaMove.states(mc, false).isEmpty())) continue;
                 int[] s = sizeS(mc, e, false), p = pos(e, sw, sh, s[0], s[1]);
                 drawS(c, mc, e, p[0], p[1], false);
             }
