@@ -37,6 +37,23 @@ ipcMain.handle('versions', async () => {
   const c = rd(vcache, null); if (c && c.length) return { v: c, src: 'cache' };
   throw err;
 });
+// Si el servidor de Mojang no responde pero el alternativo sí (assets/mirrors.json), el juego se descarga de ahí:
+// el JSON de la versión se reescribe con las direcciones alternativas y MCLC usa las del espejo para assets y librerías. Las huellas las sigue comprobando MCLC.
+async function mirrorPrep(o, mc) {
+  try {
+    if (!(await R.isOnline(true)) || !R.mirrorMode) return false;
+    const one = u => (R.mirrorsFor(u)[0] || '');
+    const meta = one('https://launchermeta.mojang.com/').replace(/\/$/, ''), res = one('https://resources.download.minecraft.net/').replace(/\/$/, ''), mav = one('https://files.minecraftforge.net/maven/'), lib = one('https://libraries.minecraft.net/');
+    if (!meta) return false;
+    o.overrides.url = { meta, ...(res ? { resource: res } : {}), ...(mav ? { mavenForge: mav } : {}), ...(lib ? { defaultRepoForge: lib } : {}) };
+    const vf = path.join(root, 'versions', mc, mc + '.json');
+    if (!fs.existsSync(vf)) {
+      const m = (await get(MAN)).versions.find(v => v.id === mc);
+      if (m) { const t = R.rewriteWithMirror(await get(m.url, 'text')); JSON.parse(t); fs.mkdirSync(path.dirname(vf), { recursive: true }); fs.writeFileSync(vf, t); }
+    }
+    send('status', 'Usando un servidor alternativo para descargar Minecraft'); return true;
+  } catch { return false; }
+}
 // Java automático (Adoptium) según lo que pida cada versión de Minecraft
 async function javaFor(mc, cfg) {
   if (cfg.javaPath) return cfg.javaPath;
@@ -89,7 +106,8 @@ function reportCrash(ins, code, tail, file, since) {
 }
 ipcMain.handle('log:open', (e, f) => { const p = path.resolve(String(f || '')); if (p.startsWith(root + path.sep) && fs.existsSync(p)) { shell.showItemInFolder(p); return true; } return false; });
 ipcMain.handle('logs:folder', () => { const d = path.join(root, 'logs'); fs.mkdirSync(d, { recursive: true }); return shell.openPath(d); });
-async function playGame({ id, server, world, safe }) {
+async function playGame(opts) {
+  const { id, server, world, safe } = opts;
   const cfg = load(), ins = li().find(i => i.id === id);
   try {
     if (!ins) throw new Error('Instancia no encontrada');
@@ -105,7 +123,10 @@ async function playGame({ id, server, world, safe }) {
     const o = { authorization: auth, root, javaPath: java, version: { number: ins.mc, type: ins.type === 'release' ? 'release' : 'snapshot' },
       overrides: { gameDirectory: dir }, memory: { max: ram + 'G', min: '1G' },
       window: { width: cfg.width, height: cfg.height, fullscreen: cfg.fullscreen }, customArgs: [...(JVM_PRESETS[ins.jvmPreset] || [])] };
-    if (cfg.optimize !== false && !ins.jvmPreset) o.customArgs.push(...JVM_OPT);
+    await mirrorPrep(o, ins.mc);
+    const jm = jvmModern(cfg, ins, java, ram);
+    if (cfg.optimize !== false && !ins.jvmPreset) o.customArgs.push(...(jm.zgc ? JVM_ZGC_BASE : JVM_OPT));
+    o.customArgs.push(...jm.args);
     try { await applyGpu(java, ins.gpu === 'high'); } catch {}
     const noNova = !!(safe || ins.noNova);   // modo seguro: sin el menú de Nova (Shift al lanzar o ajuste de la instancia)
     const nj = (!noNova && (!ins.ld || ins.ld === 'Vanilla' || ins.ld === 'Fabric')) ? await novaModResolve(ins.mc) : null;
@@ -126,7 +147,7 @@ async function playGame({ id, server, world, safe }) {
     if (world && !server && modernQP(ins.mc)) o.quickPlay = { type: 'singleplayer', identifier: String(world) };
         try { syncServers(dir, (cfg.myServers || []).filter(z => z && z.host).map(z => ({ name: String(z.name || z.host), ip: String(z.host) + (z.port && +z.port !== 25565 ? ':' + z.port : '') }))); } catch {}
     let proc = null; const l = new Client(), tail = [], lg = openLog(ins, java, ram), since = Date.now(); let t0 = 0, sk = '';
-    send('log', '── ' + ins.name + ' · Minecraft ' + ins.mc + ' · ' + (ins.ld || 'Vanilla') + ' · ' + (act.name) + ' ──\n'); send('log', novaMsg);
+    send('log', '── ' + ins.name + ' · Minecraft ' + ins.mc + ' · ' + (ins.ld || 'Vanilla') + ' · ' + (act.name) + ' ──\n'); send('log', novaMsg); if (jm.note) send('log', jm.note); if (jm.zgc || jm.compact) send('log', 'Java: ' + [jm.compact ? 'objetos compactos' : '', jm.zgc ? 'Generational ZGC' : ''].filter(Boolean).join(' + ') + '.\n');
     l.on('progress', p => send('progress', p));
     // Marcadores del mod: solo valen los que llevan el código secreto de esta partida (main/marcas.js); un mensaje de chat no puede pedir nada
     const mk = marcas.handler(nova ? mkey : '', {
@@ -152,6 +173,12 @@ async function playGame({ id, server, world, safe }) {
         setTimeout(() => { playGame({ id: nx.id, safe: nx.safe }).catch(() => {}); }, 700);
         return;
       }
+      // Si con las opciones modernas de Java se cierra con error en los primeros 30 s, se vuelve a G1 normal y se avisa
+      if (!!code && tail.length > 0 && t0 && (jm.zgc || jm.compact) && Date.now() - t0 < 30000 && !(opts && opts.gcRetry)) {
+        upIns(id, { gcOff: true }); send('status', 'Se cerró al arrancar con las opciones nuevas de Java: se vuelve a G1'); notify('Minecraft', 'Falló con ZGC / objetos compactos; se reintenta con el Java de siempre (G1).');
+        setTimeout(() => { playGame({ id, server, world, safe, gcRetry: true }).catch(() => {}); }, 700);
+        return;
+      }
       const crashed = !!code && tail.length > 0;
       send('status', crashed ? 'Minecraft se cerró con un error' : 'Minecraft cerrado');
       if (running.size === 0 || crashed) { if (S.win.isMinimized()) S.win.restore(); S.win.show(); S.win.focus(); }
@@ -175,6 +202,29 @@ const JVM_PRESETS = {
   rendimiento: ['-XX:+UseG1GC', '-XX:+UnlockExperimentalVMOptions', '-XX:+DisableExplicitGC', '-XX:+ParallelRefProcEnabled', '-XX:+UseStringDeduplication'],
   tirones: ['-XX:+UseG1GC', '-XX:+ParallelRefProcEnabled', '-XX:MaxGCPauseMillis=200', '-XX:+UnlockExperimentalVMOptions', '-XX:+DisableExplicitGC', '-XX:G1NewSizePercent=30', '-XX:G1MaxNewSizePercent=40', '-XX:G1HeapRegionSize=8M', '-XX:G1ReservePercent=20', '-XX:G1HeapWastePercent=5', '-XX:G1MixedGCCountTarget=4', '-XX:InitiatingHeapOccupancyPercent=15', '-XX:G1MixedGCLiveThresholdPercent=90', '-XX:G1RSetUpdatingPauseTimePercent=5', '-XX:SurvivorRatio=32', '-XX:+PerfDisableSharedMem', '-XX:MaxTenuringThreshold=1']
 };
+// Versión principal de un Java (8, 17, 21, 25…): se lee de «java -version» y se recuerda por ruta
+const JMAJ = {};
+function javaMajor(j) {
+  if (JMAJ[j] !== undefined) return JMAJ[j];
+  let m = 0;
+  try { const r = require('child_process').spawnSync(j, ['-version'], { encoding: 'utf8', timeout: 8000, windowsHide: true }), t = String(r.stderr || '') + String(r.stdout || ''), x = /version "(\d+)(?:\.(\d+))?/.exec(t); if (x) m = x[1] === '1' ? +x[2] : +x[1]; } catch {}
+  return JMAJ[j] = m;
+}
+// Java moderno (punto 15): objetos más pequeños en Java 25+ y Generational ZGC (opcional, con 8 GB o más). Con ZGC no se mandan los argumentos de G1.
+const JVM_ZGC_BASE = ['-XX:+DisableExplicitGC', '-XX:+PerfDisableSharedMem', '-Xshare:auto', '-Dsun.java2d.noddraw=true'];
+function jvmModern(cfg, ins, java, ram) {
+  const r = { args: [], zgc: false, compact: false, note: '' };
+  if (ins.gcOff) return r;   // una vez que fallaron en esta instancia, se queda en G1 normal
+  const major = javaMajor(java);
+  if (major >= 25) { r.args.push('-XX:+UseCompactObjectHeaders'); r.compact = true; }
+  if (cfg.gc === 'zgc') {
+    if (ram < 8) r.note = 'Nova: Generational ZGC solo se usa con 8 GB o más de RAM asignada; se usa G1.\n';
+    else if (major < 21) r.note = 'Nova: Generational ZGC necesita Java 21 o más; se usa G1.\n';
+    else if (ins.jvmPreset) r.note = 'Nova: esta instancia tiene un ajuste de Java propio; no se cambia el recolector.\n';
+    else { r.zgc = true; r.args.push('-XX:+UseZGC'); if (major < 23) r.args.push('-XX:+ZGenerational'); }
+  }
+  return r;
+}
 const GPU_KEY = 'HKCU\\Software\\Microsoft\\DirectX\\UserGpuPreferences';
 async function applyGpu(java, on) {
   if (process.platform !== 'win32' || !java) return;
@@ -201,6 +251,7 @@ async function prepRun(r) {
     const java = await javaFor(mc, { javaPath: cfg.javaPath });
     const o = { authorization: Authenticator.getAuth('Nova'), root, javaPath: java, version: { number: mc, type: r.type === 'release' ? 'release' : 'snapshot' },
       overrides: { gameDirectory: path.join(root, 'instances', '.prep') }, memory: { max: '1G', min: '256M' } };
+    await mirrorPrep(o, mc);
     if (ld === 'Fabric') o.version.custom = await fabric(mc, r.loaderVersion);
     if (ld === 'Forge' || ld === 'NeoForge') o.version.custom = await forge(ld, mc, java, r.loaderVersion);
     const l = new Client();

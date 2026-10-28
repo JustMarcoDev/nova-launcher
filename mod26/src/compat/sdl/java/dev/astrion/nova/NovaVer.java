@@ -9,6 +9,7 @@ import net.minecraft.client.input.KeyEvent;
 
 /** Capa «sdl» (Minecraft 26.3): ventana SDL3, teclas propias de Minecraft y texturas con la biblioteca renderpearl. */
 final class NovaVer {
+    static final String KEY = "keySdl";
     private NovaVer() { }
 
     static int scan(KeyEvent e) { return e.keycode(); }

@@ -63,7 +63,7 @@ async function fetchPart(u, part, o, depth = 0) {
     try {
       if (r.body && typeof r.body.getReader === 'function') {
         const rd2 = r.body.getReader();
-        try { for (;;) { const { done, value } = await rd2.read(); if (done) break; await dqChunk(value.length); await fh.write(value); got += value.length; o.st.cnt += value.length; } }
+        try { for (;;) { const { done, value } = await rd2.read(); if (done) break; await dqChunk(value.length); await fh.write(value); got += value.length; o.st.cnt += value.length; if (o.onProgress) o.onProgress(base + got, base + len); } }
         catch (e) { try { rd2.cancel(); } catch {} throw e; }
       } else { const b = Buffer.from(await r.arrayBuffer()); await dqChunk(b.length); await fh.write(b); got = b.length; o.st.cnt += b.length; }
     } finally { await fh.close(); }
@@ -74,6 +74,8 @@ async function fetchPart(u, part, o, depth = 0) {
 // Descarga con comprobación de huella, reanudación y 3 reintentos (1 s, 3 s y 8 s; prueba también los enlaces alternativos)
 async function dl(urls, dest, o = {}) {
   urls = [].concat(urls || []).filter(Boolean); if (!urls.length) throw new Error('Sin enlace de descarga');
+  // Servidores alternativos (assets/mirrors.json): solo cuando se conoce la huella, para poder comprobar siempre lo descargado
+  const mirU = new Set(); if (o.sha1 || o.sha512) for (const u of [...urls]) for (const m of R.mirrorsFor ? R.mirrorsFor(u) : []) if (!urls.includes(m)) { urls.push(m); mirU.add(m); }
   DQ.active++; dqTick();
   o = { ...o, st: { cnt: 0 } }; // st.cnt: bytes de este .part que ya cuentan en la cola
   const part = dest + '.part', bad = new Set(), clean = async () => { await rmQ(part); await rmQ(metaOf(part)); };
@@ -88,7 +90,7 @@ async function dl(urls, dest, o = {}) {
             const n = await fetchPart(u, part, o);
             const want = String(o.sha512 || o.sha1 || '').toLowerCase();
             if (want && await hashFile(part, o.sha512 ? 'sha512' : 'sha1') !== want) { await clean(); err = new Error('hash'); if (z === 0) continue; bad.add(u); break; } // huella distinta: una vez más desde cero
-            await rmQ(metaOf(part)); await mv(part, dest); return n;
+            await rmQ(metaOf(part)); await mv(part, dest); if (mirU.has(u) && R.mirrorNotice) R.mirrorNotice(u); return n;
           } catch (e) { if (e.cancel) throw e; err = e; if (e.http >= 400 && e.http < 500 && e.http !== 408 && e.http !== 429) bad.add(u); break; }
         }
       }

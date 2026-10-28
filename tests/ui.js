@@ -16,6 +16,16 @@ const w = dom.window, sleep = ms => new Promise(r => setTimeout(r, ms));
   const need = ['home', 'vers', 'mods', 'srv', 'inst', 'con', 'soc', 'set', 'sk', 'sta'];
   for (const p of need) { const b = w.document.querySelector(`nav [data-p=${p}]`); if (!b) { errors.push('falta el botón de ' + p); continue; } b.click(); await sleep(150); if (!w.document.getElementById(p).classList.contains('on')) errors.push('no se abre la pestaña ' + p); }
   for (const s of w.document.querySelectorAll('#sn button')) { try { s.click(); } catch (e) { errors.push('ajustes: ' + e.message); } await sleep(10); }
+  // Ajustes → Menú de Nova: pinta las opciones y el lienzo del HUD con 5 elementos, y arrastrar uno guarda x e y entre 0 y 1
+  { mock.nmenuGet = { cfg: { hud: { fps: { on: true, x: 0.5, y: 0.5, s: 1 } } }, mtime: 1, bgs: [{ id: 'hole', name: 'Agujero negro' }], accents: ['#8b6cff'], accentVals: [-7639809] };
+    const saved = []; api.nmenuSet = async p => { saved.push(p); return { ok: true }; };
+    await w.eval('nmInit()'); for (let t = 0; t < 30 && !w.document.querySelector('#nmcv .nme'); t++) await sleep(100);
+    const els = w.document.querySelectorAll('#nmcv .nme');
+    if (els.length !== 5) errors.push('Menú de Nova: el editor del HUD debería tener 5 elementos y tiene ' + els.length);
+    else { const code = w.eval('nmCode()'), o = w.eval('nmParse(nmCode())'); if (!/^NOVAHUD1:/.test(code) || !o || !o.hud.fps || o.hud.fps.x !== 0.5) errors.push('Menú de Nova: el código exportado no se puede volver a leer');
+      if (w.eval('nmParse("hola")') !== null) errors.push('Menú de Nova: un texto cualquiera no debería aceptarse como HUD');
+      w.eval('nmSave({hud:{fps:{x:0.25,y:0.75,s:1.5}}})'); await sleep(400);
+      const p = saved[saved.length - 1]; if (!p || p.hud.fps.x !== 0.25 || p.hud.fps.s !== 1.5) errors.push('Menú de Nova: no se guardó la posición del HUD'); } }
   w.document.querySelector('nav [data-p=home]').click();
   w.dispatchEvent(Object.assign(new w.KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true })));
   await sleep(100);

@@ -133,6 +133,7 @@ public class NovaTitleScreen extends NovaScreen {
 
     @Override
     protected void init() {
+        NovaSettings.reloadIfChanged();
         newsLines = null;
         ensure(minecraft);
         NovaBg.start(minecraft);

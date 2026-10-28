@@ -19,11 +19,41 @@ const loaderPick = (...a) => R.loaderPick(...a); // cargadores
 const notify = (...a) => R.notify(...a); // sistema
 
 ipcMain.handle('inst:list', () => li());
-ipcMain.handle('inst:save', async (e, o) => { const i = addInst(o); try { await ensureFabricApi(i); } catch {} return li().find(x => x.id === i.id) || i; });
+ipcMain.handle('inst:save', async (e, o) => { const cc = !!(o && o.copyControls); if (o) { o = { ...o }; delete o.copyControls; } const i = addInst(o); if (cc) { try { copyControls(i); } catch {} } try { await ensureFabricApi(i); } catch {} return li().find(x => x.id === i.id) || i; });
 ipcMain.handle('inst:del', async (e, id) => { id = String(id); if (running.has(id)) throw new Error('Cierra Minecraft antes de borrar la instancia'); wr(insFile, li().filter(i => i.id !== id)); await rmAsync(path.join(root, 'instances', id)); await rmAsync(path.join(root, 'backups', id)); });
 const iDir = id => path.join(root, 'instances', String(id));
 const getIns = id => { const i = li().find(x => x.id === String(id)); if (!i) throw new Error('Instancia no encontrada'); return i; };
 const safeName = (n, d = 'instancia') => String(n || d).replace(/[\\/:*?"<>|]+/g, '_').trim().slice(0, 60) || d;
+// ---- Copiar los controles de la última instancia jugada (casilla «Usar mis controles» al crear una instancia) ----
+// Solo se copian las teclas y unos pocos ajustes personales; nunca vídeo, ni archivos de otros mods (optionsof.txt, sodium…).
+const CC_KEY = /^(key_.+|mouseSensitivity|fov|soundCategory_.+|lang|guiScale|autoJump|toggleCrouch|toggleSprint)$/;
+const mcMinor = mc => { const m = /^1\.(\d+)/.exec(String(mc)); return m ? +m[1] : (/^\d{2}\.\d/.test(String(mc)) ? 99 : /^\d{2}w/.test(String(mc)) ? (+String(mc).slice(0, 2) >= 18 ? 13 : 12) : 99); };
+const optParse = t => { const m = new Map(); for (const ln of String(t).split(/\r?\n/)) { const k = ln.indexOf(':'); if (k > 0) m.set(ln.slice(0, k), ln.slice(k + 1)); } return m; };
+function copyControls(ins) {
+  const dst = path.join(iDir(ins.id), 'options.txt');
+  const from = li().filter(i => i.id !== ins.id && i.lastPlayed && fs.existsSync(path.join(iDir(i.id), 'options.txt'))).sort((a, b) => b.lastPlayed - a.lastPlayed)[0];
+  if (!from) return null;
+  const src = optParse(fs.readFileSync(path.join(iDir(from.id), 'options.txt'), 'utf8'));
+  const sMin = mcMinor(from.mc), dMin = mcMinor(ins.mc), out = new Map();
+  // Antes de la 1.13 las teclas se guardan como números y después como «key.keyboard.w»: si no coinciden, no se copian las key_*
+  const sNum = [...src].filter(([k, v]) => k.startsWith('key_')).some(([, v]) => /^-?\d+$/.test(v));
+  const sameKeys = sNum === (dMin < 13);
+  for (const [k, v] of src) {
+    if (!CC_KEY.test(k)) continue;
+    if (k.startsWith('key_') && !sameKeys) continue;
+    if (k === 'fov') { const sOld = +v <= 1.5, dOld = dMin < 14; if (sOld !== dOld) continue; }   // antes de la 1.14 el campo de visión va de 0 a 1
+    if (k === 'lang') { if (dMin < 11) { const q = /^([a-z]{2})_([a-z]{2})$/i.exec(v); out.set(k, q ? q[1].toLowerCase() + '_' + q[2].toUpperCase() : v); } else out.set(k, v.toLowerCase()); continue; }
+    out.set(k, v);
+  }
+  if (!out.size) return null;
+  // Mezcla con el options.txt de destino si ya existe (sin tocar nada más); si no, se crea solo con esto y la versión de datos de origen, para que el juego convierta bien los valores
+  const old = fs.existsSync(dst) ? optParse(fs.readFileSync(dst, 'utf8')) : null;
+  if (old) { for (const [k, v] of out) old.set(k, v); }
+  const fin = old || new Map([...(src.has('version') && dMin >= 13 ? [['version', src.get('version')]] : []), ...out]);
+  fs.mkdirSync(path.dirname(dst), { recursive: true });
+  fs.writeFileSync(dst, [...fin].map(([k, v]) => k + ':' + v).join('\n') + '\n');
+  return { from: from.id, n: out.size };
+}
 // ---- Opciones de cada instancia ----
 // Fabric API: casi todos los mods de Fabric la necesitan. Una vez por instancia Fabric se instala la de su versión de Minecraft
 // (si el jugador la borra después, no se vuelve a poner). Devuelve true si la instaló.

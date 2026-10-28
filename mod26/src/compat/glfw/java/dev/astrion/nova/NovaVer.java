@@ -10,6 +10,8 @@ import net.minecraft.client.input.KeyEvent;
 
 /** Capa «glfw» (Minecraft 26.1 y 26.2): ventana GLFW, teclas GLFW y texturas con FilterMode de blaze3d. */
 final class NovaVer {
+    /** Nombre de la propiedad de menu.json con el código de una tecla: cada ventana (GLFW / SDL3) tiene sus propios códigos. */
+    static final String KEY = "key";
     private NovaVer() { }
 
     static int scan(KeyEvent e) { return e.scancode(); }
