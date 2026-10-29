@@ -102,12 +102,13 @@ function openLog(ins, java, ram) {
 function reportCrash(ins, code, tail, file, since) {
   let report = '';
   try { const cr = path.join(root, 'instances', ins.id, 'crash-reports'), fl = fs.readdirSync(cr).filter(x => /^crash-.*\.txt$/.test(x)).map(x => ({ x, t: fs.statSync(path.join(cr, x)).mtimeMs })).filter(o => o.t >= since).sort((a, b) => b.t - a.t)[0]; if (fl) report = path.join(cr, fl.x); } catch {}
+  try { const cz = diagnose(tail); R.sendCrashReport({ mc: ins.mc, ld: ins.ld || 'Vanilla', loaderVersion: ins.loaderVersion, mod: require('../package.json').version, cause: cz.t + (cz.hint ? ' · ' + cz.hint : ''), code, tail, names: [load().username || '', ins.name || ''] }); } catch {}
   send('crash', { id: ins.id, name: ins.name, mc: ins.mc, ld: ins.ld || 'Vanilla', code, cause: diagnose(tail), tail: tail.slice(-40), file, report });
 }
 ipcMain.handle('log:open', (e, f) => { const p = path.resolve(String(f || '')); if (p.startsWith(root + path.sep) && fs.existsSync(p)) { shell.showItemInFolder(p); return true; } return false; });
 ipcMain.handle('logs:folder', () => { const d = path.join(root, 'logs'); fs.mkdirSync(d, { recursive: true }); return shell.openPath(d); });
 async function playGame(opts) {
-  const { id, server, world, safe } = opts;
+  const { id, server, world, safe } = opts, extra = Array.isArray(opts.extraArgs) ? opts.extraArgs.filter(x => /^-Dnova\.[\w.]+=[\w.-]*$/.test(x)) : [];
   const cfg = load(), ins = li().find(i => i.id === id);
   try {
     if (!ins) throw new Error('Instancia no encontrada');
@@ -141,7 +142,9 @@ async function playGame(opts) {
       : 'Nova: el menú de Nova solo está disponible en Nova y Fabric; ' + ins.ld + ' usa el menú normal.\n';
     if (nova) { fondosScan().catch(() => {}); fondosWatch(); novaServersWrite(cfg.myServers); novaAccountsWrite(); }
     const mkey = marcas.newKey();
+    if (nova) { try { R.novaAccSync(cfg); } catch {} }
     if (nova) o.customArgs.push('-Dnova.key=' + mkey, '-Dnova.dir=' + novaDir(), '-Dnova.skin=' + (await novaSkinFor(act)).file, '-Dnova.premium=' + (act.type === 'microsoft' ? '1' : '0'), '-Dnova.presence=' + (process.env.NOVA_PRESENCE || (() => { try { return require('../package.json').novaPresence || ''; } catch { return ''; } })()), '-Dnova.user=' + act.name, '-Dnova.bg=' + (novaBg() || ''), '-Dnova.bg2=' + (novaBg('nova-nebulosa.nvb') || ''), '-Dnova.bg3=' + (novaBg('nova-earth.nvb') || ''), '-Dnova.lowpower=' + (LOWRAM ? 'true' : 'false'), '-Dfabric.addMods=' + nj, '-Dnova.version=' + app.getVersion(), ...(novaNews() ? ['-Dnova.news=' + novaNews()] : []), '-Dnova.loader=' + (ins.ld === 'Fabric' ? 'Fabric' : 'Nova'));
+    if (nova && extra.length) o.customArgs.push(...extra);
     if (ins.ld === 'Forge' || ins.ld === 'NeoForge') o.version.custom = await forge(ins.ld, ins.mc, java, ins.loaderVersion);
     if (server && server.host) o.quickPlay = { type: modernQP(ins.mc) ? 'multiplayer' : 'legacy', identifier: server.host + (server.port && +server.port !== 25565 ? ':' + server.port : '') };
     if (world && !server && modernQP(ins.mc)) o.quickPlay = { type: 'singleplayer', identifier: String(world) };
@@ -163,11 +166,12 @@ async function playGame(opts) {
         saveAcc(st.a, a); S.switching = { id, safe }; send('acc:switched', accOut()); send('status', 'Cambiando de usuario…'); setTimeout(() => { try { proc && proc.kill(); } catch {} }, 250);
       },
       SETTINGS: () => { if (S.win) { if (S.win.isMinimized()) S.win.restore(); S.win.show(); S.win.focus(); send('nav', 'set'); } },
+      BENCH: a => R.onBench(id, a),
       SHOW: () => { if (S.win) { if (S.win.isMinimized()) S.win.restore(); S.win.show(); S.win.focus(); } }
     });
     l.on('data', d => { const t = String(d); mk(t); try { lg.w.write(t.endsWith('\n') ? t : t + '\n'); } catch {} for (const ln of t.split(/\r?\n/)) if (ln) tail.push(ln); if (tail.length > 500) tail.splice(0, tail.length - 300); send('log', t); });
     l.on('close', code => {
-      running.delete(id); try { lg.w.end(); } catch {} if (t0) { statsEnd(sk, Date.now() - t0); const cur = li().find(i => i.id === id) || {}; upIns(id, { playMs: (cur.playMs || 0) + (Date.now() - t0), lastPlayed: Date.now() }); } discordSet(null); send('running', running.size ? 1 : 0); send('progress', null);
+      running.delete(id); try { lg.w.end(); } catch {} setTimeout(() => { try { R.bkSchedule(); } catch {} }, 4000); if (t0) { statsEnd(sk, Date.now() - t0); const cur = li().find(i => i.id === id) || {}; upIns(id, { playMs: (cur.playMs || 0) + (Date.now() - t0), lastPlayed: Date.now() }); } discordSet(null); send('running', running.size ? 1 : 0); send('progress', null);
       if (S.switching && S.switching.id === id) {   // cambio de usuario desde el mod: se vuelve a abrir la misma instancia con la otra cuenta
         const nx = S.switching; S.switching = null; send('status', 'Cambiando de usuario…');
         setTimeout(() => { playGame({ id: nx.id, safe: nx.safe }).catch(() => {}); }, 700);
@@ -176,7 +180,7 @@ async function playGame(opts) {
       // Si con las opciones modernas de Java se cierra con error en los primeros 30 s, se vuelve a G1 normal y se avisa
       if (!!code && tail.length > 0 && t0 && (jm.zgc || jm.compact) && Date.now() - t0 < 30000 && !(opts && opts.gcRetry)) {
         upIns(id, { gcOff: true }); send('status', 'Se cerró al arrancar con las opciones nuevas de Java: se vuelve a G1'); notify('Minecraft', 'Falló con ZGC / objetos compactos; se reintenta con el Java de siempre (G1).');
-        setTimeout(() => { playGame({ id, server, world, safe, gcRetry: true }).catch(() => {}); }, 700);
+        setTimeout(() => { playGame({ id, server, world, safe, extraArgs: opts.extraArgs, gcRetry: true }).catch(() => {}); }, 700);
         return;
       }
       const crashed = !!code && tail.length > 0;
@@ -272,4 +276,4 @@ ipcMain.handle('prep:run', (e, r) => {
 
 
 // Lo que usan otros módulos
-Object.assign(R, { PREPD, diagnose });
+Object.assign(R, { PREPD, diagnose, playGame });

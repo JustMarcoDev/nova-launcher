@@ -37,6 +37,7 @@ require('./main/mods');
 require('./main/cargadores');
 require('./main/mod-nova');
 require('./main/juego');
+require('./main/benchmark');
 require('./main/actualizaciones');
 require('./main/discord');
 require('./main/sistema');

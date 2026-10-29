@@ -36,7 +36,12 @@ public final class NovaHud {
     public static final El KEYS = new El("keys", true, 0.010f, 0.420f);
     /** «Estado»: enseña si el freelook, el sprint fijo y el agacharse fijo están en marcha (apagado de fábrica). */
     public static final El STATE = new El("state", false, 0.010f, 0.600f);
-    public static final El[] ALL = { FPS, CPS, XYZ, KEYS, STATE };
+    /** Elementos nuevos (apagados de fábrica): armadura, pociones, reloj y brújula. */
+    public static final El ARMOR = new El("armor", false, 0.010f, 0.700f);
+    public static final El POTS = new El("pots", false, 0.880f, 0.300f);
+    public static final El CLOCK = new El("clock", false, 0.010f, 0.880f);
+    public static final El COMPASS = new El("compass", false, 0.500f, 0.020f);
+    public static final El[] ALL = { FPS, CPS, XYZ, KEYS, STATE, ARMOR, POTS, CLOCK, COMPASS };
 
     /** Zoom con tecla: activo, tecla (GLFW) y cuánto acerca (el campo de visión se multiplica por este número). */
     public static boolean zoomOn = true;
@@ -47,6 +52,17 @@ public final class NovaHud {
 
     static void read(JsonObject o) {
         if (o == null) return;
+        readEls(o);
+        if (o.has("zoom") && o.get("zoom").isJsonObject()) {
+            JsonObject z = o.getAsJsonObject("zoom");
+            if (z.has("on")) zoomOn = z.get("on").getAsBoolean();
+            if (z.has("key")) { int k = z.get("key").getAsInt(); if (k > 0) zoomKey = k; }
+        }
+    }
+
+    /** Solo la distribución de los elementos (la que cambia con cada perfil). */
+    static void readEls(JsonObject o) {
+        if (o == null) return;
         for (El e : ALL) {
             if (!o.has(e.id) || !o.get(e.id).isJsonObject()) continue;
             JsonObject j = o.getAsJsonObject(e.id);
@@ -55,14 +71,18 @@ public final class NovaHud {
             if (j.has("y")) e.fy = clamp01(j.get("y").getAsFloat());
             if (j.has("s")) e.scale = clampS(j.get("s").getAsFloat());
         }
-        if (o.has("zoom") && o.get("zoom").isJsonObject()) {
-            JsonObject z = o.getAsJsonObject("zoom");
-            if (z.has("on")) zoomOn = z.get("on").getAsBoolean();
-            if (z.has("key")) { int k = z.get("key").getAsInt(); if (k > 0) zoomKey = k; }
-        }
     }
 
     static JsonObject write() {
+        JsonObject o = layout();
+        JsonObject z = new JsonObject();
+        z.addProperty("on", zoomOn); z.addProperty("key", zoomKey);
+        o.add("zoom", z);
+        return o;
+    }
+
+    /** La distribución actual de los elementos (lo que guarda cada perfil). */
+    static JsonObject layout() {
         JsonObject o = new JsonObject();
         for (El e : ALL) {
             JsonObject j = new JsonObject();
@@ -70,10 +90,124 @@ public final class NovaHud {
             j.addProperty("s", Math.round(e.scale * 100f) / 100f);
             o.add(e.id, j);
         }
-        JsonObject z = new JsonObject();
-        z.addProperty("on", zoomOn); z.addProperty("key", zoomKey);
-        o.add("zoom", z);
         return o;
+    }
+
+    // ---- perfiles del HUD (uno por servidor) ----
+    // menu.json guarda «hudProfiles» (nombre → distribución), «hudRules» (dirección del servidor o «singleplayer» → nombre) y «hudProfile» (el que está en uso).
+    // La distribución de «hud» es siempre la del perfil en uso. Al entrar en un servidor se aplica su perfil y al salir, el predeterminado.
+
+    public static final String DEFAULT = "default";
+    static final java.util.LinkedHashMap<String, JsonObject> PROFILES = new java.util.LinkedHashMap<>();
+    static final java.util.LinkedHashMap<String, String> RULES = new java.util.LinkedHashMap<>();
+    /** Perfil en uso ahora. */
+    public static String profile = DEFAULT;
+    private static String lastKey;
+
+    static void readProfiles(JsonObject o) {
+        if (o == null) return;
+        PROFILES.clear(); RULES.clear();
+        if (o.has("hudProfiles") && o.get("hudProfiles").isJsonObject())
+            for (var en : o.getAsJsonObject("hudProfiles").entrySet()) if (en.getValue().isJsonObject() && !en.getKey().isEmpty()) PROFILES.put(en.getKey(), en.getValue().getAsJsonObject());
+        if (o.has("hudRules") && o.get("hudRules").isJsonObject())
+            for (var en : o.getAsJsonObject("hudRules").entrySet()) if (en.getValue().isJsonPrimitive()) RULES.put(en.getKey(), en.getValue().getAsString());
+        profile = o.has("hudProfile") ? o.get("hudProfile").getAsString() : DEFAULT;
+        if (profile.isEmpty() || (!profile.equals(DEFAULT) && !PROFILES.containsKey(profile))) profile = DEFAULT;
+        RULES.values().removeIf(v -> !v.equals(DEFAULT) && !PROFILES.containsKey(v));
+    }
+
+    static void writeProfiles(JsonObject o) {
+        PROFILES.put(profile, layout());
+        if (!PROFILES.containsKey(DEFAULT)) { PROFILES.put(DEFAULT, new JsonObject()); }
+        JsonObject ps = new JsonObject(), rs = new JsonObject();
+        for (var en : PROFILES.entrySet()) ps.add(en.getKey(), en.getValue());
+        for (var en : RULES.entrySet()) rs.addProperty(en.getKey(), en.getValue());
+        o.add("hudProfiles", ps); o.add("hudRules", rs); o.addProperty("hudProfile", profile);
+    }
+
+    /** Nombre para enseñar: el predeterminado se llama «Predeterminado». */
+    public static String profileLabel(String n) { return DEFAULT.equals(n) ? tr("Predeterminado") : n; }
+
+    public static java.util.List<String> profileNames() {
+        java.util.List<String> l = new java.util.ArrayList<>();
+        l.add(DEFAULT);
+        for (String k : PROFILES.keySet()) if (!k.equals(DEFAULT)) l.add(k);
+        return l;
+    }
+
+    /** Pasa a otro perfil: guarda el actual y aplica la distribución del otro. */
+    public static void switchTo(String name) {
+        if (name == null || name.equals(profile)) return;
+        PROFILES.put(profile, layout());
+        for (El e : ALL) e.reset();
+        JsonObject o = PROFILES.get(name);
+        if (o != null) readEls(o);
+        profile = name;
+    }
+
+    public static void cycleProfile(int dir) {
+        java.util.List<String> l = profileNames();
+        int i = Math.max(0, l.indexOf(profile));
+        switchTo(l.get(((i + dir) % l.size() + l.size()) % l.size()));
+    }
+
+    static String uniqueName(String base) {
+        String n = base; int k = 2;
+        while (n.equals(DEFAULT) || PROFILES.containsKey(n)) n = base + " " + (k++);
+        return n;
+    }
+
+    public static void profileNew() {
+        String n = uniqueName(tr("Perfil"));
+        PROFILES.put(profile, layout());
+        PROFILES.put(n, new JsonObject());
+        switchTo(n);
+    }
+
+    public static void profileDup() {
+        String n = uniqueName(profileLabel(profile).replaceAll(" \\d+$", ""));
+        PROFILES.put(n, layout());
+        PROFILES.put(profile, layout());
+        switchTo(n);
+    }
+
+    /** Cambia el nombre del perfil en uso (el predeterminado no se renombra). Devuelve false si el nombre no vale. */
+    public static boolean profileRename(String name) {
+        name = name == null ? "" : name.trim();
+        if (profile.equals(DEFAULT) || name.isEmpty() || name.length() > 24 || name.equals(DEFAULT) || PROFILES.containsKey(name)) return false;
+        PROFILES.put(profile, layout());
+        PROFILES.put(name, PROFILES.remove(profile));
+        final String old = profile, nn = name;
+        RULES.replaceAll((k, v) -> v.equals(old) ? nn : v);
+        profile = name;
+        return true;
+    }
+
+    public static void profileDelete() {
+        if (profile.equals(DEFAULT)) return;
+        String old = profile;
+        switchTo(DEFAULT);
+        PROFILES.remove(old);
+        RULES.values().removeIf(v -> v.equals(old));
+    }
+
+    /** El servidor (o «singleplayer») en el que está el jugador ahora, o "" si no está en una partida. */
+    public static String currentKey(MinecraftClient mc) { return NovaX.serverKey(mc); }
+
+    /** Perfil asignado a la partida actual, o null. */
+    public static String ruleFor(String key) { return key.isEmpty() ? null : RULES.get(key); }
+
+    public static void ruleSet(String key, String name) { if (!key.isEmpty()) RULES.put(key, name); }
+    public static void ruleClear(String key) { RULES.remove(key); }
+
+    /** Al entrar en un servidor aplica su perfil y al salir vuelve al predeterminado. Barato: solo hace algo cuando cambia el servidor. */
+    static void syncServer(MinecraftClient mc) {
+        String k = currentKey(mc);
+        if (k.equals(lastKey)) return;
+        lastKey = k;
+        String want = DEFAULT, r = ruleFor(k);
+        if (r != null && (r.equals(DEFAULT) || PROFILES.containsKey(r))) want = r;
+        if (!want.equals(profile)) { switchTo(want); NovaSettings.save(); }
     }
 
     public static void resetPositions() { for (El e : ALL) { e.fx = e.dfx; e.fy = e.dfy; e.scale = 1f; } }
@@ -133,6 +267,15 @@ public final class NovaHud {
     /** Tamaño del elemento tal como se dibuja ahora. */
     public static int[] size(MinecraftClient mc, El e, boolean sample) {
         if (e == KEYS) return new int[] { KW, KH };
+        if (e == ARMOR) return new int[] { 26 + NovaX.width(mc, "100%") + 10, Math.max(1, NovaX.armor(mc, sample).size()) * 18 + 4 };
+        if (e == POTS) {
+            List<NovaX.Eff> L = NovaX.effects(mc, sample);
+            int w = 0;
+            for (NovaX.Eff f : L.subList(0, Math.min(L.size(), POTS_MAX))) w = Math.max(w, NovaX.width(mc, effLabel(f)) + 6 + NovaX.width(mc, effTime(f)));
+            return new int[] { 24 + Math.max(w, 60) + 6, Math.max(1, Math.min(L.size(), POTS_MAX)) * 16 + 4 };
+        }
+        if (e == CLOCK) { String[] c = clockLines(mc, sample); return new int[] { Math.max(NovaX.width(mc, c[0]), NovaX.width(mc, c[1])) + 14, 26 }; }
+        if (e == COMPASS) return new int[] { 132, 24 };
         if (e == STATE) { int w = 0; List<String[]> st = NovaMove.states(mc, sample); for (String[] z : st) w = Math.max(w, mc.textRenderer.getWidth(z[0])); return new int[] { w + 20, st.size() * 11 + 3 }; }
         String[] L = lines(mc, e, sample);
         int w = 0;
@@ -143,12 +286,13 @@ public final class NovaHud {
     /** Tamaño en pantalla, ya con la escala del elemento. */
     public static int[] sizeS(MinecraftClient mc, El e, boolean sample) {
         int[] s = size(mc, e, sample);
-        return new int[] { Math.max(1, Math.round(s[0] * e.scale)), Math.max(1, Math.round(s[1] * e.scale)) };
+        float k = e.scale * NovaAcc.text();
+        return new int[] { Math.max(1, Math.round(s[0] * k)), Math.max(1, Math.round(s[1] * k)) };
     }
 
     /** Dibuja el elemento con su escala; (x, y) es la esquina de arriba a la izquierda en pantalla. */
     public static void drawS(DrawContext c, MinecraftClient mc, El e, int x, int y, boolean sample) {
-        float k = e.scale;
+        float k = e.scale * NovaAcc.text();
         if (Math.abs(k - 1f) < 0.005f) { draw(c, mc, e, x, y, sample); return; }
         NovaCompat.pushScale(c, k);
         try { draw(c, mc, e, Math.round(x / k), Math.round(y / k), sample); } finally { NovaCompat.popScale(c); }
@@ -166,7 +310,7 @@ public final class NovaHud {
     }
 
     static void label(DrawContext c, MinecraftClient mc, String s, int cx, int y, int color) {
-        c.drawText(mc.textRenderer, s, cx - mc.textRenderer.getWidth(s) / 2, y, color, false);
+        NovaX.text(c, mc, s, cx - mc.textRenderer.getWidth(s) / 2, y, color, false);
     }
 
     static String keyLabel(KeyBinding k) {
@@ -174,8 +318,94 @@ public final class NovaHud {
         return s.length() > 3 ? s.substring(0, 3) : s;
     }
 
+
+    // ---- elementos nuevos: armadura, pociones, reloj y brújula ----
+
+    static final int POTS_MAX = 6;
+
+    static String roman(int n) {
+        String[] r = { "", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X" };
+        return n >= 1 && n < r.length ? r[n] : Integer.toString(n);
+    }
+
+    static String effLabel(NovaX.Eff f) { return f.name + (f.lvl > 1 ? " " + roman(f.lvl) : ""); }
+
+    static String effTime(NovaX.Eff f) {
+        if (f.secs < 0) return "\u221e";
+        return (f.secs / 60) + ":" + (f.secs % 60 < 10 ? "0" : "") + (f.secs % 60);
+    }
+
+    static String two(long v) { return v < 10 ? "0" + v : Long.toString(v); }
+
+    /** Reloj: línea 1 = hora real; línea 2 = día y hora del mundo (el día de Minecraft empieza a las 6:00). */
+    static String[] clockLines(MinecraftClient mc, boolean sample) {
+        java.time.LocalTime now = java.time.LocalTime.now();
+        long[] w = NovaX.world(mc, sample);
+        long h = (w[0] / 1000 + 6) % 24, m = (w[0] % 1000) * 60 / 1000;
+        return new String[] { two(now.getHour()) + ":" + two(now.getMinute()), tr("Día") + " " + w[1] + " \u00b7 " + two(h) + ":" + two(m) };
+    }
+
+    static int durColor(int pct) { return pct > 60 ? 0xFF55FF55 : pct > 30 ? 0xFFFFFF55 : 0xFFFF5555; }
+
+    static void drawExtra(DrawContext c, MinecraftClient mc, El e, int x, int y, boolean sample) {
+        int[] sz = size(mc, e, sample);
+        NovaButton.panel(c, x, y, sz[0], sz[1], 3, 0x9A0C0C14, border());
+        if (e == ARMOR) {
+            List<NovaX.Piece> L = NovaX.armor(mc, sample);
+            if (L.isEmpty()) { NovaX.text(c, mc, "\u2014", x + 8, y + 7, 0xFF8888A8, true); return; }
+            for (int i = 0; i < L.size(); i++) {
+                NovaX.Piece p = L.get(i);
+                NovaX.drawItem(c, p.stack, x + 4, y + 2 + i * 18);
+                String t = p.dmg ? p.pct + "%" : "\u221e";
+                NovaX.text(c, mc, t, x + 24, y + 2 + i * 18 + 4, p.dmg ? durColor(p.pct) : 0xFFB8B8D8, true);
+            }
+            return;
+        }
+        if (e == POTS) {
+            List<NovaX.Eff> L = NovaX.effects(mc, sample);
+            if (L.isEmpty()) { NovaX.text(c, mc, "\u2014", x + 8, y + 5, 0xFF8888A8, true); return; }
+            boolean blink = !NovaAcc.still() && ((System.currentTimeMillis() / 300L) & 1L) == 0;
+            for (int i = 0; i < Math.min(L.size(), POTS_MAX); i++) {
+                NovaX.Eff f = L.get(i);
+                boolean low = f.secs >= 0 && f.secs < 10;
+                int yy = y + 2 + i * 16, a = low && blink ? 0x55000000 : 0xFF000000;
+                NovaButton.panel(c, x + 4, yy + 1, 13, 13, 3, a | f.rgb, NovaAcc.hc() ? 0xFFFFFFFF : 0);
+                String ini = f.name.isEmpty() ? "?" : f.name.substring(0, 1).toUpperCase(java.util.Locale.ROOT);
+                NovaX.text(c, mc, ini, x + 4 + (13 - NovaX.width(mc, ini)) / 2, yy + 3, low && blink ? 0x55101018 : 0xFF101018, false);
+                NovaX.text(c, mc, effLabel(f), x + 22, yy + 4, low && blink ? 0x55FFFFFF : 0xFFFFFFFF, true);
+                String t = effTime(f);
+                NovaX.text(c, mc, t, x + sz[0] - 6 - NovaX.width(mc, t), yy + 4, low ? (blink || NovaAcc.still() ? 0xFFFF5555 : 0x55FF5555) : 0xFFB8B8D8, true);
+            }
+            return;
+        }
+        if (e == CLOCK) {
+            String[] l = clockLines(mc, sample);
+            c.fill(x + 3, y + 3, x + 4, y + sz[1] - 3, NovaSettings.accent);
+            NovaX.text(c, mc, l[0], x + 8, y + 4, 0xFFFFFFFF, true);
+            NovaX.text(c, mc, l[1], x + 8, y + 15, 0xFFB8B8D8, true);
+            return;
+        }
+        // brújula: una barra con N, E, S, O y marcas cada 15\u00b0; el rumbo en grados abajo, en el centro
+        float head = (NovaX.yaw(mc) + 180f) % 360f; if (head < 0) head += 360f;
+        int span = 60, cx = x + sz[0] / 2, half = sz[0] / 2 - 4;
+        float ppd = half / (float) span;
+        String[] names = { tr("N"), tr("E"), tr("S"), tr("O") };
+        for (int d = (int) Math.floor(head - span); d <= (int) Math.ceil(head + span); d++) {
+            int a = ((d % 360) + 360) % 360;
+            if (a % 15 != 0) continue;
+            int px = cx + Math.round((d - head) * ppd);
+            if (px < x + 4 || px > x + sz[0] - 4) continue;
+            if (a % 90 == 0) { String n = names[a / 90]; NovaX.text(c, mc, n, px - NovaX.width(mc, n) / 2, y + 3, a == 0 ? 0xFFFF7B7B : 0xFFFFFFFF, true); }
+            else c.fill(px, y + 4, px + 1, y + (a % 45 == 0 ? 10 : 8), 0xFFB8B8D8);
+        }
+        c.fill(cx - 1, y + 12, cx + 1, y + 14, NovaSettings.accent);
+        String g = Math.round(head) % 360 + "\u00b0";
+        NovaX.text(c, mc, g, cx - NovaX.width(mc, g) / 2, y + 14, 0xFFFFFFFF, true);
+    }
+
     /** Dibuja un elemento en (x, y). sample = true en el editor sin partida (datos de ejemplo). */
     public static void draw(DrawContext c, MinecraftClient mc, El e, int x, int y, boolean sample) {
+        if (e == ARMOR || e == POTS || e == CLOCK || e == COMPASS) { drawExtra(c, mc, e, x, y, sample); return; }
         if (e == KEYS) {
             boolean f = mc.options.forwardKey.isPressed(), l = mc.options.leftKey.isPressed(), b = mc.options.backKey.isPressed(), r = mc.options.rightKey.isPressed(), j = mc.options.jumpKey.isPressed();
             boolean lm = mouseDown(mc, 0), rm = mouseDown(mc, 1);
@@ -196,7 +426,7 @@ public final class NovaHud {
             for (int i = 0; i < st.size(); i++) {
                 boolean on = "1".equals(st.get(i)[1]);
                 c.fill(x + 6, y + 5 + i * 11, x + 11, y + 10 + i * 11, on ? NovaSettings.accent : 0xFF555566);
-                c.drawText(mc.textRenderer, st.get(i)[0], x + 15, y + 3 + i * 11, on ? 0xFFFFFFFF : 0xFFB8B8D8, true);
+                NovaX.text(c, mc, st.get(i)[0], x + 15, y + 3 + i * 11, on ? 0xFFFFFFFF : 0xFFB8B8D8, true);
             }
             return;
         }
@@ -212,21 +442,21 @@ public final class NovaHud {
             String[] ax = { "X ", "Y ", "Z " };
             int cx = x + 8;
             for (int i = 0; i < 3; i++) {
-                c.drawText(mc.textRenderer, ax[i], cx, y + 4, col[i], true);
+                NovaX.text(c, mc, ax[i], cx, y + 4, col[i], true);
                 cx += mc.textRenderer.getWidth(ax[i]);
                 String num = Integer.toString(v[i]);
-                c.drawText(mc.textRenderer, num, cx, y + 4, 0xFFFFFFFF, true);
+                NovaX.text(c, mc, num, cx, y + 4, 0xFFFFFFFF, true);
                 cx += mc.textRenderer.getWidth(num + "   ");
             }
             float yaw = has ? mc.player.getYaw() : 0f;
             String nm = dirName(yaw);
-            c.drawText(mc.textRenderer, nm, x + 8, y + 16, 0xFFFFFFFF, true);
-            c.drawText(mc.textRenderer, dirAxis(yaw), x + 8 + mc.textRenderer.getWidth(nm + "   "), y + 16, 0xFFB8B8D8, true);
+            NovaX.text(c, mc, nm, x + 8, y + 16, 0xFFFFFFFF, true);
+            NovaX.text(c, mc, dirAxis(yaw), x + 8 + mc.textRenderer.getWidth(nm + "   "), y + 16, 0xFFB8B8D8, true);
             return;
         }
         NovaButton.panel(c, x, y, sz[0], sz[1], 3, 0x9A0C0C14, border());
         c.fill(x + 3, y + 3, x + 4, y + sz[1] - 3, NovaSettings.accent);   // barrita de acento
-        for (int i = 0; i < L.length; i++) c.drawText(mc.textRenderer, L[i], x + 7, y + 2 + i * 10, i == 0 ? 0xFFFFFFFF : 0xFFB8B8D8, true);
+        for (int i = 0; i < L.length; i++) NovaX.text(c, mc, L[i], x + 7, y + 2 + i * 10, i == 0 ? 0xFFFFFFFF : 0xFFB8B8D8, true);
     }
 
     /** Dibuja el HUD en la pantalla de la partida (lo llama HudMixin al final del HUD del juego). */
@@ -238,6 +468,7 @@ public final class NovaHud {
             MinecraftClient mc = MinecraftClient.getInstance();
             if (mc == null || mc.player == null) return;
             NovaSettings.load();
+            NovaHud.syncServer(mc);
             NovaPresence.frame(mc);
             NovaServers.frame(mc);
             NovaMove.tick(mc);
@@ -250,7 +481,7 @@ public final class NovaHud {
             NovaFps.frame(c, mc);
             int sw = c.getScaledWindowWidth(), sh = c.getScaledWindowHeight();
             for (El e : ALL) {
-                if (!e.on || (e == STATE && NovaMove.states(mc, false).isEmpty())) continue;
+                if (!e.on || (e == STATE && NovaMove.states(mc, false).isEmpty()) || (e == ARMOR && NovaX.armor(mc, false).isEmpty()) || (e == POTS && NovaX.effects(mc, false).isEmpty())) continue;
                 int[] s = sizeS(mc, e, false), p = pos(e, sw, sh, s[0], s[1]);
                 drawS(c, mc, e, p[0], p[1], false);
             }
@@ -287,6 +518,8 @@ public final class NovaHud {
     private static float zoomCur = 1f, zoomP = 0f;
     private static long zoomT = System.nanoTime();
     private static boolean zoomHeld;
+    /** Solo para el robot de pruebas (NovaSelfTest): finge que la tecla de zoom está pulsada. */
+    static volatile boolean zoomForce;
     private static Double sensOrig;
 
     /** Al soltar el zoom (o abrir un menú) devuelve la sensibilidad del ratón a como estaba. */
@@ -311,7 +544,7 @@ public final class NovaHud {
         try {
             mc = MinecraftClient.getInstance();
             NovaSettings.load();
-            boolean want = zoomOn && mc != null && mc.player != null && mc.currentScreen == null && zoomKey > 0
+            boolean want = zoomForce || zoomOn && mc != null && mc.player != null && mc.currentScreen == null && zoomKey > 0
                     && GLFW.glfwGetKey(mc.getWindow().getHandle(), zoomKey) == GLFW.GLFW_PRESS;
             long now = System.nanoTime();
             float dt = Math.min(0.1f, (now - zoomT) / 1e9f);

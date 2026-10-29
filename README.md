@@ -162,6 +162,18 @@ Cada vez que cambia el mod (`mod/`) se publica una versión nueva del launcher: 
 
 ## Historial de actualizaciones
 
+### 0.2.16-beta.12 — Perfiles de HUD, accesibilidad, prueba de rendimiento, copias programadas y robot de pruebas
+
+- **Robot de pruebas del mod** (`.github/workflows/release.yml`, `scripts/selftest.sh`, `NovaSelfTest`): antes de compilar el instalador, un trabajo en Linux abre el cliente de **cada una de las 24 versiones** con `xvfb-run` y `-Dnova.selftest=true`: espera a la pantalla de título y comprueba que es `NovaTitleScreen`, prueba el zoom, abre el menú de pausa de Nova, hace capturas (se suben como artifacts `robot-<versión>`) y termina con código 0 (PASS) o 1 (FAIL). Si alguna versión falla, no se publica la release. Se usa el mismo modo `selftest` en todas las versiones (la API de pruebas de cliente de Fabric no existe en las versiones antiguas). Las capturas las hace el CI sobre la pantalla virtual cuando el mod escribe `SHOT`.
+- **Informes de error anónimos** (`main/errores.js`, `servidor/worker.js`): casilla en Ajustes → Juego, apagada de fábrica. Al analizar un cierre se envía `POST /report` con versiones, causa y últimas 30 líneas, tras borrar usuarios, rutas `C:\Users\<nombre>`, IPs y tokens. Id aleatorio por instalación. El Worker admite 10 informes al día por id (Durable Object) y `GET /reports` con el secreto `REPORTS_SECRET` (`wrangler secret put REPORTS_SECRET`).
+- **Prueba de rendimiento** (`main/benchmark.js`, `mod26/NovaBench`): instancia oculta «Nova Benchmark» (la última 26.x), mundo de semilla fija (`assets/bench`) y recorrido de cámara fijo de 30 s; mide FPS medio, 1 % más bajo y RAM, escribe `[NOVA:<código>:BENCH:<json>]` y cierra. Ajustes → Rendimiento muestra el resultado, recomendaciones e historial.
+- **HUD por servidor**: `hudProfiles` y `hudRules` en `menu.json`; crear, duplicar, renombrar y borrar perfiles; «Usar en este servidor». Al entrar en un servidor se aplica su perfil y al salir el predeterminado. El editor del launcher muestra los mismos perfiles.
+- **Elementos nuevos del HUD**: Armadura, Pociones, Reloj y Brújula en las 24 versiones y en el editor del launcher.
+- **Accesibilidad** (`NovaAcc`, `NovaGfx`): escala de texto 80–150 %, alto contraste y reducir movimiento; «Usar la accesibilidad del launcher».
+- **Panel de HUD estilo Lunar** (`NovaHudPanel`) y **Modo FPS adaptativo** con objetivo.
+- **Copias de mundos programadas** por instancia, con máximo de copias automáticas.
+- **Jugar** abre la instancia que coincide con versión y cargador.
+
 ### 0.2.16-beta.11 — Arreglos de 26.x y de las capturas
 
 - **Fondo del menú en 26.x**: desde la 26.x el fondo de una pantalla se dibuja en `extractBackground` (antes `renderBackground`); con el nombre viejo el juego nunca llamaba al fondo de Nova y el título salía negro.

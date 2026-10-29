@@ -14,7 +14,7 @@ import com.mojang.blaze3d.platform.InputConstants;
  * y se elige la tecla del zoom. Se abre desde el menú de pausa y desde el panel de Nova del menú principal.
  * El arrastre se hace mirando el ratón en cada fotograma (así sirve igual en todas las versiones).
  */
-public class NovaHudScreen extends NovaScreen {
+public class NovaHudScreen extends NovaScreen implements NovaHudPanel.Host {
     private final Screen parent;
     private NovaHud.El drag, size;
     private float sizeX0, sizeY0, sizeUW, sizeUH;
@@ -22,10 +22,6 @@ public class NovaHudScreen extends NovaScreen {
     /** Botón izquierdo pulsado ahora (lo marcan los eventos del ratón) y clic pendiente de atender en el siguiente fotograma. */
     private boolean pressed, clickPending;
     private int clickX, clickY;
-    /** Qué tecla se está eligiendo: 0 ninguna, 1 zoom, 2 freelook. */
-    private int listening;
-    /** Panel de ajustes abierto o plegado (se recuerda mientras el juego está abierto). */
-    private static boolean open = true;
 
     public NovaHudScreen(Screen parent) {
         super(Component.literal(tr("Editar HUD")));
@@ -36,81 +32,16 @@ public class NovaHudScreen extends NovaScreen {
     protected void init() {
         NovaTitleScreen.ensure(minecraft);
         NovaSettings.load();
-        int pw = Math.min(262, width - 16), x = (width - pw) / 2, gap = 3, ib = 15;
-        int rows = open ? 9 : 1, total = rows * ib + (rows - 1) * gap;
-        int y = height - total - 10;
-        if (open) buildPanel(x, y, pw, gap, ib); else addBar(x, y, pw, gap, ib);
+        NovaHud.syncServer(minecraft);
+        NovaHudPanel.build(this);
     }
 
-    /** Barra de abajo: abrir/plegar el panel y «Listo». */
-    private void addBar(int x, int y, int pw, int gap, int ib) {
-        int half = (pw - gap) / 2;
-        addRenderableWidget(new NovaButton(x, y, half, ib, Component.literal(open ? tr("Ocultar panel") : tr("Mostrar panel")), -1, NovaButton.NORMAL, b -> { open = !open; rebuildWidgets(); })
-                .tip(tr("Panel de ajustes"), tr("Ábrelo o ciérralo para mover el HUD sin que estorbe")));
-        addRenderableWidget(new NovaButton(x + half + gap, y, pw - half - gap, ib, Component.literal(tr("Listo")), NovaGfx.I_CHECK, NovaButton.PRIMARY, b -> onClose()));
-    }
-
-    private void buildPanel(int x, int y, int pw, int gap, int ib) {
-        // 1) un botón por elemento
-        int n = NovaHud.ALL.length, bw = (pw - (n - 1) * gap) / n;
-        String[] names = { "FPS", "CPS", tr("Coords"), tr("Teclas"), tr("Estado") };
-        for (int i = 0; i < n; i++) {
-            final NovaHud.El e = NovaHud.ALL[i];
-            addRenderableWidget(new NovaButton(x + i * (bw + gap), y, bw, ib, Component.literal(names[i]), e.on ? NovaGfx.I_CHECK : -1, e.on ? NovaButton.SELECTED : NovaButton.NORMAL, b -> { e.on = !e.on; rebuildWidgets(); })
-                    .tip(names[i], e.on ? tr("Activado: pulsa para ocultarlo") : tr("Desactivado: pulsa para mostrarlo")));
-        }
-        y += ib + gap;
-        // 2) zoom: activar y tecla
-        int half = (pw - gap) / 2;
-        addRenderableWidget(new NovaButton(x, y, half, ib, Component.literal(tr("Zoom") + ": " + (NovaHud.zoomOn ? tr("Sí") : tr("No"))), NovaHud.zoomOn ? NovaGfx.I_CHECK : -1, NovaHud.zoomOn ? NovaButton.SELECTED : NovaButton.NORMAL, b -> { NovaHud.zoomOn = !NovaHud.zoomOn; rebuildWidgets(); })
-                .tip(tr("Zoom"), tr("Mantén la tecla para acercar la vista")));
-        addRenderableWidget(new NovaButton(x + half + gap, y, pw - half - gap, ib, Component.literal(listening == 1 ? tr("Pulsa una tecla…") : tr("Tecla de zoom") + ": " + NovaHud.keyName(NovaHud.zoomKey)), -1, listening == 1 ? NovaButton.PRIMARY : NovaButton.NORMAL, b -> { listening = 1; rebuildWidgets(); })
-                .tip(tr("Tecla de zoom"), tr("Pulsa y luego la tecla que quieras (Esc cancela)")));
-        y += ib + gap;
-        // 2b) freelook: activar y tecla
-        addRenderableWidget(new NovaButton(x, y, half, ib, Component.literal(tr("Freelook") + ": " + (NovaMove.freelook ? tr("Sí") : tr("No"))), NovaMove.freelook ? NovaGfx.I_CHECK : -1, NovaMove.freelook ? NovaButton.SELECTED : NovaButton.NORMAL, b -> { NovaMove.freelook = !NovaMove.freelook; rebuildWidgets(); })
-                .tip(tr("Freelook"), tr("Mantén la tecla para mirar alrededor sin girar al jugador; al soltarla la cámara vuelve suave")));
-        addRenderableWidget(new NovaButton(x + half + gap, y, pw - half - gap, ib, Component.literal(listening == 2 ? tr("Pulsa una tecla…") : tr("Tecla de freelook") + ": " + NovaMove.keyName()), -1, listening == 2 ? NovaButton.PRIMARY : NovaButton.NORMAL, b -> { listening = 2; rebuildWidgets(); })
-                .tip(tr("Tecla de freelook"), tr("Pulsa y luego la tecla que quieras (Esc cancela)")));
-        y += ib + gap;
-        // 2c) sprint fijo y agacharse fijo
-        addRenderableWidget(new NovaButton(x, y, half, ib, Component.literal(tr("Sprint fijo") + ": " + (NovaMove.sprintFixed ? tr("Sí") : tr("No"))), NovaMove.sprintFixed ? NovaGfx.I_CHECK : -1, NovaMove.sprintFixed ? NovaButton.SELECTED : NovaButton.NORMAL, b -> { NovaMove.sprintFixed = !NovaMove.sprintFixed; rebuildWidgets(); })
-                .tip(tr("Sprint fijo"), tr("Una pulsación de la tecla de correr lo activa y otra lo desactiva")));
-        addRenderableWidget(new NovaButton(x + half + gap, y, pw - half - gap, ib, Component.literal(tr("Agacharse fijo") + ": " + (NovaMove.crouchFixed ? tr("Sí") : tr("No"))), NovaMove.crouchFixed ? NovaGfx.I_CHECK : -1, NovaMove.crouchFixed ? NovaButton.SELECTED : NovaButton.NORMAL, b -> { NovaMove.crouchFixed = !NovaMove.crouchFixed; rebuildWidgets(); })
-                .tip(tr("Agacharse fijo"), tr("Una pulsación de la tecla de agacharse lo activa y otra lo desactiva")));
-        y += ib + gap;
-        // 3) mostrar que uso Nova
-        addRenderableWidget(new NovaButton(x, y, pw, ib, Component.literal(tr("Mostrar que uso Nova") + ": " + (NovaSettings.showNova ? tr("Sí") : tr("No"))), NovaSettings.showNova ? NovaGfx.I_CHECK : -1, NovaSettings.showNova ? NovaButton.SELECTED : NovaButton.NORMAL, b -> { NovaSettings.showNova = !NovaSettings.showNova; rebuildWidgets(); })
-                .tip(tr("Mostrar que uso Nova"), tr("Los demás jugadores con Nova ven el logo junto a tu nombre") + presenceNote()));
-        y += ib + gap;
-        addRenderableWidget(new NovaButton(x, y, pw, ib, Component.literal(tr("Capa de Nova") + ": " + (NovaSettings.showCape ? tr("Sí") : tr("No"))), NovaSettings.showCape ? NovaGfx.I_CHECK : -1, NovaSettings.showCape ? NovaButton.SELECTED : NovaButton.NORMAL, b -> { NovaSettings.showCape = !NovaSettings.showCape; rebuildWidgets(); })
-                .tip(tr("Capa de Nova"), tr("Los jugadores con Nova llevan una capa de Nova (la ves en ellos y ellos en ti)") + presenceNote()));
-        y += ib + gap;
-        // 4) chat mejorado: cuatro opciones por separado
-        int cw = (pw - 3 * gap) / 4;
-        String[] cn = { tr("Hora"), tr("Copiar"), tr("Buscar"), tr("Menciones") };
-        boolean[] cv = { NovaSettings.chatTime, NovaSettings.chatCopy, NovaSettings.chatSearch, NovaSettings.chatMention };
-        String[] ct = { tr("Pone [HH:mm] delante de cada mensaje del chat"), tr("Clic derecho sobre un mensaje del chat para copiarlo"), tr("Un buscador en el chat abierto que filtra el historial"), tr("Resalta con color y suena suave cuando alguien dice tu nombre") };
-        for (int i = 0; i < 4; i++) {
-            final int k = i;
-            addRenderableWidget(new NovaButton(x + i * (cw + gap), y, cw, ib, Component.literal(cn[i]), cv[i] ? NovaGfx.I_CHECK : -1, cv[i] ? NovaButton.SELECTED : NovaButton.NORMAL, b -> {
-                if (k == 0) NovaSettings.chatTime = !NovaSettings.chatTime; else if (k == 1) NovaSettings.chatCopy = !NovaSettings.chatCopy; else if (k == 2) NovaSettings.chatSearch = !NovaSettings.chatSearch; else NovaSettings.chatMention = !NovaSettings.chatMention;
-                rebuildWidgets();
-            }).tip(tr("Chat") + ": " + cn[i], ct[i]));
-        }
-        y += ib + gap;
-        // 5) restablecer
-        addRenderableWidget(new NovaButton(x, y, pw, ib, Component.literal(tr("Restablecer")), NovaGfx.I_SWAP, NovaButton.NORMAL, b -> { NovaHud.resetPositions(); rebuildWidgets(); })
-                .tip(tr("Restablecer"), tr("Vuelve a las posiciones de fábrica")));
-        y += ib + gap;
-        addBar(x, y, pw, gap, ib);
-    }
-
-    /** Aviso honesto: sin servidor de presencia o sin cuenta Microsoft, los demás no pueden verte (tú sí te ves). */
-    private static String presenceNote() {
-        String w = NovaPresence.why();
-        return w.isEmpty() ? "" : w.equals("sin-servidor") ? tr(" · Aún no hay servidor de presencia: de momento solo lo ves tú") : tr(" · Con cuenta sin conexión solo lo ves tú");
-    }
+    // ---- el panel (NovaHudPanel) añade sus botones por aquí ----
+    @Override public void put(NovaButton b) { addRenderableWidget(b); }
+    @Override public void rebuild() { rebuildWidgets(); }
+    @Override public int sw() { return width; }
+    @Override public int sh() { return height; }
+    @Override public void done() { onClose(); }
 
     @Override
     public void onClose() {
@@ -148,7 +79,7 @@ public class NovaHudScreen extends NovaScreen {
                 if (in(cx, cy, xb[0], xb[1], XS, XS)) { NovaHud.ALL[i].on = false; rebuildWidgets(); box[i] = null; break; }
                 if (in(cx, cy, hb[0], hb[1], HS, HS)) {
                     size = NovaHud.ALL[i]; sizeX0 = b[0]; sizeY0 = b[1];
-                    int[] u = NovaHud.size(minecraft, size, sample); sizeUW = u[0]; sizeUH = u[1];
+                    int[] u = NovaHud.size(minecraft, size, sample); sizeUW = u[0] * NovaAcc.text(); sizeUH = u[1] * NovaAcc.text();
                     break;
                 }
                 if (in(cx, cy, b[0], b[1], b[2], b[3])) { drag = NovaHud.ALL[i]; offX = cx - b[0]; offY = cy - b[1]; break; }
@@ -241,18 +172,13 @@ public class NovaHudScreen extends NovaScreen {
 
     @Override
     protected boolean nKey(int key, int scan, int mods) {
-        if (listening != 0) {
-            if (key != InputConstants.KEY_ESCAPE) { if (listening == 1) NovaHud.zoomKey = key; else NovaMove.freelookKey = key; }
-            listening = 0;
-            rebuildWidgets();
-            return true;
-        }
+        if (NovaHudPanel.key(this, key)) return true;
         if (key == InputConstants.KEY_ESCAPE) { onClose(); return true; }
         return superKey(key, scan, mods);
     }
 
     @Override
-    protected boolean nChar(char chr, int mods) { return false; }
+    protected boolean nChar(char chr, int mods) { return NovaHudPanel.typed(this, chr); }
 
     @Override
     public boolean isPauseScreen() { return true; }   // en un mundo de un jugador se para, como con Esc

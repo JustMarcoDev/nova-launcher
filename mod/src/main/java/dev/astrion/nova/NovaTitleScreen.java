@@ -139,11 +139,8 @@ public class NovaTitleScreen extends NovaScreen {
         newsLines = null;
         ensure(client);
         NovaBg.start(client);
-        if (System.getProperty("nova.selftest") != null && !tested) {
-            tested = true;
-            client.execute(() -> { client.setScreen(null); System.out.println("[NOVA-TEST] " + client.currentScreen.getClass().getName()); });
-        }
         if (System.getProperty("nova.pause") != null && !tested3) { tested3 = true; client.execute(() -> client.setScreen(new NovaPauseScreen())); }   // solo para pruebas
+        NovaSelfTest.start(client::execute, () -> { Object sc = client.currentScreen; return sc == null ? null : sc.getClass().getName(); }, () -> client.setScreen(new NovaPauseScreen()));
         String forced = System.getProperty("nova.panel", "");
         if (!forced.isEmpty() && !tested2) { tested2 = true; panel = forced.equals("nova") ? 2 : forced.equals("profile") ? 1 : forced.equals("skins") ? 3 : forced.equals("servers") ? 4 : forced.equals("mods") ? 5 : 0; }
         labels.clear();
@@ -934,7 +931,7 @@ public class NovaTitleScreen extends NovaScreen {
     public void renderBackground(DrawContext c, int mx, int my, float delta) {
         float t = (Util.getMeasuringTimeMs() - born) / 1000f;
         c.fill(0, 0, width, height, 0xFF04040C);
-        if (!NovaBg.draw(c, width, height, Math.min(1f, t / 0.9f))) c.fillGradient(0, 0, width, height, NovaGfx.shade(NovaGfx.accent, 0.16f, 255), 0xFF020208);
+        if (!NovaBg.draw(c, width, height, (NovaAcc.still() ? 1f : Math.min(1f, t / 0.9f)))) c.fillGradient(0, 0, width, height, NovaGfx.shade(NovaGfx.accent, 0.16f, 255), 0xFF020208);
         c.fillGradient(0, 0, width, height, 0x10000000, 0x90000008);   // oscurece un poco abajo para leer los textos
     }
 
@@ -953,7 +950,7 @@ public class NovaTitleScreen extends NovaScreen {
     public void render(DrawContext c, int mx, int my, float delta) {
         poll();
         super.render(c, mx, my, delta);   // fondo + botones
-        float fade = Math.min(1f, (Util.getMeasuringTimeMs() - born) / 600f);
+        float fade = NovaAcc.still() ? 1f : Math.min(1f, (Util.getMeasuringTimeMs() - born) / 600f);
         // logo del propio juego (LogoDrawer), reducido
         float k = 0.62f;
         NovaCompat.pushScale(c, k);

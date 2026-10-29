@@ -27,3 +27,9 @@ Es opcional: si el servidor no responde, el mod simplemente no muestra nada.
 - El plan gratis de Cloudflare permite unas 100 000 peticiones al día a Durable Objects: con un heartbeat y una consulta cada 30 s, unos 30 jugadores a la vez durante todo un día. Si hace falta más, plan de pago o subir el intervalo en el mod.
 
 No se guarda nada más que los UUID activos (caducan solos) y tokens de 24 h.
+
+## Informes de error anónimos (`/report` y `/reports`)
+
+- `POST /report` — lo envía el launcher (solo si el usuario activa «Enviar informes de error anónimos»). Cuerpo JSON: `id` (32 hex aleatorios por instalación), `launcher`, `mc`, `loader`, `loaderVersion`, `mod`, `cause`, `code` y `log` (últimas 30 líneas, ya sin usuarios, rutas `C:\Users\…`, IPs ni tokens). Máximo **10 informes al día por id**; se guardan en el Durable Object (los 2000 más recientes).
+- `GET /reports?limit=100` — para que los leas tú. Necesita la cabecera `Authorization: Bearer <REPORTS_SECRET>`.
+- Crear el secreto: `npx wrangler secret put REPORTS_SECRET` (sin él, `/reports` responde 401).

@@ -7,7 +7,51 @@ permissions:
   contents: write
 
 jobs:
+  # Robot de pruebas: abre el cliente de CADA versión (las 24 de mod/versions.txt y mod26/versions.txt) en Linux con xvfb-run y el modo
+  # -Dnova.selftest=true del mod (pantalla de título = NovaTitleScreen, zoom, menú de pausa, capturas). Si una versión falla, no se publica nada.
+  matriz:
+    runs-on: ubuntu-latest
+    outputs:
+      versiones: ${{ steps.m.outputs.versiones }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - id: m
+        run: echo "versiones=$(node scripts/selftest-matriz.js)" >> "$GITHUB_OUTPUT"
+  robot:
+    needs: matriz
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        v: ${{ fromJson(needs.matriz.outputs.versiones) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.v.tree == 'mod26' && 25 || 21 }}
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: ${{ matrix.v.tree == 'mod26' && '9.8.0' || '8.14.3' }}
+      - name: Instalar xvfb, Mesa y ImageMagick
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q xvfb libgl1-mesa-dri libglx-mesa0 libegl1 libsdl3-0 imagemagick x11-utils || sudo apt-get install -y -q xvfb libgl1-mesa-dri libglx-mesa0 libegl1 imagemagick x11-utils
+      - name: Abrir Minecraft ${{ matrix.v.mc }} y probar el menú de Nova
+        run: xvfb-run -a -s "-screen 0 1280x720x24 +extension GLX +render" bash scripts/selftest.sh "${{ matrix.v.tree }}" "${{ matrix.v.mc }}" "${{ matrix.v.yarn }}" "${{ matrix.v.layers }}" "${{ matrix.v.loader }}" "$GITHUB_WORKSPACE/capturas"
+      - name: Subir las capturas
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: robot-${{ matrix.v.mc }}
+          path: capturas/
+          if-no-files-found: warn
   build:
+    needs: robot
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4

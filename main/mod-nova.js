@@ -279,7 +279,9 @@ function novaServersWrite(list) {
 // El mod relee el archivo al volver al menú si su fecha (lastModified) cambió. Solo se tocan los campos conocidos y el resto
 // (teclas, copia de las opciones de vídeo, «orig» del sprint fijo…) se conserva tal cual.
 const NMENU_ACCENTS = [0xFF8B6CFF, 0xFF4D8BFF, 0xFF2FD3E0, 0xFF3DDC84, 0xFFFF5FA8, 0xFFFF9A3D, 0xFFFF4D5E, 0xFFDADAF0].map(n => n | 0);
-const NMENU_EL = ['fps', 'cps', 'xyz', 'keys', 'state'];
+const NMENU_EL = ['fps', 'cps', 'xyz', 'keys', 'state', 'armor', 'pots', 'clock', 'compass'];
+const nmName = v => (typeof v === 'string' ? v.replace(/[\u0000-\u001f\u007f"\\]/g, '').trim().slice(0, 24) : '');
+const nmElems = h => { const r = {}; if (!h || typeof h !== 'object') return r; for (const k of NMENU_EL) { const e = h[k]; if (!e || typeof e !== 'object') continue; const q = {}; if (nmBool(e.on) !== undefined) q.on = e.on; const x = nmNum(e.x, 0, 1), y = nmNum(e.y, 0, 1), sc = nmNum(e.s, 0.5, 3); if (x !== undefined) q.x = x; if (y !== undefined) q.y = y; if (sc !== undefined) q.s = Math.round(sc * 100) / 100; r[k] = q; } return r; };
 const nmenuFile = () => path.join(novaDir(), 'menu.json');
 const nmBool = v => (typeof v === 'boolean' ? v : undefined);
 const nmNum = (v, a, b) => (typeof v === 'number' && isFinite(v) ? Math.min(b, Math.max(a, v)) : undefined);
@@ -295,6 +297,19 @@ function nmenuClean(i) {
     for (const k of NMENU_EL) { const e = i.hud[k]; if (!e || typeof e !== 'object') continue; const r = {}; if (nmBool(e.on) !== undefined) r.on = e.on; const x = nmNum(e.x, 0, 1), y = nmNum(e.y, 0, 1), sc = nmNum(e.s, 0.5, 3); if (x !== undefined) r.x = x; if (y !== undefined) r.y = y; if (sc !== undefined) r.s = Math.round(sc * 100) / 100; o.hud[k] = r; }
     if (i.hud.zoom && nmBool(i.hud.zoom.on) !== undefined) o.hud.zoom = { on: i.hud.zoom.on };
   }
+  // perfiles del HUD: «hudProfiles» (nombre → distribución) se mezcla con lo que hay; para borrar o renombrar se manda el conjunto entero en «_set»
+  if (i.hudProfiles && typeof i.hudProfiles === 'object') { o.hudProfiles = {}; for (const n of Object.keys(i.hudProfiles).slice(0, 40)) { const nn = nmName(n); if (nn) o.hudProfiles[nn] = nmElems(i.hudProfiles[n]); } }
+  if (typeof i.hudProfile === 'string') o.hudProfile = nmName(i.hudProfile) || 'default';
+  if (i._set && typeof i._set === 'object') {
+    o._set = {};
+    if (i._set.hudProfiles && typeof i._set.hudProfiles === 'object') { o._set.hudProfiles = {}; for (const n of Object.keys(i._set.hudProfiles).slice(0, 40)) { const nn = nmName(n); if (nn) o._set.hudProfiles[nn] = nmElems(i._set.hudProfiles[n]); } }
+    if (i._set.hudRules && typeof i._set.hudRules === 'object') { o._set.hudRules = {}; for (const n of Object.keys(i._set.hudRules).slice(0, 80)) { const k = String(n).replace(/[\u0000-\u001f\u007f]/g, '').trim().toLowerCase().slice(0, 120), v = nmName(i._set.hudRules[n]); if (k && v) o._set.hudRules[k] = v; } }
+  }
+  if (i.fps && typeof i.fps === 'object' && [30, 60, 90, 120, 144].includes(i.fps.goal)) o.fps = { goal: i.fps.goal };
+  if (i.acc && typeof i.acc === 'object') {
+    o.acc = {}; if (nmBool(i.acc.launcher) !== undefined) o.acc.launcher = i.acc.launcher; if (nmBool(i.acc.contrast) !== undefined) o.acc.contrast = i.acc.contrast; if (nmBool(i.acc.motion) !== undefined) o.acc.motion = i.acc.motion;
+    const t = nmNum(i.acc.text, 80, 150); if (t !== undefined) o.acc.text = Math.round(t);
+  }
   return o;
 }
 function nmenuMerge(a, b) { for (const k of Object.keys(b)) { if (b[k] && typeof b[k] === 'object' && !Array.isArray(b[k])) { a[k] = nmenuMerge(a[k] && typeof a[k] === 'object' ? a[k] : {}, b[k]); } else a[k] = b[k]; } return a; }
@@ -309,7 +324,11 @@ ipcMain.handle('nmenu:get', () => {
 });
 ipcMain.handle('nmenu:set', (e, patch) => {
   let cur = {}; try { cur = JSON.parse(fs.readFileSync(nmenuFile(), 'utf8')) || {}; } catch {}
-  const next = nmenuMerge(cur, nmenuClean(patch)), f = nmenuFile(), tmp = f + '.tmp';
+  const cl = nmenuClean(patch), st = cl._set; delete cl._set;
+  const next = nmenuMerge(cur, cl), f = nmenuFile(), tmp = f + '.tmp';
+  if (st) for (const k of Object.keys(st)) next[k] = st[k];
+  // el HUD de arriba es siempre el del perfil «default» (el mod vuelve a él al salir de una partida)
+  if (next.hudProfiles && next.hudProfiles.default && Object.keys(next.hudProfiles.default).length) { next.hud = Object.assign({}, next.hud || {}, next.hudProfiles.default); next.hudProfile = 'default'; }
   try { fs.writeFileSync(tmp, JSON.stringify(next)); fs.renameSync(tmp, f); } catch (er) { try { fs.unlinkSync(tmp); } catch {} return { ok: false, why: String(er && er.message || er) }; }
   return { ok: true, mtime: fs.statSync(f).mtimeMs };
 });
@@ -335,5 +354,17 @@ ipcMain.handle('nmenu:import', async () => {
   try { const st = fs.statSync(r.filePaths[0]); if (st.size > 65536) return { ok: false, why: 'big' }; return { ok: true, text: fs.readFileSync(r.filePaths[0], 'utf8') }; } catch (er) { return { ok: false, why: String(er && er.message || er) }; }
 });
 
+// «Usar la accesibilidad del launcher»: si el jugador lo marcó en el mod (menu.json → acc.launcher), al lanzar el juego se copian aquí
+// el tamaño del texto, el alto contraste y reducir animaciones del launcher.
+function novaAccSync(cfg) {
+  try {
+    const f = nmenuFile(); let o = {}; try { o = JSON.parse(fs.readFileSync(f, 'utf8')) || {}; } catch { return false; }
+    if (!o.acc || o.acc.launcher !== true) return false;
+    const want = { launcher: true, text: Math.max(80, Math.min(150, Math.round(+cfg.tsize || 100))), contrast: !!cfg.contrast, motion: !!cfg.rmotion };
+    if (o.acc.text === want.text && o.acc.contrast === want.contrast && o.acc.motion === want.motion) return false;
+    o.acc = want; const tmp = f + '.tmp'; fs.writeFileSync(tmp, JSON.stringify(o)); fs.renameSync(tmp, f); return true;
+  } catch { return false; }
+}
+
 // Lo que usan otros módulos
-Object.assign(R, { NOVA_MC, NOVA_REMOTE_ID, fondosDir, fondosScan, fondosWatch, modManifest, novaBg, novaBgGet, novaDir, novaModResolve, novaNews, novaPickBg, novaServersWrite, novaAccountsWrite, novaSkin });
+Object.assign(R, { novaAccSync, NOVA_MC, NOVA_REMOTE_ID, fondosDir, fondosScan, fondosWatch, modManifest, novaBg, novaBgGet, novaDir, novaModResolve, novaNews, novaPickBg, novaServersWrite, novaAccountsWrite, novaSkin });

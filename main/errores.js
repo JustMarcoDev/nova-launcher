@@ -39,6 +39,52 @@ ipcMain.handle('err:log', (e, o = {}) => logErr(String(o.kind || 'descarga').sli
 ipcMain.handle('err:text', async (e, f) => { const p = path.resolve(String(f || '')); if (!p.startsWith(path.resolve(errDir()) + path.sep)) throw new Error('Archivo no válido'); return (await fsp.readFile(p, 'utf8')).slice(0, 6000); });
 ipcMain.handle('err:folder', () => { fs.mkdirSync(errDir(), { recursive: true }); return shell.openPath(errDir()); });
 
+// ---- Informes de error anónimos (opcionales, apagados de fábrica) ----
+// Solo se envían si el jugador activa «Enviar informes de error anónimos». Antes de salir se borran nombres de usuario,
+// rutas de usuario, IPs y tokens. El id es aleatorio por instalación (nunca el nombre de la cuenta).
+const crypto = require('crypto');
+function installId() {
+  const f = path.join(root, 'report-id.txt');
+  try { const t = fs.readFileSync(f, 'utf8').trim(); if (/^[0-9a-f]{32}$/.test(t)) return t; } catch {}
+  const id = crypto.randomBytes(16).toString('hex');
+  try { fs.mkdirSync(root, { recursive: true }); fs.writeFileSync(f, id); } catch {}
+  return id;
+}
+function scrub(text, names = []) {
+  let t = String(text == null ? '' : text);
+  t = t.replace(/\b(Bearer|Basic)\s+[A-Za-z0-9._~+\/=-]{8,}/gi, '$1 [token]')
+    .replace(/\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}(\.[A-Za-z0-9_-]*)?/g, '[token]')
+    .replace(/\b(access[_-]?token|accessToken|refresh[_-]?token|session|token|password|passwd|secret|api[_-]?key|key|uuid|auth)(["']?\s*[:=]\s*["']?)[^\s"',;&)]{6,}/gi, '$1$2[borrado]')
+    .replace(/(--(?:accessToken|uuid|xuid|clientId|username|session)\s+)\S+/gi, '$1[borrado]')
+    .replace(/(sessionId\w*[:=]\s*)\S+/gi, '$1[borrado]')
+    .replace(/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi, '[uuid]')
+    .replace(/\b[0-9a-f]{32}\b/gi, '[uuid]')
+    .replace(/\b[A-Za-z0-9_-]{40,}\b/g, '[token]')
+    .replace(/\b(?:\d{1,3}\.){3}\d{1,3}(?::\d+)?\b/g, '[ip]')
+    .replace(/\b(?:[0-9a-f]{1,4}:){4,7}[0-9a-f]{1,4}\b/gi, '[ip]')
+    .replace(/([A-Za-z]:[\\/]+Users[\\/]+)[^\\/\s"'<>|:]+/gi, '$1[usuario]')
+    .replace(/(\/(?:home|Users)\/)[^\/\s"'<>|:]+/g, '$1[usuario]');
+  const us = new Set([...names, os.userInfo().username].map(x => String(x || '').trim()).filter(x => x.length >= 3));
+  for (const n of us) t = t.split(n).join('[usuario]');
+  return t;
+}
+const lastReport = { t: 0 };
+async function sendCrashReport(info) {
+  try {
+    const cfg = R.load(); if (cfg.errReports !== true) return false;
+    let url = ''; try { url = String(process.env.NOVA_PRESENCE || require('../package.json').novaPresence || '').replace(/\/+$/, ''); } catch {}
+    if (!/^https:\/\//.test(url) || Date.now() - lastReport.t < 20000) return false;
+    lastReport.t = Date.now();
+    const names = info.names || [];
+    const body = {
+      id: installId(), launcher: app.getVersion(), mc: String(info.mc || '').slice(0, 30), loader: String(info.ld || '').slice(0, 20), loaderVersion: String(info.loaderVersion || '').slice(0, 30),
+      mod: String(info.mod || '').slice(0, 30), cause: scrub(info.cause, names).slice(0, 200), code: Number.isFinite(+info.code) ? +info.code : 0,
+      log: (info.tail || []).slice(-30).map(l => scrub(l, names).slice(0, 400))
+    };
+    const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 8000);
+    try { const r = await fetch(url + '/report', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), signal: ctl.signal }); return r.ok; } finally { clearTimeout(tm); }
+  } catch { return false; }
+}
 
 // Lo que usan otros módulos
-Object.assign(R, { logErr, withLog });
+Object.assign(R, { logErr, withLog, sendCrashReport, scrubReport: scrub });

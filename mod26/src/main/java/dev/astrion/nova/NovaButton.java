@@ -15,6 +15,8 @@ public class NovaButton extends NovaButtonBase {
     boolean swatchOn;
     /** Texto del globo de ayuda al pasar el cursor (título y descripción de pocas palabras). */
     String tipTitle = "", tipDesc = "";
+    /** Si no es null, el botón solo pinta esto (fondo de paneles). Recibe el contexto gráfico. */
+    java.util.function.Consumer<Object> paint;
     private float glow;
     private long last = Util.getMillis();
 
@@ -40,6 +42,8 @@ public class NovaButton extends NovaButtonBase {
 
     /** Rectángulo redondeado con borde de 1 px; sin solapes para que la transparencia no se duplique. */
     static void panel(GuiGraphicsExtractor c, int x, int y, int w, int h, int r, int fill, int border) {
+        fill = NovaAcc.solid(fill);
+        if (NovaAcc.hc() && (border >>> 24) != 0) border = 0xFFFFFFFF;
         r = Math.min(r, Math.min(w, h) / 2);
         for (int dy = 0; dy < h; dy++) {
             int d = Math.min(dy, h - 1 - dy), i = d < r ? inset(d, r) : 0, ry = y + dy;
@@ -58,11 +62,12 @@ public class NovaButton extends NovaButtonBase {
 
     @Override
     protected void extractWidgetRenderState(GuiGraphicsExtractor c, int mx, int my, float delta) {
+        if (paint != null) { paint.accept(c); return; }
         long now = Util.getMillis();
         float dt = Math.min(100, now - last) / 140f;
         last = now;
         boolean hot = this.active && (this.isHovered() || this.isFocused());
-        glow = hot ? Math.min(1f, glow + dt) : Math.max(0f, glow - dt);
+        glow = NovaAcc.still() ? (hot ? 1f : 0f) : hot ? Math.min(1f, glow + dt) : Math.max(0f, glow - dt);
 
         int x = getX(), y = getY(), w = getWidth(), h = getHeight();
         if (swatch != 0 && NovaGfx.ok) {

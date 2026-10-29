@@ -23,7 +23,8 @@ const hex = n => [...crypto.getRandomValues(new Uint8Array(n))].map(b => b.toStr
 const UUID = /^[0-9a-f]{32}$/;
 const norm = u => String(u || '').replace(/-/g, '').toLowerCase();
 const ACTIVE_MS = 120000, TOKEN_MS = 86400000, WINDOW_MS = 60000;
-const MAX_UUIDS = 100;
+const MAX_UUIDS = 100, REPORTS_PER_DAY = 10, MAX_REPORTS = 2000;
+const clip = (v, n) => String(v == null ? '' : v).slice(0, n);
 
 export class Presence extends DurableObject {
   constructor(ctx, env) {
@@ -53,6 +54,22 @@ export class Presence extends DurableObject {
     const now = Date.now();
     return list.slice(0, MAX_UUIDS).filter(u => { const t = this.seen.get(u); return t && now - t < ACTIVE_MS; });
   }
+  // Informes de error anónimos: como mucho 10 al día por id, guardados en el almacenamiento del Durable Object
+  async report(id, data) {
+    const day = new Date().toISOString().slice(0, 10), dk = 'd:' + id + ':' + day;
+    const n = (await this.ctx.storage.get(dk)) || 0;
+    if (n >= REPORTS_PER_DAY) return false;
+    await this.ctx.storage.put(dk, n + 1);
+    await this.ctx.storage.put('r:' + Date.now().toString().padStart(15, '0') + ':' + hex(3), { ...data, id, t: Date.now() });
+    const old = await this.ctx.storage.list({ prefix: 'r:' });
+    if (old.size > MAX_REPORTS) { let k = old.size - MAX_REPORTS; for (const key of old.keys()) { if (k-- <= 0) break; await this.ctx.storage.delete(key); } }
+    for (const key of (await this.ctx.storage.list({ prefix: 'd:' })).keys()) if (!key.endsWith(':' + day)) await this.ctx.storage.delete(key);
+    return true;
+  }
+  async reports(limit) {
+    const l = await this.ctx.storage.list({ prefix: 'r:', reverse: true, limit });
+    return [...l.values()];
+  }
   sweepLater() { this.ctx.storage.getAlarm().then(a => { if (!a) return this.ctx.storage.setAlarm(Date.now() + WINDOW_MS); }).catch(() => {}); }
   async alarm() {
     const now = Date.now();
@@ -75,6 +92,12 @@ export default {
         const serverId = hex(20);
         await env.NOVA.put('c:' + serverId, '1', { expirationTtl: 120 });
         return J({ serverId });
+      }
+      if (p === '/reports' && req.method === 'GET') {      // solo para quien tenga el secreto (wrangler secret put REPORTS_SECRET)
+        const auth = req.headers.get('authorization') || '';
+        if (!env.REPORTS_SECRET || auth !== 'Bearer ' + env.REPORTS_SECRET) return J({ error: 'no autorizado' }, 401);
+        if (!await room.hit(ip, '')) return J({ error: 'limite' }, 429, { 'retry-after': '60' });
+        return J({ reports: await room.reports(Math.min(500, +url.searchParams.get('limit') || 100)) });
       }
       if (req.method !== 'POST') return J({ error: 'nope' }, 404);
       const b = await req.json().catch(() => ({}));
@@ -107,6 +130,12 @@ export default {
         return J({ ok: true });
       }
 
+      if (p === '/report') {
+        const id = String(b.id || '');
+        if (!UUID.test(id) || !Array.isArray(b.log)) return J({ error: 'datos' }, 400);
+        const ok = await room.report(id, { launcher: clip(b.launcher, 30), mc: clip(b.mc, 30), loader: clip(b.loader, 20), loaderVersion: clip(b.loaderVersion, 30), mod: clip(b.mod, 30), cause: clip(b.cause, 200), code: +b.code || 0, log: b.log.slice(-30).map(l => clip(l, 400)) });
+        return ok ? J({ ok: true }) : J({ error: 'limite diario' }, 429);
+      }
       if (p === '/query') {
         const list = (Array.isArray(b.uuids) ? b.uuids : []).slice(0, MAX_UUIDS).map(norm).filter(u => UUID.test(u));
         return J({ nova: await room.query(list) });

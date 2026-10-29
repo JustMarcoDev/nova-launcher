@@ -18,7 +18,7 @@ const loaderList = (...a) => R.loaderList(...a); // cargadores
 const loaderPick = (...a) => R.loaderPick(...a); // cargadores
 const notify = (...a) => R.notify(...a); // sistema
 
-ipcMain.handle('inst:list', () => li());
+ipcMain.handle('inst:list', () => li().filter(i => !i.hidden));
 ipcMain.handle('inst:save', async (e, o) => { const cc = !!(o && o.copyControls); if (o) { o = { ...o }; delete o.copyControls; } const i = addInst(o); if (cc) { try { copyControls(i); } catch {} } try { await ensureFabricApi(i); } catch {} return li().find(x => x.id === i.id) || i; });
 ipcMain.handle('inst:del', async (e, id) => { id = String(id); if (running.has(id)) throw new Error('Cierra Minecraft antes de borrar la instancia'); wr(insFile, li().filter(i => i.id !== id)); await rmAsync(path.join(root, 'instances', id)); await rmAsync(path.join(root, 'backups', id)); });
 const iDir = id => path.join(root, 'instances', String(id));
@@ -80,6 +80,8 @@ ipcMain.handle('inst:update', (e, { id, patch }) => {
   if ('gpu' in q) p.gpu = q.gpu === 'high' ? 'high' : '';
   if ('jvmPreset' in q) p.jvmPreset = ['rendimiento', 'tirones'].includes(q.jvmPreset) ? q.jvmPreset : '';
   if ('noNova' in q) p.noNova = !!q.noNova;
+  if ('bkFreq' in q) p.bkFreq = ['daily', '3d', 'weekly'].includes(q.bkFreq) ? q.bkFreq : '';
+  if ('bkMax' in q) p.bkMax = Math.max(1, Math.min(50, Math.round(+q.bkMax) || 5));
   if ('fav' in q) p.fav = !!q.fav;
   if ('note' in q) p.note = String(q.note || '').slice(0, 600);
   if ('tags' in q) p.tags = [...new Set((Array.isArray(q.tags) ? q.tags : String(q.tags || '').split(',')).map(t => String(t).trim().replace(/\s+/g, ' ').slice(0, 24)).filter(Boolean))].slice(0, 8);
@@ -98,7 +100,7 @@ ipcMain.handle('loader:versions', async (e, { ld, mc }) => (await loaderList(Str
 const bkRoot = id => path.join(root, 'backups', String(id));
 const bkList = async id => {
   let es = []; try { es = (await fsp.readdir(bkRoot(id))).filter(x => x.endsWith('.zip')); } catch {}
-  const out = []; for (const f of es) { try { const st = await fsp.stat(path.join(bkRoot(id), f)), m = /^\d{8}-\d{6}__(.*)\.zip$/.exec(f); out.push({ file: f, date: st.mtimeMs, size: st.size, reason: m ? m[1].replace(/-/g, ' ') : f }); } catch {} }
+  const out = []; for (const f of es) { try { const st = await fsp.stat(path.join(bkRoot(id), f)), m = /^\d{8}-\d{6}__(.*)\.zip$/.exec(f); out.push({ file: f, date: st.mtimeMs, size: st.size, auto: /__automatica\.zip$/.test(f), reason: m ? m[1].replace(/-/g, ' ') : f }); } catch {} }
   return out.sort((a, b) => b.date - a.date);
 };
 async function autoBackup(id, reason, force) {
@@ -109,9 +111,32 @@ async function autoBackup(id, reason, force) {
   const t = new Date(), z = n => String(n).padStart(2, '0'), st = `${t.getFullYear()}${z(t.getMonth() + 1)}${z(t.getDate())}-${z(t.getHours())}${z(t.getMinutes())}${z(t.getSeconds())}`;
   const slug = String(reason || 'manual').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'manual';
   const f = `${st}__${slug}.zip`; await zipItems(path.join(bkRoot(id), f), idir, ['saves']);
-  const keep = Math.max(1, +load().backupKeep || 8); for (const o of (await bkList(id)).slice(keep)) await fsp.rm(path.join(bkRoot(id), o.file), { force: true });
+  if (reason === 'automatica') {   // copias programadas: solo se borran las automáticas más antiguas, nunca las manuales
+    const mx = Math.max(1, +(li().find(i => i.id === String(id)) || {}).bkMax || 5);
+    for (const o of (await bkList(id)).filter(x => x.auto).slice(mx)) await fsp.rm(path.join(bkRoot(id), o.file), { force: true });
+    return f;
+  }
+  const keep = Math.max(1, +load().backupKeep || 8); for (const o of (await bkList(id)).filter(x => !x.auto).slice(keep)) await fsp.rm(path.join(bkRoot(id), o.file), { force: true });
   return f;
 }
+// Copias programadas: al abrir el launcher y al cerrar el juego, si a una instancia le toca, se copia sin bloquear la interfaz y nunca con esa instancia abierta
+const BK_DAYS = { daily: 1, '3d': 3, weekly: 7 };
+let bkBusy = false;
+async function bkSchedule() {
+  if (bkBusy) return; bkBusy = true;
+  try {
+    for (const ins of li().filter(x => !x.hidden)) {
+      const d = BK_DAYS[ins.bkFreq]; if (!d || running.has(ins.id)) continue;
+      const last = (await bkList(ins.id)).find(x => x.auto);
+      if (last && Date.now() - last.date < d * 86400000 - 3600000) continue;
+      // si no hay mundos, no se hace nada (autoBackup devuelve null)
+      let f = null; try { f = await autoBackup(ins.id, 'automatica', true); } catch {}
+      if (f) send('bk:auto', { id: ins.id, name: ins.name });
+      await new Promise(r => setTimeout(r, 300));
+    }
+  } finally { bkBusy = false; }
+}
+setTimeout(() => { bkSchedule().catch(() => {}); }, 25000);
 const bkFile = (id, f) => { f = path.basename(String(f)); const p = path.join(bkRoot(getIns(id).id), f); if (!f.endsWith('.zip') || !fs.existsSync(p)) throw new Error('Copia no encontrada'); return p; };
 ipcMain.handle('bk:list', async (e, id) => { getIns(id); return await bkList(id); });
 ipcMain.handle('bk:create', async (e, id) => { getIns(id); send('status', 'Copiando mundos…'); try { return await autoBackup(id, 'manual', true); } finally { send('status', ''); } });
@@ -262,4 +287,4 @@ ipcMain.handle('stats:get', async () => {
 });
 
 // Lo que usan otros módulos
-Object.assign(R, { statsStart, statsEnd, autoBackup, bkList, ensureFabricApi, getIns, iDir, importInstanceFile, safeName, upIns });
+Object.assign(R, { bkSchedule, statsStart, statsEnd, autoBackup, bkList, ensureFabricApi, getIns, iDir, importInstanceFile, safeName, upIns });

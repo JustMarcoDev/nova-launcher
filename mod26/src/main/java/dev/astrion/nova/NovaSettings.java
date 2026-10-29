@@ -26,6 +26,11 @@ final class NovaSettings {
     static int fpsView, fpsSim;
     /** «No volver a preguntar» del aviso «Va lento, ¿activar Modo FPS?». */
     static boolean fpsNoAsk;
+    /** FPS que intenta mantener el Modo FPS (30, 60, 90, 120 o 144). */
+    static int fpsGoal = 60;
+    /** Opciones de vídeo extra que el Modo FPS toca por niveles (para devolverlas): distancia de entidades y mezcla de biomas. */
+    static int fpsBiome = -1;
+    static double fpsEntity = -1;
     /** «Chat mejorado»: cuatro opciones que se activan por separado (todas apagadas de fábrica). */
     static boolean chatTime, chatCopy, chatSearch, chatMention;
     /** Versión de las «Novedades de Nova» que ya se vio (para no volver a enseñarlas). */
@@ -61,6 +66,9 @@ final class NovaSettings {
                 if (fo.has("view")) fpsView = fo.get("view").getAsInt();
                 if (fo.has("sim")) fpsSim = fo.get("sim").getAsInt();
                 fpsNoAsk = fo.has("noAsk") && fo.get("noAsk").getAsBoolean();
+                if (fo.has("goal")) fpsGoal = Math.max(24, Math.min(240, fo.get("goal").getAsInt()));
+                if (fo.has("biome")) fpsBiome = fo.get("biome").getAsInt();
+                if (fo.has("entity")) fpsEntity = fo.get("entity").getAsDouble();
             }
             if (o.has("chat") && o.get("chat").isJsonObject()) {
                 JsonObject co = o.getAsJsonObject("chat");
@@ -72,6 +80,8 @@ final class NovaSettings {
             if (o.has("move") && o.get("move").isJsonObject()) NovaMove.read(o.getAsJsonObject("move"));
             if (o.has("newsSeen")) newsSeen = o.get("newsSeen").getAsString();
             if (o.has("hud") && o.get("hud").isJsonObject()) NovaHud.read(o.getAsJsonObject("hud"));
+            NovaHud.readProfiles(o);
+            if (o.has("acc") && o.get("acc").isJsonObject()) NovaAcc.read(o.getAsJsonObject("acc"));
             if (o.has("accent")) { int a = o.get("accent").getAsInt(); for (int c : COLORS) if (c == a) accent = a; }
         } catch (Throwable ignored) { }
         if (NovaBgs.find(bg) == null) bg = "hole";
@@ -102,6 +112,7 @@ final class NovaSettings {
             fo.addProperty("on", fpsOn); fo.addProperty("particles", fpsParticles); fo.addProperty("clouds", fpsClouds);
             fo.addProperty("shadows", fpsShadows); fo.addProperty("view", fpsView); fo.addProperty("sim", fpsSim);
             fo.addProperty("noAsk", fpsNoAsk);
+            fo.addProperty("goal", fpsGoal); fo.addProperty("biome", fpsBiome); fo.addProperty("entity", fpsEntity);
             o.add("fps", fo);
             JsonObject co = new JsonObject();
             co.addProperty("time", chatTime); co.addProperty("copy", chatCopy); co.addProperty("search", chatSearch); co.addProperty("mention", chatMention);
@@ -109,6 +120,8 @@ final class NovaSettings {
             o.add("move", NovaMove.write());
             o.addProperty("newsSeen", newsSeen);
             o.add("hud", NovaHud.write());
+            NovaHud.writeProfiles(o);
+            o.add("acc", NovaAcc.write());
             Files.write(f.toPath(), o.toString().getBytes(StandardCharsets.UTF_8));
             stamp = f.lastModified();
         } catch (Throwable ignored) { }
