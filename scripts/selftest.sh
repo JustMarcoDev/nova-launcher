@@ -29,5 +29,11 @@ done
 [ -z "$SEEN" ] || true
 pkill -P $GPID 2>/dev/null; kill $GPID 2>/dev/null; pkill -f 'runClient|KnotClient' 2>/dev/null; [ -z "$XPID" ] || kill $XPID 2>/dev/null
 grep -a '\[NOVA-SELFTEST\]' "$LOG" | tail -12
-[ $RES = 0 ] && echo "== $MC: BIEN" || { echo "== $MC: FALLÓ"; tail -40 "$LOG"; }
+if [ $RES = 0 ]; then echo "== $MC: BIEN"; else
+  echo "== $MC: FALLÓ"; tail -60 "$LOG"
+  # En el CI la causa sale como anotación de la ejecución (sin tener que bajar el registro)
+  if [ -n "$GITHUB_ACTIONS" ]; then
+    echo "::error title=Robot $MC::$(grep -a -E 'NOVA-SELFTEST|Exception|ERROR|FATAL|FAILED|What went wrong|Could not|error:' "$LOG" | grep -v 'authlib\|OpenAL\|key providers' | head -12 | cut -c1-260 | tr '\n' '|') ULTIMAS: $(tail -c 900 "$LOG" | tr '\n' '|')"
+  fi
+fi
 exit $RES
