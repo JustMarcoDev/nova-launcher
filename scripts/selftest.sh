@@ -10,6 +10,9 @@ cd "$(dirname "$0")/../$TREE" || exit 2
 export GALLIUM_DRIVER=llvmpipe LP_NUM_THREADS=${LP_NUM_THREADS:-4} LIBGL_ALWAYS_SOFTWARE=1 XDG_RUNTIME_DIR=/tmp/xdg MESA_GL_VERSION_OVERRIDE=4.6 MESA_GLSL_VERSION_OVERRIDE=460
 mkdir -p "$XDG_RUNTIME_DIR"; chmod 700 "$XDG_RUNTIME_DIR"
 if [ "$TREE" = mod26 ]; then export SDL_VIDEODRIVER=x11 SDL_VIDEO_FORCE_EGL=1; fi
+# Opciones de un Minecraft recién instalado: sin la pantalla de accesibilidad de la primera vez (tapa el título), sin avisos y sin vsync
+mkdir -p run
+if [ ! -f run/options.txt ]; then printf 'onboardAccessibility:false\nskipMultiplayerWarning:true\njoinedFirstServer:true\ntutorialStep:none\nenableVsync:false\nmaxFps:30\nnarrator:0\n' > run/options.txt; fi
 # Sin pantalla (DISPLAY vacío) abre una virtual; en el CI lo llama «xvfb-run -a» y ya la trae
 XPID=""; if [ -z "$DISPLAY" ]; then export DISPLAY=:99; Xvfb :99 -screen 0 1280x720x24 +extension GLX +render -noreset >/dev/null 2>&1 & XPID=$!; sleep 2; fi
 export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS -Dnova.selftest=true -Dnova.key=selftest -Dnova.dir=/tmp/novadir -Dnova.skin=/tmp/none.png -Dnova.premium=0 -Dnova.user=Robot -Dnova.bg="
