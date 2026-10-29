@@ -7,7 +7,7 @@
 TREE=$1; MC=$2; YARN=$3; LAYERS=$4; LOADER=$5; OUT=$6
 mkdir -p "$OUT" /tmp/novadir; LOG="$OUT/selftest-$MC.log"; : > "$LOG"
 cd "$(dirname "$0")/../$TREE" || exit 2
-export LIBGL_ALWAYS_SOFTWARE=1 XDG_RUNTIME_DIR=/tmp/xdg MESA_GL_VERSION_OVERRIDE=4.6 MESA_GLSL_VERSION_OVERRIDE=460
+export GALLIUM_DRIVER=llvmpipe LP_NUM_THREADS=${LP_NUM_THREADS:-4} LIBGL_ALWAYS_SOFTWARE=1 XDG_RUNTIME_DIR=/tmp/xdg MESA_GL_VERSION_OVERRIDE=4.6 MESA_GLSL_VERSION_OVERRIDE=460
 mkdir -p "$XDG_RUNTIME_DIR"; chmod 700 "$XDG_RUNTIME_DIR"
 if [ "$TREE" = mod26 ]; then export SDL_VIDEODRIVER=x11 SDL_VIDEO_FORCE_EGL=1; fi
 # Sin pantalla (DISPLAY vacío) abre una virtual; en el CI lo llama «xvfb-run -a» y ya la trae
