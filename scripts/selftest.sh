@@ -16,7 +16,7 @@ export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS -Dnova.selftest=true -Dnova.key=sel
 if [ "$TREE" = mod ]; then ARGS=(-Pmc="$MC" -Pyarn="$YARN" -Players="$LAYERS" -Ploader="$LOADER"); else ARGS=(-Pmc="$MC" -Players="$LAYERS"); fi
 ${GRADLE_BIN:-gradle} runClient $GRADLE_EXTRA --no-daemon "${ARGS[@]}" >> "$LOG" 2>&1 &
 GPID=$!
-RES=1; SEEN=""
+RES=1; SEEN=""; LASTSZ=0; STALL=0
 for i in $(seq 1 720); do   # hasta 12 minutos (la primera vez baja el juego y sus recursos)
   for S in $(grep -o 'SHOT [a-z]*' "$LOG" | awk '{print $2}' | sort -u); do
     case " $SEEN " in *" $S "*) ;; *) import -window root "$OUT/$MC-$S.png" 2>/dev/null; SEEN="$SEEN $S";; esac
@@ -24,6 +24,14 @@ for i in $(seq 1 720); do   # hasta 12 minutos (la primera vez baja el juego y s
   if grep -q '\[NOVA-SELFTEST\] PASS' "$LOG"; then RES=0; break; fi
   if grep -q '\[NOVA-SELFTEST\] FAIL' "$LOG"; then RES=1; break; fi
   if ! kill -0 $GPID 2>/dev/null; then sleep 1; grep -q '\[NOVA-SELFTEST\] PASS' "$LOG" && RES=0 || { echo "El juego se cerró sin terminar la prueba" >> "$LOG"; RES=1; }; break; fi
+  # Si el juego deja de escribir durante 3 minutos se da por colgado: se guarda un volcado de hilos para ver dónde
+  SZ=$(stat -c %s "$LOG" 2>/dev/null || echo 0)
+  if [ "$SZ" = "$LASTSZ" ]; then STALL=$((STALL+1)); else STALL=0; LASTSZ=$SZ; fi
+  if [ $STALL -ge 180 ]; then
+    JP=$(pgrep -f 'KnotClient' | head -1); echo "El juego lleva 3 min sin escribir (pid $JP): volcado de hilos" >> "$LOG"
+    [ -n "$JP" ] && jstack "$JP" 2>&1 | grep -a -A12 '"Render thread"\|"main"' | head -40 >> "$LOG"
+    RES=1; break
+  fi
   sleep 1
 done
 [ -z "$SEEN" ] || true
@@ -33,7 +41,7 @@ if [ $RES = 0 ]; then echo "== $MC: BIEN"; else
   echo "== $MC: FALLÓ"; tail -60 "$LOG"
   # En el CI la causa sale como anotación de la ejecución (sin tener que bajar el registro)
   if [ -n "$GITHUB_ACTIONS" ]; then
-    echo "::error title=Robot $MC::$(grep -a -E 'NOVA-SELFTEST|Exception|ERROR|FATAL|FAILED|What went wrong|Could not|error:' "$LOG" | grep -v 'authlib\|OpenAL\|key providers' | head -12 | cut -c1-260 | tr '\n' '|') ULTIMAS: $(tail -c 900 "$LOG" | tr '\n' '|')"
+    echo "::error title=Robot $MC::$(grep -a -E 'NOVA-SELFTEST|sin escribir|at (net\.minecraft|org\.lwjgl|com\.mojang|dev\.astrion|java\.lang)|Exception|ERROR|FATAL|FAILED|What went wrong|Could not|error:' "$LOG" | grep -v 'authlib\|OpenAL\|key providers' | head -12 | cut -c1-260 | tr '\n' '|') ULTIMAS: $(tail -c 900 "$LOG" | tr '\n' '|')"
   fi
 fi
 exit $RES
