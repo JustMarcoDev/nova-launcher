@@ -45,7 +45,10 @@ jobs:
       - name: Instalar xvfb, Mesa y ImageMagick
         run: |
           sudo apt-get update -q
-          sudo apt-get install -y -q xvfb libgl1-mesa-dri libglx-mesa0 libegl1 libsdl3-0 imagemagick x11-utils || sudo apt-get install -y -q xvfb libgl1-mesa-dri libglx-mesa0 libegl1 imagemagick x11-utils
+          sudo apt-get install -y -q xvfb libgl1-mesa-dri libglx-mesa0 libegl1 libsdl3-0 imagemagick x11-utils mesa-utils || sudo apt-get install -y -q xvfb libgl1-mesa-dri libglx-mesa0 libegl1 imagemagick x11-utils mesa-utils
+      - name: Mostrar qué OpenGL hay (diagnóstico)
+        run: |
+          OUT=$(LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a -s "-screen 0 1280x720x24 +extension GLX +render" glxinfo -B 2>&1 | head -25 | tr '\n' '|'); echo "::notice title=OpenGL::$OUT"; nproc; free -m | head -2
       - name: Abrir Minecraft ${{ matrix.v.mc }} y probar el menú de Nova
         run: xvfb-run -a -s "-screen 0 1280x720x24 +extension GLX +render" bash scripts/selftest.sh "${{ matrix.v.tree }}" "${{ matrix.v.mc }}" "${{ matrix.v.yarn }}" "${{ matrix.v.layers }}" "${{ matrix.v.loader }}" "$GITHUB_WORKSPACE/capturas"
       - name: Subir las capturas
