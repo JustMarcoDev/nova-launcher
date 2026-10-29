@@ -4,7 +4,7 @@ const root = path.join(__dirname, '..'), rd = f => fs.readFileSync(path.join(roo
 const fails = []; const bad = m => fails.push(m);
 
 // 1. Sintaxis de todos los .js
-const js = ['main.js', ...fs.readdirSync(path.join(root, 'main')).filter(f => f.endsWith('.js')).map(f => 'main/' + f), 'preload.js', 'nvb.js', ...fs.readdirSync(path.join(root, 'js')).filter(f => f.endsWith('.js')).map(f => 'js/' + f), ...fs.readdirSync(path.join(root, 'scripts')).map(f => 'scripts/' + f), ...fs.readdirSync(__dirname).filter(f => f.endsWith('.js')).map(f => 'tests/' + f)];
+const js = ['main.js', ...fs.readdirSync(path.join(root, 'main')).filter(f => f.endsWith('.js')).map(f => 'main/' + f), 'preload.js', 'nvb.js', ...fs.readdirSync(path.join(root, 'js')).filter(f => f.endsWith('.js')).map(f => 'js/' + f), ...fs.readdirSync(path.join(root, 'scripts')).filter(f => f.endsWith('.js')).map(f => 'scripts/' + f), ...fs.readdirSync(__dirname).filter(f => f.endsWith('.js')).map(f => 'tests/' + f)];
 for (const f of js) { const r = cp.spawnSync(process.execPath, ['--check', path.join(root, f)], { encoding: 'utf8' }); if (r.status) bad('Error de sintaxis en ' + f + '\n' + r.stderr.split('\n').slice(0, 4).join('\n')); }
 console.log('sintaxis: ' + js.length + ' archivos revisados');
 

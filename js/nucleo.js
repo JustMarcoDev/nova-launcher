@@ -51,7 +51,11 @@ if(r[2].value)LS.n=new Set(r[2].value.versions.flatMap(v=>{const p=v.split("."),
 rpK="";rp();rv()}
 // Instancias (automáticas)
 async function loadI(){I=A?await A.insts():demoInsts();qi();ri()}
-async function ensure(){let i=(sel.inst&&I.find(x=>x.id===sel.inst&&x.mc===sel.mc&&x.ld===sel.ld))||I.find(x=>x.mc===sel.mc&&x.ld===sel.ld&&!x.novaPack&&!x.custom&&!x.manual);if(!i&&A){i=await A.saveInst({name:`${LDN(sel.ld)} ${sel.mc}`,mc:sel.mc,ld:sel.ld,type:sel.type});await loadI()}return i}
+// Al jugar se usa la instancia que ya coincide con la versión y el cargador (la elegida, o la más jugada); solo se crea una si no hay ninguna
+function matchInst(){const ok=x=>x.mc===sel.mc&&x.ld===sel.ld,rec=(a,b)=>(b.lastPlayed||0)-(a.lastPlayed||0)||(b.playMs||0)-(a.playMs||0);
+ const sl=sel.inst&&I.find(x=>x.id===sel.inst&&ok(x));if(sl)return sl;
+ const all=I.filter(ok).sort(rec);return all.find(x=>!x.novaPack&&!x.custom&&!x.manual)||all.find(x=>!x.novaPack)||null}
+async function ensure(){let i=matchInst();if(!i&&A){i=await A.saveInst({name:`${LDN(sel.ld)} ${sel.mc}`,mc:sel.mc,ld:sel.ld,type:sel.type});await loadI()}return i}
 function qi(){const L=[...I].sort((a,b)=>(!!b.fav-!!a.fav)||(b.lastPlayed||0)-(a.lastPlayed||0)).slice(0,6),cur=(I.find(x=>x.id===sel.inst)||L.find(i=>i.mc===sel.mc&&i.ld===sel.ld&&!i.novaPack&&!i.custom)||{}).id;$("qi").innerHTML=I.length?L.map(i=>`<div class="row ${i.id===cur?"on":""}" data-i="${i.id}"><span class="rin">${IC(i.icon&&ICS.includes(i.icon)?i.icon:"box")}</span><span class="rt"><span class="n">${esc(i.name)}${i.fav?'<i class="rf">★</i>':""}</span><span class="rs2">${esc(LDN(i.ld||"Vanilla"))}${i.playMs?" · "+esc(fPl(i.playMs)):""}</span></span><span class="s">${esc(i.mc)}</span></div>`).join(""):'<div style="color:var(--m)">Aún no hay instancias. Elige una versión y pulsa Lanzar juego: se crea sola.</div>';
 $("qi").querySelectorAll(".row").forEach(r=>r.onclick=()=>{const i=I.find(x=>x.id===r.dataset.i);pick(i.mc,i.type||"release",i.ld);sel.inst=i.id;save();qi()})}
 // Jugar

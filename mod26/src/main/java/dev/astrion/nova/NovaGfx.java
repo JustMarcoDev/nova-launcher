@@ -18,6 +18,7 @@ public final class NovaGfx {
     static final Map<String, Tex> CACHE = new HashMap<>();
     static Font bold, reg;
     static int lastScale = -1, seq;
+    static String lastAcc = "";
     static int accent = 0xFF8B6CFF;
 
     /** Cambia el color de acento: las texturas se recrean con el nuevo color. */
@@ -52,7 +53,8 @@ public final class NovaGfx {
     /** Si cambia la escala de la interfaz se descartan las texturas para recrearlas nítidas. */
     static int begin(Minecraft mc) {
         int s = sc(mc);
-        if (s != lastScale) {
+        if (s != lastScale || !lastAcc.equals(NovaAcc.key())) {
+            lastAcc = NovaAcc.key();
             for (Tex t : CACHE.values()) { try { mc.getTextureManager().release(t.id); } catch (Throwable ignored) { } }
             CACHE.clear();
             lastScale = s;
@@ -90,7 +92,7 @@ public final class NovaGfx {
         return g;
     }
 
-    static Color col(int argb) { return new Color(argb, true); }
+    static Color col(int argb) { return new Color(NovaAcc.solid(argb), true); }
     static Color a(int argb, float k) { return new Color((argb >> 16) & 255, (argb >> 8) & 255, argb & 255, Math.max(0, Math.min(255, Math.round(((argb >>> 24) & 255) * k)))); }
 
     static Tex upload(Minecraft mc, String key, BufferedImage im, int sc) { return upload(mc, key, im, sc, true); }
@@ -342,14 +344,18 @@ public final class NovaGfx {
         double o = sw / 2;
         g.draw(new RoundRectangle2D.Double(bx + o, by + o, bw - 2 * o, bh - 2 * o, 2 * rr - sw, 2 * rr - sw));
 
-        int txt = !enabled ? 0xFF9A9AB8 : danger ? (hot ? 0xFFFFFFFF : 0xFFFF9AA4) : (hot || style == NovaButton.SELECTED ? 0xFFFFFFFF : 0xFFE2E2F6);
-        double fpx = Math.max(6.2, Math.min(h * 0.42, 7.4)) * s;
-        Font f = fontFor(label, false, (float) fpx);
-        g.setFont(f);
-        FontMetrics fm = g.getFontMetrics();
-        double tw = label.isEmpty() ? 0 : fm.getStringBounds(label, g).getWidth();
+        int txt = NovaAcc.hc() ? 0xFFFFFFFF : !enabled ? 0xFF9A9AB8 : danger ? (hot ? 0xFFFFFFFF : 0xFFFF9AA4) : (hot || style == NovaButton.SELECTED ? 0xFFFFFFFF : 0xFFE2E2F6);
+        double fpx = Math.max(6.2, Math.min(h * 0.42, 7.4)) * s * NovaAcc.text();
         double isz = icon >= 0 ? (label.isEmpty() ? Math.min(h * 0.62, 10.5) : Math.min(h * 0.58, 8.5)) * s : 0;
-        double gap = icon >= 0 && tw > 0 ? 3.5 * s : 0;
+        FontMetrics fm; double tw, gap;
+        for (int fit = 0; ; fit++) {   // con el texto más grande se encoge lo justo para que quepa en el botón
+            g.setFont(fontFor(label, false, (float) fpx));
+            fm = g.getFontMetrics();
+            tw = label.isEmpty() ? 0 : fm.getStringBounds(label, g).getWidth();
+            gap = icon >= 0 && tw > 0 ? 3.5 * s : 0;
+            if (fit >= 8 || fpx <= 4.6 * s || isz + gap + tw <= bw - 5 * s) break;
+            fpx *= 0.92;
+        }
         double x0 = bx + (bw - (isz + gap + tw)) / 2;
         // los iconos son siempre blancos: no cambian con el color de acento elegido en los ajustes
         if (icon >= 0) icon(g, icon, x0, by + (bh - isz) / 2, isz, txt);
@@ -428,7 +434,7 @@ public final class NovaGfx {
         String key = "q|" + label + "|" + rgb + "|" + icon;
         Tex c = CACHE.get(key);
         if (c != null) return c;
-        float px = 6.3f * s;
+        float px = 6.3f * s * NovaAcc.text();
         BufferedImage probe = new BufferedImage(2, 2, BufferedImage.TYPE_INT_ARGB);
         Graphics2D pg = g2(probe);
         pg.setFont(fontFor(label, true, px));
@@ -474,7 +480,7 @@ public final class NovaGfx {
         String key = "tt|" + title + "|" + desc + "|" + accent;
         Tex c = CACHE.get(key);
         if (c != null) return c;
-        float p1 = 6.8f * s, p2 = 6.0f * s;
+        float p1 = 6.8f * s * NovaAcc.text(), p2 = 6.0f * s * NovaAcc.text();
         BufferedImage probe = new BufferedImage(2, 2, BufferedImage.TYPE_INT_ARGB);
         Graphics2D pg = g2(probe);
         pg.setFont(fontFor(title, true, p1));
@@ -508,7 +514,7 @@ public final class NovaGfx {
         g.drawString(title, (float) (bx + pad), (float) (ty + f1.getAscent()));
         if (!desc.isEmpty()) {
             g.setFont(fontFor(desc, false, p2));
-            g.setColor(col(0xFFB8B8D8));
+            g.setColor(col(NovaAcc.fg(0xFFB8B8D8)));
             g.drawString(desc, (float) (bx + pad), (float) (ty + f1.getHeight() + 1 * s + f2.getAscent()));
         }
         g.dispose();
@@ -525,6 +531,8 @@ public final class NovaGfx {
 
     public static Tex text(Minecraft mc, String str, float px, int argb, boolean b) {
         int s = begin(mc);
+        px *= NovaAcc.text();
+        argb = NovaAcc.fg(argb);
         String key = "t|" + str + "|" + px + "|" + argb + "|" + b;
         Tex c = CACHE.get(key);
         if (c != null) return c;

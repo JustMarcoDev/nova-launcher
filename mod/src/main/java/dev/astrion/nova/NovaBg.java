@@ -94,7 +94,7 @@ final class NovaBg {
             mc.getTextureManager().registerTexture(ID, tex);
             stop = false;
             curPath = p0 == null ? "" : p0;
-            t0 = now() - (curPath.equals(resumePath) ? resumeMs : 0);
+            t0 = now() - (curPath.equals(resumePath) && !NovaAcc.still() ? resumeMs : 0);
             worker = new Thread(NovaBg::run, "nova-bg");
             worker.setDaemon(true);
             worker.start();
@@ -127,7 +127,8 @@ final class NovaBg {
         byte[] buf = new byte[1 << 20];
         while (!stop) {
             try {
-                long cur = (now() - t0) * fps / 1000L;                  // fotograma que toca ahora (sin dar la vuelta)
+                if (NovaAcc.still() && lastAbs >= 0) { try { Thread.sleep(50); } catch (InterruptedException e) { return; } continue; }   // reducir movimiento: solo el primer fotograma
+                long cur = NovaAcc.still() ? 0 : (now() - t0) * fps / 1000L;                  // fotograma que toca ahora (sin dar la vuelta)
                 long next = Math.max(lastAbs + 1, cur);
                 if (queue.size() < BUF && next <= cur + BUF) {
                     int i = (int) (next % n), len = off[i + 1] - off[i];
@@ -152,7 +153,7 @@ final class NovaBg {
     /** Dibuja el vídeo cubriendo toda la pantalla (recortando lo que sobre). Devuelve false si no hay vídeo. */
     static boolean draw(DrawContext c, int sw, int sh, float alpha) {
         if (!ready) return false;
-        long cur = (now() - t0) * fps / 1000L;
+        long cur = NovaAcc.still() ? 0 : (now() - t0) * fps / 1000L;
         Frame take = null;
         for (Frame f; (f = queue.peek()) != null && f.abs <= cur; ) {   // el último fotograma que ya toca; los anteriores se descartan
             queue.poll();

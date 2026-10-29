@@ -88,8 +88,9 @@ public final class NovaShots {
         long age = now - born;
         if (age > SHOW_MS) { path = ""; thumb = null; return; }
         float a = Math.min(1f, age / 180f) * Math.min(1f, (SHOW_MS - age) / 300f);
+        if (NovaAcc.still()) a = 1f;   // reducir movimiento: sin fundidos
         if (a <= 0f) return;
-        x += (int) ((1f - Math.min(1f, age / 180f)) * 14);
+        if (!NovaAcc.still()) x += (int) ((1f - Math.min(1f, age / 180f)) * 14);
         NovaButton.panel(c, x, y, w, h, 6, withAlpha(0xF010102A, a), withAlpha(0xFF4A3C8C, a));
         // miniatura con marco
         int tw = 78, th = 44;
