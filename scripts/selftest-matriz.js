@@ -12,4 +12,5 @@ for (const l of lines('mod26/versions.txt')) {
   const [mc, layers] = l.split(/\s+/);
   out.push({ tree: 'mod26', mc, yarn: '', layers: layers || '', loader: '' });
 }
-process.stdout.write(JSON.stringify(out));
+const solo = (process.env.SOLO || '').split(',').map(x => x.trim()).filter(Boolean);
+process.stdout.write(JSON.stringify(solo.length ? out.filter(v => solo.includes(v.mc)) : out));
