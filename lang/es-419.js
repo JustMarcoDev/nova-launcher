@@ -14,4 +14,9 @@ window.LANGS["es-419"]={name:"Español (Latinoamérica)",d:{
 "Todavía no tienes instancias. Elige una versión y pulsa Lanzar juego, o importa un modpack.":"Todavía no tienes instancias. Elige una versión y presiona Iniciar juego, o importa un modpack.",
 "En portátiles con dos tarjetas gráficas obliga a Java a usar la dedicada (Windows 10/11).":"En laptops con dos tarjetas gráficas obliga a Java a usar la dedicada (Windows 10/11).",
 "Todavía no hay copias. Pulsa «Crear copia ahora» o actualiza un mod y se hará sola.":"Todavía no hay copias. Presiona «Crear copia ahora» o actualiza un mod y se hará sola.",
-"Al elegir una versión descarga Java, librerías y cargador para que Lanzar abra el juego al instante":"Al elegir una versión descarga Java, librerías y cargador para que Iniciar abra el juego al instante"}};
+"Al elegir una versión descarga Java, librerías y cargador para que Lanzar abra el juego al instante":"Al elegir una versión descarga Java, librerías y cargador para que Iniciar abra el juego al instante",
+"Avisos del launcher en el juego":"Avisos del launcher en el juego",
+"Descarga terminada, actualización lista y copia de seguridad hecha aparecen 5 s en una esquina":"Descarga terminada, actualización lista y copia de seguridad hecha aparecen 5 s en una esquina",
+"Elige una instancia: abre un mundo fijo con su misma versión y sus mods (sin tocar tus mundos), recorre un camino de 30 s y mide FPS medios, el 1 % más bajo y la RAM. Después te dice qué ajustar. Tarda ~1 minuto y se cierra solo":"Elige una instancia: abre un mundo fijo con su misma versión y sus mods (sin tocar tus mundos), recorre un camino de 30 s y mide FPS promedio, el 1 % más bajo y la RAM. Después te dice qué ajustar. Tarda ~1 minuto y se cierra solo",
+"Aplicar recomendaciones":"Aplicar recomendaciones"
+}};

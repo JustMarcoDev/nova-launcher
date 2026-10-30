@@ -2,7 +2,6 @@ package dev.astrion.nova;
 
 import java.util.HashMap;
 import java.util.Map;
-import net.minecraft.client.MinecraftClient;
 
 /**
  * Textos del mod en el idioma del juego: español, inglés, francés, alemán, italiano y portugués.
@@ -17,7 +16,7 @@ final class NovaLang {
     /** Idioma elegido en el juego: 0 español · 1 inglés · 2 francés · 3 alemán · 4 italiano · 5 portugués. */
     static int lang() {
         String l = "";
-        try { l = MinecraftClient.getInstance().options.language; } catch (Throwable ignored) { }
+        l = NovaMc.lang();
         if (l == null) l = "";
         l = l.toLowerCase(java.util.Locale.ROOT);
         if (l.startsWith("es")) return 0;
@@ -275,6 +274,10 @@ final class NovaLang {
         p("Usar en este servidor", "Use on this server", "Utiliser sur ce serveur", "Auf diesem Server verwenden", "Usa su questo server", "Usar neste servidor");
         p("Usar la accesibilidad del launcher", "Use the launcher's accessibility", "Utiliser l'accessibilité du launcher", "Barrierefreiheit des Launchers verwenden", "Usa l'accessibilità del launcher", "Usar a acessibilidade do launcher");
         p("no se llega al objetivo con este equipo", "target not reachable on this PC", "objectif inatteignable sur ce PC", "Ziel mit diesem PC nicht erreichbar", "obiettivo non raggiungibile su questo PC", "meta inalcançável neste PC");
+        p("Descarga terminada", "Download finished", "Téléchargement terminé", "Download abgeschlossen", "Download completato", "Transferência concluída");
+        p("Actualización lista", "Update ready", "Mise à jour prête", "Update bereit", "Aggiornamento pronto", "Atualização pronta");
+        p("Copia de seguridad hecha", "Backup done", "Sauvegarde effectuée", "Sicherung erstellt", "Backup completato", "Cópia de segurança feita");
+        p("Avisos del launcher en el juego", "Launcher notices in game", "Avis du launcher en jeu", "Launcher-Hinweise im Spiel", "Avvisi del launcher in gioco", "Avisos do launcher no jogo");
         p("Velocidad", "Speed", "Vitesse", "Geschwindigkeit", "Velocità", "Velocidade");
         p("Fuerza", "Strength", "Force", "Stärke", "Forza", "Força");
     }

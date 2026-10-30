@@ -469,6 +469,7 @@ public final class NovaHud {
             if (mc == null || mc.player == null) return;
             NovaSettings.load();
             NovaHud.syncServer(mc);
+            NovaBench.frame(mc);
             NovaPresence.frame(mc);
             NovaServers.frame(mc);
             NovaMove.tick(mc);
@@ -478,6 +479,7 @@ public final class NovaHud {
             if (mc.currentScreen instanceof NovaHudScreen) return;   // el editor dibuja su propia vista previa
             pollMouse(mc);
             NovaShots.render(c, mc);
+            NovaToast.render(c, mc);
             NovaFps.frame(c, mc);
             int sw = c.getScaledWindowWidth(), sh = c.getScaledWindowHeight();
             for (El e : ALL) {

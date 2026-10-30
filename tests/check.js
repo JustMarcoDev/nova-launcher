@@ -83,6 +83,11 @@ if (ver !== pkg.version) bad('VER en js/base.js (' + ver + ') no coincide con pa
   if (!/signAndEditExecutable=true/.test(wf) || !/CSC_LINK/.test(wf)) bad('release.yml: falta escribir los datos del .exe y la firma opcional (CSC_LINK)');
 }
 
+// Firmas (ed25519): válida aceptada, manipulada rechazada
+{
+  const r = require('child_process').spawnSync(process.execPath, [path.join(__dirname, 'firma.js')], { encoding: 'utf8' });
+  if (r.status !== 0) bad('tests/firma.js falló:\n' + (r.stdout || '') + (r.stderr || '')); else console.log(r.stdout.trim());
+}
 // Marcadores seguros del mod (código por partida; el chat no puede pedirle nada al launcher)
 {
   const r = require('child_process').spawnSync(process.execPath, [path.join(__dirname, 'marcas.js')], { encoding: 'utf8' });

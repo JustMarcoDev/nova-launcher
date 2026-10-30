@@ -1188,5 +1188,9 @@ window.LANGS.it={name:"Italiano",d:{
 "Servidores con perfil":"Server con profilo",
 "Ninguno todavía.":"Nessuno per ora.",
 ". Arrastra cada elemento para moverlo, tira de la esquina para cambiar su tamaño y pulsa el ojo para mostrarlo u ocultarlo. Se guarda al momento.":". Trascina ogni elemento per spostarlo, tira l'angolo per ridimensionarlo e premi l'occhio per mostrarlo o nasconderlo. Si salva subito.",
-"Probar rendimiento":"Prova le prestazioni"
+"Probar rendimiento":"Prova le prestazioni",
+"Avisos del launcher en el juego":"Avvisi del launcher in gioco",
+"Descarga terminada, actualización lista y copia de seguridad hecha aparecen 5 s en una esquina":"Download completati, aggiornamenti pronti e backup fatti compaiono per 5 s in un angolo",
+"Elige una instancia: abre un mundo fijo con su misma versión y sus mods (sin tocar tus mundos), recorre un camino de 30 s y mide FPS medios, el 1 % más bajo y la RAM. Después te dice qué ajustar. Tarda ~1 minuto y se cierra solo":"Scegli un'istanza: apre un mondo fisso con la stessa versione e i tuoi mod (i tuoi mondi non vengono toccati), percorre un tragitto di 30 s e misura gli FPS medi, l'1 % più basso e la RAM. Poi ti dice cosa regolare. Dura circa un minuto e si chiude da solo",
+"Aplicar recomendaciones":"Applica i consigli"
 }};

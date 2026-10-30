@@ -58,7 +58,7 @@ final class NovaHudPanel {
         int sw = h.sw(), sh = h.sh();
         int hh = sh < 250 ? 12 : 15, gap = 3;
         int pw = Math.min(300, sw - 12), x = (sw - pw) / 2, pad = 8, cw = pw - 2 * pad;
-        int rows = 6;
+        int rows = 7;
         int headH = 16, tabsH = hh + 2, footH = hh;
         int ph = pad + headH + tabsH + 2 + rows * (hh + gap) + footH + pad - gap + 2;
         if (!open) {
@@ -137,6 +137,8 @@ final class NovaHudPanel {
             h.rebuild();
         });
         tog(h, x + half + gap, y + r * st, w - half - gap, hh, tr("Modo FPS") + ": " + yn(NovaFps.on()), NovaFps.on(), () -> { Minecraft mc = Minecraft.getInstance(); if (NovaFps.on()) NovaFps.restore(mc); else NovaFps.enable(mc); });
+        r++;
+        tog(h, x, y + r * st, w, hh, tr("Avisos del launcher en el juego") + ": " + yn(NovaSettings.toasts), NovaSettings.toasts, () -> NovaSettings.toasts = !NovaSettings.toasts);
     }
 
     static void buildProf(Host h, int x, int y, int w, int hh, int gap) {

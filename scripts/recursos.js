@@ -77,6 +77,9 @@ async function subir(files) {
   // 3. Subir (primero los archivos, luego fondos.json: así el JSON nunca apunta a algo que aún no existe)
   gh('release', 'upload', TAG, ...files, '--clobber', '--repo', REPO);
   gh('release', 'upload', TAG, mj, '--clobber', '--repo', REPO);
+  // El launcher solo usa fondos.json con firma válida: se firma aquí (hace falta NOVA_SIGN_KEY o --clave; ver scripts/firmar.js)
+  if (process.env.NOVA_SIGN_KEY) { require('child_process').execFileSync(process.execPath, [path.join(__dirname, 'firmar.js'), 'firmar', mj], { stdio: 'inherit' }); gh('release', 'upload', TAG, mj + '.sig', '--clobber', '--repo', REPO); }
+  else console.log('AVISO: sin NOVA_SIGN_KEY no se firma fondos.json y el launcher lo ignorará (node scripts/firmar.js subir fondos.json --clave <pem>).');
   console.log('Publicado en la release «' + TAG + '»:'); for (const f of files) console.log('  ' + path.basename(f) + '  ' + m.files[path.basename(f)].sha256);
 }
 

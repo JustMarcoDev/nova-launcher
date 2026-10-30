@@ -145,6 +145,7 @@ public final class NovaFps {
     }
 
     private static void watch(MinecraftClient mc) {
+        if (NovaBench.ON) return;
         if (asked || NovaSettings.fpsNoAsk || NovaSettings.fpsOn) return;
         long now = System.nanoTime();
         long dt = lastNs == 0 ? 0 : Math.min(500, (now - lastNs) / 1_000_000L);

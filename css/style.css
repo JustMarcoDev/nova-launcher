@@ -4281,3 +4281,12 @@ html[data-cb=Grises] {
 .nme .nmh { position: absolute; right: 0; bottom: 0; width: 10px; height: 10px; background: var(--ac, #2ee06f); cursor: nwse-resize; border-radius: 3px 0 0 0; }
 .nme .nmv { position: absolute; right: 1px; top: 1px; width: 16px; height: 16px; padding: 0; border: 0; border-radius: 4px; background: rgba(0, 0, 0, .55); color: #fff; cursor: pointer; display: grid; place-items: center; }
 .nme .nmv .ic { width: 11px; height: 11px; }
+
+/* Aviso remoto en Inicio (nova-config.json) */
+.avb{display:flex;align-items:center;gap:10px;margin:0 0 12px;padding:10px 12px;border-radius:12px;background:var(--glass,rgba(255,255,255,.06));border:1px solid var(--bd,rgba(255,255,255,.12));font-size:13px}
+.avb[hidden]{display:none}
+.avb .avt{flex:1;line-height:1.4}
+.avb .avx{background:none;border:0;color:inherit;font-size:18px;line-height:1;cursor:pointer;opacity:.7}
+.avb .avx:hover{opacity:1}
+.avb.aviso{border-color:#e0b04a}
+.avb.error{border-color:#e05a5a}

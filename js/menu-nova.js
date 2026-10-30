@@ -72,6 +72,7 @@ ${nmTg("chat.copy", "Chat: copiar mensajes", "Clic derecho sobre un mensaje para
 ${nmTg("chat.search", "Chat: buscador", "Un buscador en el chat abierto que filtra el historial", nmG(c, "chat.search", false))}
 ${nmTg("chat.mention", "Chat: menciones", "Resalta y suena suave cuando alguien dice tu nombre", nmG(c, "chat.mention", false))}
 ${nmTg("showCape", "Capa de Nova", "Los jugadores con Nova llevan una capa de Nova", nmG(c, "showCape", true))}
+${nmTg("toasts", "Avisos del launcher en el juego", "Descarga terminada, actualización lista y copia de seguridad hecha aparecen 5 s en una esquina", nmG(c, "toasts", true))}
 ${nmTg("showNova", "Mostrar que uso Nova", "Los demás con Nova ven el logo junto a tu nombre", nmG(c, "showNova", true))}
 ${nmTg("move.freelook.on", "Freelook", "Mantén una tecla (Alt de fábrica) para mirar alrededor sin girar al jugador", nmG(c, "move.freelook.on", false))}
 ${nmTg("move.sprint.on", "Sprint fijo", "Una pulsación activa el sprint y otra lo desactiva", nmG(c, "move.sprint.on", false))}

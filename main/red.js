@@ -108,4 +108,24 @@ async function isOnline(force) {
 
 
 // Lo que usan otros módulos
-Object.assign(R, { UA, get, getWithFallback, isOnline, mirrorsFor, rewriteWithMirror, mirrorNotice, post, run });
+
+// ---- Archivos firmados: se baja el archivo y su .sig; solo se acepta si la firma es válida (main/firma.js) ----
+// Devuelve { text, json } o lanza un error (red, HTTP o firma). Quien lo llama decide qué usar si falla: lo incluido o la copia anterior.
+async function fetchFirmado(url, timeout = 5000) {
+  const { verificar } = require('./firma');
+  const h = { 'User-Agent': UA() };
+  const [a, b] = await Promise.all([fetch(url, { signal: AbortSignal.timeout(timeout), headers: h }), fetch(url + '.sig', { signal: AbortSignal.timeout(timeout), headers: h })]);
+  if (!a.ok) throw new Error('HTTP ' + a.status);
+  if (!b.ok) throw new Error('sin firma (HTTP ' + b.status + ')');
+  const buf = Buffer.from(await a.arrayBuffer()), sig = await b.text();
+  if (!verificar(buf, sig)) throw new Error('firma no válida');
+  const text = buf.toString('utf8');
+  return { text, sig, json: JSON.parse(text) };
+}
+// Lo mismo para algo que ya se guardó en disco (copia anterior): se vuelve a comprobar la firma al leerla
+function leerFirmado(text, sig) {
+  const { verificar } = require('./firma');
+  if (typeof text !== 'string' || !verificar(text, sig)) return null;
+  try { return JSON.parse(text); } catch { return null; }
+}
+Object.assign(R, { fetchFirmado, leerFirmado, UA, get, getWithFallback, isOnline, mirrorsFor, rewriteWithMirror, mirrorNotice, post, run });

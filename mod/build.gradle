@@ -21,6 +21,8 @@ processResources {
 }
 
 // Código que cambia según la versión de Minecraft: una carpeta por capa en src/compat/<capa>/java (las capas de cada versión están en versions.txt)
+// Código común a mod/ y mod26/ (lo que no usa clases de Minecraft, o las usa solo a través de las clases de cada proyecto)
+sourceSets.main.java.srcDir '../mod-common/src/main/java'
 project.layers.split(',').each { sourceSets.main.java.srcDir "src/compat/${it.trim()}/java" }
 
 tasks.withType(JavaCompile).configureEach { options.release = 17 }

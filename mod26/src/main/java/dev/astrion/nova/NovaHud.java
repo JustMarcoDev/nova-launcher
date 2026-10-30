@@ -479,6 +479,7 @@ public final class NovaHud {
             if (NovaGui.screen(mc) instanceof NovaHudScreen) return;   // el editor dibuja su propia vista previa
             pollMouse(mc);
             NovaShots.render(c, mc);
+            NovaToast.render(c, mc);
             NovaFps.frame(c, mc);
             int sw = c.guiWidth(), sh = c.guiHeight();
             for (El e : ALL) {

@@ -14,6 +14,8 @@ dependencies {
 }
 
 // Capas de compatibilidad por versión (src/compat/<capa>/java): se eligen con -Players=... (ver versions.txt)
+// Código común a mod/ y mod26/ (lo que no usa clases de Minecraft, o las usa solo a través de las clases de cada proyecto)
+sourceSets.main.java.srcDir '../mod-common/src/main/java'
 (project.findProperty('layers') ?: 'sdl').toString().split(',').each { l -> sourceSets.main.java.srcDir "src/compat/${l.trim()}/java" }
 
 processResources {

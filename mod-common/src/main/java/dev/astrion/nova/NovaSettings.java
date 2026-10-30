@@ -19,6 +19,8 @@ final class NovaSettings {
     static boolean showNova = true;
     /** «Capa de Nova»: los jugadores que usan Nova llevan una capa de Nova (la ven solo quienes también usan Nova). */
     static boolean showCape = true;
+    /** «Avisos del launcher en el juego» (encendida de fábrica). */
+    static boolean toasts = true;
     /** «Modo FPS»: activo o no, y las opciones de vídeo de antes para poder restaurarlas. */
     static boolean fpsOn;
     static String fpsParticles = "", fpsClouds = "";
@@ -57,6 +59,7 @@ final class NovaSettings {
             if (o.has("bg")) bg = o.get("bg").getAsString();
             if (o.has("showNova")) showNova = o.get("showNova").getAsBoolean();
             if (o.has("showCape")) showCape = o.get("showCape").getAsBoolean();
+            if (o.has("toasts")) toasts = o.get("toasts").getAsBoolean();
             if (o.has("fps") && o.get("fps").isJsonObject()) {
                 JsonObject fo = o.getAsJsonObject("fps");
                 fpsOn = fo.has("on") && fo.get("on").getAsBoolean();
@@ -89,8 +92,14 @@ final class NovaSettings {
     }
 
     /** Al volver al menú: si el launcher cambió menu.json (su fecha es otra), lo vuelve a leer. */
+    private static long lastStat;
+
+    /** Vuelve a leer menu.json si cambió. El archivo se mira como mucho cada medio segundo (antes, en cada llamada) y solo se analiza si cambió su lastModified. */
     static void reloadIfChanged() {
         try {
+            long now = System.currentTimeMillis();
+            if (now - lastStat < 500) return;
+            lastStat = now;
             File f = file();
             if (f == null || !f.isFile() || f.lastModified() == stamp) return;
             loaded = false;
@@ -108,6 +117,7 @@ final class NovaSettings {
             o.addProperty("accent", accent);
             o.addProperty("showNova", showNova);
             o.addProperty("showCape", showCape);
+            o.addProperty("toasts", toasts);
             JsonObject fo = new JsonObject();
             fo.addProperty("on", fpsOn); fo.addProperty("particles", fpsParticles); fo.addProperty("clouds", fpsClouds);
             fo.addProperty("shadows", fpsShadows); fo.addProperty("view", fpsView); fo.addProperty("sim", fpsSim);
