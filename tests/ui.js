@@ -1,7 +1,7 @@
 // Carga la interfaz en un navegador simulado (jsdom) con una app falsa y comprueba que arranca sin errores.
 const { JSDOM, VirtualConsole } = require('jsdom'), inline = require('./inline.js'), fs = require('fs'), path = require('path'), vm = require('vm');
 const errors = [], vc = new VirtualConsole(); vc.on('jsdomError', e => errors.push((e.detail && e.detail.message) || e.message)); vc.on('error', m => errors.push(String(m)));
-const mock = { accAddOffline: { accounts: [{ id: 'o1', type: 'offline', name: 'Marco_1' }], active: 'o1' }, insts: [], versions: { v: [{ id: '1.21.1', type: 'release' }], src: 'mojang' }, cfg: { _first: false, setupDone: true, seenVersion: '99.0.0' }, sys: { total: 16 }, ver: '0.0.0', updGet: { s: 'idle' }, discordGet: { s: 'off' }, worldLast: null, srvStatus: {}, shotsList: [], bkList: [], modsList: [], releases: [], dqState: { active: 0, paused: false, limit: 0, speed: 0 } };
+const mock = { accAddOffline: { accounts: [{ id: 'o1', type: 'offline', name: 'Marco_1' }], active: 'o1' }, insts: [], versions: { v: [{ id: '1.21.1', type: 'release' }], src: 'mojang' }, cfg: { _first: false, setupDone: true, seenVersion: '0.0.0' }, sys: { total: 16 }, ver: '0.0.0', updGet: { s: 'idle' }, discordGet: { s: 'off' }, worldLast: null, srvStatus: {}, shotsList: [], bkList: [], modsList: [], releases: [], dqState: { active: 0, paused: false, limit: 0, speed: 0 } };
 mock.skinList = { skins: [{ id: 'sabc1', name: 'Prueba', model: 'slim', data: 'data:image/png;base64,iVBORw0KGgo=' }], sel: 'sabc1', acc: { type: 'offline', name: 'Marco_1' } };
 const _n = Date.now(); mock.statsGet = { sessions: [0, 1, 2, 3, 4, 5].map(k => ({ id: 'i' + (k % 2), name: ['Survival', 'Skyblock'][k % 2], mc: ['1.21.4', '1.20.1'][k % 2], ld: 'Fabric', server: k % 3 === 0 ? 'play.test.net' : '', start: _n - k * 864e5 * 3, ms: (k + 1) * 9e5 })), before: [{ id: 'i0', name: 'Survival', mc: '1.21.4', ld: 'Fabric', ms: 72e5 }], shots: 7 };
 mock.worldLast = { inst: 'i1', name: 'Mundo de prueba', instName: 'Instancia', date: 123, mc: '1.21.4', ld: 'Vanilla' };
@@ -78,7 +78,7 @@ const w = dom.window, sleep = ms => new Promise(r => setTimeout(r, ms));
       // Panel «Añadir a esta instancia»: lo que ya tiene sale como instalado, y hay botones para shaders y texturas
       const seen = []; api.http = async ({ url }) => { seen.push(url); return { total_hits: 2, hits: [{ project_id: 'p1', slug: 'sodium', title: 'Sodium', description: 'x', icon_url: '' }, { project_id: 'p2', slug: 'lithium', title: 'Lithium', description: 'y', icon_url: '' }] }; };
       api.modsProjects = async () => ({ ids: ['p1'], files: [] });
-      g('msr').click(); for (let t = 0; t < 40 && !(w.document.querySelectorAll('#adl button').length); t++) await sleep(100);
+      g('msr').click(); for (let t = 0; t < 40 && !(w.document.querySelectorAll('#adl button').length >= 2 && /Instalado/.test(w.document.querySelector('#adl button').textContent)); t++) await sleep(100);
       const bs = [...w.document.querySelectorAll('#adl button')];
       if (bs.length !== 2 || bs[0].textContent.indexOf('Instalado') < 0 || !bs[0].disabled || bs[1].textContent !== 'Instalar' || bs[1].disabled) errors.push('Añadir a la instancia: lo que ya está no sale como instalado');
       if (!seen.some(u => u.includes('versions%3A') || u.includes('1.21.1'))) errors.push('Añadir a la instancia: no filtra por la versión de la instancia');
