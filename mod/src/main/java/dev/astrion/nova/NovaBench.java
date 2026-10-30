@@ -13,10 +13,17 @@ final class NovaBench {
         H(MinecraftClient mc) { this.mc = mc; }
         public boolean ready() { return mc.world != null && mc.player != null && mc.currentScreen == null; }
         public float yaw() { return mc.player.getYaw(); }
-        public void aim(float yaw, float pitch) { mc.player.setYaw(yaw); mc.player.setPitch(pitch); mc.player.prevYaw = yaw; mc.player.prevPitch = pitch; }
+        public void aim(float yaw, float pitch) { mc.player.setYaw(yaw); mc.player.setPitch(pitch); prev(mc.player, "prevYaw", "lastYaw", yaw); prev(mc.player, "prevPitch", "lastPitch", pitch); }
         public int view() { return mc.options.getViewDistance().getValue(); }
         public int sim() { return mc.options.getSimulationDistance().getValue(); }
         public void quit() { mc.scheduleStop(); }
+    }
+
+    /** El campo del ángulo anterior se llama prevYaw o lastYaw según la versión: se busca por nombre. */
+    private static void prev(Object o, String a, String b, float v) {
+        for (String n : new String[] { a, b }) {
+            try { java.lang.reflect.Field f = net.minecraft.entity.Entity.class.getDeclaredField(n); f.setAccessible(true); f.setFloat(o, v); return; } catch (Throwable ignored) { }
+        }
     }
 
     private static H h;
