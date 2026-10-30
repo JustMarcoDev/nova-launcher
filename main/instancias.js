@@ -131,7 +131,7 @@ async function bkSchedule() {
       if (last && Date.now() - last.date < d * 86400000 - 3600000) continue;
       // si no hay mundos, no se hace nada (autoBackup devuelve null)
       let f = null; try { f = await autoBackup(ins.id, 'automatica', true); } catch {}
-      if (f) send('bk:auto', { id: ins.id, name: ins.name });
+      if (f) { send('bk:auto', { id: ins.id, name: ins.name }); try { R.novaAviso('backup', 'Copia de seguridad hecha · ' + ins.name); } catch {} }
       await new Promise(r => setTimeout(r, 300));
     }
   } finally { bkBusy = false; }

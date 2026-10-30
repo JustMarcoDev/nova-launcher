@@ -32,6 +32,7 @@ public final class NovaCape {
 
     /** ¿Debe llevar la capa de Nova este jugador de la lista? */
     public static boolean wants(PlayerInfo e) {
+        if (NovaOff.has("cape")) return false;
         try {
             NovaSettings.load();   // solo lee el archivo la primera vez
             if (!NovaSettings.showCape) return false;

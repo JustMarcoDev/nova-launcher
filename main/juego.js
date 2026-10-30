@@ -142,8 +142,8 @@ async function playGame(opts) {
       : 'Nova: el menú de Nova solo está disponible en Nova y Fabric; ' + ins.ld + ' usa el menú normal.\n';
     if (nova) { fondosScan().catch(() => {}); fondosWatch(); novaServersWrite(cfg.myServers); novaAccountsWrite(); }
     const mkey = marcas.newKey();
-    if (nova) { try { R.novaAccSync(cfg); } catch {} }
-    if (nova) o.customArgs.push('-Dnova.key=' + mkey, '-Dnova.dir=' + novaDir(), '-Dnova.skin=' + (await novaSkinFor(act)).file, '-Dnova.premium=' + (act.type === 'microsoft' ? '1' : '0'), '-Dnova.presence=' + (process.env.NOVA_PRESENCE || (() => { try { return require('../package.json').novaPresence || ''; } catch { return ''; } })()), '-Dnova.user=' + act.name, '-Dnova.bg=' + (novaBg() || ''), '-Dnova.bg2=' + (novaBg('nova-nebulosa.nvb') || ''), '-Dnova.bg3=' + (novaBg('nova-earth.nvb') || ''), '-Dnova.lowpower=' + (LOWRAM ? 'true' : 'false'), '-Dfabric.addMods=' + nj, '-Dnova.version=' + app.getVersion(), ...(novaNews() ? ['-Dnova.news=' + novaNews()] : []), '-Dnova.loader=' + (ins.ld === 'Fabric' ? 'Fabric' : 'Nova'));
+    if (nova) { try { R.novaAccSync(cfg); R.novaAvisosReset(); } catch {} }
+    if (nova) o.customArgs.push('-Dnova.off=' + (R.novaOffList ? R.novaOffList().join(',') : ''), '-Dnova.key=' + mkey, '-Dnova.dir=' + novaDir(), '-Dnova.skin=' + (await novaSkinFor(act)).file, '-Dnova.premium=' + (act.type === 'microsoft' ? '1' : '0'), '-Dnova.presence=' + (R.novaOff && R.novaOff('presence') ? '' : process.env.NOVA_PRESENCE || (() => { try { return require('../package.json').novaPresence || ''; } catch { return ''; } })()), '-Dnova.user=' + act.name, '-Dnova.bg=' + (novaBg() || ''), '-Dnova.bg2=' + (novaBg('nova-nebulosa.nvb') || ''), '-Dnova.bg3=' + (novaBg('nova-earth.nvb') || ''), '-Dnova.lowpower=' + (LOWRAM ? 'true' : 'false'), '-Dfabric.addMods=' + nj, '-Dnova.version=' + app.getVersion(), ...(novaNews() ? ['-Dnova.news=' + novaNews()] : []), '-Dnova.loader=' + (ins.ld === 'Fabric' ? 'Fabric' : 'Nova'));
     if (nova && extra.length) o.customArgs.push(...extra);
     if (ins.ld === 'Forge' || ins.ld === 'NeoForge') o.version.custom = await forge(ins.ld, ins.mc, java, ins.loaderVersion);
     if (server && server.host) o.quickPlay = { type: modernQP(ins.mc) ? 'multiplayer' : 'legacy', identifier: server.host + (server.port && +server.port !== 25565 ? ':' + server.port : '') };
@@ -264,7 +264,7 @@ async function prepRun(r) {
     const res = await l.launch(o);
     if (!res) throw new Error('No se pudo preparar');
     try { await rmAsync(path.join(root, 'instances', '.prep')); } catch {}
-    PREPD.add(key); pr('done', {});
+    PREPD.add(key); pr('done', {}); try { R.novaAviso('download', 'Descarga terminada · Minecraft ' + mc); } catch {}
   } catch (e) { pr('error', { msg: String(e && e.message || e) }); }
 }
 ipcMain.handle('prep:run', (e, r) => {

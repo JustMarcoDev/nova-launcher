@@ -11,7 +11,6 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
-import net.minecraft.client.MinecraftClient;
 
 /**
  * Skins guardadas del launcher, vistas desde el juego: la misma carpeta (<nova.dir>/skins con skins.json y un .png por skin).
@@ -34,7 +33,7 @@ final class NovaSkins {
     static boolean available() { return base() != null; }
 
     static String user() {
-        try { var s = MinecraftClient.getInstance().getSession(); return s == null ? "" : s.getUsername(); } catch (Throwable t) { return ""; }
+        return NovaMc.userName();
     }
 
     private static JsonArray readIdx() {

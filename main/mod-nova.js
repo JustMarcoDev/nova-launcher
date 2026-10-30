@@ -25,6 +25,21 @@ const NOVA_MC = ['1.20', '1.20.1', '1.20.2', '1.20.3', '1.20.4', '1.20.5', '1.20
 // Vídeo de fondo del menú de Nova (frames JPEG empaquetados): fuera del jar para que el mod pese poco
 // ---- Menú de Nova dentro del juego: carpeta de datos, skin del jugador y fondo personalizado ----
 function novaDir() { const d = path.join(root, 'nova'); try { fs.mkdirSync(d, { recursive: true }); } catch {} return d; }
+
+// ---- Avisos del launcher dentro del juego (nova/avisos.json): el mod los lee cada 2 s y los enseña de uno en uno (NovaToast) ----
+// Solo mientras hay una partida abierta con el menú de Nova; el archivo se vacía al lanzar. Tipos: download, update, backup.
+const AVISOS = () => path.join(novaDir(), 'avisos.json');
+function novaAvisosReset() { try { fs.writeFileSync(AVISOS(), '[]'); } catch {} }
+function novaAviso(tipo, texto) {
+  try {
+    if (!running.size || R.novaOff && R.novaOff('toasts')) return false;
+    let a = []; try { a = JSON.parse(fs.readFileSync(AVISOS(), 'utf8')); if (!Array.isArray(a)) a = []; } catch {}
+    a.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), texto: String(texto).slice(0, 120), tipo: String(tipo).slice(0, 20), hora: Date.now() });
+    const f = AVISOS(), tmp = f + '.tmp';
+    fs.writeFileSync(tmp, JSON.stringify(a.slice(-20))); fs.renameSync(tmp, f);   // se escribe entero y se renombra: el mod nunca lee un archivo a medias
+    return true;
+  } catch { return false; }
+}
 // Descarga la skin de un nombre (si hay internet, con tiempo límite) y la guarda aparte para cada nombre: así la skin de un usuario nunca se
 // queda puesta en otro. Si falla se usa la última guardada de ese nombre; si no hay ninguna, va vacío (sin skin: el mod pone la de Steve).
 const skinCache = name => path.join(novaDir(), 'skin-' + String(name).toLowerCase().replace(/[^\w-]/g, '_').slice(0, 40) + '.png');
@@ -116,13 +131,62 @@ const LOW720 = new Set();
 const NOVA_REMOTE_BG = { 'nova-nebulosa.nvb': 'Nebulosa', 'nova-earth.nvb': 'Earth' };
 const NOVA_REMOTE_ID = { nebula: 'nova-nebulosa.nvb', earth: 'nova-earth.nvb' };
 const FONDOS_BASE = 'https://github.com/' + UPD.owner + '/' + UPD.repo + '/releases/download/recursos/';
+
+// ---- Archivos firmados con caché: nova-menu.json, fondos.json y nova-config.json (firma ed25519 comprobada en main/firma.js) ----
+// Con caché vigente se usa sin pedir nada; si no, se baja el archivo + su .sig y solo vale si la firma es válida. Si falla (sin red, sin firma o firma mala)
+// se usa la copia anterior (que se vuelve a comprobar al leerla) y, si no hay, null: quien llama usa entonces lo incluido en el launcher.
+async function firmadoCache(name, url, ttl, retry, key = '') {   // url puede ser una función (async): solo se llama si hay que bajar
+  const cf = path.join(novaDir(), 'cache-' + name + '.json'), c = rd(cf, null);
+  const old = c && c.key === key && c.text ? R.leerFirmado(c.text, c.sig) : null;
+  if (old && Date.now() - (c.t || 0) < ttl) return old;
+  try {
+    const r = await R.fetchFirmado(typeof url === 'function' ? await url() : url, 4000);
+    wr(cf, { t: Date.now(), key, text: r.text, sig: r.sig }); return r.json;
+  } catch (e) {
+    if (c && c.key === key) wr(cf, { ...c, t: Date.now() - ttl + retry });   // se reintenta pronto, sin machacar lo anterior
+    return old;
+  }
+}
+
+// ===== Interruptores a distancia (nova-config.json, firmado) =====
+// {"off": ["presence","cape","bench","modUpdate","toasts","reports"], "minMod": "0.2.16", "minLauncher": "0.2.16",
+//  "aviso": {"id": "...", "texto": "...", "nivel": "info|aviso|error", "hasta": "2026-12-31"}}
+// Se lee al abrir con caché de 1 h. Sin conexión se usa la última copia (comprobando la firma otra vez) y, si no hay ninguna, todo queda encendido.
+const CFG_URL = 'https://github.com/' + UPD.owner + '/' + UPD.repo + '/releases/download/recursos/nova-config.json';
+let remoteCfg = null;
+function cfgNorm(j) {
+  if (!j || typeof j !== 'object' || Array.isArray(j)) return null;
+  const off = (Array.isArray(j.off) ? j.off : []).map(String).filter(x => /^[\w-]{1,24}$/.test(x)).slice(0, 40);
+  const ver = v => (typeof v === 'string' && verParse(v)) ? v : '';
+  let aviso = null;
+  const a = j.aviso;
+  if (a && typeof a === 'object' && typeof a.id === 'string' && a.id && typeof a.texto === 'string' && a.texto.trim()) {
+    const hasta = a.hasta ? Date.parse(a.hasta) || +a.hasta || 0 : 0;
+    aviso = { id: a.id.slice(0, 40), texto: a.texto.slice(0, 300), nivel: ['info', 'aviso', 'error'].includes(a.nivel) ? a.nivel : 'info', hasta };
+  }
+  return { off, minMod: ver(j.minMod), minLauncher: ver(j.minLauncher), aviso };
+}
+const off = n => !!(remoteCfg && remoteCfg.off.includes(String(n)));
+const novaOffList = () => (remoteCfg ? remoteCfg.off : []);
+function cfgOut() {
+  const c = remoteCfg; if (!c) return { off: [], aviso: null, launcherViejo: false };
+  const ok = c.aviso && (!c.aviso.hasta || c.aviso.hasta > Date.now());
+  return { off: c.off, aviso: ok ? c.aviso : null, minMod: c.minMod, launcherViejo: !!(c.minLauncher && verCmp(app.getVersion(), c.minLauncher) < 0) };
+}
+async function novaConfigLoad() {
+  try { remoteCfg = cfgNorm(await firmadoCache('nova-config', CFG_URL, 3600e3, 10 * 60e3)); } catch { remoteCfg = null; }
+  send('cfg:remote', cfgOut());
+  return remoteCfg;
+}
+ipcMain.handle('cfg:remote', async () => { if (!remoteCfg) await novaConfigLoad(); return cfgOut(); });
+setTimeout(() => { novaConfigLoad(); setInterval(novaConfigLoad, 3600e3).unref(); }, 1500);
 let fondosMan = null, fondosManT = 0;
 const BGDL = new Map();
 async function fondosManifest() {
   if (fondosMan && Date.now() - fondosManT < 6 * 3600e3) return fondosMan;
-  const r = await fetch(FONDOS_BASE + 'fondos.json', { signal: AbortSignal.timeout(8000), headers: { 'User-Agent': UA() } });
-  if (!r.ok) throw new Error('HTTP ' + r.status);
-  fondosMan = await r.json(); fondosManT = Date.now(); return fondosMan;
+  const j = await firmadoCache('fondos', FONDOS_BASE + 'fondos.json', 6 * 3600e3, 10 * 60e3);
+  if (!j) throw new Error('No se pudo comprobar la lista de fondos (sin conexión o firma no válida)');
+  fondosMan = j; fondosManT = Date.now(); return fondosMan;
 }
 const nbvEntryOk = e => !!e && typeof e.url === 'string' && e.url.startsWith(FONDOS_BASE) && /^[0-9a-f]{64}$/.test(String(e.sha256 || '')) && +e.size > 0;
 const nbvPath = f => path.join(root, 'nova', f);
@@ -185,18 +249,12 @@ ipcMain.handle('nvbg:del', (e, f) => { f = String(f); if (!NOVA_REMOTE_BG[f] || 
 // que viene en el launcher (assets/mods). Nunca se lanza un jar sin verificar.
 const MODUP = { base: 'https://github.com/' + UPD.owner + '/' + UPD.repo + '/releases/', ttl: 6 * 3600e3, retry: 10 * 60e3 };
 async function modManifest() {
-  const cf = path.join(novaDir(), 'nova-menu-cache.json'), beta = load().channel === 'beta', c = rd(cf, null);
-  if (c && c.beta === beta && Date.now() - (c.t || 0) < MODUP.ttl) return c.json || null;
-  try {
-    let url = MODUP.base + 'latest/download/nova-menu.json';
-    if (beta) { const tag = await pickNewestTag(); if (tag) url = MODUP.base + 'download/' + tag + '/nova-menu.json'; }
-    const r = await fetch(url, { signal: AbortSignal.timeout(4000), headers: { 'User-Agent': UA() } });
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const json = await r.json(); wr(cf, { t: Date.now(), beta, json }); return json;
-  } catch {
-    wr(cf, { t: Date.now() - MODUP.ttl + MODUP.retry, beta, json: c && c.json || null });   // sin red: se usa lo último que se supo y se reintenta en 10 min
-    return c && c.json || null;
-  }
+  if (off('modUpdate')) return null;
+  const beta = load().channel === 'beta';
+  return firmadoCache('nova-menu', async () => {
+    if (beta) { const tag = await pickNewestTag().catch(() => null); if (tag) return MODUP.base + 'download/' + tag + '/nova-menu.json'; }
+    return MODUP.base + 'latest/download/nova-menu.json';
+  }, MODUP.ttl, MODUP.retry, beta ? 'beta' : 'estable');
 }
 const modEntryOk = (e, mc) => !!e && !!verParse(e.version) && /^[0-9a-f]{64}$/.test(String(e.sha256 || '')) && typeof e.url === 'string' && e.url.startsWith(MODUP.base + 'download/') && e.url.endsWith('/nova-menu-' + mc + '.jar');
 // Notas de la versión del jar instalado: se guardan en nova/news.txt (primera línea «ver:<versión>») y el mod las enseña una vez con -Dnova.news
@@ -289,7 +347,7 @@ function nmenuClean(i) {
   const o = {}; if (!i || typeof i !== 'object') return o;
   if (typeof i.bg === 'string' && /^(hole|nebula|earth|f:[^\\/:*?"<>|]{1,120})$/.test(i.bg)) o.bg = i.bg;
   if (typeof i.accent === 'number' && NMENU_ACCENTS.includes(i.accent | 0)) o.accent = i.accent | 0;
-  for (const k of ['showNova', 'showCape']) if (nmBool(i[k]) !== undefined) o[k] = i[k];
+  for (const k of ['showNova', 'showCape', 'toasts']) if (nmBool(i[k]) !== undefined) o[k] = i[k];
   if (i.chat && typeof i.chat === 'object') { o.chat = {}; for (const k of ['time', 'copy', 'search', 'mention']) if (nmBool(i.chat[k]) !== undefined) o.chat[k] = i.chat[k]; }
   if (i.move && typeof i.move === 'object') { o.move = {}; for (const k of ['freelook', 'sprint', 'crouch']) if (i.move[k] && nmBool(i.move[k].on) !== undefined) o.move[k] = { on: i.move[k].on }; }
   if (i.hud && typeof i.hud === 'object') {
@@ -367,4 +425,4 @@ function novaAccSync(cfg) {
 }
 
 // Lo que usan otros módulos
-Object.assign(R, { novaAccSync, NOVA_MC, NOVA_REMOTE_ID, fondosDir, fondosScan, fondosWatch, modManifest, novaBg, novaBgGet, novaDir, novaModResolve, novaNews, novaPickBg, novaServersWrite, novaAccountsWrite, novaSkin });
+Object.assign(R, { novaOff: off, novaOffList, novaConfigLoad, novaAviso, novaAvisosReset, novaAccSync, NOVA_MC, NOVA_REMOTE_ID, fondosDir, fondosScan, fondosWatch, modManifest, novaBg, novaBgGet, novaDir, novaModResolve, novaNews, novaPickBg, novaServersWrite, novaAccountsWrite, novaSkin });

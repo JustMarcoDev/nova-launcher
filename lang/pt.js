@@ -1188,5 +1188,9 @@ window.LANGS.pt={name:"Português (Portugal)",d:{
 "Servidores con perfil":"Servidores com perfil",
 "Ninguno todavía.":"Nenhum ainda.",
 ". Arrastra cada elemento para moverlo, tira de la esquina para cambiar su tamaño y pulsa el ojo para mostrarlo u ocultarlo. Se guarda al momento.":". Arrasta cada elemento para o mover, puxa o canto para mudar o tamanho e carrega no olho para o mostrar ou ocultar. Guarda-se logo.",
-"Probar rendimiento":"Testar desempenho"
+"Probar rendimiento":"Testar desempenho",
+"Avisos del launcher en el juego":"Avisos do launcher no jogo",
+"Descarga terminada, actualización lista y copia de seguridad hecha aparecen 5 s en una esquina":"Transferências concluídas, atualizações prontas e cópias de segurança feitas aparecem 5 s num canto",
+"Elige una instancia: abre un mundo fijo con su misma versión y sus mods (sin tocar tus mundos), recorre un camino de 30 s y mide FPS medios, el 1 % más bajo y la RAM. Después te dice qué ajustar. Tarda ~1 minuto y se cierra solo":"Escolhe uma instância: abre um mundo fixo com a mesma versão e os teus mods (os teus mundos nunca são tocados), percorre um caminho de 30 s e mede os FPS médios, o 1 % mais baixo e a RAM. Depois diz-te o que ajustar. Demora cerca de um minuto e fecha-se sozinho",
+"Aplicar recomendaciones":"Aplicar recomendações"
 }};

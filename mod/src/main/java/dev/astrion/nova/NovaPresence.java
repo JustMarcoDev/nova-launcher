@@ -51,6 +51,7 @@ public final class NovaPresence {
 
     /** Se llama en cada fotograma de juego. */
     public static void frame(MinecraftClient mc) {
+        if (NovaOff.has("presence")) return;
         try {
             if (!enabled()) return;
             boolean online = mc.getNetworkHandler() != null && !mc.isInSingleplayer();

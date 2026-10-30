@@ -1188,5 +1188,9 @@ window.LANGS.de={name:"Deutsch",d:{
 "Servidores con perfil":"Server mit Profil",
 "Ninguno todavía.":"Noch keine.",
 ". Arrastra cada elemento para moverlo, tira de la esquina para cambiar su tamaño y pulsa el ojo para mostrarlo u ocultarlo. Se guarda al momento.":". Ziehe jedes Element zum Verschieben, ziehe an der Ecke zum Skalieren und klicke auf das Auge zum Ein- oder Ausblenden. Wird sofort gespeichert.",
-"Probar rendimiento":"Leistung testen"
+"Probar rendimiento":"Leistung testen",
+"Avisos del launcher en el juego":"Launcher-Hinweise im Spiel",
+"Descarga terminada, actualización lista y copia de seguridad hecha aparecen 5 s en una esquina":"Beendete Downloads, bereite Updates und fertige Sicherungen erscheinen 5 s lang in einer Ecke",
+"Elige una instancia: abre un mundo fijo con su misma versión y sus mods (sin tocar tus mundos), recorre un camino de 30 s y mide FPS medios, el 1 % más bajo y la RAM. Después te dice qué ajustar. Tarda ~1 minuto y se cierra solo":"Wähle eine Instanz: Es öffnet eine feste Welt mit derselben Version und deinen Mods (deine Welten bleiben unberührt), fährt einen 30-s-Pfad ab und misst durchschnittliche FPS, die untersten 1 % und den RAM. Danach sagt es dir, was du anpassen kannst. Dauert etwa eine Minute und schließt sich von selbst",
+"Aplicar recomendaciones":"Empfehlungen anwenden"
 }};

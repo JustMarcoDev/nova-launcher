@@ -1188,5 +1188,9 @@ window.LANGS.fr={name:"Français",d:{
 "Servidores con perfil":"Serveurs avec profil",
 "Ninguno todavía.":"Aucun pour l'instant.",
 ". Arrastra cada elemento para moverlo, tira de la esquina para cambiar su tamaño y pulsa el ojo para mostrarlo u ocultarlo. Se guarda al momento.":". Fais glisser chaque élément pour le déplacer, tire sur le coin pour le redimensionner et appuie sur l'œil pour l'afficher ou le masquer. Enregistré instantanément.",
-"Probar rendimiento":"Tester les performances"
+"Probar rendimiento":"Tester les performances",
+"Avisos del launcher en el juego":"Avis du launcher en jeu",
+"Descarga terminada, actualización lista y copia de seguridad hecha aparecen 5 s en una esquina":"Les téléchargements terminés, mises à jour prêtes et sauvegardes faites s'affichent 5 s dans un coin",
+"Elige una instancia: abre un mundo fijo con su misma versión y sus mods (sin tocar tus mundos), recorre un camino de 30 s y mide FPS medios, el 1 % más bajo y la RAM. Después te dice qué ajustar. Tarda ~1 minuto y se cierra solo":"Choisis une instance : elle ouvre un monde fixe avec la même version et tes mods (tes mondes ne sont jamais touchés), suit un chemin de 30 s et mesure les FPS moyens, le 1 % le plus bas et la RAM. Ensuite elle te dit quoi ajuster. Dure environ une minute et se ferme toute seule",
+"Aplicar recomendaciones":"Appliquer les recommandations"
 }};

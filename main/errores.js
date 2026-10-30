@@ -70,6 +70,7 @@ function scrub(text, names = []) {
 }
 const lastReport = { t: 0 };
 async function sendCrashReport(info) {
+  if (R.novaOff && R.novaOff('reports')) return;
   try {
     const cfg = R.load(); if (cfg.errReports !== true) return false;
     let url = ''; try { url = String(process.env.NOVA_PRESENCE || require('../package.json').novaPresence || '').replace(/\/+$/, ''); } catch {}

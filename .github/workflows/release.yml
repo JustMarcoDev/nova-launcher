@@ -180,6 +180,26 @@ jobs:
           TAG="v${{ steps.v.outputs.version }}"
           node scripts/nova-menu-json.js "${{ steps.v.outputs.version }}"
           gh release upload "$TAG" assets/mods/nova-menu-*.jar dist/nova-menu.json --clobber
+      - name: Firmar nova-menu.json, fondos.json y nova-config.json (ed25519, secreto NOVA_SIGN_KEY)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NOVA_SIGN_KEY: ${{ secrets.NOVA_SIGN_KEY }}
+        run: |
+          # El launcher solo usa estos archivos si traen una firma válida (main/firma.js). Sin el secreto no se firma nada y el launcher usa lo incluido.
+          if [ -z "$NOVA_SIGN_KEY" ]; then echo "::warning::Falta el secreto NOVA_SIGN_KEY: no se firma nada y el launcher ignorará nova-menu.json, fondos.json y nova-config.json (mira «Firma de lo que se descarga» en el README)"; exit 0; fi
+          TAG="v${{ steps.v.outputs.version }}"
+          mkdir -p firmas && cd firmas
+          cp ../dist/nova-menu.json .
+          gh release download recursos -p fondos.json -p nova-config.json --clobber || true
+          [ -f nova-config.json ] || cp ../scripts/nova-config.base.json nova-config.json   # primera vez: todo encendido y sin aviso; después se edita en la release «recursos»
+          FILES="nova-menu.json nova-config.json"; [ -f fondos.json ] && FILES="$FILES fondos.json"
+          node ../scripts/firmar.js firmar $FILES
+          node ../scripts/firmar.js verificar $FILES
+          gh release upload "$TAG" nova-menu.json.sig --clobber
+          gh release upload recursos nova-config.json nova-config.json.sig --clobber
+          [ -f fondos.json ] && gh release upload recursos fondos.json.sig --clobber
+          echo "Firmados: $FILES"
       - name: Poner las notas en la página de la versión
         shell: bash
         env:
