@@ -269,9 +269,9 @@ public final class NovaHud {
         if (e == KEYS) return new int[] { KW, KH };
         if (e == ARMOR) return new int[] { 26 + NovaX.width(mc, "100%") + 10, Math.max(1, NovaX.armor(mc, sample).size()) * 18 + 4 };
         if (e == POTS) {
-            List<NovaX.Eff> L = NovaX.effects(mc, sample);
+            List<NovaXCore.Eff> L = NovaX.effects(mc, sample);
             int w = 0;
-            for (NovaX.Eff f : L.subList(0, Math.min(L.size(), POTS_MAX))) w = Math.max(w, NovaX.width(mc, effLabel(f)) + 6 + NovaX.width(mc, effTime(f)));
+            for (NovaXCore.Eff f : L.subList(0, Math.min(L.size(), POTS_MAX))) w = Math.max(w, NovaX.width(mc, effLabel(f)) + 6 + NovaX.width(mc, effTime(f)));
             return new int[] { 24 + Math.max(w, 60) + 6, Math.max(1, Math.min(L.size(), POTS_MAX)) * 16 + 4 };
         }
         if (e == CLOCK) { String[] c = clockLines(mc, sample); return new int[] { Math.max(NovaX.width(mc, c[0]), NovaX.width(mc, c[1])) + 14, 26 }; }
@@ -328,9 +328,9 @@ public final class NovaHud {
         return n >= 1 && n < r.length ? r[n] : Integer.toString(n);
     }
 
-    static String effLabel(NovaX.Eff f) { return f.name + (f.lvl > 1 ? " " + roman(f.lvl) : ""); }
+    static String effLabel(NovaXCore.Eff f) { return f.name + (f.lvl > 1 ? " " + roman(f.lvl) : ""); }
 
-    static String effTime(NovaX.Eff f) {
+    static String effTime(NovaXCore.Eff f) {
         if (f.secs < 0) return "\u221e";
         return (f.secs / 60) + ":" + (f.secs % 60 < 10 ? "0" : "") + (f.secs % 60);
     }
@@ -351,10 +351,10 @@ public final class NovaHud {
         int[] sz = size(mc, e, sample);
         NovaButton.panel(c, x, y, sz[0], sz[1], 3, 0x9A0C0C14, border());
         if (e == ARMOR) {
-            List<NovaX.Piece> L = NovaX.armor(mc, sample);
+            List<NovaXCore.Piece> L = NovaX.armor(mc, sample);
             if (L.isEmpty()) { NovaX.text(c, mc, "\u2014", x + 8, y + 7, 0xFF8888A8, true); return; }
             for (int i = 0; i < L.size(); i++) {
-                NovaX.Piece p = L.get(i);
+                NovaXCore.Piece p = L.get(i);
                 NovaX.drawItem(c, p.stack, x + 4, y + 2 + i * 18);
                 String t = p.dmg ? p.pct + "%" : "\u221e";
                 NovaX.text(c, mc, t, x + 24, y + 2 + i * 18 + 4, p.dmg ? durColor(p.pct) : 0xFFB8B8D8, true);
@@ -362,11 +362,11 @@ public final class NovaHud {
             return;
         }
         if (e == POTS) {
-            List<NovaX.Eff> L = NovaX.effects(mc, sample);
+            List<NovaXCore.Eff> L = NovaX.effects(mc, sample);
             if (L.isEmpty()) { NovaX.text(c, mc, "\u2014", x + 8, y + 5, 0xFF8888A8, true); return; }
             boolean blink = !NovaAcc.still() && ((System.currentTimeMillis() / 300L) & 1L) == 0;
             for (int i = 0; i < Math.min(L.size(), POTS_MAX); i++) {
-                NovaX.Eff f = L.get(i);
+                NovaXCore.Eff f = L.get(i);
                 boolean low = f.secs >= 0 && f.secs < 10;
                 int yy = y + 2 + i * 16, a = low && blink ? 0x55000000 : 0xFF000000;
                 NovaButton.panel(c, x + 4, yy + 1, 13, 13, 3, a | f.rgb, NovaAcc.hc() ? 0xFFFFFFFF : 0);
