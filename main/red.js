@@ -60,7 +60,6 @@ function rewriteWithMirror(txt) {
 let mirNote = 0;
 function mirrorNotice(u) {
   let h = ''; try { h = new URL(u).host; } catch {}
-  R.mirrorLast = { host: h, t: Date.now() };
   if (Date.now() - mirNote > 60000) { mirNote = Date.now(); try { R.send && R.send('status', 'Usando un servidor alternativo (' + h + ')'); } catch {} }
 }
 const netCache = u => pathx.join(R.root || '', 'cache', 'net', cryptox.createHash('sha1').update(String(u)).digest('hex') + '.bin');

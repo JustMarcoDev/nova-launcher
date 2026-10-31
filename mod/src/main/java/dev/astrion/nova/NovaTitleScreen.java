@@ -4,9 +4,7 @@ import static dev.astrion.nova.NovaLang.tr;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.LogoDrawer;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.multiplayer.MultiplayerScreen;
 import net.minecraft.client.gui.screen.multiplayer.MultiplayerWarningScreen;
 import net.minecraft.client.gui.screen.option.LanguageOptionsScreen;
@@ -20,7 +18,7 @@ import net.minecraft.util.Util;
 /** Pantalla de título de Nova Launcher: Minecraft «versión Nova». */
 public class NovaTitleScreen extends NovaScreen {
     static final Identifier MARK = Identifier.tryParse("nova:textures/gui/mark.png");
-    static boolean loaded, tested;
+    static boolean loaded;
 
     static final String LOADER = System.getProperty("nova.loader", "Nova");
 

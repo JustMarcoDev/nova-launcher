@@ -18,7 +18,6 @@ final class NovaMc {
     /** ¿Se está llamando desde el hilo de render? */
     static boolean onRenderThread() { try { Minecraft mc = Minecraft.getInstance(); return mc != null && mc.isSameThread(); } catch (Throwable t) { return false; } }
     /** Ejecuta algo en el hilo de render. */
-    static void runOnRender(Runnable r) { try { Minecraft.getInstance().execute(r); } catch (Throwable ignored) { } }
     /** ¿Hay conexión a un servidor (y no es un mundo de un jugador)? */
     static boolean online() { try { Minecraft mc = Minecraft.getInstance(); return mc.getConnection() != null && !mc.isLocalServer(); } catch (Throwable t) { return false; } }
     /** UUID de cada jugador de la lista (TAB). */

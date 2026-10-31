@@ -53,9 +53,6 @@ final class NovaToasts {
     /** Milisegundos que lleva el aviso actual en pantalla. */
     static long age(long now) { return now - born; }
 
-    /** Cierra el aviso actual (pulsar en él). */
-    static void dismiss() { cur = null; }
-
     private static void check() throws Exception {
         File d = NovaSettings.dir();
         if (d == null) return;
