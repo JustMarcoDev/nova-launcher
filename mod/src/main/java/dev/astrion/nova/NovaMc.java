@@ -28,4 +28,23 @@ final class NovaMc {
     }
     /** Nombre y dirección del servidor al que se está conectado ({nombre, dirección}) o null. */
     static String[] currentServer() { try { var e = MinecraftClient.getInstance().getCurrentServerEntry(); return e == null ? null : new String[] { e.name, e.address }; } catch (Throwable t) { return null; } }
+
+    // ---- jugador, teclas y opciones que necesita NovaMove ----
+    static boolean hasPlayer() { try { return MinecraftClient.getInstance().player != null; } catch (Throwable t) { return false; } }
+    static boolean isPlayer(Object e) { try { return e != null && e == MinecraftClient.getInstance().player; } catch (Throwable t) { return false; } }
+    /** ¿Hay un jugador en partida sin ninguna pantalla abierta? */
+    static boolean playing() { try { MinecraftClient mc = MinecraftClient.getInstance(); return mc.player != null && mc.currentScreen == null; } catch (Throwable t) { return false; } }
+    static boolean hudEditorOpen() { try { return MinecraftClient.getInstance().currentScreen instanceof NovaHudScreen; } catch (Throwable t) { return false; } }
+    static boolean keyDown(int key) { try { return key > 0 && org.lwjgl.glfw.GLFW.glfwGetKey(MinecraftClient.getInstance().getWindow().getHandle(), key) == org.lwjgl.glfw.GLFW.GLFW_PRESS; } catch (Throwable t) { return false; } }
+    static float playerYaw() { return MinecraftClient.getInstance().player.getYaw(); }
+    static float playerPitch() { return MinecraftClient.getInstance().player.getPitch(); }
+    static void turnPlayer(double dx, double dy) { MinecraftClient.getInstance().player.changeLookDirection(dx, dy); }
+    static boolean playerSprinting() { return MinecraftClient.getInstance().player.isSprinting(); }
+    static boolean playerSneaking() { return MinecraftClient.getInstance().player.isSneaking(); }
+    /** Opciones «alternar sprint / agacharse» de Minecraft. */
+    static boolean optionsReady() { try { return MinecraftClient.getInstance().options != null; } catch (Throwable t) { return false; } }
+    static boolean toggleSprint() { return MinecraftClient.getInstance().options.getSprintToggled().getValue(); }
+    static void toggleSprint(boolean v) { MinecraftClient.getInstance().options.getSprintToggled().setValue(v); }
+    static boolean toggleCrouch() { return MinecraftClient.getInstance().options.getSneakToggled().getValue(); }
+    static void toggleCrouch(boolean v) { MinecraftClient.getInstance().options.getSneakToggled().setValue(v); }
 }

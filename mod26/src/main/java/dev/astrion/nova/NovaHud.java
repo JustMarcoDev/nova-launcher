@@ -276,7 +276,7 @@ public final class NovaHud {
         }
         if (e == CLOCK) { String[] c = clockLines(mc, sample); return new int[] { Math.max(NovaX.width(mc, c[0]), NovaX.width(mc, c[1])) + 14, 26 }; }
         if (e == COMPASS) return new int[] { 132, 24 };
-        if (e == STATE) { int w = 0; List<String[]> st = NovaMove.states(mc, sample); for (String[] z : st) w = Math.max(w, mc.font.width(z[0])); return new int[] { w + 20, st.size() * 11 + 3 }; }
+        if (e == STATE) { int w = 0; List<String[]> st = NovaMove.states(sample); for (String[] z : st) w = Math.max(w, mc.font.width(z[0])); return new int[] { w + 20, st.size() * 11 + 3 }; }
         String[] L = lines(mc, e, sample);
         int w = 0;
         for (String s : L) w = Math.max(w, mc.font.width(s));
@@ -421,7 +421,7 @@ public final class NovaHud {
             return;
         }
         if (e == STATE) {
-            List<String[]> st = NovaMove.states(mc, sample); int[] sz0 = size(mc, e, sample);
+            List<String[]> st = NovaMove.states(sample); int[] sz0 = size(mc, e, sample);
             NovaButton.panel(c, x, y, sz0[0], sz0[1], 3, 0x9A0C0C14, border());
             for (int i = 0; i < st.size(); i++) {
                 boolean on = "1".equals(st.get(i)[1]);
@@ -472,7 +472,7 @@ public final class NovaHud {
             NovaBench.frame(mc);
             NovaPresence.frame(mc);
             NovaServers.frame();
-            NovaMove.tick(mc);
+            NovaMove.tick();
             if (TEST_EDIT && NovaGui.screen(mc) == null && ++testTick == 240) NovaGui.setScreen(mc, new NovaHudScreen(null));   // solo para pruebas (-Dnova.hudedit=1)
             NovaChat.frame(c, mc);
             if (NovaGui.hidden(mc)) return;
@@ -483,7 +483,7 @@ public final class NovaHud {
             NovaFps.frame(c, mc);
             int sw = c.guiWidth(), sh = c.guiHeight();
             for (El e : ALL) {
-                if (!e.on || (e == STATE && NovaMove.states(mc, false).isEmpty()) || (e == ARMOR && NovaX.armor(mc, false).isEmpty()) || (e == POTS && NovaX.effects(mc, false).isEmpty())) continue;
+                if (!e.on || (e == STATE && NovaMove.states(false).isEmpty()) || (e == ARMOR && NovaX.armor(mc, false).isEmpty()) || (e == POTS && NovaX.effects(mc, false).isEmpty())) continue;
                 int[] s = sizeS(mc, e, false), p = pos(e, sw, sh, s[0], s[1]);
                 drawS(c, mc, e, p[0], p[1], false);
             }
