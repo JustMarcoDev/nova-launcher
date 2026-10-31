@@ -1192,5 +1192,7 @@ window.LANGS.fr={name:"Français",d:{
 "Avisos del launcher en el juego":"Avis du launcher en jeu",
 "Descarga terminada, actualización lista y copia de seguridad hecha aparecen 5 s en una esquina":"Les téléchargements terminés, mises à jour prêtes et sauvegardes faites s'affichent 5 s dans un coin",
 "Elige una instancia: abre un mundo fijo con su misma versión y sus mods (sin tocar tus mundos), recorre un camino de 30 s y mide FPS medios, el 1 % más bajo y la RAM. Después te dice qué ajustar. Tarda ~1 minuto y se cierra solo":"Choisis une instance : elle ouvre un monde fixe avec la même version et tes mods (tes mondes ne sont jamais touchés), suit un chemin de 30 s et mesure les FPS moyens, le 1 % le plus bas et la RAM. Ensuite elle te dit quoi ajuster. Dure environ une minute et se ferme toute seule",
-"Aplicar recomendaciones":"Appliquer les recommandations"
+"Aplicar recomendaciones":"Appliquer les recommandations",
+"Enviar estadísticas anónimas de uso":"Envoyer des statistiques d'usage anonymes",
+"Al abrir Minecraft se cuenta un lanzamiento con la versión del launcher, la de Minecraft y el cargador, y un id aleatorio de esta instalación. Nunca se envían nombres, cuentas ni IPs. Apagado de fábrica":"À l'ouverture de Minecraft, un lancement est compté avec la version du launcher, celle de Minecraft et le chargeur, plus un id aléatoire de cette installation. Jamais de noms, de comptes ni d'IP. Désactivé par défaut"
 }};

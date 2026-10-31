@@ -33,3 +33,8 @@ No se guarda nada más que los UUID activos (caducan solos) y tokens de 24 h.
 - `POST /report` — lo envía el launcher (solo si el usuario activa «Enviar informes de error anónimos»). Cuerpo JSON: `id` (32 hex aleatorios por instalación), `launcher`, `mc`, `loader`, `loaderVersion`, `mod`, `cause`, `code` y `log` (últimas 30 líneas, ya sin usuarios, rutas `C:\Users\…`, IPs ni tokens). Máximo **10 informes al día por id**; se guardan en el Durable Object (los 2000 más recientes).
 - `GET /reports?limit=100` — para que los leas tú. Necesita la cabecera `Authorization: Bearer <REPORTS_SECRET>`.
 - Crear el secreto: `npx wrangler secret put REPORTS_SECRET` (sin él, `/reports` responde 401).
+
+## Recuento anónimo de versiones (opcional)
+- El launcher envía `POST /usage` con `{id, launcher, mc, loader}` solo si la persona marcó «Enviar estadísticas anónimas de uso» en Ajustes → Juego (apagada de fábrica) y `nova-config.json` no lleva `"usage"` en `off`. El `id` son 32 hex aleatorios de esa instalación (distintos de los de los informes de error). Nunca se envían nombres, cuentas ni IPs: la IP solo se usa para el límite de peticiones y no se guarda.
+- El Durable Object suma por día los lanzamientos de cada combinación launcher·Minecraft·cargador y las instalaciones distintas (se guardan 90 días).
+- Para leerlo: `npx wrangler secret put USAGE_SECRET` y luego `USAGE_SECRET=… node ../scripts/uso.js [días]` (también `GET /usage-summary?days=30` con `Authorization: Bearer <secreto>`).

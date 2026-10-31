@@ -18,5 +18,7 @@ window.LANGS["es-419"]={name:"Español (Latinoamérica)",d:{
 "Avisos del launcher en el juego":"Avisos del launcher en el juego",
 "Descarga terminada, actualización lista y copia de seguridad hecha aparecen 5 s en una esquina":"Descarga terminada, actualización lista y copia de seguridad hecha aparecen 5 s en una esquina",
 "Elige una instancia: abre un mundo fijo con su misma versión y sus mods (sin tocar tus mundos), recorre un camino de 30 s y mide FPS medios, el 1 % más bajo y la RAM. Después te dice qué ajustar. Tarda ~1 minuto y se cierra solo":"Elige una instancia: abre un mundo fijo con su misma versión y sus mods (sin tocar tus mundos), recorre un camino de 30 s y mide FPS promedio, el 1 % más bajo y la RAM. Después te dice qué ajustar. Tarda ~1 minuto y se cierra solo",
-"Aplicar recomendaciones":"Aplicar recomendaciones"
+"Aplicar recomendaciones":"Aplicar recomendaciones",
+"Enviar estadísticas anónimas de uso":"Enviar estadísticas anónimas de uso",
+"Al abrir Minecraft se cuenta un lanzamiento con la versión del launcher, la de Minecraft y el cargador, y un id aleatorio de esta instalación. Nunca se envían nombres, cuentas ni IPs. Apagado de fábrica":"Al abrir Minecraft se cuenta un lanzamiento con la versión del launcher, la de Minecraft y el cargador, y un id aleatorio de esta instalación. Nunca se envían nombres, cuentas ni IPs. Apagado de fábrica"
 }};

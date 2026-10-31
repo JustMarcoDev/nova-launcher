@@ -1192,5 +1192,7 @@ window.LANGS.en={name:"English (US)",d:{
 "Avisos del launcher en el juego":"Launcher notices in game",
 "Descarga terminada, actualización lista y copia de seguridad hecha aparecen 5 s en una esquina":"Finished downloads, ready updates and completed backups appear for 5 s in a corner",
 "Elige una instancia: abre un mundo fijo con su misma versión y sus mods (sin tocar tus mundos), recorre un camino de 30 s y mide FPS medios, el 1 % más bajo y la RAM. Después te dice qué ajustar. Tarda ~1 minuto y se cierra solo":"Pick an instance: it opens a fixed world with the same version and your mods (your worlds are never touched), follows a 30 s path and measures average FPS, the lowest 1 % and RAM. Then it tells you what to adjust. Takes about a minute and closes by itself",
-"Aplicar recomendaciones":"Apply recommendations"
+"Aplicar recomendaciones":"Apply recommendations",
+"Enviar estadísticas anónimas de uso":"Send anonymous usage statistics",
+"Al abrir Minecraft se cuenta un lanzamiento con la versión del launcher, la de Minecraft y el cargador, y un id aleatorio de esta instalación. Nunca se envían nombres, cuentas ni IPs. Apagado de fábrica":"When Minecraft opens, one launch is counted with the launcher version, the Minecraft version and the loader, plus a random id for this installation. Names, accounts and IPs are never sent. Off by default"
 }};

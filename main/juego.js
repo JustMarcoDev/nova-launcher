@@ -191,7 +191,7 @@ async function playGame(opts) {
     discordSet({ details: 'Preparando Minecraft ' + ins.mc, state: (ins.ld || 'Vanilla') + ' · Nova Launcher', startTimestamp: Date.now() });
     send('status', 'Descargando archivos del juego…');
     if (!(proc = await l.launch(o))) throw new Error('No se pudo iniciar Minecraft');
-    running.add(id); t0 = Date.now(); try { sk = statsStart(ins, server); } catch {} upIns(id, { lastPlayed: t0 });
+    running.add(id); t0 = Date.now(); try { sk = statsStart(ins, server); } catch {} if (!ins.bench) { try { R.sendUsage(ins); } catch {} } upIns(id, { lastPlayed: t0 });
     send('running', 1); discordSet({ details: server && server.name ? 'En ' + server.name + ' · ' + ins.mc : 'Jugando a Minecraft ' + ins.mc, state: (ins.ld || 'Vanilla') + ' · Nova Launcher', startTimestamp: Date.now() }); send('status', 'Minecraft en ejecución'); if (cfg.closeOnLaunch) S.win.hide(); else if (cfg.gameMode !== false && cfg.conOpen === false) gameHide();
     return { ok: true };
   } catch (err) { send('status', 'Error: ' + err.message); send('progress', null); return { ok: false }; }
