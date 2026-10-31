@@ -144,6 +144,7 @@ public class NovaTitleScreen extends NovaScreen {
         String forced = System.getProperty("nova.panel", "");
         if (!forced.isEmpty() && !tested2) { tested2 = true; panel = forced.equals("nova") ? 2 : forced.equals("profile") ? 1 : forced.equals("skins") ? 3 : forced.equals("servers") ? 4 : forced.equals("mods") ? 5 : 0; }
         labels.clear();
+        if (panel == 0 && NovaGuide.due()) NovaGuide.start();   // primera vez: guía de 5 pasos
         int cx = width / 2;
         int bw = Math.min(124, width - 20), bh = 16, gap = 3;
         int ly = ly();
@@ -474,6 +475,9 @@ public class NovaTitleScreen extends NovaScreen {
         y += d + 5;
         addDrawableChild(new NovaButton(x, y, w, ib, Text.literal(tr("Ajustes del launcher")), NovaGfx.I_GEAR, NovaButton.NORMAL, b -> NovaMark.say("SETTINGS"))
                 .tip(tr("Ajustes del launcher"), tr("Abre Nova Launcher")));
+        y += ib + gap;
+        addDrawableChild(new NovaButton(x, y, w, ib, Text.literal(tr("Ver guía")), NovaGfx.I_PLAY, NovaButton.NORMAL, b -> { closeNova(false); NovaGuide.start(); })
+                .tip(tr("Ver guía"), tr("Repite la guía de primera vez")));
         y += ib + gap;
         addDrawableChild(new NovaButton(x, y, w, ib, Text.literal(tr("Editar HUD")), NovaGfx.I_EDIT, NovaButton.NORMAL, b -> client.setScreen(new NovaHudScreen(this)))
                 .tip(tr("Editar HUD"), tr("Mueve FPS, CPS, coordenadas y teclas")));
@@ -832,6 +836,7 @@ public class NovaTitleScreen extends NovaScreen {
 
     @Override
     protected boolean nClick(double mx, double my, int button) {
+        if (NovaGuide.active()) return NovaGuideView.click(mx, my);
         if (button == 0 && newsClick(mx, my)) return true;
         if (modal()) {   // los paneles de Nova y de skins son modales: un clic fuera los cierra (el de Nova, sin guardar)
             if (inPanel(mx, my)) { clickTopmost(mx, my, button); return true; }
@@ -854,6 +859,7 @@ public class NovaTitleScreen extends NovaScreen {
 
     @Override
     protected boolean nKey(int key, int scan, int mods) {
+        if (NovaGuide.active()) return NovaGuideView.key(key);
         if (editing != null) {
             if (key == 257 || key == 335) { commitName(editing); return true; }
             if (key == 256) { editing = null; clearAndInit(); return true; }
@@ -870,6 +876,7 @@ public class NovaTitleScreen extends NovaScreen {
 
     @Override
     protected boolean nChar(char chr, int mods) {
+        if (NovaGuide.active()) return true;
         if (editing != null) {
             if (chr >= 32 && chr != 127 && buf.length() < 28) { buf.append(chr); clearAndInit(); }
             return true;
@@ -968,7 +975,8 @@ public class NovaTitleScreen extends NovaScreen {
         txt(c, n, width - 7, height - 14, 6.5f, 0xB8FFFFFF, true, 1);
         if (!modal()) txt(c, tr("Sin afiliación, respaldo ni distribución de Mojang o Microsoft"), width / 2, height - 10, 5.5f, 0x58FFFFFF, false, 2);
         drawNews(c, mx, my);
-        tooltip(c);
+        if (NovaGuide.active()) NovaGuideView.render(c, client, children(), width, height, mx, my, delta);
+        else tooltip(c);
     }
 
     void tooltip(DrawContext c) {
