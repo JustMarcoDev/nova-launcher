@@ -471,7 +471,7 @@ public final class NovaHud {
             NovaHud.syncServer(mc);
             NovaBench.frame(mc);
             NovaPresence.frame(mc);
-            NovaServers.frame(mc);
+            NovaServers.frame();
             NovaMove.tick(mc);
             if (TEST_EDIT && NovaGui.screen(mc) == null && ++testTick == 240) NovaGui.setScreen(mc, new NovaHudScreen(null));   // solo para pruebas (-Dnova.hudedit=1)
             NovaChat.frame(c, mc);

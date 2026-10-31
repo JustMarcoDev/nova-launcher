@@ -26,4 +26,6 @@ final class NovaMc {
         try { for (PlayerListEntry e : MinecraftClient.getInstance().getNetworkHandler().getPlayerList()) { try { out.add(NovaPresence.uuid(e)); } catch (Throwable ignored) { } } } catch (Throwable ignored) { }
         return out;
     }
+    /** Nombre y dirección del servidor al que se está conectado ({nombre, dirección}) o null. */
+    static String[] currentServer() { try { var e = MinecraftClient.getInstance().getCurrentServerEntry(); return e == null ? null : new String[] { e.name, e.address }; } catch (Throwable t) { return null; } }
 }

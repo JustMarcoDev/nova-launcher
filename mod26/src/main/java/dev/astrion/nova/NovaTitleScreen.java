@@ -635,7 +635,7 @@ public class NovaTitleScreen extends NovaScreen {
             pings.add(new Object[] { last.addr, x + w - jw - 8, y + 6 });
             final NovaServers.Srv ls = last;
             addRenderableWidget(new NovaButton(x + w - jw - 2, y + 2, jw, 16, Component.literal(tr("Entrar")), NovaGfx.I_PLAY, NovaButton.PRIMARY,
-                    b -> NovaServers.join(minecraft, this, ls)).tip(tr("Entrar"), tr("Conecta directamente a este servidor")));
+                    b -> NovaConnect.connect(minecraft, this, ls.name, ls.addr)).tip(tr("Entrar"), tr("Conecta directamente a este servidor")));
         }
         y += 20 + 6;
         labels.add(new Object[] { tr("FAVORITOS DEL LAUNCHER"), x, y, 5.6f, 0xFF9A9AC0, true, 0 });
@@ -645,10 +645,10 @@ public class NovaTitleScreen extends NovaScreen {
         for (int i = svScroll; i < Math.min(F.size(), svScroll + rows); i++) {
             final NovaServers.Srv f = F.get(i);
             addRenderableWidget(new NovaButton(x, y, w - jw - 2 - 78, ib, Component.literal(shorten(f.name, 18)), NovaGfx.I_SERVER, NovaButton.NORMAL,
-                    b -> NovaServers.join(minecraft, this, f)).tip(shorten(f.name, 26), tr("Entrar a {0}", f.addr)));
+                    b -> NovaConnect.connect(minecraft, this, f.name, f.addr)).tip(shorten(f.name, 26), tr("Entrar a {0}", f.addr)));
             pings.add(new Object[] { f.addr, x + w - jw - 6, y + 4 });
             addRenderableWidget(new NovaButton(x + w - jw, y, jw, ib, Component.literal(tr("Entrar")), NovaGfx.I_PLAY, NovaButton.PRIMARY,
-                    b -> NovaServers.join(minecraft, this, f)).tip(tr("Entrar"), tr("Conecta directamente a este servidor")));
+                    b -> NovaConnect.connect(minecraft, this, f.name, f.addr)).tip(tr("Entrar"), tr("Conecta directamente a este servidor")));
             y += 17;
         }
     }

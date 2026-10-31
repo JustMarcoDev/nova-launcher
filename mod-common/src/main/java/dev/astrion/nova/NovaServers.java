@@ -18,13 +18,12 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
 
 /**
  * Servidores en el menú de Nova: el último en el que entraste, tus favoritos («Mis servidores» del launcher) y su ping.
  * El launcher deja la lista en <nova.dir>/servers.json; el mod apunta el último servidor en <nova.dir>/last-server.json y mide el ping él mismo
  * (el «Server List Ping» oficial del juego, sin depender de que el launcher esté mirando).
+ * Código común: lo único de Minecraft (¿hay servidor?, su nombre y dirección) viene de NovaMc; entrar al servidor lo hace NovaConnect en cada proyecto.
  */
 public final class NovaServers {
     private NovaServers() { }
@@ -92,19 +91,19 @@ public final class NovaServers {
     }
 
     /** Se llama en cada fotograma con un mundo abierto: si se está en un servidor, se apunta como el último. */
-    public static void frame(MinecraftClient mc) {
+    public static void frame() {
         try {
-            if (mc.isInSingleplayer() || mc.getNetworkHandler() == null) return;
-            var e = mc.getCurrentServerEntry();
-            if (e == null || e.address == null || e.address.isBlank()) return;
-            String a = e.address.trim();
+            if (!NovaMc.online()) return;
+            String[] e = NovaMc.currentServer();   // {nombre, dirección}
+            if (e == null || e[1] == null || e[1].isBlank()) return;
+            String a = e[1].trim();
             if (a.equals(written)) return;
             written = a;
             File f = file("last-server.json");
             if (f == null) return;
             f.getParentFile().mkdirs();
             JsonObject o = new JsonObject();
-            o.addProperty("name", e.name == null || e.name.isBlank() || e.name.equals("Minecraft Server") ? a : e.name);
+            o.addProperty("name", e[0] == null || e[0].isBlank() || e[0].equals("Minecraft Server") ? a : e[0]);
             o.addProperty("address", a);
             o.addProperty("ts", System.currentTimeMillis());
             Files.write(f.toPath(), o.toString().getBytes(StandardCharsets.UTF_8));
@@ -188,10 +187,5 @@ public final class NovaServers {
         int n = 0, shift = 0, b;
         do { b = in.readUnsignedByte(); n |= (b & 0x7F) << shift; shift += 7; if (shift > 35) throw new java.io.IOException(); } while ((b & 0x80) != 0);
         return n;
-    }
-
-    /** Entra directamente al servidor (sin pasar por la lista de Multijugador). */
-    public static void join(MinecraftClient mc, Screen parent, Srv s) {
-        NovaConnect.connect(mc, parent, s.name, s.addr);
     }
 }
