@@ -1,7 +1,7 @@
 // =====================================================================================
 // Nova Launcher · main/mundos.js
 // Mundos de cada instancia y último mundo jugado
-// (Parte del proceso principal; main.js carga todos los módulos. Mira «Estructura» en el README.)
+// (Parte del proceso principal; main.js carga todos los módulos. Mira «Estructura del proyecto» en el README.)
 // =====================================================================================
 const { clipboard, dialog, ipcMain, nativeImage, shell } = require('electron');
 const fs = require('fs');

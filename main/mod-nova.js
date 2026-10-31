@@ -1,7 +1,7 @@
 // =====================================================================================
 // Nova Launcher · main/mod-nova.js
 // Menú de Nova dentro del juego: mod, fondos propios, vídeo de fondo y actualización del mod
-// (Parte del proceso principal; main.js carga todos los módulos. Mira «Estructura» en el README.)
+// (Parte del proceso principal; main.js carga todos los módulos. Mira «Estructura del proyecto» en el README.)
 // =====================================================================================
 const { app, dialog, ipcMain } = require('electron');
 const fs = require('fs');

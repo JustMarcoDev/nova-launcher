@@ -134,7 +134,7 @@ jobs:
           npx --yes esbuild@0.25.0 js/*.js --minify --allow-overwrite --outdir=js
           npx --yes esbuild@0.25.0 lang/*.js --minify --allow-overwrite --outdir=lang
           npx --yes esbuild@0.25.0 css/style.css --minify --allow-overwrite --outfile=css/style.css
-      - name: Crear notas de la versión desde el README
+      - name: Crear notas de la versión desde el CHANGELOG
         shell: bash
         run: node scripts/release-notes.js "${{ steps.v.outputs.version }}" > release-notes.md
       - name: Borrar restos de un intento anterior de esta misma versión
@@ -153,7 +153,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Firma de código (opcional): si existen estos secretos, el instalador y la app salen firmados y Windows SmartScreen no avisa.
-          # CSC_LINK = el certificado .pfx en base64; CSC_KEY_PASSWORD = su contraseña. Mira «Firma del instalador» en el README.
+          # CSC_LINK = el certificado .pfx en base64; CSC_KEY_PASSWORD = su contraseña. Mira «Firma del instalador» en docs/GUIA.md.
           CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
         run: |
@@ -193,7 +193,7 @@ jobs:
           NOVA_SIGN_KEY: ${{ secrets.NOVA_SIGN_KEY }}
         run: |
           # El launcher solo usa estos archivos si traen una firma válida (main/firma.js). Sin el secreto no se firma nada y el launcher usa lo incluido.
-          if [ -z "$NOVA_SIGN_KEY" ]; then echo "::warning::Falta el secreto NOVA_SIGN_KEY: no se firma nada y el launcher ignorará nova-menu.json, fondos.json y nova-config.json (mira «Firma de lo que se descarga» en el README)"; exit 0; fi
+          if [ -z "$NOVA_SIGN_KEY" ]; then echo "::warning::Falta el secreto NOVA_SIGN_KEY: no se firma nada y el launcher ignorará nova-menu.json, fondos.json y nova-config.json (mira «Firma de lo que se descarga» en docs/GUIA.md)"; exit 0; fi
           TAG="v${{ steps.v.outputs.version }}"
           mkdir -p firmas && cd firmas
           cp ../dist/nova-menu.json .

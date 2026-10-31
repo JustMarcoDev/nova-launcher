@@ -1,7 +1,7 @@
 // =====================================================================================
 // Nova Launcher · main/actualizaciones.js
 // Actualizaciones del launcher: canal beta, instalar, versiones anteriores
-// (Parte del proceso principal; main.js carga todos los módulos. Mira «Estructura» en el README.)
+// (Parte del proceso principal; main.js carga todos los módulos. Mira «Estructura del proyecto» en el README.)
 // =====================================================================================
 const { app, ipcMain, shell } = require('electron');
 const fs = require('fs');

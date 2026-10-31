@@ -58,6 +58,7 @@
       "!servidor/**",
       "!*.bat",
       "!README.md",
+      "!CHANGELOG.md",
       "!assets/discord-logo.png",
       "!assets/nova-earth.nvb",
       "!assets/nova-nebulosa.nvb",

@@ -1,7 +1,7 @@
 // =====================================================================================
 // Nova Launcher · main/sistema.js
 // Sistema: iconos, accesos directos, bandeja, avisos, portapapeles, capturas y diagnóstico
-// (Parte del proceso principal; main.js carga todos los módulos. Mira «Estructura» en el README.)
+// (Parte del proceso principal; main.js carga todos los módulos. Mira «Estructura del proyecto» en el README.)
 // =====================================================================================
 const { Notification, app, clipboard, dialog, ipcMain, nativeImage, shell } = require('electron');
 const { pathToFileURL } = require('url');

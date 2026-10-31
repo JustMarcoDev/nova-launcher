@@ -1,7 +1,7 @@
 // =====================================================================================
 // Nova Launcher · main/discord.js
 // Discord Rich Presence
-// (Parte del proceso principal; main.js carga todos los módulos. Mira «Estructura» en el README.)
+// (Parte del proceso principal; main.js carga todos los módulos. Mira «Estructura del proyecto» en el README.)
 // =====================================================================================
 const { app, ipcMain } = require('electron');
 const { R } = require('./compartido');

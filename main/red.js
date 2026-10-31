@@ -1,7 +1,7 @@
 // =====================================================================================
 // Nova Launcher · main/red.js
 // Red: fetch con avisos claros, get/post, ejecutar comandos y comprobar si hay conexión
-// (Parte del proceso principal; main.js carga todos los módulos. Mira «Estructura» en el README.)
+// (Parte del proceso principal; main.js carga todos los módulos. Mira «Estructura del proyecto» en el README.)
 // =====================================================================================
 const { app, ipcMain } = require('electron');
 const { execFile } = require('child_process');

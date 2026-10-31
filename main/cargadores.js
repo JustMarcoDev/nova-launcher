@@ -1,7 +1,7 @@
 // =====================================================================================
 // Nova Launcher · main/cargadores.js
 // Cargadores (Fabric, Forge, NeoForge): listas de versiones y preparación
-// (Parte del proceso principal; main.js carga todos los módulos. Mira «Estructura» en el README.)
+// (Parte del proceso principal; main.js carga todos los módulos. Mira «Estructura del proyecto» en el README.)
 // =====================================================================================
 const fs = require('fs');
 const path = require('path');

@@ -6,10 +6,10 @@ const ver = String(process.argv[2] || require('../package.json').version).replac
 const repo = 'JustMarcoDev/nova-launcher', dir = path.join(__dirname, '..', 'assets', 'mods');
 let minLauncher = null;
 try { minLauncher = fs.readFileSync(path.join(__dirname, '..', 'mod', 'min-launcher.txt'), 'utf8').trim() || null; } catch {}
-// Notas para la tarjeta «Novedades de Nova» del mod: la entrada de esta versión en el Historial del README, en texto plano y corto
+// Notas para la tarjeta «Novedades de Nova» del mod: la entrada de esta versión en el CHANGELOG.md, en texto plano y corto
 function notas() {
   try {
-    const md = fs.readFileSync(path.join(__dirname, '..', 'README.md'), 'utf8'), esc = x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const md = fs.readFileSync(path.join(__dirname, '..', 'CHANGELOG.md'), 'utf8'), esc = x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     for (const v of [ver, ver.split('-')[0]]) {
       const m = new RegExp('^###\\s+' + esc(v) + '\\b([^\\n]*)\\n([\\s\\S]*?)(?=^###\\s|^##\\s|(?![\\s\\S]))', 'm').exec(md);
       if (!m) continue;

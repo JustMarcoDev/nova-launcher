@@ -48,7 +48,7 @@ for (const f of fs.readdirSync(path.join(root, 'lang')).filter(x => x.endsWith('
 const pkg = JSON.parse(rd('package.json'));
 if (!/^\d+\.\d+\.\d+(-[0-9A-Za-z.]+)?$/.test(pkg.version)) bad('versión no válida: ' + pkg.version);
 const nt = cp.spawnSync(process.execPath, [path.join(root, 'scripts/release-notes.js'), pkg.version], { encoding: 'utf8' }).stdout;
-if (/No hay una entrada/.test(nt)) bad('el README no tiene la entrada de la versión ' + pkg.version);
+if (/No hay una entrada/.test(nt)) bad('CHANGELOG.md no tiene la entrada de la versión ' + pkg.version);
 const ver = (rd('js/base.js').match(/let VER="([^"]+)"/) || [])[1];
 if (ver !== pkg.version) bad('VER en js/base.js (' + ver + ') no coincide con package.json (' + pkg.version + ')');
 

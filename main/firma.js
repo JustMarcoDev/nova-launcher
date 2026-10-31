@@ -2,7 +2,7 @@
 // Nova Launcher · main/firma.js
 // Comprobación de firmas (ed25519, crypto de Node) de lo que el launcher descarga: nova-menu.json, fondos.json y nova-config.json.
 // La clave PRIVADA nunca está en el repositorio: es el secreto NOVA_SIGN_KEY de GitHub (scripts/firmar.js firma con ella en release.yml).
-// Aquí solo está la clave PÚBLICA. Para cambiar de clave mira «Firma de lo que se descarga» en el README.
+// Aquí solo está la clave PÚBLICA. Para cambiar de clave mira «Firma de lo que se descarga» en docs/GUIA.md.
 // =====================================================================================
 const crypto = require('crypto');
 
