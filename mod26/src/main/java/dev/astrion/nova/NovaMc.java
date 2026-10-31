@@ -1,5 +1,6 @@
 package dev.astrion.nova;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -47,4 +48,8 @@ final class NovaMc {
     static void toggleSprint(boolean v) { Minecraft.getInstance().options.toggleSprint().set(v); }
     static boolean toggleCrouch() { return Minecraft.getInstance().options.toggleCrouch().get(); }
     static void toggleCrouch(boolean v) { Minecraft.getInstance().options.toggleCrouch().set(v); }
+
+    /** Tecla de zoom de fábrica (C) y nombre con que se guarda en menu.json (las versiones con SDL usan otro código de teclas). */
+    static int defaultZoomKey() { return InputConstants.KEY_C; }
+    static String keyProp() { return NovaVer.KEY; }
 }

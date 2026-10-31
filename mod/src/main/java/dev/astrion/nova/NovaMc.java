@@ -47,4 +47,8 @@ final class NovaMc {
     static void toggleSprint(boolean v) { MinecraftClient.getInstance().options.getSprintToggled().setValue(v); }
     static boolean toggleCrouch() { return MinecraftClient.getInstance().options.getSneakToggled().getValue(); }
     static void toggleCrouch(boolean v) { MinecraftClient.getInstance().options.getSneakToggled().setValue(v); }
+
+    /** Tecla de zoom de fábrica (C) y nombre con que se guarda en menu.json (las versiones con SDL usan otro código de teclas). */
+    static int defaultZoomKey() { return 67; }
+    static String keyProp() { return "key"; }
 }
