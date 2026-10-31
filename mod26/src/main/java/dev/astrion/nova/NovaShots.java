@@ -3,7 +3,6 @@ package dev.astrion.nova;
 import static dev.astrion.nova.NovaLang.tr;
 
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.util.function.Consumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;

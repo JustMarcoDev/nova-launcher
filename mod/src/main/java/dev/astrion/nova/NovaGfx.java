@@ -2,7 +2,6 @@ package dev.astrion.nova;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import net.minecraft.client.MinecraftClient;

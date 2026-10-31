@@ -18,7 +18,7 @@ import net.minecraft.util.Util;
 /** Pantalla de título de Nova Launcher: Minecraft «versión Nova». */
 public class NovaTitleScreen extends NovaScreen {
     static final Identifier MARK = Identifier.tryParse("nova:textures/gui/mark.png");
-    static boolean loaded, tested;
+    static boolean loaded;
 
     static final String LOADER = System.getProperty("nova.loader", "Nova");
 
