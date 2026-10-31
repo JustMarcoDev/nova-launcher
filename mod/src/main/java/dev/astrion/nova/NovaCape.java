@@ -12,10 +12,8 @@ import net.minecraft.util.Identifier;
 public final class NovaCape {
     private NovaCape() { }
 
-    private static final Identifier ID = Identifier.tryParse("nova:textures/cape/nova.png");
+    private static final Identifier ID = Identifier.tryParse("nova:" + NovaCapeCore.TEXTURE);
     private static boolean reg;
-    /** Solo para pruebas (-Dnova.cape.test=1): todos los jugadores llevan la capa aunque no haya servidor de presencia. */
-    private static final boolean TEST = System.getProperty("nova.cape.test") != null;
 
     /** Textura de la capa (se registra la primera vez, en el hilo de render), o null si aún no se puede. */
     public static Identifier id() {
@@ -24,19 +22,12 @@ public final class NovaCape {
                 MinecraftClient mc = MinecraftClient.getInstance();
                 if (mc == null || !mc.isOnThread()) return null;
                 reg = true;
-                NovaTitleScreen.reg(mc, "textures/cape/nova.png");
+                NovaTitleScreen.reg(mc, NovaCapeCore.TEXTURE);
             } catch (Throwable t) { return null; }
         }
         return ID;
     }
 
     /** ¿Debe llevar la capa de Nova este jugador de la lista? */
-    public static boolean wants(PlayerListEntry e) {
-        if (NovaOff.has("cape")) return false;
-        try {
-            NovaSettings.load();   // solo lee el archivo la primera vez
-            if (!NovaSettings.showCape) return false;
-            return TEST || NovaPresence.has(e);
-        } catch (Throwable t) { return false; }
-    }
+    public static boolean wants(PlayerListEntry e) { return NovaCapeCore.wants(() -> NovaPresence.has(e)); }
 }
