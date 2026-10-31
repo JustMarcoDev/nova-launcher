@@ -95,7 +95,7 @@ public class NovaButton extends NovaButtonBase {
                 NovaGfx.ok = false;
             }
         }
-        int acc = style == DANGER ? 0xFFFF4D5E : NovaGfx.accent;
+        int acc = style == DANGER ? 0xFFFF4D5E : NovaGfxCore.accent;
         if (swatch != 0) { panel(c, x, y, w, h, Math.min(w, h) / 2, 0xFF000000 | swatch, swatchOn ? 0xFFFFFFFF : 0); return; }
         int r = style == PRIMARY ? 8 : Math.min(6, h / 3);
         if (glow > 0.02f) panel(c, x - 2, y - 2, w + 4, h + 4, r + 2, ((int) (0x38 * glow) << 24) | (acc & 0xFFFFFF), 0);
