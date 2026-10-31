@@ -32,6 +32,10 @@ Detalles (firma, certificado, fondos, beta, secretos): [docs/GUIA.md](docs/GUIA.
 
 Nova Launcher es un proyecto independiente de **Astrion Studio**. © 2026 Astrion Studio. No está afiliado, aprobado ni patrocinado por Mojang Studios ni por Microsoft. Minecraft es una marca registrada de Mojang Studios.
 
+## Importante: el historial de Git se reescribió (0.2.16-beta.14)
+
+Se quitaron del historial los archivos pesados que ya no van en Git (`*.nvb` y `assets/mods/*.jar`) para que el repositorio pese unos 20 MB en vez de 130 MB. Los hashes de los commits cambiaron, así que **hay que volver a clonar** el repositorio (o, si tienes una copia vieja, borrarla y hacer `git clone` de nuevo). No intentes hacer `git pull` sobre la copia antigua. El código de la rama `main` no cambió.
+
 ## Historial
 
 Todos los cambios, versión a versión, en [CHANGELOG.md](CHANGELOG.md).
