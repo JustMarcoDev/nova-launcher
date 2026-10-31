@@ -42,6 +42,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: ${{ matrix.v.tree == 'mod26' && '9.8.0' || '8.14.3' }}
+          cache-disabled: true   # la caché de Gradle a veces llega incompleta («Could not find …jar») y tumba una versión suelta
       - name: Instalar xvfb, Mesa y ImageMagick
         run: |
           sudo apt-get update -q
