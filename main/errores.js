@@ -87,5 +87,26 @@ async function sendCrashReport(info) {
   } catch { return false; }
 }
 
+// ---- Recuento anónimo de versiones (casilla «Enviar estadísticas anónimas de uso», apagada de fábrica; se apaga a distancia con off: «usage») ----
+// Solo viaja {id aleatorio de esta instalación (distinto del de los informes), versión del launcher, de Minecraft y cargador}: nunca nombres, cuentas ni IPs.
+function usageId() {
+  const f = path.join(root, 'usage-id.txt');
+  try { const t = fs.readFileSync(f, 'utf8').trim(); if (/^[0-9a-f]{32}$/.test(t)) return t; } catch {}
+  const id = crypto.randomBytes(16).toString('hex');
+  try { fs.mkdirSync(root, { recursive: true }); fs.writeFileSync(f, id); } catch {}
+  return id;
+}
+async function sendUsage(ins) {
+  try {
+    if (R.novaOff && R.novaOff('usage')) return false;
+    if (R.load().usage !== true || !ins) return false;
+    let url = ''; try { url = String(process.env.NOVA_PRESENCE || require('../package.json').novaPresence || '').replace(/\/+$/, ''); } catch {}
+    if (!/^https:\/\//.test(url)) return false;
+    const body = { id: usageId(), launcher: app.getVersion(), mc: String(ins.mc || '').slice(0, 30), loader: ['Vanilla', 'Fabric', 'Forge', 'NeoForge'].includes(ins.ld) ? ins.ld : (ins.ld ? 'otro' : 'Vanilla') };
+    const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 6000);
+    try { const r = await fetch(url + '/usage', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), signal: ctl.signal }); return r.ok; } finally { clearTimeout(tm); }
+  } catch { return false; }
+}
+
 // Lo que usan otros módulos
-Object.assign(R, { logErr, withLog, sendCrashReport, scrubReport: scrub });
+Object.assign(R, { logErr, withLog, sendCrashReport, sendUsage, scrubReport: scrub });

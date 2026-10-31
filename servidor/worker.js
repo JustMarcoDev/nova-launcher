@@ -26,6 +26,7 @@ const ACTIVE_MS = 120000, TOKEN_MS = 86400000, WINDOW_MS = 60000;
 const MAX_UUIDS = 100, REPORTS_PER_DAY = 10, MAX_REPORTS = 2000;
 const clip = (v, n) => String(v == null ? '' : v).slice(0, n);
 
+const MAX_COMBOS = 300, MAX_USAGE_IDS = 5000, USAGE_DAYS = 90;   // límites del recuento anónimo
 export class Presence extends DurableObject {
   constructor(ctx, env) {
     super(ctx, env);
@@ -66,6 +67,22 @@ export class Presence extends DurableObject {
     for (const key of (await this.ctx.storage.list({ prefix: 'd:' })).keys()) if (!key.endsWith(':' + day)) await this.ctx.storage.delete(key);
     return true;
   }
+  // Recuento anónimo de lanzamientos: por día, cuántos lanzamientos hubo de cada combinación launcher·Minecraft·cargador y cuántas instalaciones distintas
+  async usage(id, key) {
+    const day = new Date().toISOString().slice(0, 10), dk = 'u:' + day;
+    const u = (await this.ctx.storage.get(dk)) || { n: 0, combos: {}, ids: [] };
+    if (!(key in u.combos) && Object.keys(u.combos).length >= MAX_COMBOS) key = 'otros';
+    u.n++; u.combos[key] = (u.combos[key] || 0) + 1;
+    if (u.ids.length < MAX_USAGE_IDS && !u.ids.includes(id)) u.ids.push(id);
+    await this.ctx.storage.put(dk, u);
+    const old = [...(await this.ctx.storage.list({ prefix: 'u:' })).keys()];
+    for (const k of old.slice(0, Math.max(0, old.length - USAGE_DAYS))) await this.ctx.storage.delete(k);
+    return true;
+  }
+  async usageSummary(days) {
+    const l = await this.ctx.storage.list({ prefix: 'u:', reverse: true, limit: days });
+    return [...l.entries()].map(([k, v]) => ({ day: k.slice(2), launches: v.n, installs: v.ids.length, combos: v.combos })).reverse();
+  }
   async reports(limit) {
     const l = await this.ctx.storage.list({ prefix: 'r:', reverse: true, limit });
     return [...l.values()];
@@ -98,6 +115,12 @@ export default {
         if (!env.REPORTS_SECRET || auth !== 'Bearer ' + env.REPORTS_SECRET) return J({ error: 'no autorizado' }, 401);
         if (!await room.hit(ip, '')) return J({ error: 'limite' }, 429, { 'retry-after': '60' });
         return J({ reports: await room.reports(Math.min(500, +url.searchParams.get('limit') || 100)) });
+      }
+      if (p === '/usage-summary' && req.method === 'GET') {  // solo para quien tenga el secreto (wrangler secret put USAGE_SECRET)
+        const auth = req.headers.get('authorization') || '';
+        if (!env.USAGE_SECRET || auth !== 'Bearer ' + env.USAGE_SECRET) return J({ error: 'no autorizado' }, 401);
+        if (!await room.hit(ip, '')) return J({ error: 'limite' }, 429, { 'retry-after': '60' });
+        return J({ days: await room.usageSummary(Math.min(USAGE_DAYS, +url.searchParams.get('days') || 30)) });
       }
       if (req.method !== 'POST') return J({ error: 'nope' }, 404);
       const b = await req.json().catch(() => ({}));
@@ -135,6 +158,14 @@ export default {
         if (!UUID.test(id) || !Array.isArray(b.log)) return J({ error: 'datos' }, 400);
         const ok = await room.report(id, { launcher: clip(b.launcher, 30), mc: clip(b.mc, 30), loader: clip(b.loader, 20), loaderVersion: clip(b.loaderVersion, 30), mod: clip(b.mod, 30), cause: clip(b.cause, 200), code: +b.code || 0, log: b.log.slice(-30).map(l => clip(l, 400)) });
         return ok ? J({ ok: true }) : J({ error: 'limite diario' }, 429);
+      }
+      if (p === '/usage') {   // {id: 32 hex aleatorios, launcher, mc, loader}: nada más (ni nombres, ni cuentas; la IP solo sirve para el límite de peticiones y no se guarda)
+        const id = String(b.id || '');
+        if (!/^[0-9a-f]{32}$/.test(id)) return J({ error: 'datos' }, 400);
+        const launcher = /^[\w.-]{1,30}$/.test(String(b.launcher || '')) ? String(b.launcher) : '?', mc = /^[\w.-]{1,30}$/.test(String(b.mc || '')) ? String(b.mc) : '?';
+        const loader = ['Vanilla', 'Fabric', 'Forge', 'NeoForge'].includes(b.loader) ? b.loader : 'otro';
+        await room.usage(id, launcher + '|' + mc + '|' + loader);
+        return J({ ok: true });
       }
       if (p === '/query') {
         const list = (Array.isArray(b.uuids) ? b.uuids : []).slice(0, MAX_UUIDS).map(norm).filter(u => UUID.test(u));

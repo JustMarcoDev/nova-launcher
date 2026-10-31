@@ -149,7 +149,7 @@ async function firmadoCache(name, url, ttl, retry, key = '') {   // url puede se
 }
 
 // ===== Interruptores a distancia (nova-config.json, firmado) =====
-// {"off": ["presence","cape","bench","modUpdate","toasts","reports"], "minMod": "0.2.16", "minLauncher": "0.2.16",
+// {"off": ["presence","cape","bench","modUpdate","toasts","reports","usage"], "minMod": "0.2.16", "minLauncher": "0.2.16",
 //  "aviso": {"id": "...", "texto": "...", "nivel": "info|aviso|error", "hasta": "2026-12-31"}}
 // Se lee al abrir con caché de 1 h. Sin conexión se usa la última copia (comprobando la firma otra vez) y, si no hay ninguna, todo queda encendido.
 const CFG_URL = 'https://github.com/' + UPD.owner + '/' + UPD.repo + '/releases/download/recursos/nova-config.json';
