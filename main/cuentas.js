@@ -1,7 +1,7 @@
 // =====================================================================================
 // Nova Launcher · main/cuentas.js
 // Cuentas Microsoft y offline (sesiones cifradas)
-// (Parte del proceso principal; main.js carga todos los módulos. Mira «Estructura» en el README.)
+// (Parte del proceso principal; main.js carga todos los módulos. Mira «Estructura del proyecto» en el README.)
 // =====================================================================================
 const { Auth } = require('msmc');
 const { ipcMain, safeStorage } = require('electron');

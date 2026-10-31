@@ -1,7 +1,7 @@
 // =====================================================================================
 // Nova Launcher · main/servidores.js
 // Servidores: ping oficial, servers.dat (NBT) y estado
-// (Parte del proceso principal; main.js carga todos los módulos. Mira «Estructura» en el README.)
+// (Parte del proceso principal; main.js carga todos los módulos. Mira «Estructura del proyecto» en el README.)
 // =====================================================================================
 const { ipcMain } = require('electron');
 const dns = require('dns').promises;

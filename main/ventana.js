@@ -1,7 +1,7 @@
 // =====================================================================================
 // Nova Launcher · main/ventana.js
 // Ventana, caché de imágenes, arranque de la app, ajustes y avisos de licencias
-// (Parte del proceso principal; main.js carga todos los módulos. Mira «Estructura» en el README.)
+// (Parte del proceso principal; main.js carga todos los módulos. Mira «Estructura del proyecto» en el README.)
 // =====================================================================================
 const { BrowserWindow, app, dialog, ipcMain, protocol, screen, shell } = require('electron');
 const crypto = require('crypto');

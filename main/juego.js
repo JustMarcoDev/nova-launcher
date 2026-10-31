@@ -1,7 +1,7 @@
 // =====================================================================================
 // Nova Launcher · main/juego.js
 // Lanzar Minecraft: Java, versiones, ajustes de Java/GPU, cierre/errores y preparar antes de jugar
-// (Parte del proceso principal; main.js carga todos los módulos. Mira «Estructura» en el README.)
+// (Parte del proceso principal; main.js carga todos los módulos. Mira «Estructura del proyecto» en el README.)
 // =====================================================================================
 const { Auth } = require('msmc');
 const { Authenticator, Client } = require('minecraft-launcher-core');

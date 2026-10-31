@@ -1,6 +1,6 @@
 name: Subir recursos
 # Sube los vídeos de fondo (assets/*.nvb) a la release fija «recursos» y genera fondos.json (URL + sha256).
-# Hace falta una sola vez (o cuando haya un fondo nuevo en assets/); luego esos archivos salen de git. Mira «Fondos y recursos» en el README.
+# Hace falta una sola vez (o cuando haya un fondo nuevo en assets/); luego esos archivos salen de git. Mira «Fondos y recursos» en docs/GUIA.md.
 on:
   workflow_dispatch:
 permissions:

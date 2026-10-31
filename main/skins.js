@@ -1,7 +1,7 @@
 // =====================================================================================
 // Nova Launcher · main/skins.js
 // Skins: biblioteca, cambio de skin y capa, skin local en vivo para el mod
-// (Parte del proceso principal; main.js carga todos los módulos. Mira «Estructura» en el README.)
+// (Parte del proceso principal; main.js carga todos los módulos. Mira «Estructura del proyecto» en el README.)
 // =====================================================================================
 const { Auth } = require('msmc');
 const { ipcMain, shell } = require('electron');

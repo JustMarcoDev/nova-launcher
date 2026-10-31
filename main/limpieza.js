@@ -1,7 +1,7 @@
 // =====================================================================================
 // Nova Launcher · main/limpieza.js
 // Limpieza de espacio en disco
-// (Parte del proceso principal; main.js carga todos los módulos. Mira «Estructura» en el README.)
+// (Parte del proceso principal; main.js carga todos los módulos. Mira «Estructura del proyecto» en el README.)
 // =====================================================================================
 const { ipcMain } = require('electron');
 const fs = require('fs');

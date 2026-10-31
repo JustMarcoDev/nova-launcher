@@ -1,7 +1,7 @@
 // =====================================================================================
 // Nova Launcher · main/base.js
 // Núcleo: rutas, archivos (guardado seguro), ajustes, instancia única y envío de mensajes a la ventana
-// (Parte del proceso principal; main.js carga todos los módulos. Mira «Estructura» en el README.)
+// (Parte del proceso principal; main.js carga todos los módulos. Mira «Estructura del proyecto» en el README.)
 // =====================================================================================
 const { app } = require('electron');
 const fs = require('fs');

@@ -1,7 +1,7 @@
 // =====================================================================================
 // Nova Launcher · main/mods.js
 // Mods: gestor de la instancia, modpacks, shaders, revisión antes de jugar y arrastrar y soltar
-// (Parte del proceso principal; main.js carga todos los módulos. Mira «Estructura» en el README.)
+// (Parte del proceso principal; main.js carga todos los módulos. Mira «Estructura del proyecto» en el README.)
 // =====================================================================================
 const { dialog, ipcMain } = require('electron');
 const { execFile } = require('child_process');

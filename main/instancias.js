@@ -1,7 +1,7 @@
 // =====================================================================================
 // Nova Launcher · main/instancias.js
 // Instancias: opciones, duplicar, copias de seguridad, exportar/importar e importar de otros launchers
-// (Parte del proceso principal; main.js carga todos los módulos. Mira «Estructura» en el README.)
+// (Parte del proceso principal; main.js carga todos los módulos. Mira «Estructura del proyecto» en el README.)
 // =====================================================================================
 const { app, dialog, ipcMain, shell } = require('electron');
 const fs = require('fs');
