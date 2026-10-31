@@ -28,4 +28,23 @@ final class NovaMc {
     }
     /** Nombre y dirección del servidor al que se está conectado ({nombre, dirección}) o null. */
     static String[] currentServer() { try { var e = Minecraft.getInstance().getCurrentServer(); return e == null ? null : new String[] { e.name, e.ip }; } catch (Throwable t) { return null; } }
+
+    // ---- jugador, teclas y opciones que necesita NovaMove ----
+    static boolean hasPlayer() { try { return Minecraft.getInstance().player != null; } catch (Throwable t) { return false; } }
+    static boolean isPlayer(Object e) { try { return e != null && e == Minecraft.getInstance().player; } catch (Throwable t) { return false; } }
+    /** ¿Hay un jugador en partida sin ninguna pantalla abierta? */
+    static boolean playing() { try { Minecraft mc = Minecraft.getInstance(); return mc.player != null && NovaGui.screen(mc) == null; } catch (Throwable t) { return false; } }
+    static boolean hudEditorOpen() { try { return NovaGui.screen(Minecraft.getInstance()) instanceof NovaHudScreen; } catch (Throwable t) { return false; } }
+    static boolean keyDown(int key) { return key > 0 && NovaInput.key(key); }
+    static float playerYaw() { return Minecraft.getInstance().player.getYRot(); }
+    static float playerPitch() { return Minecraft.getInstance().player.getXRot(); }
+    static void turnPlayer(double dx, double dy) { Minecraft.getInstance().player.turn(dx, dy); }
+    static boolean playerSprinting() { return Minecraft.getInstance().player.isSprinting(); }
+    static boolean playerSneaking() { return Minecraft.getInstance().player.isShiftKeyDown(); }
+    /** Opciones «alternar sprint / agacharse» de Minecraft. */
+    static boolean optionsReady() { try { return Minecraft.getInstance().options != null; } catch (Throwable t) { return false; } }
+    static boolean toggleSprint() { return Minecraft.getInstance().options.toggleSprint().get(); }
+    static void toggleSprint(boolean v) { Minecraft.getInstance().options.toggleSprint().set(v); }
+    static boolean toggleCrouch() { return Minecraft.getInstance().options.toggleCrouch().get(); }
+    static void toggleCrouch(boolean v) { Minecraft.getInstance().options.toggleCrouch().set(v); }
 }

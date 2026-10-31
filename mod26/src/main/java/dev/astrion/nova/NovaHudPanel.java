@@ -112,7 +112,7 @@ final class NovaHudPanel {
         btn(h, x + half + gap, y + r * st, w - half - gap, hh, listening == 1 ? tr("Pulsa una tecla…") : NovaHud.keyName(NovaHud.zoomKey), -1, listening == 1 ? NovaButton.PRIMARY : NovaButton.NORMAL, () -> { listening = listening == 1 ? 0 : 1; h.rebuild(); });
         r++;
         tog(h, x, y + r * st, half, hh, tr("Freelook") + ": " + yn(NovaMove.freelook), NovaMove.freelook, () -> NovaMove.freelook = !NovaMove.freelook);
-        btn(h, x + half + gap, y + r * st, w - half - gap, hh, listening == 2 ? tr("Pulsa una tecla…") : NovaMove.keyName(), -1, listening == 2 ? NovaButton.PRIMARY : NovaButton.NORMAL, () -> { listening = listening == 2 ? 0 : 2; h.rebuild(); });
+        btn(h, x + half + gap, y + r * st, w - half - gap, hh, listening == 2 ? tr("Pulsa una tecla…") : NovaHud.keyName(NovaMove.freelookKey), -1, listening == 2 ? NovaButton.PRIMARY : NovaButton.NORMAL, () -> { listening = listening == 2 ? 0 : 2; h.rebuild(); });
         r++;
         tog(h, x, y + r * st, half, hh, tr("Sprint fijo") + ": " + yn(NovaMove.sprintFixed), NovaMove.sprintFixed, () -> NovaMove.sprintFixed = !NovaMove.sprintFixed);
         tog(h, x + half + gap, y + r * st, w - half - gap, hh, tr("Agacharse fijo") + ": " + yn(NovaMove.crouchFixed), NovaMove.crouchFixed, () -> NovaMove.crouchFixed = !NovaMove.crouchFixed);
