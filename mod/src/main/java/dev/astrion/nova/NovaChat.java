@@ -2,11 +2,7 @@ package dev.astrion.nova;
 
 import static dev.astrion.nova.NovaLang.tr;
 
-import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
-import java.util.regex.Pattern;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
@@ -30,13 +26,6 @@ import org.lwjgl.glfw.GLFW;
 public final class NovaChat {
     private NovaChat() { }
 
-    private static final Pattern STAMP = Pattern.compile("^\\[\\d{2}:\\d{2}\\] ");
-    private static volatile String query = "";
-    private static volatile boolean dirty;
-    private static boolean wasRight, wasChat;
-    private static String copiedText = "";
-    private static long copiedAt;
-
     // ---- hora y menciones (al entrar el mensaje) ----
 
     /** Devuelve el mensaje con la hora delante y el color de mención; lo llama ChatHudMixin antes de guardarlo. */
@@ -46,51 +35,19 @@ public final class NovaChat {
             NovaSettings.load();
             if (!NovaSettings.chatTime && !NovaSettings.chatMention) return msg;
             Text out = msg;
-            boolean mention = NovaSettings.chatMention && mentions(msg.getString());
+            boolean mention = NovaSettings.chatMention && NovaChatCore.mentions(msg.getString(), myName());
             if (mention) {
                 out = msg.copy().formatted(Formatting.YELLOW);
                 ping();
             }
             if (NovaSettings.chatTime) {
-                LocalTime t = LocalTime.now();
-                out = Text.literal(String.format(Locale.ROOT, "[%02d:%02d] ", t.getHour(), t.getMinute())).formatted(Formatting.GRAY).append(out);
+                out = Text.literal(NovaChatCore.stamp()).formatted(Formatting.GRAY).append(out);
             }
             return out;
         } catch (Throwable e) { return msg; }
     }
 
-    /** ¿El mensaje nombra al jugador sin ser suyo? Su nombre tiene que salir después del primer «>», «:» o «»» (lo de antes es quien habla). */
-    static boolean mentions(String s) {
-        String me = myName();
-        if (me.isEmpty() || s == null) return false;
-        String low = s.toLowerCase(Locale.ROOT), n = me.toLowerCase(Locale.ROOT);
-        int sep = -1;
-        for (int i = 0; i < low.length(); i++) { char ch = low.charAt(i); if (ch == '>' || ch == ':' || ch == '»') { sep = i; break; } }
-        if (sep < 0) return false;   // sin «quién dice qué» (avisos del servidor, «X entró al juego»…) no cuenta
-        int at = indexOfWord(low, n, 0);
-        if (at < 0 || at < sep) return false;   // no aparece, o habla el propio jugador
-        return true;
-    }
-
-    private static int indexOfWord(String low, String n, int from) {
-        int i = from;
-        while ((i = low.indexOf(n, i)) >= 0) {
-            boolean l = i == 0 || !isNameChar(low.charAt(i - 1)), r = i + n.length() >= low.length() || !isNameChar(low.charAt(i + n.length()));
-            if (l && r) return i;
-            i++;
-        }
-        return -1;
-    }
-
-    private static boolean isNameChar(char c) { return Character.isLetterOrDigit(c) || c == '_'; }
-
-    private static String myName() {
-        try {
-            MinecraftClient mc = MinecraftClient.getInstance();
-            String n = mc.getSession().getUsername();
-            return n == null ? "" : n;
-        } catch (Throwable e) { return ""; }
-    }
+    private static String myName() { return NovaMc.userName(); }
 
     private static void ping() {
         try {
@@ -119,60 +76,37 @@ public final class NovaChat {
             top = Math.max(2, Math.min(top, screenH - 60));
             TextFieldWidget f = new TextFieldWidget(mc.textRenderer, 4, top, w, h, Text.empty());
             f.setMaxLength(60);
-            f.setText(query);
-            f.setSuggestion(query.isEmpty() ? tr("Buscar en el chat…") : "");
+            f.setText(NovaChatCore.query);
+            f.setSuggestion(NovaChatCore.query.isEmpty() ? tr("Buscar en el chat…") : "");
             f.setChangedListener(s -> { f.setSuggestion(s.isEmpty() ? tr("Buscar en el chat…") : ""); setQuery(s); });
             return f;
         } catch (Throwable e) { return null; }
     }
 
-    private static void setQuery(String s) {
-        String q = s == null ? "" : s.trim();
-        if (q.equals(query)) return;
-        query = q;
-        reload();
-    }
+    private static void setQuery(String s) { if (NovaChatCore.setQuery(s)) reload(); }
 
     private static void reload() {
         try { ((NovaChatAccess) (Object) MinecraftClient.getInstance().inGameHud.getChatHud()).nova$refresh(); } catch (Throwable ignored) { }
     }
 
+    /** Texto de una línea visible del chat. */
+    private static String lineText(ChatHudLine.Visible l) {
+        StringBuilder ln = new StringBuilder();
+        l.content().accept((idx, style, cp) -> { ln.appendCodePoint(cp); return true; });
+        return ln.toString();
+    }
+
     /** Se llama al volver a cargar el chat: deja solo los mensajes que contienen lo buscado. */
     public static void filter(List<ChatHudLine.Visible> v) {
         try {
-            String q = query;
-            if (q.isEmpty() || v == null || v.isEmpty()) return;
+            if (NovaChatCore.query.isEmpty() || v == null || v.isEmpty()) return;
             if (!(MinecraftClient.getInstance().currentScreen instanceof ChatScreen) || !NovaSettings.chatSearch) return;
-            String low = q.toLowerCase(Locale.ROOT);
-            List<ChatHudLine.Visible> keep = new ArrayList<>();
-            int n = v.size(), i = 0;
-            while (i < n) {   // un mensaje son varias líneas seguidas: la de abajo es la que cierra el mensaje
-                int t = i;
-                while (t + 1 < n && !v.get(t + 1).endOfEntry()) t++;
-                if (entryText(v, i, t).toLowerCase(Locale.ROOT).contains(low)) for (int k = i; k <= t; k++) keep.add(v.get(k));
-                i = t + 1;
-            }
-            v.clear();
-            v.addAll(keep);
+            NovaChatCore.filter(v, ChatHudLine.Visible::endOfEntry, NovaChat::lineText);
         } catch (Throwable ignored) { }
     }
 
-    /** Texto de un mensaje a partir de sus líneas visibles (de la de arriba a la de abajo). */
-    static String entryText(List<ChatHudLine.Visible> v, int bottom, int top) {
-        StringBuilder sb = new StringBuilder();
-        for (int k = top; k >= bottom; k--) {
-            StringBuilder ln = new StringBuilder();
-            v.get(k).content().accept((idx, style, cp) -> { ln.appendCodePoint(cp); return true; });
-            String t = ln.toString().trim();
-            if (t.isEmpty()) continue;
-            if (sb.length() > 0) sb.append(' ');
-            sb.append(t);
-        }
-        return sb.toString();
-    }
-
     /** Un mensaje nuevo con el buscador activo: hay que volver a filtrar. */
-    public static void added() { if (!query.isEmpty()) dirty = true; }
+    public static void added() { if (!NovaChatCore.query.isEmpty()) NovaChatCore.dirty = true; }
 
     // ---- clic derecho para copiar ----
 
@@ -183,14 +117,14 @@ public final class NovaChat {
         try {
             NovaSettings.load();
             boolean chat = mc.currentScreen instanceof ChatScreen;
-            if (!chat && (wasChat || !query.isEmpty())) { query = ""; dirty = false; reload(); }
-            if (chat && dirty) { dirty = false; reload(); }
-            wasChat = chat;
+            if (!chat && (NovaChatCore.wasChat || !NovaChatCore.query.isEmpty())) { NovaChatCore.query = ""; NovaChatCore.dirty = false; reload(); }
+            if (chat && NovaChatCore.dirty) { NovaChatCore.dirty = false; reload(); }
+            NovaChatCore.wasChat = chat;
             if (chat && NovaSettings.chatCopy) {
                 boolean down = GLFW.glfwGetMouseButton(mc.getWindow().getHandle(), GLFW.GLFW_MOUSE_BUTTON_RIGHT) == GLFW.GLFW_PRESS;
-                if (down && !wasRight) copyAt(c, mc);
-                wasRight = down;
-            } else wasRight = false;
+                if (down && !NovaChatCore.wasRight) copyAt(c, mc);
+                NovaChatCore.wasRight = down;
+            } else NovaChatCore.wasRight = false;
             toast(c, mc);
         } catch (Throwable ignored) { }
     }
@@ -201,35 +135,25 @@ public final class NovaChat {
         ChatHud hud = mc.inGameHud.getChatHud();
         NovaChatAccess acc = (NovaChatAccess) (Object) hud;
         List<ChatHudLine.Visible> v = acc.nova$visible();
-        double sc = mc.options.getChatScale().getValue();
-        double cx = mx / sc - 4.0, cy = (sh - my - 40.0) / (sc * lineH(mc));
-        if (cx < -4.0 || cx > Math.floor(ChatHud.getWidth(mc.options.getChatWidth().getValue()) / sc)) return;
-        int shown = Math.min(hud.getVisibleLineCount(), v.size());
-        if (cy < 0.0 || cy >= shown) return;
-        int i = (int) Math.floor(cy + acc.nova$scrolled());
-        if (i < 0 || i >= v.size()) return;
-        int b = i;
-        while (b > 0 && !v.get(b).endOfEntry()) b--;   // hacia abajo hasta la línea que cierra el mensaje
-        int t = b;
-        while (t + 1 < v.size() && !v.get(t + 1).endOfEntry()) t++;
-        String s = STAMP.matcher(entryText(v, b, t)).replaceFirst("");
+        int i = NovaChatCore.lineAt(mx, my, sh, mc.options.getChatScale().getValue(), lineH(mc), ChatHud.getWidth(mc.options.getChatWidth().getValue()), Math.min(hud.getVisibleLineCount(), v.size()), acc.nova$scrolled(), v.size());
+        if (i < 0) return;
+        String s = NovaChatCore.entryAt(v, i, ChatHudLine.Visible::endOfEntry, NovaChat::lineText);
         if (s.isEmpty()) return;
         mc.keyboard.setClipboard(s);
-        copiedText = s; copiedAt = Util.getMeasuringTimeMs();
+        NovaChatCore.copiedAt = Util.getMeasuringTimeMs();
     }
 
     private static void toast(DrawContext c, MinecraftClient mc) {
-        if (copiedAt == 0) return;
-        long age = Util.getMeasuringTimeMs() - copiedAt;
-        if (age > 1600) { copiedAt = 0; return; }
-        float a = Math.min(1f, age / 120f) * Math.min(1f, (1600 - age) / 300f);
+        if (NovaChatCore.copiedAt == 0) return;
+        long age = Util.getMeasuringTimeMs() - NovaChatCore.copiedAt;
+        if (age > NovaChatCore.TOAST_MS) { NovaChatCore.copiedAt = 0; return; }
+        float a = NovaChatCore.toastAlpha(age);
         if (a <= 0f) return;
         TextRenderer font = mc.textRenderer;
         String s = "✓ " + tr("Mensaje copiado");
         int w = font.getWidth(s) + 12, h = 16, sw = c.getScaledWindowWidth(), sh = c.getScaledWindowHeight();
-        int x = (sw - w) / 2, y = sh - 40 - 34 - (int) ((1f - Math.min(1f, age / 120f)) * 6);
+        int x = (sw - w) / 2, y = sh - 40 - 34 - NovaChatCore.toastRise(age);
         NovaButton.panel(c, x, y, w, h, 5, NovaShots.withAlpha(0xF010102A, a), NovaShots.withAlpha(0xFF4A3C8C, a));
         c.drawText(font, s, x + 6, y + 4, NovaShots.withAlpha(0xFFFFFFFF, a), true);
     }
-
 }
