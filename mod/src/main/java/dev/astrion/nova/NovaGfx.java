@@ -15,7 +15,18 @@ public final class NovaGfx {
     public static boolean ok = true;
     static final Map<String, Tex> CACHE = new HashMap<>();
     static int lastScale = -1, seq;
-    static String lastAcc = "";
+    static int lastAcc = -1;
+    /** Sube cada vez que se vacía la caché: las memorias de abajo dejan de valer. */
+    static int epoch;
+
+
+    // Memorias de las últimas texturas pedidas: dibujar el mismo texto o botón en cada fotograma no crea ni busca textos (antes se montaba la clave en cada llamada).
+    private static final class TM { String s; float px; int argb; boolean b; int ep; Tex t; }
+    private static final TM[] TMEMO = new TM[24];
+    private static int tmNext;
+    private static final class BM { int w, h, icon, style, acc, sk, ep; String label; boolean hot, en; Tex t; }
+    private static final BM[] BMEMO = new BM[48];
+    private static int bmNext;
 
     /** Cambia el color de acento: las texturas se recrean con el nuevo color. */
     public static void setAccent(int argb) { if (argb != NovaGfxCore.accent) { NovaGfxCore.accent = argb; lastScale = -1; } }
@@ -39,10 +50,11 @@ public final class NovaGfx {
     /** Si cambia la escala de la interfaz se descartan las texturas para recrearlas nítidas. */
     static int begin(MinecraftClient mc) {
         int s = sc(mc);
-        if (s != lastScale || !lastAcc.equals(NovaAcc.key())) {
-            lastAcc = NovaAcc.key();
+        if (s != lastScale || lastAcc != NovaAcc.sig()) {
+            lastAcc = NovaAcc.sig();
             for (Tex t : CACHE.values()) { try { mc.getTextureManager().destroyTexture(t.id); } catch (Throwable ignored) { } }
             CACHE.clear();
+            epoch++;
             lastScale = s;
         }
         return s;
@@ -70,10 +82,14 @@ public final class NovaGfx {
 
     public static Tex button(MinecraftClient mc, int w, int h, String label, int icon, int style, boolean hot, boolean enabled) {
         int s = begin(mc);
+        int sk = icon == I_HEAD && NovaSkin.head != null ? NovaSkin.ver : -1, acc = NovaGfxCore.accent;
+        for (BM m : BMEMO) if (m != null && m.ep == epoch && m.w == w && m.h == h && m.icon == icon && m.style == style && m.hot == hot && m.en == enabled && m.acc == acc && m.sk == sk && m.label.equals(label)) return m.t;
         String key = "b|" + w + "x" + h + "|" + label + "|" + icon + "|" + style + "|" + hot + "|" + enabled + "|" + NovaGfxCore.accent + (icon == I_HEAD && NovaSkin.head != null ? "|skin" + NovaSkin.ver : "");
         Tex c = CACHE.get(key);
-        if (c != null) return c;
-        return upload(mc, key, NovaGfxCore.button(w, h, label, icon, style, hot, enabled, s), s);
+        if (c == null) c = upload(mc, key, NovaGfxCore.button(w, h, label, icon, style, hot, enabled, s), s);
+        BM m = new BM(); m.w = w; m.h = h; m.icon = icon; m.style = style; m.hot = hot; m.en = enabled; m.acc = acc; m.sk = sk; m.ep = epoch; m.label = label; m.t = c;
+        BMEMO[bmNext] = m; bmNext = (bmNext + 1) % BMEMO.length;
+        return c;
     }
 
     public static Tex swatch(MinecraftClient mc, int d, int rgb, boolean selected, boolean hot) {
@@ -120,10 +136,13 @@ public final class NovaGfx {
         int s = begin(mc);
         px *= NovaAcc.text();
         argb = NovaAcc.fg(argb);
+        for (TM m : TMEMO) if (m != null && m.ep == epoch && m.px == px && m.argb == argb && m.b == b && m.s.equals(str)) return m.t;
         String key = "t|" + str + "|" + px + "|" + argb + "|" + b;
         Tex c = CACHE.get(key);
-        if (c != null) return c;
-        return upload(mc, key, NovaGfxCore.text(str, px, argb, b, s), s);
+        if (c == null) c = upload(mc, key, NovaGfxCore.text(str, px, argb, b, s), s);
+        TM m = new TM(); m.s = str; m.px = px; m.argb = argb; m.b = b; m.ep = epoch; m.t = c;
+        TMEMO[tmNext] = m; tmNext = (tmNext + 1) % TMEMO.length;
+        return c;
     }
 
     /** Figura de la skin (de frente), con píxeles nítidos. */

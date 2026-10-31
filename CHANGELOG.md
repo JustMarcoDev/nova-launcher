@@ -3,6 +3,14 @@
 Todo lo que cambia en cada versión de Nova Launcher y del menú de Nova (el mod), de la más nueva a la más antigua. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**, y el flujo de publicación copia la entrada de cada versión a las notas de su release. Al sacar una versión nueva, añade su entrada `### x.y.z — Título` **al principio** de la lista.
 
 
+### 0.2.16 — Versión estable: guía de primera vez, recuento anónimo y mod más ligero
+
+Reúne todo lo de las betas 0.2.16-beta.1 a beta.14 (interruptores a distancia, archivos firmados, avisos en el juego, prueba de rendimiento por instancia, guía de primera vez, recuento anónimo opcional, `mod-common`) más:
+
+- **Menos trabajo por fotograma en el mod** (`NovaGfx` en `mod/` y `mod26/`, `NovaAcc.sig()`): los textos y botones que se dibujan cada fotograma se buscan en una memoria pequeña de los últimos usados, sin montar la clave de texto ni comparar cadenas del acento en cada llamada. La memoria se invalida sola al cambiar la escala, el contraste, el tamaño del texto, el color o la skin.
+- **Limpieza**: sin más código sin uso en el mod ni en el launcher (revisión de métodos, imports, canales IPC, funciones del preload y clases de CSS).
+- **CI**: el robot ya no usa la caché de Gradle (llegaba incompleta en algunas versiones).
+
 ### 0.2.16-beta.14 — Guía de primera vez, recuento anónimo opcional y mod-common casi terminado
 
 - **Guía de primera vez** (`NovaGuide` en `mod-common`, `NovaGuideView` y `NovaTitleScreen` en `mod/` y `mod26/`): la primera vez que se abre el menú de Nova se oscurece la pantalla y se resalta, paso a paso, Jugar, el menú de Nova (donde está «Editar HUD»), Skins, Servidores y Modo FPS, con una tarjeta de texto y los botones «Siguiente» y «Saltar» (Intro, espacio o → avanzan; Esc salta). Se guarda `guideDone` en `menu.json`; «Ver guía» en el menú de Nova la repite. Respeta `NovaAcc` (sin fundidos con reducir movimiento, texto escalado), los textos están en `NovaLang` (6 idiomas) y no sale con `-Dnova.selftest=true`.

@@ -23,6 +23,8 @@ final class NovaAcc {
     static boolean still() { return motion; }
     /** Cambia si cambia algo que afecta al aspecto de las texturas (así se recrean). */
     static String key() { return (contrast ? "c" : "n") + textPct; }
+    /** Lo mismo que key() pero como número: se compara en cada fotograma sin crear textos. */
+    static int sig() { return (contrast ? 100000 : 0) + textPct; }
     /** Color de texto: blanco puro con alto contraste. */
     static int fg(int argb) { return contrast ? 0xFFFFFFFF : argb; }
     /** Con alto contraste los fondos y bordes semitransparentes pasan a ser opacos. */
