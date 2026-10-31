@@ -280,5 +280,21 @@ final class NovaLang {
         p("Avisos del launcher en el juego", "Launcher notices in game", "Avis du launcher en jeu", "Launcher-Hinweise im Spiel", "Avvisi del launcher in gioco", "Avisos do launcher no jogo");
         p("Velocidad", "Speed", "Vitesse", "Geschwindigkeit", "Velocità", "Velocidade");
         p("Fuerza", "Strength", "Force", "Stärke", "Forza", "Força");
+        // guía de primera vez
+        p("Empieza por aquí", "Start here", "Commence ici", "Hier geht's los", "Inizia da qui", "Comece por aqui");
+        p("Abre tus mundos o entra a un servidor con estos dos botones.", "Open your worlds or join a server with these two buttons.", "Ouvre tes mondes ou rejoins un serveur avec ces deux boutons.", "Öffne deine Welten oder tritt mit diesen zwei Knöpfen einem Server bei.", "Apri i tuoi mondi o entra in un server con questi due pulsanti.", "Abra seus mundos ou entre em um servidor com estes dois botões.");
+        p("Tu HUD", "Your HUD", "Ton HUD", "Dein HUD", "Il tuo HUD", "Seu HUD");
+        p("En el menú de Nova está «Editar HUD»: coloca FPS, CPS, coordenadas y teclas donde quieras.", "The Nova menu has “Edit HUD”: place FPS, CPS, coordinates and keys wherever you like.", "Le menu Nova a « Modifier le HUD » : place FPS, CPS, coordonnées et touches où tu veux.", "Im Nova-Menü findest du „HUD bearbeiten“: Platziere FPS, CPS, Koordinaten und Tasten, wo du willst.", "Nel menu di Nova c'è «Modifica HUD»: metti FPS, CPS, coordinate e tasti dove vuoi.", "No menu do Nova está «Editar HUD»: coloque FPS, CPS, coordenadas e teclas onde quiser.");
+        p("Tus skins", "Your skins", "Tes skins", "Deine Skins", "Le tue skin", "Suas skins");
+        p("Cambia, guarda y elimina tus skins sin salir del juego.", "Change, save and delete your skins without leaving the game.", "Change, enregistre et supprime tes skins sans quitter le jeu.", "Wechsle, speichere und lösche deine Skins, ohne das Spiel zu verlassen.", "Cambia, salva ed elimina le tue skin senza uscire dal gioco.", "Troque, salve e exclua suas skins sem sair do jogo.");
+        p("Tus servidores", "Your servers", "Tes serveurs", "Deine Server", "I tuoi server", "Seus servidores");
+        p("Entra a tu último servidor o a tus favoritos con un clic.", "Join your last server or your favorites with one click.", "Rejoins ton dernier serveur ou tes favoris en un clic.", "Tritt mit einem Klick deinem letzten Server oder deinen Favoriten bei.", "Entra nel tuo ultimo server o nei preferiti con un clic.", "Entre no seu último servidor ou nos favoritos com um clique.");
+        p("Más rendimiento con un botón: partículas mínimas, sin nubes ni sombras. Se puede deshacer.", "More performance with one button: minimal particles, no clouds or shadows. You can undo it.", "Plus de performances en un bouton : particules minimales, sans nuages ni ombres. Réversible.", "Mehr Leistung mit einem Knopf: minimale Partikel, keine Wolken und Schatten. Lässt sich rückgängig machen.", "Più prestazioni con un pulsante: particelle minime, niente nuvole né ombre. Si può annullare.", "Mais desempenho com um botão: partículas mínimas, sem nuvens nem sombras. Dá para desfazer.");
+        p("{0} de {1}", "{0} of {1}", "{0} sur {1}", "{0} von {1}", "{0} di {1}", "{0} de {1}");
+        p("Siguiente", "Next", "Suivant", "Weiter", "Avanti", "Próximo");
+        p("Saltar", "Skip", "Passer", "Überspringen", "Salta", "Pular");
+        p("Entendido", "Got it", "Compris", "Verstanden", "Capito", "Entendi");
+        p("Ver guía", "View guide", "Voir le guide", "Anleitung ansehen", "Vedi la guida", "Ver guia");
+        p("Repite la guía de primera vez", "Replay the first-time guide", "Rejoue le guide de première fois", "Spielt die Einführung erneut ab", "Ripete la guida iniziale", "Repete o guia de primeira vez");
     }
 }

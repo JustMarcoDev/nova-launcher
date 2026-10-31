@@ -37,6 +37,8 @@ final class NovaSettings {
     static boolean chatTime, chatCopy, chatSearch, chatMention;
     /** Versión de las «Novedades de Nova» que ya se vio (para no volver a enseñarlas). */
     static String newsSeen = "";
+    /** Ya se vio la guía de primera vez (o se saltó). */
+    static boolean guideDone;
     private static boolean loaded;
     /** Fecha (lastModified) de menu.json cuando se leyó o guardó: el launcher puede cambiarlo con el juego abierto. */
     private static long stamp;
@@ -82,6 +84,7 @@ final class NovaSettings {
             }
             if (o.has("move") && o.get("move").isJsonObject()) NovaMove.read(o.getAsJsonObject("move"));
             if (o.has("newsSeen")) newsSeen = o.get("newsSeen").getAsString();
+            if (o.has("guideDone")) guideDone = o.get("guideDone").getAsBoolean();
             if (o.has("hud") && o.get("hud").isJsonObject()) NovaHud.read(o.getAsJsonObject("hud"));
             NovaHud.readProfiles(o);
             if (o.has("acc") && o.get("acc").isJsonObject()) NovaAcc.read(o.getAsJsonObject("acc"));
@@ -129,6 +132,7 @@ final class NovaSettings {
             o.add("chat", co);
             o.add("move", NovaMove.write());
             o.addProperty("newsSeen", newsSeen);
+            o.addProperty("guideDone", guideDone);
             o.add("hud", NovaHud.write());
             NovaHud.writeProfiles(o);
             o.add("acc", NovaAcc.write());
