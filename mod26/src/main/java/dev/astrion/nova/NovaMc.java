@@ -52,5 +52,7 @@ final class NovaMc {
     static int defaultZoomKey() { return InputConstants.KEY_C; }
     static int defaultPhotoKey() { return InputConstants.KEY_F6; }
     static int defaultStreamKey() { return InputConstants.KEY_F7; }
+    static int keyGrid() { return InputConstants.KEY_G; }
+    static int keyHand() { return InputConstants.KEY_H; }
     static String keyProp() { return NovaVer.KEY; }
 }

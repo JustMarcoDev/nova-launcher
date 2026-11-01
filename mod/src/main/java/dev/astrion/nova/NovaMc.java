@@ -51,5 +51,7 @@ final class NovaMc {
     static int defaultZoomKey() { return 67; }
     static int defaultPhotoKey() { return 295; }
     static int defaultStreamKey() { return 296; }
+    static int keyGrid() { return 71; }
+    static int keyHand() { return 72; }
     static String keyProp() { return "key"; }
 }

@@ -273,6 +273,7 @@ public final class NovaHud extends NovaHudCore {
             NovaStream.tick(mc);
             if (TEST_EDIT && NovaGui.screen(mc) == null && ++testTick == 240) NovaGui.setScreen(mc, new NovaHudScreen(null));   // solo para pruebas (-Dnova.hudedit=1)
             NovaChat.frame(c, mc);
+            NovaPhoto.overlay(c, mc);
             if (NovaGui.hidden(mc)) return;
             if (NovaGui.screen(mc) instanceof NovaHudScreen) return;   // el editor dibuja su propia vista previa
             pollMouse(mc);

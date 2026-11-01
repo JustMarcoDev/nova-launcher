@@ -1,6 +1,7 @@
 package dev.astrion.nova;
 
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
 import org.lwjgl.glfw.GLFW;
 
 /** Modo foto (capa de esta rama): con la tecla se esconde el HUD, baja la sensibilidad al 25 % y la rueda cambia el campo de visión (30–110). Al salir todo vuelve a como estaba. */
@@ -16,6 +17,10 @@ public final class NovaPhoto {
             boolean down = NovaHud.photoKey > 0 && mc.currentScreen == null
                     && GLFW.glfwGetKey(mc.getWindow().getHandle(), NovaHud.photoKey) == GLFW.GLFW_PRESS;
             if (NovaPhotoCore.edge(down)) { if (NovaPhotoCore.active) leave(mc, true); else enter(mc); }
+            if (NovaPhotoCore.active && mc.currentScreen == null) {
+                if (NovaPhotoCore.edgeGrid(GLFW.glfwGetKey(mc.getWindow().getHandle(), NovaMc.keyGrid()) == GLFW.GLFW_PRESS)) { NovaPhotoCore.grid = !NovaPhotoCore.grid; NovaToasts.push(NovaPhotoCore.gridText(NovaPhotoCore.grid)); }
+                if (NovaPhotoCore.edgeHand(GLFW.glfwGetKey(mc.getWindow().getHandle(), NovaMc.keyHand()) == GLFW.GLFW_PRESS)) { NovaPhotoCore.hideHand = !NovaPhotoCore.hideHand; NovaToasts.push(NovaPhotoCore.handText(NovaPhotoCore.hideHand)); }
+            }
         } catch (Throwable ignored) { }
     }
 
@@ -37,6 +42,23 @@ public final class NovaPhoto {
         sensOrig = null; hudOrig = null;
         if (say) NovaToasts.push(NovaPhotoCore.offText());
     }
+
+
+    /** Lo llama el HUD en cada fotograma: dibuja la cuadrícula de tercios (también con el HUD escondido). */
+    static void overlay(DrawContext c, MinecraftClient mc) {
+        try {
+            if (!NovaPhotoCore.active || !NovaPhotoCore.grid) return;
+            int sw = c.getScaledWindowWidth(), sh = c.getScaledWindowHeight(), fw = mc.getWindow().getFramebufferWidth(), fh = mc.getWindow().getFramebufferHeight();
+            int[][] t = NovaPhotoCore.thirds(sw, sh);
+            int col = 0x99FFFFFF;
+            for (int x : t[0]) c.fill(x, 0, x + 1, sh, col);
+            for (int y : t[1]) c.fill(0, y, sw, y + 1, col);
+            NovaPhotoCore.gridDrawn(fw, fh, sw, sh, System.currentTimeMillis());
+        } catch (Throwable ignored) { }
+    }
+
+    /** Lo consulta HandMixin: true si la mano no debe dibujarse. */
+    public static boolean handHidden() { return NovaPhotoCore.handHidden(); }
 
     /** Lo llama MouseMixin: true si la rueda es del modo foto (no cambia de casilla). */
     public static boolean scroll(double dy) {
