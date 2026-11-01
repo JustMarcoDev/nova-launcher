@@ -21,7 +21,57 @@ final class NovaFpsCore {
 
     /** Las animaciones de bloques (agua, lava, fuego…) se actualizan a la mitad de ritmo; lo llama SpriteAtlasMixin. */
     private static int tick;
-    static boolean skipAnimTick() { return NovaSettings.fpsOn && (++tick & 1) == 1; }
+    static boolean skipAnimTick() { return (NovaSettings.fpsOn || batActive()) && (++tick & 1) == 1; }
+
+    // ---- FPS en menús, modo batería y distancias del Modo FPS (lo llaman los mixins de cada proyecto) ----
+
+    /** Modo batería: el launcher pasa -Dnova.battery=true cuando el portátil va con batería. */
+    static final boolean BAT = Boolean.getBoolean("nova.battery");
+    static final int BAT_FPS = 30, MENU_FPS = 60, NEAR = 8;
+    private static boolean batDone;
+
+    /** El tope de 30 FPS vale mientras el Modo FPS esté activo (o hasta que se decida al empezar). */
+    static boolean batActive() { return BAT && (!batDone || NovaSettings.fpsOn); }
+
+    /** Límite de FPS efectivo: con batería 30, con un menú abierto 60; nunca sube el que ya tenía el jugador. */
+    static int limit(int vanilla, boolean screenOpen) {
+        try {
+            NovaSettings.load();
+            int r = vanilla;
+            if (batActive()) r = Math.min(r, BAT_FPS);
+            if (screenOpen && NovaSettings.fpsMenu) r = Math.min(r, MENU_FPS);
+            return r;
+        } catch (Throwable t) { return vanilla; }
+    }
+
+    /** Una vez por sesión: 1 = activar el Modo FPS (batería), -1 = devolverlo (ya no hay batería y lo activó ella), 0 = nada. */
+    static int batteryStep() {
+        if (batDone) return 0;
+        batDone = true;
+        if (BAT && !NovaSettings.fpsOn) return 1;
+        if (!BAT && NovaSettings.fpsBat) return NovaSettings.fpsOn ? -1 : 0;
+        return 0;
+    }
+
+    /** Partícula nueva a d2 (bloques al cuadrado) del jugador: con el Modo FPS no se crea si pasa de farPart (mínimo 8). */
+    static boolean dropParticle(double d2) {
+        if (!NovaSettings.fpsOn || NovaSettings.farPart <= 0) return false;
+        double r = Math.max(NovaSettings.farPart, NEAR);
+        return d2 > r * r;
+    }
+
+    /** Entidad que no es jugador a d2 de la cámara: con el Modo FPS no se dibuja si pasa de farEnt (mínimo 8). Los jugadores siempre se ven. */
+    static boolean hideEntity(boolean player, double d2) {
+        if (player || !NovaSettings.fpsOn || NovaSettings.farEnt <= 0) return false;
+        double r = Math.max(NovaSettings.farEnt, NEAR);
+        return d2 > r * r;
+    }
+
+    private static final int[] FAR_PART = { 0, 8, 16, 32 }, FAR_ENT = { 0, 32, 48, 64 };
+    private static int next(int[] o, int cur) { for (int i = 0; i < o.length; i++) if (o[i] == cur) return o[(i + 1) % o.length]; return o[2]; }
+    static void cycleFarPart() { NovaSettings.farPart = next(FAR_PART, NovaSettings.farPart); }
+    static void cycleFarEnt() { NovaSettings.farEnt = next(FAR_ENT, NovaSettings.farEnt); }
+    static String farName(int v) { return v <= 0 ? NovaLang.tr("No") : v + " " + NovaLang.tr("bloques"); }
 
     // ---- el Modo FPS vigila los FPS y sube o baja de nivel para acercarse al objetivo (30, 60, 90, 120 o 144) ----
     // Cada 3 s de juego (sin menús) mide la media. Si está por debajo del objetivo, baja un nivel más los ajustes (hasta MAXLVL);
