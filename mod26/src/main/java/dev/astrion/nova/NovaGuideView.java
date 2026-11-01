@@ -13,7 +13,7 @@ import net.minecraft.network.chat.Component;
 final class NovaGuideView {
     private NovaGuideView() { }
 
-    private static NovaButton bNext, bSkip;
+    private static NovaButton bNext, bSkip, bOpen;
     private static int builtFor = -1;
 
     /** Rectángulo {x, y, ancho, alto} que une los botones del paso actual, o null si no se encuentran. */
@@ -65,11 +65,13 @@ final class NovaGuideView {
             builtFor = NovaGuide.step();
             bNext = new NovaButton(0, 0, 60, 14, Component.literal(NovaGuide.last() ? tr("Entendido") : tr("Siguiente")), -1, NovaButton.PRIMARY, b -> { });
             bSkip = new NovaButton(0, 0, 46, 14, Component.literal(tr("Saltar")), -1, NovaButton.NORMAL, b -> { });
+            bOpen = new NovaButton(0, 0, 90, 14, Component.literal(tr("Abrir el launcher")), -1, NovaButton.NORMAL, b -> { });
         }
         int by = p[1] + ch - 14 - 7;
         bNext.setX(p[0] + cw - 9 - 60); bNext.setY(by);
         bSkip.setX(p[0] + cw - 9 - 60 - 4 - 46); bSkip.setY(by);
-        for (NovaButton b : new NovaButton[] { bSkip, bNext }) { b.extractRenderState(c, mx, my, delta); }
+        bOpen.setX(p[0] + cw - 9 - 60 - 4 - 90); bOpen.setY(by);
+        for (NovaButton b : NovaGuide.last() ? new NovaButton[] { bOpen, bNext } : new NovaButton[] { bSkip, bNext }) { b.extractRenderState(c, mx, my, delta); }
     }
 
     private static boolean hit(NovaButton b, double mx, double my) {
@@ -79,7 +81,8 @@ final class NovaGuideView {
     /** Un clic con la guía abierta: solo valen «Siguiente» y «Saltar»; lo demás queda bloqueado. */
     static boolean click(double mx, double my) {
         if (hit(bNext, mx, my)) NovaGuide.next();
-        else if (hit(bSkip, mx, my)) NovaGuide.skip();
+        else if (NovaGuide.last() && hit(bOpen, mx, my)) { NovaGuide.openLauncher(); NovaGuide.next(); }
+        else if (!NovaGuide.last() && hit(bSkip, mx, my)) NovaGuide.skip();
         return true;
     }
 
