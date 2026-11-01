@@ -54,6 +54,8 @@ abstract class NovaHudCore {
     public static boolean zoomOn = true;
 
     public static int zoomKey = NovaMc.defaultZoomKey();
+    /** Tecla del modo foto (F6 por defecto). */
+    public static int photoKey = NovaMc.defaultPhotoKey();
 
     static final float ZOOM_MUL = 0.23f;
 
@@ -64,6 +66,10 @@ abstract class NovaHudCore {
             JsonObject z = o.getAsJsonObject("zoom");
             if (z.has("on")) zoomOn = z.get("on").getAsBoolean();
             if (z.has(NovaMc.keyProp())) { int k = z.get(NovaMc.keyProp()).getAsInt(); if (k > 0) zoomKey = k; }
+        }
+        if (o.has("photo") && o.get("photo").isJsonObject()) {
+            JsonObject z = o.getAsJsonObject("photo");
+            if (z.has(NovaMc.keyProp())) { int k = z.get(NovaMc.keyProp()).getAsInt(); if (k > 0) photoKey = k; }
         }
     }
 
@@ -85,6 +91,9 @@ abstract class NovaHudCore {
         JsonObject z = new JsonObject();
         z.addProperty("on", zoomOn); z.addProperty(NovaMc.keyProp(), zoomKey);
         o.add("zoom", z);
+        JsonObject ph = new JsonObject();
+        ph.addProperty(NovaMc.keyProp(), photoKey);
+        o.add("photo", ph);
         return o;
     }
 
