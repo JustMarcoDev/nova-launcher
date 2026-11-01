@@ -4,6 +4,7 @@ const errors = [], vc = new VirtualConsole(); vc.on('jsdomError', e => errors.pu
 const mock = { accAddOffline: { accounts: [{ id: 'o1', type: 'offline', name: 'Marco_1' }], active: 'o1' }, insts: [], versions: { v: [{ id: '1.21.1', type: 'release' }], src: 'mojang' }, cfg: { _first: false, setupDone: true, seenVersion: '0.0.0' }, sys: { total: 16 }, ver: '0.0.0', updGet: { s: 'idle' }, discordGet: { s: 'off' }, worldLast: null, srvStatus: {}, shotsList: [], bkList: [], modsList: [], releases: [], dqState: { active: 0, paused: false, limit: 0, speed: 0 } };
 mock.skinList = { skins: [{ id: 'sabc1', name: 'Prueba', model: 'slim', data: 'data:image/png;base64,iVBORw0KGgo=' }], sel: 'sabc1', acc: { type: 'offline', name: 'Marco_1' } };
 const _n = Date.now(); mock.statsGet = { sessions: [0, 1, 2, 3, 4, 5].map(k => ({ id: 'i' + (k % 2), name: ['Survival', 'Skyblock'][k % 2], mc: ['1.21.4', '1.20.1'][k % 2], ld: 'Fabric', server: k % 3 === 0 ? 'play.test.net' : '', start: _n - k * 864e5 * 3, ms: (k + 1) * 9e5 })), before: [{ id: 'i0', name: 'Survival', mc: '1.21.4', ld: 'Fabric', ms: 72e5 }], shots: 7 };
+mock.worldsAll = [{ inst: 'i1', instName: 'Survival', mc: '1.21.4', qp: true, folder: 'Beta', name: 'Beta', mode: 'creative', ver: '1.21.4', last: 2000, icon: '' }, { inst: 'i1', instName: 'Survival', mc: '1.21.4', qp: true, folder: 'Alfa', name: 'Alfa', mode: 'hardcore', ver: '1.21.4', last: 3000, icon: '' }, { inst: 'i2', instName: 'Skyblock', mc: '1.20.1', qp: false, folder: 'Cielo', name: 'Cielo', mode: 'survival', ver: '', last: 1000, icon: '' }];
 mock.worldLast = { inst: 'i1', name: 'Mundo de prueba', instName: 'Instancia', date: 123, mc: '1.21.4', ld: 'Vanilla' };
 const EV = {}, api = new Proxy({ on(c, f) { EV[c] = f; }, win() {}, zoom() {}, folder() {}, open() {}, filePath: () => '' }, { get: (t, k) => k in t ? t[k] : async () => (k in mock ? JSON.parse(JSON.stringify(mock[k])) : (k === 'http' ? Promise.reject(new Error('sin red')) : undefined)) });
 const dom = new JSDOM(inline(), { runScripts: 'dangerously', pretendToBeVisual: true, url: 'file:///x/index.html', virtualConsole: vc, beforeParse(w) {
@@ -13,7 +14,7 @@ const dom = new JSDOM(inline(), { runScripts: 'dangerously', pretendToBeVisual: 
 const w = dom.window, sleep = ms => new Promise(r => setTimeout(r, ms));
 (async () => {
   await sleep(1500);
-  const need = ['home', 'vers', 'mods', 'srv', 'inst', 'con', 'soc', 'set', 'sk', 'sta'];
+  const need = ['home', 'vers', 'mods', 'srv', 'inst', 'con', 'soc', 'set', 'sk', 'sta', 'mun'];
   for (const p of need) { const b = w.document.querySelector(`nav [data-p=${p}]`); if (!b) { errors.push('falta el botón de ' + p); continue; } b.click(); await sleep(150); if (!w.document.getElementById(p).classList.contains('on')) errors.push('no se abre la pestaña ' + p); }
   for (const s of w.document.querySelectorAll('#sn button')) { try { s.click(); } catch (e) { errors.push('ajustes: ' + e.message); } await sleep(10); }
   // Ajustes → Menú de Nova: pinta las opciones y el lienzo del HUD con 10 elementos, y arrastrar uno guarda x e y entre 0 y 1
@@ -165,6 +166,21 @@ const w = dom.window, sleep = ms => new Promise(r => setTimeout(r, ms));
     if (!/antes de que existieran/.test(g('stp').textContent)) errors.push('Estadísticas: falta el aviso del tiempo jugado de antes');
     w.document.querySelector('nav [data-p=home]').click();
   }
+  // Pestaña Mundos: lista de todas las instancias, búsqueda, orden y filtro por instancia
+  {
+    const g = id => w.document.getElementById(id), rows = () => [...g('mul').querySelectorAll('.mr')].map(r => r.dataset.f).join();
+    w.document.querySelector('nav [data-p=mun]').click(); await sleep(400);
+    if (rows() !== 'Alfa,Beta,Cielo') errors.push('Mundos: deberían salir 3 mundos por última partida y salen ' + rows());
+    g('mus').querySelector('[data-k=name]').click(); await sleep(50);
+    if (rows() !== 'Alfa,Beta,Cielo') errors.push('Mundos: orden por nombre mal (' + rows() + ')');
+    g('muq').value = 'be'; g('muq').dispatchEvent(new w.Event('input')); await sleep(50);
+    if (rows() !== 'Beta') errors.push('Mundos: la búsqueda no filtra (' + rows() + ')');
+    g('muq').value = ''; g('muq').dispatchEvent(new w.Event('input'));
+    g('mui').value = 'i2'; g('mui').dispatchEvent(new w.Event('change')); await sleep(50);
+    if (rows() !== 'Cielo') errors.push('Mundos: el filtro por instancia no funciona (' + rows() + ')');
+    if (!g('mul').querySelector('[data-a=play]').disabled) errors.push('Mundos: Jugar debe estar desactivado en versiones sin quickPlay');
+    w.document.querySelector('nav [data-p=home]').click();
+  }
   // Todos los menús (modales) llevan una X que los cierra; el modal obligatorio (perfil) no.
   {
     w.eval("openCreate({mc:'1.21.1',ld:'Fabric',type:'release'})");
@@ -185,5 +201,5 @@ const w = dom.window, sleep = ms => new Promise(r => setTimeout(r, ms));
     else { const base = new Set(JSON.parse(fs.readFileSync(bf, 'utf8'))), nuevos = [...seen].filter(t => !base.has(t)); if (nuevos.length) { errors.push('Textos sin traducir (añádelos a lang/*.js; si son datos y no hay que traducirlos, a tests/lang-baseline.json):\n    · ' + nuevos.slice(0, 25).join('\n    · ')); } }
   }
   if (errors.length) { console.log('FALLOS en la interfaz:'); errors.forEach(e => console.log(' ✕ ' + e)); process.exit(1); }
-  console.log('Interfaz correcta: arranca, abre las 10 pestañas y los ajustes sin errores'); process.exit(0);
+  console.log('Interfaz correcta: arranca, abre las 11 pestañas y los ajustes sin errores'); process.exit(0);
 })();
