@@ -24,6 +24,13 @@ public final class NovaFps {
     /** Las animaciones de bloques se actualizan a la mitad de ritmo; lo llama SpriteAtlasMixin. */
     public static boolean skipAnimTick() { return NovaFpsCore.skipAnimTick(); }
 
+    /** Límite de FPS (menús a 60, batería a 30); lo llama FpsLimitMixin. */
+    public static int limit(int vanilla, boolean screenOpen) { return NovaFpsCore.limit(vanilla, screenOpen); }
+    /** Partícula nueva demasiado lejos del jugador: no se crea con el Modo FPS. */
+    public static boolean farParticle(double d2) { return NovaFpsCore.dropParticle(d2); }
+    /** Entidad (que no es jugador) demasiado lejos de la cámara: no se dibuja con el Modo FPS. */
+    public static boolean farEntity(boolean player, double d2) { return NovaFpsCore.hideEntity(player, d2); }
+
     static void enable(MinecraftClient mc) {
         try {
             NovaSettings.load();
@@ -66,6 +73,7 @@ public final class NovaFps {
             if (NovaSettings.fpsBiome >= 0) o.getBiomeBlendRadius().setValue(NovaSettings.fpsBiome);
             if (NovaSettings.fpsEntity > 0) o.getEntityDistanceScaling().setValue(NovaSettings.fpsEntity);
             NovaFpsCore.level = 0;
+            NovaSettings.fpsBat = false;
             o.write();
             NovaSettings.fpsOn = false;
             NovaSettings.save();
@@ -83,10 +91,27 @@ public final class NovaFps {
     static void frame(DrawContext c, MinecraftClient mc) {
         try {
             NovaSettings.load();
+            battery(mc);
             if (NovaSettings.fpsOn && NovaFpsCore.govern(inGame(mc))) apply(mc.options);
+            if (NovaFpsCore.batActive()) badge(c, mc);
             if (born == 0 && doneAt == 0) { watch(mc); return; }
             draw(c, mc);
         } catch (Throwable ignored) { }
+    }
+
+    /** Modo batería: al empezar, con batería activa el Modo FPS; si ya no hay batería y lo activó ella, devuelve las opciones. */
+    private static void battery(MinecraftClient mc) {
+        int st = NovaFpsCore.batteryStep();
+        if (st > 0) { enable(mc); if (NovaSettings.fpsOn) { NovaSettings.fpsBat = true; NovaSettings.save(); } }
+        else if (st < 0) { restore(mc); }
+    }
+
+    /** Etiqueta discreta arriba en el centro mientras el modo batería está limitando los FPS. */
+    private static void badge(DrawContext c, MinecraftClient mc) {
+        String t = tr("Batería") + " · " + NovaFpsCore.BAT_FPS + " FPS · " + tr("Modo FPS");
+        int w = (int) (t.length() * 3.3f) + 12, x = c.getScaledWindowWidth() / 2 - w / 2;
+        NovaButton.panel(c, x, 3, w, 12, 5, 0xB010102A, 0xFF4A3C8C);
+        NovaShots.txt(c, mc, t, x + 5, 6, 5.6f, 0xFFFFFFFF, false, 1f);
     }
 
     private static void watch(MinecraftClient mc) {

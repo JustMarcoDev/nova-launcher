@@ -58,7 +58,7 @@ final class NovaHudPanel {
         int sw = h.sw(), sh = h.sh();
         int hh = sh < 250 ? 12 : 15, gap = 3;
         int pw = Math.min(300, sw - 12), x = (sw - pw) / 2, pad = 8, cw = pw - 2 * pad;
-        int rows = 9;
+        int rows = 11;
         int headH = 16, tabsH = hh + 2, footH = hh;
         int ph = pad + headH + tabsH + 2 + rows * (hh + gap) + footH + pad - gap + 2;
         if (!open) {
@@ -146,6 +146,12 @@ final class NovaHudPanel {
         r++;
         tog(h, x, y + r * st, half, hh, tr("Modo streamer") + ": " + yn(NovaStreamCore.on), NovaStreamCore.on, () -> NovaStreamCore.on = !NovaStreamCore.on);
         btn(h, x + half + gap, y + r * st, w - half - gap, hh, listening == 4 ? tr("Pulsa una tecla…") : NovaHud.keyName(NovaStreamCore.key), -1, listening == 4 ? NovaButton.PRIMARY : NovaButton.NORMAL, () -> { listening = listening == 4 ? 0 : 4; h.rebuild(); });
+        r++;
+        tog(h, x, y + r * st, half, hh, tr("FPS en menús") + ": " + (NovaSettings.fpsMenu ? "60" : tr("No")), NovaSettings.fpsMenu, () -> NovaSettings.fpsMenu = !NovaSettings.fpsMenu);
+        btn(h, x + half + gap, y + r * st, w - half - gap, hh, tr("Batería") + ": " + (NovaFpsCore.BAT ? "30 FPS" : tr("No")), NovaFpsCore.BAT ? NovaGfx.I_BOLT : -1, NovaFpsCore.BAT ? NovaButton.SELECTED : NovaButton.NORMAL, () -> { });
+        r++;
+        btn(h, x, y + r * st, half, hh, tr("Partículas lejanas") + ": " + NovaFpsCore.farName(NovaSettings.farPart), -1, NovaSettings.farPart > 0 ? NovaButton.SELECTED : NovaButton.NORMAL, () -> { NovaFpsCore.cycleFarPart(); h.rebuild(); });
+        btn(h, x + half + gap, y + r * st, w - half - gap, hh, tr("Entidades lejanas") + ": " + NovaFpsCore.farName(NovaSettings.farEnt), -1, NovaSettings.farEnt > 0 ? NovaButton.SELECTED : NovaButton.NORMAL, () -> { NovaFpsCore.cycleFarEnt(); h.rebuild(); });
     }
 
     static void buildProf(Host h, int x, int y, int w, int hh, int gap) {
