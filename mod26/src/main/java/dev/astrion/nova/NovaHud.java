@@ -271,6 +271,7 @@ public final class NovaHud extends NovaHudCore {
             NovaMove.tick();
             NovaPhoto.tick(mc);
             NovaStream.tick(mc);
+            NovaClip.tick(mc);
             if (TEST_EDIT && NovaGui.screen(mc) == null && ++testTick == 240) NovaGui.setScreen(mc, new NovaHudScreen(null));   // solo para pruebas (-Dnova.hudedit=1)
             NovaChat.frame(c, mc);
             NovaPhoto.overlay(c, mc);
