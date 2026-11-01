@@ -3,6 +3,12 @@
 const cv=$("cv"),x=cv.getContext("2d",{alpha:false}),rnd=Math.random,K=6.35,SQ=.18,DLw=1400,DLh=480;
 let W,HT,ST=[],cx=0,cy=0,R=50,al=1,T=0,ang=0,last=0,HR=null,hc=0,b1,b2,c1,c2,SPR=null,spK="",C8=[];
 addEventListener("focus",()=>{dirty=30});
+// Escribiendo o arrastrando, el fondo se para (0 FPS) y vuelve 500 ms después de soltar o quitar el foco
+let HOLD=0,holdT=0;const hold=on=>{clearTimeout(holdT);if(on)HOLD=1;else holdT=setTimeout(()=>{HOLD=0;dirty=30},500)};
+const isTxt=e=>!!e&&(e.tagName==="TEXTAREA"||(e.tagName==="INPUT"&&!/^(range|checkbox|radio|button|submit|color|file)$/.test(e.type))||e.isContentEditable);
+addEventListener("focusin",e=>{if(isTxt(e.target))hold(1)});addEventListener("focusout",e=>{if(isTxt(e.target))hold(0)});
+addEventListener("dragstart",()=>hold(1));addEventListener("dragend",()=>hold(0));addEventListener("drop",()=>hold(0));
+addEventListener("pointerdown",e=>{if(e.target&&e.target.tagName==="INPUT"&&e.target.type==="range")hold(1)});addEventListener("pointerup",()=>{if(HOLD&&!isTxt(document.activeElement))hold(0)});
 const Q={alta:{n:900,f:60,b:1,d:1},media:{n:380,f:60,b:0,d:.85},baja:{n:0,f:30,b:0,d:.7},off:{n:500,f:0,b:0,d:1}};let HDS=1;   // d: resolución del disco (1 = completa); bajarla ahorra mucho en equipos justos
 const DL=document.createElement("canvas");DL.width=DLw;DL.height=DLh;const lc=DL.getContext("2d");
 const D=Array.from({length:900},()=>{const r=1.4+Math.pow(rnd(),1.6)*4.9,t=(r-1.4)/4.9;return{r,t,b:Math.min(7,(t*8)|0),a:rnd()*6.283,z:rnd()-.5,s:rnd()*.6+.7}});
@@ -28,7 +34,7 @@ let GM=false,RAF=0,HOMEON=true;new MutationObserver(()=>{HOMEON=$("home").classL
 function gameMode(on){const g=!!on&&cfg.gameMode!==false;if(g===GM)return;GM=g;document.documentElement.classList.toggle("gm",g);if(!RAF){dirty=60;RAF=requestAnimationFrame(frame)}}
 function frame(now){RAF=requestAnimationFrame(frame);
 const q=Q[cfg.quality]||Q.alta;HDS=q.d;const pg=RUN&&cfg.pauseGame!==false,cap=+cfg.fps||60;let f=q.f?Math.min(q.f,cap):0;if(pg&&f)f=Math.min(f,30);if(GM&&f)f=Math.min(f,document.hasFocus()?24:12);
-if(document.hidden)return;if(f&&A&&cfg.pauseBlur!==false&&!document.hasFocus())f=Math.min(f,RUN?12:15);if(f&&!HOMEON)f=Math.min(f,30);   // fuera de Inicio el agujero negro es pequeño y tenue: 30 fps bastan y se ahorra la mitad de trabajo de pintado
+if(document.hidden||HOLD)return;if(f&&A&&cfg.pauseBlur!==false&&!document.hasFocus())f=Math.min(f,RUN?12:15);if(f&&!HOMEON)f=Math.min(f,30);   // fuera de Inicio el agujero negro es pequeño y tenue: 30 fps bastan y se ahorra la mitad de trabajo de pintado
 if(!f){if(dirty<=0)return}else{if(al<.02)f=Math.min(f,24);if(now-last<1000/f-3)return}
 last=now;dirty--;const k=f?60/f:0,sp=(cfg.rmotion?.15:1)*k*((cfg.bhSpeed==null?100:cfg.bhSpeed)/100);T+=.016*k;ang+=.0065*sp;
 if(hc--<=0||!HR){hc=15;HR=document.querySelector(".hero").getBoundingClientRect()}

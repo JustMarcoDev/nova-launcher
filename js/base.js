@@ -61,6 +61,17 @@ const fSz=n=>n>=1048576?(n/1048576).toFixed(1)+" MB":Math.max(1,Math.round(n/102
 const fmtD=t=>new Date(t).toLocaleString(LCUR,{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
 let flT=0,pickRes=null,busyBtn=null;
 function flash(t){const f=$("ft");f.textContent=t;f.classList.add("on");clearTimeout(flT);flT=setTimeout(()=>f.classList.remove("on"),4600)}
+// Miniaturas diferidas: las <img data-src> solo se cargan al entrar en pantalla (IntersectionObserver + loading="lazy" + decoding="async")
+// y se liberan al alejarse más de 3 pantallas del área visible. Los contenedores de las miniaturas tienen tamaño fijo, así que no se mueve nada.
+function scrollParent(e){for(let p=e.parentElement;p;p=p.parentElement){if(/(auto|scroll)/.test(getComputedStyle(p).overflowY))return p}return null}
+function lazyImgs(root){
+ if(!root)return;if(root.__lz){root.__lz.forEach(o=>o.disconnect());root.__lz=null}
+ const imgs=[...root.querySelectorAll("img[data-src]")];if(!imgs.length)return;
+ const load=i=>{i.loading="lazy";i.decoding="async";i.src=i.dataset.src;i.dataset.off=""},drop=i=>{if(i.getAttribute("src")){i.removeAttribute("src");i.dataset.off="1"}};
+ if(typeof IntersectionObserver==="undefined"){imgs.forEach(load);return}
+ const sp=scrollParent(root),ioIn=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting&&(!e.target.getAttribute("src")))load(e.target)}),{root:sp,rootMargin:"120px 0px"}),
+ ioOut=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)drop(e.target)}),{root:sp,rootMargin:"300% 0px"});
+ imgs.forEach(i=>{ioIn.observe(i);ioOut.observe(i)});root.__lz=[ioIn,ioOut]}
 function modal(h,w){MLOCK=false;const m=$("mdl"),d=m.querySelector(".md");d.className="md"+(w?" "+w:"");d.innerHTML='<button class="mx" type="button" aria-label="Cerrar" title="Cerrar">✕</button>'+h;m.classList.add("on");d.scrollTop=0;d.querySelectorAll("[data-x]").forEach(x=>x.onclick=closeModal);d.querySelector(".mx").onclick=()=>closeModal();return d}
 let MLOCK=false;   // true = ventana obligatoria (crear perfil): no se puede cerrar con Esc, clic fuera ni botón
 function closeModal(force){if(MLOCK&&force!==true)return;$("mdl").classList.remove("on");if(pickRes){const r=pickRes;pickRes=null;r(null)}}
