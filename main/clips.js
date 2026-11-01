@@ -32,8 +32,10 @@ function ask(ch, arg, ms = 15000) {
 
 async function ensureWin() {
   if (win && !win.isDestroyed()) return win;
-  win = new BrowserWindow({ show: false, width: 320, height: 200, webPreferences: { preload: path.join(__dirname, 'clips-preload.js'), contextIsolation: true, sandbox: true, nodeIntegration: false, backgroundThrottling: false } });
+  win = new BrowserWindow({ show: false, width: 320, height: 200, webPreferences: { partition: 'nova-clips', preload: path.join(__dirname, 'clips-preload.js'), contextIsolation: true, sandbox: true, nodeIntegration: false, backgroundThrottling: false } });
   win.on('closed', () => { win = null; });
+  // Sesión propia (partition): solo esta ventana oculta puede pedir captura; las demás ventanas del launcher no se tocan
+  try { win.webContents.session.setPermissionRequestHandler((wc, perm, cb) => cb(perm === 'media' || perm === 'display-capture')); } catch {}
   await win.loadFile(path.join(__dirname, 'clips.html'));
   return win;
 }
