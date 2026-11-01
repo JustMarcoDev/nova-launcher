@@ -29,6 +29,8 @@ final class NovaHudPanel {
     static int listening;
     /** Nombre que se está escribiendo al renombrar el perfil (null = no se renombra) y aviso breve. */
     static String typing;
+    /** Lo que se escribe en «Palabras clave» del chat (null = no se edita). */
+    static String kwTyping;
     static String note = "";
     static long noteAt;
     static final int[] FPS_GOALS = { 30, 60, 90, 120, 144 };
@@ -79,7 +81,7 @@ final class NovaHudPanel {
         int tw = (cw - 3 * gap) / 4;
         for (int i = 0; i < 4; i++) {
             final int k = i;
-            btn(h, cx + i * (tw + gap), y, tw, hh, tn[i], -1, tab == i ? NovaButton.PRIMARY : NovaButton.NORMAL, () -> { tab = k; listening = 0; typing = null; h.rebuild(); });
+            btn(h, cx + i * (tw + gap), y, tw, hh, tn[i], -1, tab == i ? NovaButton.PRIMARY : NovaButton.NORMAL, () -> { tab = k; listening = 0; typing = null; kwTyping = null; h.rebuild(); });
         }
         y += tabsH + 2;
         int ry = y;
@@ -148,7 +150,12 @@ final class NovaHudPanel {
         btn(h, x + half + gap, y + r * st, w - half - gap, hh, listening == 4 ? tr("Pulsa una tecla…") : NovaHud.keyName(NovaStreamCore.key), -1, listening == 4 ? NovaButton.PRIMARY : NovaButton.NORMAL, () -> { listening = listening == 4 ? 0 : 4; h.rebuild(); });
         r++;
         tog(h, x, y + r * st, half, hh, tr("FPS en menús") + ": " + (NovaSettings.fpsMenu ? "60" : tr("No")), NovaSettings.fpsMenu, () -> NovaSettings.fpsMenu = !NovaSettings.fpsMenu);
-        btn(h, x + half + gap, y + r * st, w - half - gap, hh, tr("Batería") + ": " + (NovaFpsCore.BAT ? "30 FPS" : tr("No")), NovaFpsCore.BAT ? NovaGfx.I_BOLT : -1, NovaFpsCore.BAT ? NovaButton.SELECTED : NovaButton.NORMAL, () -> { });
+        String kwl = kwTyping != null ? kwTyping + (((System.currentTimeMillis() / 500L) & 1L) == 0 ? "_" : " ") : (NovaSettings.chatWords.isEmpty() ? tr("Palabras clave") + ": " + tr("No") : tr("Palabras clave") + ": " + NovaChatCore.joinWords(NovaSettings.chatWords));
+        btn(h, x + half + gap, y + r * st, w - half - gap, hh, kwl, -1, kwTyping != null ? NovaButton.PRIMARY : NovaSettings.chatWords.isEmpty() ? NovaButton.NORMAL : NovaButton.SELECTED, () -> {
+            if (kwTyping == null) kwTyping = NovaChatCore.joinWords(NovaSettings.chatWords);
+            else { NovaSettings.chatWords = NovaChatCore.parseWords(kwTyping); NovaSettings.save(); kwTyping = null; }
+            h.rebuild();
+        });
         r++;
         btn(h, x, y + r * st, half, hh, tr("Partículas lejanas") + ": " + NovaFpsCore.farName(NovaSettings.farPart), -1, NovaSettings.farPart > 0 ? NovaButton.SELECTED : NovaButton.NORMAL, () -> { NovaFpsCore.cycleFarPart(); h.rebuild(); });
         btn(h, x + half + gap, y + r * st, w - half - gap, hh, tr("Entidades lejanas") + ": " + NovaFpsCore.farName(NovaSettings.farEnt), -1, NovaSettings.farEnt > 0 ? NovaButton.SELECTED : NovaButton.NORMAL, () -> { NovaFpsCore.cycleFarEnt(); h.rebuild(); });
@@ -227,6 +234,12 @@ final class NovaHudPanel {
             h.rebuild();
             return true;
         }
+        if (kwTyping != null) {
+            if (key == 256) { kwTyping = null; h.rebuild(); }
+            else if (key == 257 || key == 335) { NovaSettings.chatWords = NovaChatCore.parseWords(kwTyping); NovaSettings.save(); kwTyping = null; h.rebuild(); }
+            else if (key == 259) { if (!kwTyping.isEmpty()) kwTyping = kwTyping.substring(0, kwTyping.length() - 1); h.rebuild(); }
+            return true;
+        }
         if (typing != null) {
             if (key == 256) { typing = null; h.rebuild(); }
             else if (key == 257 || key == 335) { if (!NovaHud.profileRename(typing)) say(tr("Ese nombre no vale")); typing = null; h.rebuild(); }
@@ -237,6 +250,10 @@ final class NovaHudPanel {
     }
 
     static boolean typed(Host h, char ch) {
+        if (kwTyping != null) {
+            if (ch >= 32 && ch != 127 && kwTyping.length() < 120) { kwTyping += ch; h.rebuild(); }
+            return true;
+        }
         if (typing == null) return false;
         if (ch >= 32 && ch != 127 && typing.length() < 24) { typing += ch; h.rebuild(); }
         return true;

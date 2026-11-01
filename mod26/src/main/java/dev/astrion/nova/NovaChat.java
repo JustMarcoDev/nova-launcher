@@ -34,7 +34,7 @@ public final class NovaChat {
             NovaSettings.load();
             if (!NovaSettings.chatTime && !NovaSettings.chatMention) return msg;
             Component out = msg;
-            boolean mention = NovaSettings.chatMention && NovaChatCore.mentions(msg.getString(), myName());
+            boolean mention = NovaSettings.chatMention && NovaChatCore.mentionsAny(msg.getString(), myName(), NovaSettings.chatWords);
             if (mention) {
                 out = msg.copy().withStyle(ChatFormatting.YELLOW);
                 ping();
