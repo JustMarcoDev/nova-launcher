@@ -27,6 +27,20 @@ final class NovaSelfTest {
         Runtime.getRuntime().halt(1);
     }
 
+    /** Prueba pura: una imagen con degradado y la cuadrícula de tercios dibujada en blanco; al borrarla vuelve a lo que había. */
+    private static boolean gridCheck() {
+        try {
+            java.awt.image.BufferedImage im = new java.awt.image.BufferedImage(30, 30, java.awt.image.BufferedImage.TYPE_INT_RGB);
+            for (int y = 0; y < 30; y++) for (int x = 0; x < 30; x++) im.setRGB(x, y, 0x010101 * (x * 6));
+            for (int i = 0; i < 30; i++) { im.setRGB(10, i, 0xFFFFFF); im.setRGB(20, i, 0xFFFFFF); im.setRGB(i, 10, 0xFFFFFF); im.setRGB(i, 20, 0xFFFFFF); }
+            long now = System.currentTimeMillis();
+            NovaPhotoCore.gridDrawn(30, 30, 30, 30, now);
+            if (!NovaPhotoCore.eraseGrid(im, now)) return false;
+            int v = im.getRGB(10, 5) & 255;   // esperado 10*6 = 60
+            return Math.abs(v - 60) <= 2 && Math.abs((im.getRGB(5, 20) & 255) - 30) <= 2;
+        } catch (Throwable t) { return false; }
+    }
+
     private static <T> T onMain(Executor main, Supplier<T> s) throws Exception {
         CompletableFuture<T> f = new CompletableFuture<>();
         main.execute(() -> { try { f.complete(s.get()); } catch (Throwable t) { f.completeExceptionally(t); } });
@@ -38,6 +52,7 @@ final class NovaSelfTest {
         if (!ON || started) return;
         started = true;
         Thread t = new Thread(() -> {
+            if (!gridCheck()) fail("la cuadricula del modo foto no se borra de la captura");
             try {
                 Thread.sleep(3000);
                 String s = onMain(main, cur);
