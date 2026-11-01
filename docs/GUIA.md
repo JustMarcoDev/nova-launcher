@@ -157,3 +157,9 @@ Cada vez que cambia el mod (`mod/`) se publica una versión nueva del launcher: 
 3. Pega la pública en `PUBLIC_KEY` de `main/firma.js` y publica una versión nueva.
 
 Los instaladores ya repartidos solo aceptan archivos firmados con la clave que llevaban: cambia la clave solo junto con una versión nueva y no pierdas la privada. Sin el secreto el flujo avisa y no firma nada.
+
+## Rendimiento en la 0.2.17-beta.2
+
+- **FPS en menús, modo batería y distancias del Modo FPS** se cambian en «Editar HUD» → Juego y se guardan en `menu.json` (objeto `fps`: `menu`, `bat`, `farPart`, `farEnt`). El modo batería lo decide el launcher (Ajustes → Rendimiento) con `-Dnova.battery=true`.
+- **Mixins nuevos**: `FpsLimitMixin` (límite de FPS), `FarMixin` (partículas) y `FarEntityMixin` (entidades). En `mod/`, el límite va en las capas `opt-a` (hasta 1.21.1, `MinecraftClient.getFramerateLimit`) y `opt-b` (desde 1.21.2, `InactivityFpsLimiter.update`); en `mod26/` va en `main` y `FarEntityMixin` en `glfw` y `sdl`. Si una versión nueva cambia esas firmas, el robot lo avisa porque los inyectores son obligatorios.
+- **estado.json** solo se escribe con el modo streamer activo y cuando algo cambia.
