@@ -67,6 +67,11 @@ abstract class NovaHudCore {
             if (z.has("on")) zoomOn = z.get("on").getAsBoolean();
             if (z.has(NovaMc.keyProp())) { int k = z.get(NovaMc.keyProp()).getAsInt(); if (k > 0) zoomKey = k; }
         }
+        if (o.has("stream") && o.get("stream").isJsonObject()) {
+            JsonObject z = o.getAsJsonObject("stream");
+            if (z.has("on")) NovaStreamCore.on = z.get("on").getAsBoolean();
+            if (z.has(NovaMc.keyProp())) { int k = z.get(NovaMc.keyProp()).getAsInt(); if (k > 0) NovaStreamCore.key = k; }
+        }
         if (o.has("photo") && o.get("photo").isJsonObject()) {
             JsonObject z = o.getAsJsonObject("photo");
             if (z.has(NovaMc.keyProp())) { int k = z.get(NovaMc.keyProp()).getAsInt(); if (k > 0) photoKey = k; }
@@ -94,6 +99,9 @@ abstract class NovaHudCore {
         JsonObject ph = new JsonObject();
         ph.addProperty(NovaMc.keyProp(), photoKey);
         o.add("photo", ph);
+        JsonObject st = new JsonObject();
+        st.addProperty("on", NovaStreamCore.on); st.addProperty(NovaMc.keyProp(), NovaStreamCore.key);
+        o.add("stream", st);
         return o;
     }
 
