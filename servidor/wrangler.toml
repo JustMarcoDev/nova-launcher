@@ -14,9 +14,18 @@ id = "PEGA_AQUI_EL_ID_DEL_KV"
 name = "PRESENCE"
 class_name = "Presence"
 
+# Durable Object «Cloud»: ajustes en la nube (uno por jugador, con SQLite).
+[[durable_objects.bindings]]
+name = "CLOUD"
+class_name = "Cloud"
+
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["Presence"]
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["Cloud"]
 
 # Opcional: peticiones por minuto por IP y por token (por defecto 10)
 # [vars]

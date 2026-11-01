@@ -6,6 +6,10 @@
 //   POST /verify    { name, uuid, serverId } → { token }                         (comprueba con Mojang que el jugador hizo joinServer con ese serverId)
 //   POST /heartbeat { token }                → { ok:true }                       (marca el UUID como activo durante 2 min; el mod lo envía cada 30 s)
 //   POST /query     { uuids:[…] }            → { nova:[uuids que usan Nova] }    (máx. 100 por consulta)
+//   GET    /cloud   (Authorization: Bearer <token de /verify>) → { data, updated }  ajustes del jugador en la nube (404 si no hay)
+//   PUT    /cloud   (ídem, cuerpo JSON ≤ 1 MB)                 → { ok, updated }    guarda: menu.json, apariencia del launcher y hasta 10 skins (png ≤ 64 KB)
+//   DELETE /cloud   (ídem)                                      → { ok }             borra todo lo del jugador
+//   La nube vive en el Durable Object «Cloud» (uno por UUID, con SQLite). Nunca guarda tokens ni contraseñas: si el JSON trae algo con ese aspecto se rechaza.
 //
 // Dónde vive cada cosa:
 //   · Durable Object «Presence» (uno global, en memoria): mapa uuid → última vez visto, tokens activos y límites de peticiones.
@@ -25,6 +29,54 @@ const norm = u => String(u || '').replace(/-/g, '').toLowerCase();
 const ACTIVE_MS = 120000, TOKEN_MS = 86400000, WINDOW_MS = 60000;
 const MAX_UUIDS = 100, REPORTS_PER_DAY = 10, MAX_REPORTS = 2000;
 const clip = (v, n) => String(v == null ? '' : v).slice(0, n);
+
+// ---- Ajustes en la nube: qué se acepta ----
+const CLOUD_MAX = 1000000, CLOUD_SKINS = 10, CLOUD_PNG = 64 * 1024;
+const SECRETO = /(token|passw|secret|cookie|session|authoriz|api_?key|cfkey|refresh|credential)/i;
+const plano = o => o && typeof o === 'object' && !Array.isArray(o);
+function tieneSecretos(v, depth = 0) {
+  if (depth > 12) return true;
+  if (Array.isArray(v)) return v.some(x => tieneSecretos(x, depth + 1));
+  if (plano(v)) return Object.keys(v).some(k => SECRETO.test(k) || tieneSecretos(v[k], depth + 1));
+  return false;
+}
+/** Comprueba el cuerpo de un PUT /cloud. Devuelve { ok:true, text } (JSON normalizado) o { ok:false, error }. */
+function cloudClean(raw) {
+  if (typeof raw !== 'string' || raw.length > CLOUD_MAX) return { ok: false, error: 'grande' };
+  let b; try { b = JSON.parse(raw); } catch { return { ok: false, error: 'json' }; }
+  if (!plano(b)) return { ok: false, error: 'datos' };
+  const out = {};
+  for (const k of ['menu', 'launcher']) { if (b[k] === undefined) continue; if (!plano(b[k])) return { ok: false, error: 'datos' }; out[k] = b[k]; }
+  if (tieneSecretos(out)) return { ok: false, error: 'secretos' };
+  if (b.skins !== undefined) {
+    if (!Array.isArray(b.skins) || b.skins.length > CLOUD_SKINS) return { ok: false, error: 'skins' };
+    out.skins = [];
+    for (const z of b.skins) {
+      if (!plano(z) || typeof z.png !== 'string' || z.png.length > Math.ceil(CLOUD_PNG / 3) * 4 || !/^[A-Za-z0-9+/]+={0,2}$/.test(z.png)) return { ok: false, error: 'skins' };
+      const head = atob(z.png.slice(0, 12));
+      if (head.charCodeAt(0) !== 0x89 || head.slice(1, 4) !== 'PNG') return { ok: false, error: 'skins' };
+      if (Math.floor(z.png.length * 3 / 4) > CLOUD_PNG) return { ok: false, error: 'skins' };
+      out.skins.push({ name: clip(z.name, 30), model: z.model === 'slim' ? 'slim' : 'classic', png: z.png });
+    }
+  }
+  const text = JSON.stringify(out);
+  if (text.length > CLOUD_MAX) return { ok: false, error: 'grande' };
+  return { ok: true, text };
+}
+export class Cloud extends DurableObject {
+  constructor(ctx, env) {
+    super(ctx, env);
+    this.sql = ctx.storage.sql;
+    this.sql.exec('CREATE TABLE IF NOT EXISTS c (id INTEGER PRIMARY KEY CHECK (id = 1), data TEXT NOT NULL, updated INTEGER NOT NULL)');
+  }
+  put(text) {
+    const now = Date.now();
+    this.sql.exec('INSERT INTO c (id, data, updated) VALUES (1, ?, ?) ON CONFLICT(id) DO UPDATE SET data = excluded.data, updated = excluded.updated', text, now);
+    return now;
+  }
+  get() { const r = this.sql.exec('SELECT data, updated FROM c WHERE id = 1').toArray()[0]; return r ? { data: r.data, updated: r.updated } : null; }
+  wipe() { this.sql.exec('DELETE FROM c'); return true; }
+}
 
 const MAX_COMBOS = 300, MAX_USAGE_IDS = 5000, USAGE_DAYS = 90;   // límites del recuento anónimo
 export class Presence extends DurableObject {
@@ -100,7 +152,7 @@ export class Presence extends DurableObject {
 export default {
   async fetch(req, env) {
     const url = new URL(req.url), p = url.pathname;
-    if (req.method === 'OPTIONS') return new Response(null, { headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': 'content-type', 'access-control-allow-methods': 'GET,POST' } });
+    if (req.method === 'OPTIONS') return new Response(null, { headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': 'content-type,authorization', 'access-control-allow-methods': 'GET,POST,PUT,DELETE' } });
     try {
       const room = env.PRESENCE.get(env.PRESENCE.idFromName('global'));
       const ip = req.headers.get('cf-connecting-ip') || '';
@@ -121,6 +173,21 @@ export default {
         if (!env.USAGE_SECRET || auth !== 'Bearer ' + env.USAGE_SECRET) return J({ error: 'no autorizado' }, 401);
         if (!await room.hit(ip, '')) return J({ error: 'limite' }, 429, { 'retry-after': '60' });
         return J({ days: await room.usageSummary(Math.min(USAGE_DAYS, +url.searchParams.get('days') || 30)) });
+      }
+      if (p === '/cloud' && ['GET', 'PUT', 'DELETE'].includes(req.method)) {
+        const tk = (req.headers.get('authorization') || '').replace(/^Bearer /, '');
+        if (!/^[0-9a-f]{48}$/.test(tk)) return J({ error: 'token' }, 401);
+        if (!await room.hit(ip, tk)) return J({ error: 'limite' }, 429, { 'retry-after': '60' });
+        let uuid = await room.uuidOf(tk);
+        if (!uuid) { uuid = await env.NOVA.get('t:' + tk); if (!uuid) return J({ error: 'token' }, 401); await room.addToken(tk, uuid); }
+        const box = env.CLOUD.get(env.CLOUD.idFromName('u:' + uuid));
+        if (req.method === 'GET') { const r = await box.get(); return r ? J({ data: JSON.parse(r.data), updated: r.updated }) : J({ error: 'vacio' }, 404); }
+        if (req.method === 'DELETE') { await box.wipe(); return J({ ok: true }); }
+        const len = +req.headers.get('content-length') || 0;
+        if (len > CLOUD_MAX) return J({ error: 'grande' }, 413);
+        const c = cloudClean(await req.text());
+        if (!c.ok) return J({ error: c.error }, c.error === 'grande' ? 413 : 400);
+        return J({ ok: true, updated: await box.put(c.text) });
       }
       if (req.method !== 'POST') return J({ error: 'nope' }, 404);
       const b = await req.json().catch(() => ({}));
