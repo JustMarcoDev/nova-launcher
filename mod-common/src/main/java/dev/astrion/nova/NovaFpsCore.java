@@ -27,6 +27,7 @@ final class NovaFpsCore {
 
     /** Modo batería: el launcher pasa -Dnova.battery=true cuando el portátil va con batería. */
     static final boolean BAT = Boolean.getBoolean("nova.battery");
+    static final double BIG = 3.0;
     static final int BAT_FPS = 30, MENU_FPS = 60, NEAR = 8;
     private static boolean batDone;
 
@@ -60,9 +61,9 @@ final class NovaFpsCore {
         return d2 > r * r;
     }
 
-    /** Entidad que no es jugador a d2 de la cámara: con el Modo FPS no se dibuja si pasa de farEnt (mínimo 8). Los jugadores siempre se ven. */
-    static boolean hideEntity(boolean player, double d2) {
-        if (player || !NovaSettings.fpsOn || NovaSettings.farEnt <= 0) return false;
+    /** Entidad que no es jugador a d2 de la cámara: con el Modo FPS no se dibuja si pasa de farEnt (mínimo 8). Los jugadores y las entidades enormes (dragón, wither, ghast…: ancho de 3 bloques o más) siempre se ven. */
+    static boolean hideEntity(boolean player, double width, double d2) {
+        if (player || width >= BIG || !NovaSettings.fpsOn || NovaSettings.farEnt <= 0) return false;
         double r = Math.max(NovaSettings.farEnt, NEAR);
         return d2 > r * r;
     }
