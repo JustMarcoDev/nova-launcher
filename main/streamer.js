@@ -4,7 +4,6 @@
 // El mod escribe nova/estado.json cada segundo (FPS, servidor sin IP, versión, tiempo de sesión); aquí se sirve /overlay con actualizaciones en vivo (SSE).
 // (Parte del proceso principal; main.js carga todos los módulos. Mira «Estructura del proyecto» en el README.)
 // =====================================================================================
-const { ipcMain } = require('electron');
 const fs = require('fs');
 const http = require('http');
 const path = require('path');
@@ -127,8 +126,6 @@ async function streamerSync() {
   return info;
 }
 
-ipcMain.handle('streamer:info', () => ({ ...info, url: 'http://127.0.0.1:' + info.port + '/overlay' }));
-ipcMain.handle('streamer:sync', async () => { const i = await streamerSync(); return { ...i, url: 'http://127.0.0.1:' + i.port + '/overlay' }; });
 setTimeout(() => { streamerSync().catch(() => {}); }, 3000);
 
 Object.assign(R, { streamerSync });
