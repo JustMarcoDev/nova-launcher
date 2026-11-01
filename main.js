@@ -40,6 +40,7 @@ require('./main/juego');
 require('./main/benchmark');
 require('./main/actualizaciones');
 require('./main/discord');
+require('./main/streamer');
 require('./main/sistema');
 require('./main/ventana');
 require('./main/limpieza');
