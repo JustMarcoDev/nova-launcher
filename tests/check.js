@@ -93,6 +93,16 @@ if (ver !== pkg.version) bad('VER en js/base.js (' + ver + ') no coincide con pa
   const r = require('child_process').spawnSync(process.execPath, [path.join(__dirname, 'uso.js')], { encoding: 'utf8' });
   if (r.status !== 0) bad('tests/uso.js falló:\n' + (r.stdout || '') + (r.stderr || '')); else console.log(r.stdout.trim());
 }
+// Ajustes en la nube (servidor)
+{
+  const r = require('child_process').spawnSync(process.execPath, [path.join(__dirname, 'nube.js')], { encoding: 'utf8' });
+  if (r.status !== 0) bad('tests/nube.js falló:\n' + (r.stdout || '') + (r.stderr || '')); else console.log(r.stdout.trim());
+}
+// Cliente de la nube
+{
+  const r = require('child_process').spawnSync(process.execPath, [path.join(__dirname, 'nube-cliente.js')], { encoding: 'utf8' });
+  if (r.status !== 0) bad('tests/nube-cliente.js falló:\n' + (r.stdout || '') + (r.stderr || '')); else console.log(r.stdout.trim());
+}
 // Lector de level.dat de la pestaña Mundos
 {
   const r = require('child_process').spawnSync(process.execPath, [path.join(__dirname, 'mundos.js')], { encoding: 'utf8' });
