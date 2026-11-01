@@ -144,6 +144,7 @@ public class NovaTitleScreen extends NovaScreen {
         labels.clear();
         NovaSessionCore.reset();   // al volver al título la sesión empieza de cero
         NovaPhoto.leave(client, false);
+        NovaStream.tick(client);
         if (panel == 0 && NovaGuide.due()) NovaGuide.start();   // primera vez: guía de 5 pasos
         int cx = width / 2;
         int bw = Math.min(124, width - 20), bh = 16, gap = 3;
@@ -637,7 +638,7 @@ public class NovaTitleScreen extends NovaScreen {
             labels.add(new Object[] { tr("Aún no has entrado en ningún servidor"), x + 2, y + 6, 5.8f, 0xFF9A9AC0, false, 0 });
         } else {
             labels.add(new Object[] { shorten(last.name, 24), x + 4, y + 3, 7f, 0xFFFFFFFF, true, 0 });
-            labels.add(new Object[] { shorten(last.addr, 34), x + 4, y + 13, 5.4f, 0xFF7C7CA0, false, 0 });
+            labels.add(new Object[] { shorten(NovaStreamCore.addr(last.addr), 34), x + 4, y + 13, 5.4f, 0xFF7C7CA0, false, 0 });
             pings.add(new Object[] { last.addr, x + w - jw - 8, y + 6 });
             final NovaServers.Srv ls = last;
             addDrawableChild(new NovaButton(x + w - jw - 2, y + 2, jw, 16, Text.literal(tr("Entrar")), NovaGfx.I_PLAY, NovaButton.PRIMARY,
@@ -651,7 +652,7 @@ public class NovaTitleScreen extends NovaScreen {
         for (int i = svScroll; i < Math.min(F.size(), svScroll + rows); i++) {
             final NovaServers.Srv f = F.get(i);
             addDrawableChild(new NovaButton(x, y, w - jw - 2 - 78, ib, Text.literal(shorten(f.name, 18)), NovaGfx.I_SERVER, NovaButton.NORMAL,
-                    b -> NovaConnect.connect(client, this, f.name, f.addr)).tip(shorten(f.name, 26), tr("Entrar a {0}", f.addr)));
+                    b -> NovaConnect.connect(client, this, f.name, f.addr)).tip(shorten(f.name, 26), tr("Entrar a {0}", NovaStreamCore.addr(f.addr))));
             pings.add(new Object[] { f.addr, x + w - jw - 6, y + 4 });
             addDrawableChild(new NovaButton(x + w - jw, y, jw, ib, Text.literal(tr("Entrar")), NovaGfx.I_PLAY, NovaButton.PRIMARY,
                     b -> NovaConnect.connect(client, this, f.name, f.addr)).tip(tr("Entrar"), tr("Conecta directamente a este servidor")));

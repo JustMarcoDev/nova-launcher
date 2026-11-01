@@ -270,6 +270,7 @@ public final class NovaHud extends NovaHudCore {
             NovaServers.frame();
             NovaMove.tick();
             NovaPhoto.tick(mc);
+            NovaStream.tick(mc);
             if (TEST_EDIT && mc.currentScreen == null && ++testTick == 240) mc.setScreen(new NovaHudScreen(null));   // solo para pruebas (-Dnova.hudedit=1)
             NovaChat.frame(c, mc);
             if (mc.options.hudHidden) return;
@@ -280,7 +281,7 @@ public final class NovaHud extends NovaHudCore {
             NovaFps.frame(c, mc);
             int sw = c.getScaledWindowWidth(), sh = c.getScaledWindowHeight();
             for (El e : ALL) {
-                if (!e.on || (e == STATE && NovaMove.states(false).isEmpty()) || (e == ARMOR && NovaX.armor(mc, false).isEmpty()) || (e == POTS && NovaX.effects(mc, false).isEmpty())) continue;
+                if (!e.on || (NovaStreamCore.on && (e == XYZ || e == COMPASS)) || (e == STATE && NovaMove.states(false).isEmpty()) || (e == ARMOR && NovaX.armor(mc, false).isEmpty()) || (e == POTS && NovaX.effects(mc, false).isEmpty())) continue;
                 int[] s = sizeS(mc, e, false), p = pos(e, sw, sh, s[0], s[1]);
                 drawS(c, mc, e, p[0], p[1], false);
             }

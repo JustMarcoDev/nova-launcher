@@ -50,5 +50,6 @@ final class NovaMc {
     /** Tecla de zoom de fábrica (C) y nombre con que se guarda en menu.json (las versiones con SDL usan otro código de teclas). */
     static int defaultZoomKey() { return 67; }
     static int defaultPhotoKey() { return 295; }
+    static int defaultStreamKey() { return 296; }
     static String keyProp() { return "key"; }
 }
