@@ -50,5 +50,6 @@ final class NovaMc {
 
     /** Tecla de zoom de fábrica (C) y nombre con que se guarda en menu.json (las versiones con SDL usan otro código de teclas). */
     static int defaultZoomKey() { return InputConstants.KEY_C; }
+    static int defaultPhotoKey() { return InputConstants.KEY_F6; }
     static String keyProp() { return NovaVer.KEY; }
 }

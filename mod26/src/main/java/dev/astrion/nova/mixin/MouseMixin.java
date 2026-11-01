@@ -1,6 +1,7 @@
 package dev.astrion.nova.mixin;
 
 import dev.astrion.nova.NovaInput;
+import dev.astrion.nova.NovaPhoto;
 import net.minecraft.client.MouseHandler;
 import net.minecraft.client.input.MouseButtonInfo;
 import org.spongepowered.asm.mixin.Mixin;
@@ -18,5 +19,11 @@ public class MouseMixin {
     @Inject(method = "onButton", at = @At("HEAD"))
     private void nova$button(long window, MouseButtonInfo info, int action, CallbackInfo ci) {
         NovaInput.mouseEvent(info.button(), action != 0);
+    }
+
+    /** En modo foto la rueda cambia el campo de visión en vez de cambiar de casilla. */
+    @Inject(method = "onScroll", at = @At("HEAD"), cancellable = true, require = 0)
+    private void nova$scroll(long window, double horizontal, double vertical, CallbackInfo ci) {
+        if (NovaPhoto.scroll(vertical)) ci.cancel();
     }
 }

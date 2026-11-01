@@ -11,4 +11,5 @@ final class NovaGui {
     static void setScreen(Minecraft mc, Screen s) { mc.setScreen(s); }
     static ChatComponent chat(Minecraft mc) { return mc.gui.getChat(); }
     static boolean hidden(Minecraft mc) { return mc.options.hideGui; }
+    static void setHidden(Minecraft mc, boolean v) { mc.options.hideGui = v; }
 }

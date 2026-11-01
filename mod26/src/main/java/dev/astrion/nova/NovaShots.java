@@ -35,6 +35,7 @@ public final class NovaShots {
         try {
             NovaShotsCore.saved(Minecraft.getInstance().gameDirectory, Util.getMillis());
             bCopy = null; bView = null; bDir = null;
+            NovaPhoto.shotSaved();
         } catch (Throwable ignored) { }
     }
 

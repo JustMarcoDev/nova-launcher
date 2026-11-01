@@ -269,6 +269,7 @@ public final class NovaHud extends NovaHudCore {
             NovaPresence.frame(mc);
             NovaServers.frame();
             NovaMove.tick();
+            NovaPhoto.tick(mc);
             if (TEST_EDIT && NovaGui.screen(mc) == null && ++testTick == 240) NovaGui.setScreen(mc, new NovaHudScreen(null));   // solo para pruebas (-Dnova.hudedit=1)
             NovaChat.frame(c, mc);
             if (NovaGui.hidden(mc)) return;
@@ -327,7 +328,7 @@ public final class NovaHud extends NovaHudCore {
                     && NovaInput.key(zoomKey);
             float m = zoomStep(want, mc != null && NovaGui.screen(mc) != null);
             if (zooming()) sensScale(mc, m); else sensRestore(mc);
-            return m;
+            return m * NovaPhoto.mul();
         } catch (Throwable t) { sensRestore(mc); return 1.0; }
     }
 
