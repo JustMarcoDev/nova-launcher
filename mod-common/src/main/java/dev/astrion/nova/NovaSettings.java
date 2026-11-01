@@ -33,6 +33,9 @@ final class NovaSettings {
     /** Opciones de vídeo extra que el Modo FPS toca por niveles (para devolverlas): distancia de entidades y mezcla de biomas. */
     static int fpsBiome = -1;
     static double fpsEntity = -1;
+    /** Limitar a 60 FPS con un menú abierto; distancias (bloques, 0 = sin recorte) de partículas y entidades que el Modo FPS deja de dibujar; modo batería activado por el Modo FPS. */
+    static boolean fpsMenu = true, fpsBat;
+    static int farPart = 16, farEnt = 48;
     /** «Chat mejorado»: cuatro opciones que se activan por separado (todas apagadas de fábrica). */
     static boolean chatTime, chatCopy, chatSearch, chatMention;
     /** Versión de las «Novedades de Nova» que ya se vio (para no volver a enseñarlas). */
@@ -76,6 +79,10 @@ final class NovaSettings {
                 if (fo.has("goal")) fpsGoal = Math.max(24, Math.min(240, fo.get("goal").getAsInt()));
                 if (fo.has("biome")) fpsBiome = fo.get("biome").getAsInt();
                 if (fo.has("entity")) fpsEntity = fo.get("entity").getAsDouble();
+                fpsMenu = !fo.has("menu") || fo.get("menu").getAsBoolean();
+                fpsBat = fo.has("bat") && fo.get("bat").getAsBoolean();
+                if (fo.has("farPart")) farPart = Math.max(0, Math.min(64, fo.get("farPart").getAsInt()));
+                if (fo.has("farEnt")) farEnt = Math.max(0, Math.min(128, fo.get("farEnt").getAsInt()));
             }
             if (o.has("chat") && o.get("chat").isJsonObject()) {
                 JsonObject co = o.getAsJsonObject("chat");
@@ -129,6 +136,7 @@ final class NovaSettings {
             fo.addProperty("shadows", fpsShadows); fo.addProperty("view", fpsView); fo.addProperty("sim", fpsSim);
             fo.addProperty("noAsk", fpsNoAsk);
             fo.addProperty("goal", fpsGoal); fo.addProperty("biome", fpsBiome); fo.addProperty("entity", fpsEntity);
+            fo.addProperty("menu", fpsMenu); fo.addProperty("bat", fpsBat); fo.addProperty("farPart", farPart); fo.addProperty("farEnt", farEnt);
             o.add("fps", fo);
             JsonObject co = new JsonObject();
             co.addProperty("time", chatTime); co.addProperty("copy", chatCopy); co.addProperty("search", chatSearch); co.addProperty("mention", chatMention);
