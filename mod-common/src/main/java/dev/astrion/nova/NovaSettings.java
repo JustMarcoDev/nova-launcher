@@ -1,5 +1,6 @@
 package dev.astrion.nova;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.io.File;
@@ -38,6 +39,8 @@ final class NovaSettings {
     static int farPart = 16, farEnt = 48;
     /** «Chat mejorado»: cuatro opciones que se activan por separado (todas apagadas de fábrica). */
     static boolean chatTime, chatCopy, chatSearch, chatMention;
+    /** Palabras propias (hasta 10) que también cuentan como mención. */
+    static java.util.List<String> chatWords = new java.util.ArrayList<>();
     /** Versión de las «Novedades de Nova» que ya se vio (para no volver a enseñarlas). */
     static String newsSeen = "";
     /** Ya se vio la guía de primera vez (o se saltó). */
@@ -90,6 +93,9 @@ final class NovaSettings {
                 chatCopy = co.has("copy") && co.get("copy").getAsBoolean();
                 chatSearch = co.has("search") && co.get("search").getAsBoolean();
                 chatMention = co.has("mention") && co.get("mention").getAsBoolean();
+                java.util.List<String> w = new java.util.ArrayList<>();
+                if (co.has("words") && co.get("words").isJsonArray()) for (com.google.gson.JsonElement e : co.getAsJsonArray("words")) { try { w.add(e.getAsString()); } catch (Throwable ignored) { } }
+                chatWords = NovaChatCore.words(w);
             }
             if (o.has("move") && o.get("move").isJsonObject()) NovaMove.read(o.getAsJsonObject("move"));
             if (o.has("newsSeen")) newsSeen = o.get("newsSeen").getAsString();
@@ -140,6 +146,9 @@ final class NovaSettings {
             o.add("fps", fo);
             JsonObject co = new JsonObject();
             co.addProperty("time", chatTime); co.addProperty("copy", chatCopy); co.addProperty("search", chatSearch); co.addProperty("mention", chatMention);
+            JsonArray wa = new JsonArray();
+            for (String w : chatWords) wa.add(w);
+            co.add("words", wa);
             o.add("chat", co);
             o.add("move", NovaMove.write());
             o.addProperty("newsSeen", newsSeen);
