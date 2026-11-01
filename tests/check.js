@@ -93,6 +93,11 @@ if (ver !== pkg.version) bad('VER en js/base.js (' + ver + ') no coincide con pa
   const r = require('child_process').spawnSync(process.execPath, [path.join(__dirname, 'uso.js')], { encoding: 'utf8' });
   if (r.status !== 0) bad('tests/uso.js falló:\n' + (r.stdout || '') + (r.stderr || '')); else console.log(r.stdout.trim());
 }
+// Cálculos del PC
+{
+  const r = require('child_process').spawnSync(process.execPath, [path.join(__dirname, 'hardware.js')], { encoding: 'utf8' });
+  if (r.status !== 0) bad('tests/hardware.js falló:\n' + (r.stdout || '') + (r.stderr || '')); else console.log(r.stdout.trim());
+}
 // Ajustes en la nube (servidor)
 {
   const r = require('child_process').spawnSync(process.execPath, [path.join(__dirname, 'nube.js')], { encoding: 'utf8' });

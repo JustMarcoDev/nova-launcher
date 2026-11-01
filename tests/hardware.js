@@ -1,0 +1,26 @@
+// Cálculos del PC (main/hardware.js): gráficas, ajustes de vídeo del primer arranque, RAM recomendada y modo batería.
+const assert = require('assert');
+const H = require('../main/hardware.js');
+const two = H.classifyGpus([{ vendorId: 0x8086, deviceString: 'Intel(R) UHD Graphics 630', active: true }, { vendorId: 0x10de, deviceString: 'NVIDIA GeForce RTX 3060 Laptop GPU' }]);
+assert.ok(two.dual && two.usingIntegrated && two.hasDedicated, 'portátil con Intel + NVIDIA: dos gráficas y usa la integrada');
+const ded = H.classifyGpus([{ vendorId: 0x10de, deviceString: 'NVIDIA GeForce RTX 4070', active: true }]);
+assert.ok(!ded.dual && !ded.usingIntegrated && ded.hasDedicated, 'solo dedicada');
+const onlyI = H.classifyGpus([{ vendorId: '0x8086', deviceString: 'Intel Iris Xe', active: true }]);
+assert.ok(!onlyI.dual && onlyI.usingIntegrated && !onlyI.hasDedicated, 'solo integrada');
+assert.deepStrictEqual(H.classifyGpus(null).gpus, [], 'sin datos no falla');
+assert.ok(H.classifyGpus([{ vendorId: 0x1002, deviceString: 'AMD Radeon RX 6700 XT', active: true }]).hasDedicated, 'una RX es dedicada');
+assert.strictEqual(H.tier({ ramGb: 8, gpu: onlyI, benchAvg: 0 }), 'low');
+assert.strictEqual(H.tier({ ramGb: 32, gpu: ded, benchAvg: 0 }), 'high');
+assert.strictEqual(H.tier({ ramGb: 8, gpu: ded, benchAvg: 0 }), 'mid');
+assert.strictEqual(H.tier({ ramGb: 32, gpu: ded, benchAvg: 40 }), 'low', 'la prueba manda sobre el hardware');
+assert.strictEqual(H.tier({ ramGb: 4, gpu: onlyI, benchAvg: 200 }), 'high');
+assert.ok(H.videoFor('low').renderDistance < H.videoFor('mid').renderDistance && H.videoFor('mid').renderDistance < H.videoFor('high').renderDistance);
+assert.strictEqual(H.videoFor('nada').renderDistance, 12);
+assert.strictEqual(H.recommendRam(0, 16), 3); assert.strictEqual(H.recommendRam(29, 16), 3);
+assert.strictEqual(H.recommendRam(30, 16), 4); assert.strictEqual(H.recommendRam(100, 16), 6);
+assert.strictEqual(H.recommendRam(101, 32), 6); assert.strictEqual(H.recommendRam(300, 32), 8);
+assert.strictEqual(H.recommendRam(300, 8), 4, 'nunca más del 50 % de la RAM');
+assert.strictEqual(H.recommendRam(10, 4), 2);
+assert.strictEqual(H.ramVerdict(12, 4), 'high'); assert.strictEqual(H.ramVerdict(6, 4), ''); assert.strictEqual(H.ramVerdict(2, 5), 'low'); assert.strictEqual(H.ramVerdict(0, 4), '');
+assert.ok(H.batteryOn('auto', true) && !H.batteryOn('auto', false) && H.batteryOn('always', false) && !H.batteryOn('never', true) && H.batteryOn(undefined, true));
+console.log('Hardware correcto: gráficas, ajustes de vídeo, RAM recomendada y batería');
