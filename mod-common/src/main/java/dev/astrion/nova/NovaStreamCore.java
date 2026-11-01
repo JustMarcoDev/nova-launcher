@@ -53,13 +53,21 @@ final class NovaStreamCore {
         return o.toString();
     }
 
-    /** Escribe estado.json a lo sumo una vez por segundo y solo si cambió (o cada 5 s). Fallos en silencio. */
+    private static boolean wasOn;
+
+    /**
+     * Escribe estado.json solo con el modo streamer activo y solo si algún dato cambió (sin contar la marca de tiempo), a lo sumo una vez por segundo.
+     * Al apagar el modo se escribe una última vez (streamer:false) para que el overlay se quede sin datos. Fallos en silencio.
+     */
     static void write(String dir, String json, long now) {
         try {
-            if (dir == null || dir.isEmpty() || now - lastWrite < 1000) return;
+            if (dir == null || dir.isEmpty()) return;
+            if (!on && !wasOn) return;
+            boolean last = !on;
+            if (now - lastWrite < 1000) return;
             String cmp = json.replaceAll("\"ts\":\\d+", "");
-            if (cmp.equals(lastJson) && now - lastWrite < 5000) return;
-            lastWrite = now; lastJson = cmp;
+            if (cmp.equals(lastJson) && !last) return;
+            lastWrite = now; lastJson = cmp; wasOn = on;
             File d = new File(dir);
             if (!d.isDirectory() && !d.mkdirs()) return;
             File tmp = new File(d, "estado.json.tmp"), f = new File(d, "estado.json");

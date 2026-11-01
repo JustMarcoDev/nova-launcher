@@ -14,12 +14,12 @@ const { load } = R; // base
 const DEF_PORT = 7777;
 const portOf = c => { const p = parseInt(c && c.streamerPort, 10); return p >= 1024 && p <= 65535 ? p : DEF_PORT; };
 
-/** El estado.json del mod, o un estado vacío si no existe o está viejo (más de 15 s sin que el mod lo toque). */
-function leerEstado(dir) {
+/** El estado.json del mod, o un estado vacío si no existe o está viejo (el mod solo escribe cuando algo cambia: con el juego abierto vale aunque el archivo no se toque; sin juego, si lleva más de 15 s sin tocarse no vale). */
+function leerEstado(dir, activo) {
   const vacio = { fps: 0, server: '', version: '', session: '', player: '', inWorld: false, streamer: false, live: false };
   try {
     const f = path.join(dir, 'estado.json'), st = fs.statSync(f), o = JSON.parse(fs.readFileSync(f, 'utf8'));
-    return { ...vacio, ...o, live: Date.now() - st.mtimeMs < 15000 };
+    return { ...vacio, ...o, live: activo === true || Date.now() - st.mtimeMs < 15000 };
   } catch { return vacio; }
 }
 
@@ -47,7 +47,7 @@ const es=new EventSource('/eventos');es.onmessage=m=>{try{put(JSON.parse(m.data)
 </script></body></html>`;
 }
 
-/** Crea (sin arrancar) el servidor. `deps`: { dir, accent(), head() → Buffer|null }. Solo escucha en 127.0.0.1. */
+/** Crea (sin arrancar) el servidor. `deps`: { dir, running() → bool (opcional), accent(), head() → Buffer|null }. Solo escucha en 127.0.0.1. */
 function crear(deps) {
   const clientes = new Set();
   let ultimo = '', timer = null;
@@ -56,7 +56,7 @@ function crear(deps) {
     if (req.method !== 'GET') { res.writeHead(405).end(); return; }
     const h = { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' };
     if (u.pathname === '/overlay') { res.writeHead(200, { ...h, 'Content-Type': 'text/html; charset=utf-8' }); res.end(overlayHtml(deps.accent(), u.searchParams)); return; }
-    if (u.pathname === '/estado') { res.writeHead(200, { ...h, 'Content-Type': 'application/json' }); res.end(JSON.stringify(leerEstado(deps.dir()))); return; }
+    if (u.pathname === '/estado') { res.writeHead(200, { ...h, 'Content-Type': 'application/json' }); res.end(JSON.stringify(leerEstado(deps.dir(), deps.running ? deps.running() : false))); return; }
     if (u.pathname === '/cabeza.png') { let b = null; try { b = deps.head(); } catch {} if (!b) { res.writeHead(404, h).end(); return; } res.writeHead(200, { ...h, 'Content-Type': 'image/png' }); res.end(b); return; }
     if (u.pathname === '/eventos') {
       res.writeHead(200, { ...h, 'Content-Type': 'text/event-stream', Connection: 'keep-alive' });
@@ -68,7 +68,7 @@ function crear(deps) {
   });
   const tick = () => {
     if (!clientes.size) return;
-    const js = JSON.stringify(leerEstado(deps.dir()));
+    const js = JSON.stringify(leerEstado(deps.dir(), deps.running ? deps.running() : false));
     if (js === ultimo) { for (const c of clientes) c.write(': .\n\n'); return; }
     ultimo = js;
     for (const c of clientes) c.write('data: ' + js + '\n\n');
@@ -106,7 +106,7 @@ async function streamerSync() {
   const c = load(), want = c.streamer === true, port = portOf(c);
   if (cur && (!want || port !== curPort)) { cur.stop(); cur = null; }
   if (want && !cur) {
-    const s = crear({ dir: () => R.novaDir(), accent, head: headPng });
+    const s = crear({ dir: () => R.novaDir(), running: () => R.running ? R.running.size > 0 : false, accent, head: headPng });
     try { await s.start(port); cur = s; curPort = port; info = { on: true, port, err: '' }; }
     catch (e) { info = { on: false, port, err: e && e.code === 'EADDRINUSE' ? 'El puerto ' + port + ' está ocupado' : String(e && e.message || e) }; }
   } else if (!want) info = { on: false, port, err: '' };
