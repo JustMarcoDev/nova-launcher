@@ -108,6 +108,8 @@ function reportCrash(ins, code, tail, file, since) {
 }
 ipcMain.handle('log:open', (e, f) => { const p = path.resolve(String(f || '')); if (p.startsWith(root + path.sep) && fs.existsSync(p)) { shell.showItemInFolder(p); return true; } return false; });
 ipcMain.handle('logs:folder', () => { const d = path.join(root, 'logs'); fs.mkdirSync(d, { recursive: true }); return shell.openPath(d); });
+// «Modo streamer» del mod activo: Discord no enseña en qué servidor juegas
+function streamerOn() { try { const o = JSON.parse(fs.readFileSync(path.join(novaDir(), 'menu.json'), 'utf8')); return !!(o.stream && o.stream.on); } catch { return false; } }
 async function playGame(opts) {
   const { id, server, world, safe } = opts, extra = Array.isArray(opts.extraArgs) ? opts.extraArgs.filter(x => /^-Dnova\.[\w.]+=[\w.-]*$/.test(x)) : [];
   const cfg = load(), ins = li().find(i => i.id === id);
@@ -144,7 +146,7 @@ async function playGame(opts) {
     if (nova) { fondosScan().catch(() => {}); fondosWatch(); novaServersWrite(cfg.myServers); novaAccountsWrite(); }
     const mkey = marcas.newKey();
     if (nova) { try { R.novaAccSync(cfg); R.novaAvisosReset(); } catch {} }
-    if (nova) o.customArgs.push('-Dnova.off=' + (R.novaOffList ? R.novaOffList().join(',') : ''), '-Dnova.key=' + mkey, '-Dnova.dir=' + novaDir(), '-Dnova.skin=' + (await novaSkinFor(act)).file, '-Dnova.premium=' + (act.type === 'microsoft' ? '1' : '0'), '-Dnova.presence=' + (R.novaOff && R.novaOff('presence') ? '' : process.env.NOVA_PRESENCE || (() => { try { return require('../package.json').novaPresence || ''; } catch { return ''; } })()), '-Dnova.user=' + act.name, '-Dnova.bg=' + (novaBg() || ''), '-Dnova.bg2=' + (novaBg('nova-nebulosa.nvb') || ''), '-Dnova.bg3=' + (novaBg('nova-earth.nvb') || ''), '-Dnova.lowpower=' + (LOWRAM ? 'true' : 'false'), '-Dfabric.addMods=' + nj, '-Dnova.version=' + app.getVersion(), ...(novaNews() ? ['-Dnova.news=' + novaNews()] : []), '-Dnova.loader=' + (ins.ld === 'Fabric' ? 'Fabric' : 'Nova'));
+    if (nova) o.customArgs.push('-Dnova.off=' + (R.novaOffList ? R.novaOffList().join(',') : ''), '-Dnova.key=' + mkey, '-Dnova.dir=' + novaDir(), '-Dnova.skin=' + (await novaSkinFor(act)).file, '-Dnova.premium=' + (act.type === 'microsoft' ? '1' : '0'), '-Dnova.presence=' + (R.novaOff && R.novaOff('presence') ? '' : process.env.NOVA_PRESENCE || (() => { try { return require('../package.json').novaPresence || ''; } catch { return ''; } })()), '-Dnova.user=' + act.name, '-Dnova.bg=' + (novaBg() || ''), '-Dnova.bg2=' + (novaBg('nova-nebulosa.nvb') || ''), '-Dnova.bg3=' + (novaBg('nova-earth.nvb') || ''), '-Dnova.lowpower=' + (LOWRAM ? 'true' : 'false'), '-Dfabric.addMods=' + nj, '-Dnova.version=' + app.getVersion(), '-Dnova.mc=' + String(ins.mc).replace(/[^\w.-]/g, ''), ...(novaNews() ? ['-Dnova.news=' + novaNews()] : []), '-Dnova.loader=' + (ins.ld === 'Fabric' ? 'Fabric' : 'Nova'));
     if (nova && extra.length) o.customArgs.push(...extra);
     if (ins.ld === 'Forge' || ins.ld === 'NeoForge') o.version.custom = await forge(ins.ld, ins.mc, java, ins.loaderVersion);
     if (server && server.host) o.quickPlay = { type: modernQP(ins.mc) ? 'multiplayer' : 'legacy', identifier: server.host + (server.port && +server.port !== 25565 ? ':' + server.port : '') };
@@ -194,7 +196,7 @@ async function playGame(opts) {
     if (!(proc = await l.launch(o))) throw new Error('No se pudo iniciar Minecraft');
     running.add(id); t0 = Date.now(); applyPrio(proc);
     try { sk = statsStart(ins, server); } catch {} if (!ins.bench) { try { R.sendUsage(ins); } catch {} } upIns(id, { lastPlayed: t0 });
-    send('running', 1); discordSet({ details: server && server.name ? 'En ' + server.name + ' · ' + ins.mc : 'Jugando a Minecraft ' + ins.mc, state: (ins.ld || 'Vanilla') + ' · Nova Launcher', startTimestamp: Date.now() }); send('status', 'Minecraft en ejecución'); if (cfg.closeOnLaunch) S.win.hide(); else if (cfg.gameMode !== false && cfg.conOpen === false) gameHide();
+    send('running', 1); discordSet({ details: server && server.name && !streamerOn() ? 'En ' + server.name + ' · ' + ins.mc : 'Jugando a Minecraft ' + ins.mc, state: (ins.ld || 'Vanilla') + ' · Nova Launcher', startTimestamp: Date.now() }); send('status', 'Minecraft en ejecución'); if (cfg.closeOnLaunch) S.win.hide(); else if (cfg.gameMode !== false && cfg.conOpen === false) gameHide();
     return { ok: true };
   } catch (err) { send('status', 'Error: ' + err.message); send('progress', null); return { ok: false }; }
 }
