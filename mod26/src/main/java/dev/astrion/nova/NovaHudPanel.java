@@ -58,7 +58,7 @@ final class NovaHudPanel {
         int sw = h.sw(), sh = h.sh();
         int hh = sh < 250 ? 12 : 15, gap = 3;
         int pw = Math.min(300, sw - 12), x = (sw - pw) / 2, pad = 8, cw = pw - 2 * pad;
-        int rows = 8;
+        int rows = 9;
         int headH = 16, tabsH = hh + 2, footH = hh;
         int ph = pad + headH + tabsH + 2 + rows * (hh + gap) + footH + pad - gap + 2;
         if (!open) {
@@ -143,6 +143,9 @@ final class NovaHudPanel {
         r++;
         btn(h, x, y + r * st, half, hh, tr("Modo foto"), -1, NovaButton.NORMAL, () -> { });
         btn(h, x + half + gap, y + r * st, w - half - gap, hh, listening == 3 ? tr("Pulsa una tecla…") : NovaHud.keyName(NovaHud.photoKey), -1, listening == 3 ? NovaButton.PRIMARY : NovaButton.NORMAL, () -> { listening = listening == 3 ? 0 : 3; h.rebuild(); });
+        r++;
+        tog(h, x, y + r * st, half, hh, tr("Modo streamer") + ": " + yn(NovaStreamCore.on), NovaStreamCore.on, () -> NovaStreamCore.on = !NovaStreamCore.on);
+        btn(h, x + half + gap, y + r * st, w - half - gap, hh, listening == 4 ? tr("Pulsa una tecla…") : NovaHud.keyName(NovaStreamCore.key), -1, listening == 4 ? NovaButton.PRIMARY : NovaButton.NORMAL, () -> { listening = listening == 4 ? 0 : 4; h.rebuild(); });
     }
 
     static void buildProf(Host h, int x, int y, int w, int hh, int gap) {
@@ -213,7 +216,7 @@ final class NovaHudPanel {
     /** Devuelve true si el panel se ha quedado con la tecla (elegir tecla o escribir un nombre). */
     static boolean key(Host h, int key) {
         if (listening != 0) {
-            if (key != 256) { if (listening == 1) NovaHud.zoomKey = key; else if (listening == 3) NovaHud.photoKey = key; else NovaMove.freelookKey = key; }
+            if (key != 256) { if (listening == 1) NovaHud.zoomKey = key; else if (listening == 3) NovaHud.photoKey = key; else if (listening == 4) NovaStreamCore.key = key; else NovaMove.freelookKey = key; }
             listening = 0;
             h.rebuild();
             return true;
