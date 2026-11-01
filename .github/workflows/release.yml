@@ -31,6 +31,7 @@ jobs:
     timeout-minutes: 30
     strategy:
       fail-fast: false
+      max-parallel: 8   # una tarea por versión (24), como mucho 8 a la vez
       matrix:
         v: ${{ fromJson(needs.matriz.outputs.versiones) }}
     steps:
@@ -59,6 +60,20 @@ jobs:
           name: robot-${{ matrix.v.mc }}
           path: capturas/
           if-no-files-found: warn
+  # Junta las capturas de todas las versiones en un solo artifact («robot-capturas»), también cuando alguna versión falla
+  capturas:
+    needs: robot
+    if: ${{ always() && needs.robot.result != 'skipped' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/upload-artifact/merge@v4
+        with:
+          name: robot-capturas
+          pattern: robot-*
+          delete-merged: true
+          separate-directories: true
+        continue-on-error: true
+  # El instalador solo se compila si pasan TODAS las versiones del robot
   build:
     needs: robot
     if: ${{ github.event.inputs.solo == '' }}
