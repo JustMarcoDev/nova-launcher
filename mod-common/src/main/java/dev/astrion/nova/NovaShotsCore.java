@@ -39,6 +39,7 @@ final class NovaShotsCore {
             BufferedImage th = null;
             try {
                 BufferedImage im = ImageIO.read(best);
+                if (im != null && NovaPhotoCore.eraseGrid(im, System.currentTimeMillis())) { try { ImageIO.write(im, "png", best); } catch (Throwable ignored) { } }
                 if (im != null) {
                     shotW = im.getWidth(); shotH = im.getHeight();
                     int w = 200, h = Math.max(1, im.getHeight() * w / im.getWidth());
