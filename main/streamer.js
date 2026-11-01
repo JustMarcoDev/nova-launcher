@@ -26,10 +26,14 @@ function leerEstado(dir, activo) {
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const colorOk = c => /^[0-9a-fA-F]{6}$/.test(c || '') ? '#' + c : '';
 
-/** HTML del overlay: fondo transparente (fuente de navegador de OBS). Parámetros: ?color=RRGGBB&fps=0&server=0&time=0 para esconder partes. */
+/** Diseños del overlay: barra inferior, tarjeta (el de siempre) y esquina. Se eligen con ?estilo=barra|tarjeta|esquina. */
+const ESTILOS = ['barra', 'tarjeta', 'esquina'];
+const estiloOf = v => ESTILOS.includes(v) ? v : 'tarjeta';
+
+/** HTML del overlay: fondo transparente (fuente de navegador de OBS). Parámetros: ?estilo=barra|tarjeta|esquina&color=RRGGBB&fps=0&server=0&time=0 para esconder partes. */
 function overlayHtml(accent, q) {
   const show = k => q.get(k) !== '0';
-  const col = colorOk(q.get('color')) || accent || '#8b6cff';
+  const col = colorOk(q.get('color')) || accent || '#8b6cff', est = estiloOf(q.get('estilo'));
   return `<!doctype html><html><head><meta charset="utf-8"><title>Nova overlay</title><style>
 html,body{margin:0;background:transparent;font-family:system-ui,Segoe UI,sans-serif;color:#fff}
 .b{display:inline-flex;align-items:center;gap:12px;margin:10px;padding:10px 16px 10px 10px;border-radius:14px;background:rgba(14,14,30,.72);border:2px solid ${col};box-shadow:0 4px 18px rgba(0,0,0,.4)}
@@ -37,7 +41,17 @@ html,body{margin:0;background:transparent;font-family:system-ui,Segoe UI,sans-se
 img{width:48px;height:48px;image-rendering:pixelated;border-radius:8px}
 .n{font-weight:700;font-size:18px;line-height:1.1}.s{font-size:13px;opacity:.85;margin-top:2px;white-space:nowrap}
 .f{color:${col};font-weight:700}
-</style></head><body><div class="b" id="b" hidden><img id="h" src="/cabeza.png" alt="">
+/* barra inferior: ocupa todo el ancho, pegada abajo */
+body.barra .b{position:fixed;left:0;right:0;bottom:0;margin:0;border-radius:0;border-width:2px 0 0;padding:8px 20px;gap:14px;display:flex;background:linear-gradient(90deg,rgba(14,14,30,.86),rgba(14,14,30,.62))}
+body.barra .b[hidden]{display:none}
+body.barra img{width:36px;height:36px}
+body.barra .n{font-size:17px}body.barra .s{margin:0 0 0 auto;font-size:15px}
+/* esquina: pastilla pequeña arriba a la derecha, solo cabeza, nombre y FPS */
+body.esquina .b{position:fixed;top:8px;right:8px;margin:0;gap:8px;padding:5px 12px 5px 5px;border-radius:999px;border-width:1px}
+body.esquina img{width:28px;height:28px;border-radius:50%}
+body.esquina .n{font-size:13px}body.esquina .s{font-size:11px;margin:0}
+body.esquina .s #sv,body.esquina .s #t{display:none}
+</style></head><body class="${est}"><div class="b" id="b" hidden><img id="h" src="/cabeza.png" alt="">
 <div><div class="n" id="p"></div><div class="s">${show('fps') ? '<span class="f" id="f"></span> FPS' : ''}${show('fps') && show('server') ? ' · ' : ''}${show('server') ? '<span id="sv"></span>' : ''}${show('time') ? ' · <span id="t"></span>' : ''}</div></div></div>
 <script>
 const $=i=>document.getElementById(i);
@@ -118,4 +132,4 @@ ipcMain.handle('streamer:sync', async () => { const i = await streamerSync(); re
 setTimeout(() => { streamerSync().catch(() => {}); }, 3000);
 
 Object.assign(R, { streamerSync });
-module.exports = { crear, leerEstado, overlayHtml, portOf };
+module.exports = { crear, leerEstado, overlayHtml, portOf, ESTILOS, estiloOf };

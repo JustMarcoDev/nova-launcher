@@ -24,6 +24,8 @@ const get = (port, p, ms) => new Promise((res, rej) => { const r = http.get({ ho
   ok(o.code === 200 && /text\/html/.test(o.head['content-type']) && /background:transparent/.test(o.body) && o.body.includes('#ff0000'), 'overlay no es HTML transparente con el color');
   const o2 = await get(port, '/overlay?color=%22%3E%3Cscript%3E');
   ok(!o2.body.includes('<script>alert') && o2.body.includes('#112233'), 'un color malicioso debe ignorarse');
+  for (const st of ['barra', 'tarjeta', 'esquina']) { const r = await get(port, '/overlay?estilo=' + st); ok(r.code === 200 && r.body.includes('<body class="' + st + '"'), 'el diseño ' + st + ' no se aplica'); }
+  ok((await get(port, '/overlay?estilo=%22%3E%3Cx')).body.includes('<body class="tarjeta"'), 'un diseño raro debe caer en tarjeta');
   const e = await get(port, '/estado');
   ok(JSON.parse(e.body).server === 'Mi server', '/estado no devuelve el servidor');
   ok(!/\d+\.\d+\.\d+\.\d+/.test(e.body.replace('1.21.4', '')), '/estado no debería llevar IPs');

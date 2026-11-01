@@ -1289,5 +1289,12 @@ window.LANGS.it={name:"Italiano",d:{
 "Etiquetas guardadas":"Etichette salvate",
 "Clips de los últimos 30 s":"Clip degli ultimi 30 secondi",
 "Graba la ventana del juego (720p) y, al pulsar F8 en el juego, guarda los últimos 30 s (o hasta 60) como vídeo .webm en la carpeta de capturas. Apagado de fábrica; gasta unos 50 MB de RAM y necesita más de 8 GB en el PC. Se aplica al abrir el juego":"Registra la finestra del gioco (720p) e, premendo F8 nel gioco, salva gli ultimi 30 s (fino a 60) come video .webm nella cartella degli screenshot. Disattivato di default; usa circa 50 MB di RAM e richiede più di 8 GB sul PC. Si applica all'apertura del gioco",
-"Clips desactivados: este PC tiene poca RAM":"Clip disattivate: questo PC ha poca RAM"
+"Clips desactivados: este PC tiene poca RAM":"Clip disattivate: questo PC ha poca RAM",
+"Diseños del overlay":"Stili dell'overlay",
+"Elige uno y copia su enlace para OBS":"Sceglilo e copia il link per OBS",
+"Activa el overlay para usar el enlace":"Attiva l'overlay per usare il link",
+"Barra inferior":"Barra inferiore",
+"Tarjeta":"Scheda",
+"Esquina":"Angolo",
+"Copiar enlace":"Copia link"
 }};

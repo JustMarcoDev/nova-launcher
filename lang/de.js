@@ -1289,5 +1289,12 @@ window.LANGS.de={name:"Deutsch",d:{
 "Etiquetas guardadas":"Tags gespeichert",
 "Clips de los últimos 30 s":"Clips der letzten 30 Sekunden",
 "Graba la ventana del juego (720p) y, al pulsar F8 en el juego, guarda los últimos 30 s (o hasta 60) como vídeo .webm en la carpeta de capturas. Apagado de fábrica; gasta unos 50 MB de RAM y necesita más de 8 GB en el PC. Se aplica al abrir el juego":"Nimmt das Spielfenster auf (720p) und speichert beim Drücken von F8 im Spiel die letzten 30 s (bis zu 60) als .webm-Video im Screenshot-Ordner. Standardmäßig aus; braucht etwa 50 MB RAM und mehr als 8 GB im PC. Gilt beim Öffnen des Spiels",
-"Clips desactivados: este PC tiene poca RAM":"Clips aus: Dieser PC hat wenig RAM"
+"Clips desactivados: este PC tiene poca RAM":"Clips aus: Dieser PC hat wenig RAM",
+"Diseños del overlay":"Overlay-Designs",
+"Elige uno y copia su enlace para OBS":"Wähle eines und kopiere den Link für OBS",
+"Activa el overlay para usar el enlace":"Aktiviere das Overlay, um den Link zu nutzen",
+"Barra inferior":"Untere Leiste",
+"Tarjeta":"Karte",
+"Esquina":"Ecke",
+"Copiar enlace":"Link kopieren"
 }};

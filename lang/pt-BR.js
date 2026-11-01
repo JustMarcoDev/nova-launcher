@@ -1289,5 +1289,12 @@ window.LANGS["pt-BR"]={name:"Português (Brasil)",d:{
 "Etiquetas guardadas":"Etiquetas guardadas",
 "Clips de los últimos 30 s":"Clips dos últimos 30 s",
 "Graba la ventana del juego (720p) y, al pulsar F8 en el juego, guarda los últimos 30 s (o hasta 60) como vídeo .webm en la carpeta de capturas. Apagado de fábrica; gasta unos 50 MB de RAM y necesita más de 8 GB en el PC. Se aplica al abrir el juego":"Grava a janela do jogo (720p) e, ao premir F8 no jogo, guarda os últimos 30 s (até 60) como vídeo .webm na pasta das capturas. Desativado por defeito; usa cerca de 50 MB de RAM e precisa de mais de 8 GB no PC. Aplica-se ao abrir o jogo",
-"Clips desactivados: este PC tiene poca RAM":"Clips desativados: este PC tem pouca RAM"
+"Clips desactivados: este PC tiene poca RAM":"Clips desativados: este PC tem pouca RAM",
+"Diseños del overlay":"Estilos do overlay",
+"Elige uno y copia su enlace para OBS":"Escolhe um e copia a ligação para o OBS",
+"Activa el overlay para usar el enlace":"Ativa o overlay para usar a ligação",
+"Barra inferior":"Barra inferior",
+"Tarjeta":"Cartão",
+"Esquina":"Canto",
+"Copiar enlace":"Copiar ligação"
 }};
