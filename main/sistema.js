@@ -3,7 +3,8 @@
 // Sistema: iconos, accesos directos, bandeja, avisos, portapapeles, capturas y diagnóstico
 // (Parte del proceso principal; main.js carga todos los módulos. Mira «Estructura del proyecto» en el README.)
 // =====================================================================================
-const { Notification, app, clipboard, dialog, ipcMain, nativeImage, shell } = require('electron');
+const { Notification, app, clipboard, dialog, ipcMain, nativeImage, powerMonitor, shell } = require('electron');
+const HW = require('./hardware');
 const { pathToFileURL } = require('url');
 const fs = require('fs');
 const os = require('os');
@@ -18,6 +19,20 @@ const { accState } = R; // cuentas
 const { diagnose } = R; // juego
 
 ipcMain.handle('shortcut:create', () => ensureShortcut(true));
+// ===== Gráficas y batería (ajustes de vídeo del primer arranque, Modo batería y aviso de gráfica integrada) =====
+let gpuP = null;
+/** Gráficas del PC clasificadas (se pregunta una sola vez; app.getGPUInfo('complete') puede tardar). Nunca falla: sin datos devuelve una lista vacía. */
+function gpuInfo() {
+  if (!gpuP) gpuP = Promise.race([app.getGPUInfo('complete'), new Promise((_, no) => setTimeout(() => no(new Error('tarde')), 8000))])
+    .then(i => HW.classifyGpus(i && i.gpuDevice)).catch(() => { gpuP = null; return HW.classifyGpus([]); });
+  return gpuP;
+}
+/** ¿El portátil va con batería ahora mismo? */
+function onBattery() { try { return !!powerMonitor.isOnBatteryPower(); } catch { return false; } }
+/** ¿Hay que lanzar el juego en Modo batería? (Ajustes → Rendimiento: Automático, Siempre o Nunca) */
+const batteryNow = () => HW.batteryOn(load().battery, onBattery());
+ipcMain.handle('gpu:info', () => gpuInfo());
+
 // ===== Icono de la app (ventana, barra de tareas y accesos directos) =====
 // El .ico va dentro del paquete (asar): para los accesos directos de Windows hace falta una copia real en disco.
 function appIcon() {
@@ -130,6 +145,10 @@ ipcMain.handle('diag:run', async (e, id) => {
     if (ld === 'Vanilla' && jars.length) add('warn', 'Mods en una instancia Vanilla', `Hay ${jars.length} mods pero la instancia es Vanilla: no se cargarán. Cámbiala a Fabric, Forge o NeoForge.`);
     else if (ld === 'Fabric' && jars.length && !jars.some(f => /fabric-api/i.test(f))) add('warn', 'Falta Fabric API', 'Casi todos los mods de Fabric la necesitan. Instálala desde Mods.');
     else add('ok', 'Mods', jars.length ? `${jars.length} mods en «${ins.name}».` : `Sin mods en «${ins.name}».`);
+    if (process.platform === 'win32' && ins.gpu !== 'high') {
+      const g = await gpuInfo();
+      if (g.dual && g.usingIntegrated) { const d = g.gpus.find(x => !x.integrated); checks.push({ level: 'warn', t: 'El juego puede usar la gráfica integrada', d: 'Tu PC tiene dos gráficas (' + g.gpus.map(x => x.name).join(' y ') + ') y Windows suele elegir la integrada para Java. Con la dedicada' + (d ? ' (' + d.name + ')' : '') + ' irá bastante más fluido.', act: { k: 'gpu', inst: ins.id, label: 'Usar gráfica dedicada' } }); }
+    }
     if (ins.gpu === 'high') add('ok', 'Tarjeta gráfica potente', process.platform === 'win32' ? 'Windows usará la tarjeta dedicada para Java en esta instancia.' : 'Solo se aplica en Windows.');
   }
   let log = null;
@@ -142,4 +161,4 @@ ipcMain.handle('diag:run', async (e, id) => {
 
 
 // Lo que usan otros módulos
-Object.assign(R, { appIcon, ensureShortcut, fixPinnedIcons, gameHide, notify, taskbarIcon, trayInit });
+Object.assign(R, { gpuInfo, onBattery, batteryNow, appIcon, ensureShortcut, fixPinnedIcons, gameHide, notify, taskbarIcon, trayInit });

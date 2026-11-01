@@ -8,6 +8,7 @@ const { Authenticator, Client } = require('minecraft-launcher-core');
 const { EventEmitter } = require('events');
 const { app, ipcMain, shell } = require('electron');
 const fs = require('fs');
+const HW = require('./hardware');
 const os = require('os');
 const path = require('path');
 const { S, R } = require('./compartido');
@@ -118,6 +119,16 @@ async function playGame(opts) {
     if (running.has(id)) throw new Error('Esta instancia ya está en ejecución');
     const dir = path.join(root, 'instances', id); fs.mkdirSync(dir, { recursive: true });
     if (S.PREPP) { send('status', 'Terminando la preparación…'); try { await S.PREPP; } catch {} }
+    // Primer arranque de una instancia (sin options.txt): ajustes de vídeo según la gráfica y la RAM, o según la última prueba de rendimiento. Solo esta vez.
+    try {
+      const of = path.join(dir, 'options.txt');
+      if (!fs.existsSync(of)) {
+        const g = await (R.gpuInfo ? R.gpuInfo() : HW.classifyGpus([])), v = HW.videoFor(HW.tier({ ramGb: Math.round(os.totalmem() / 1073741824), gpu: g, benchAvg: R.lastBenchAvg ? R.lastBenchAvg() : 0 }));
+        fs.writeFileSync(of, Object.entries(v).map(([k, x]) => k + ':' + x).join('\n') + '\n');
+        send('status', 'Ajustes de vídeo adaptados a tu PC'); send('log', 'Ajustes de vídeo adaptados a tu PC (primer arranque de esta instancia).\n');
+      }
+    } catch {}
+    try { fs.rmSync(path.join(novaDir(), 'estado.json'), { force: true }); } catch {}
     let auth; const { act } = accState(cfg);
     if (act.type === 'microsoft') {
       try { const x = await new Auth('select_account').refresh(act.token); auth = (await x.getMinecraft()).mclc(); const st = accState(); saveAcc(st.a.map(z => z.id === act.id ? { ...z, token: x.save() } : z), act.id); }
@@ -146,7 +157,7 @@ async function playGame(opts) {
     if (nova) { fondosScan().catch(() => {}); fondosWatch(); novaServersWrite(cfg.myServers); novaAccountsWrite(); }
     const mkey = marcas.newKey();
     if (nova) { try { R.novaAccSync(cfg); R.novaAvisosReset(); } catch {} }
-    if (nova) o.customArgs.push('-Dnova.off=' + (R.novaOffList ? R.novaOffList().join(',') : ''), '-Dnova.key=' + mkey, '-Dnova.dir=' + novaDir(), '-Dnova.skin=' + (await novaSkinFor(act)).file, '-Dnova.premium=' + (act.type === 'microsoft' ? '1' : '0'), '-Dnova.presence=' + (R.novaOff && R.novaOff('presence') ? '' : process.env.NOVA_PRESENCE || (() => { try { return require('../package.json').novaPresence || ''; } catch { return ''; } })()), '-Dnova.user=' + act.name, '-Dnova.bg=' + (novaBg() || ''), '-Dnova.bg2=' + (novaBg('nova-nebulosa.nvb') || ''), '-Dnova.bg3=' + (novaBg('nova-earth.nvb') || ''), '-Dnova.lowpower=' + (LOWRAM ? 'true' : 'false'), '-Dfabric.addMods=' + nj, '-Dnova.version=' + app.getVersion(), '-Dnova.mc=' + String(ins.mc).replace(/[^\w.-]/g, ''), ...(novaNews() ? ['-Dnova.news=' + novaNews()] : []), '-Dnova.loader=' + (ins.ld === 'Fabric' ? 'Fabric' : 'Nova'));
+    if (nova) o.customArgs.push('-Dnova.off=' + (R.novaOffList ? R.novaOffList().join(',') : ''), '-Dnova.key=' + mkey, '-Dnova.dir=' + novaDir(), '-Dnova.skin=' + (await novaSkinFor(act)).file, '-Dnova.premium=' + (act.type === 'microsoft' ? '1' : '0'), '-Dnova.presence=' + (R.novaOff && R.novaOff('presence') ? '' : process.env.NOVA_PRESENCE || (() => { try { return require('../package.json').novaPresence || ''; } catch { return ''; } })()), '-Dnova.user=' + act.name, '-Dnova.bg=' + (novaBg() || ''), '-Dnova.bg2=' + (novaBg('nova-nebulosa.nvb') || ''), '-Dnova.bg3=' + (novaBg('nova-earth.nvb') || ''), '-Dnova.lowpower=' + (LOWRAM ? 'true' : 'false'), '-Dfabric.addMods=' + nj, '-Dnova.version=' + app.getVersion(), ...(R.batteryNow && R.batteryNow() ? ['-Dnova.battery=true'] : []), '-Dnova.mc=' + String(ins.mc).replace(/[^\w.-]/g, ''), ...(novaNews() ? ['-Dnova.news=' + novaNews()] : []), '-Dnova.loader=' + (ins.ld === 'Fabric' ? 'Fabric' : 'Nova'));
     if (nova && extra.length) o.customArgs.push(...extra);
     if (ins.ld === 'Forge' || ins.ld === 'NeoForge') o.version.custom = await forge(ins.ld, ins.mc, java, ins.loaderVersion);
     if (server && server.host) o.quickPlay = { type: modernQP(ins.mc) ? 'multiplayer' : 'legacy', identifier: server.host + (server.port && +server.port !== 25565 ? ':' + server.port : '') };

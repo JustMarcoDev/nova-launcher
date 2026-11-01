@@ -118,4 +118,6 @@ ipcMain.handle('bench:run', (e, id) => run(String(id || '')));
 ipcMain.handle('bench:apply', (e, o) => apply(String((o && o.id) || ''), o && +o.t));
 ipcMain.handle('bench:info', (e, id) => { id = String(id || ''); const src = li().find(i => i.id === id), why = src ? support(src) : ''; return { id, mc: src ? src.mc : '', ld: src ? (src.ld || 'Vanilla') : '', why, history: histFor(id), busy: !!cur, sys: sysInfo(), cfg: (({ ram, gc, optimize }) => ({ ram, gc: gc || 'auto', optimize: optimize !== false }))(load()) }; });
 ipcMain.handle('bench:clear', (e, id) => { try { wr(HIST(), id ? hist().filter(x => x.ins !== String(id)) : []); } catch {} return true; });
-Object.assign(R, { onBench });
+/** FPS medio de la última prueba de rendimiento de cualquier instancia (0 si nunca se hizo): los ajustes de vídeo del primer arranque se basan en ella. */
+const lastBenchAvg = () => { const h = hist().filter(x => x.avg > 0); return h.length ? h[h.length - 1].avg : 0; };
+Object.assign(R, { onBench, lastBenchAvg });
