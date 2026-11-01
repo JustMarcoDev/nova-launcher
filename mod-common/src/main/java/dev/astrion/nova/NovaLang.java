@@ -153,6 +153,7 @@ final class NovaLang {
         p("Mano oculta", "Hand hidden", "Main masquée", "Hand versteckt", "Mano nascosta", "Mão oculta");
         p("Mano visible", "Hand visible", "Main visible", "Hand sichtbar", "Mano visibile", "Mão visível");
         p("G: cuadrícula, H: mano", "G: grid, H: hand", "G : grille, H : main", "G: Raster, H: Hand", "G: griglia, H: mano", "G: grelha, H: mão");
+        p("Palabras clave", "Keywords", "Mots-clés", "Stichwörter", "Parole chiave", "Palavras-chave");
         p("Modo FPS", "FPS mode", "Mode FPS", "FPS-Modus", "Modalità FPS", "Modo FPS");
         p("Partículas mínimas, sin nubes ni sombras, distancia 8: más rendimiento", "Minimal particles, no clouds or shadows, distance 8: more performance", "Particules minimales, sans nuages ni ombres, distance 8 : plus de performances", "Minimale Partikel, keine Wolken oder Schatten, Distanz 8: mehr Leistung", "Particelle minime, niente nuvole né ombre, distanza 8: più prestazioni", "Partículas mínimas, sem nuvens nem sombras, distância 8: mais desempenho");
         p("Modo FPS activo", "FPS mode on", "Mode FPS activé", "FPS-Modus aktiv", "Modalità FPS attiva", "Modo FPS ativo");
