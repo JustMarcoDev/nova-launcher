@@ -1248,5 +1248,18 @@ window.LANGS.it={name:"Italiano",d:{
 "Necesita una cuenta de Microsoft":"Richiede un account Microsoft",
 "Sincronizando…":"Sincronizzazione…",
 "Última sincronización":"Ultima sincronizzazione",
-"Encendida":"Acceso"
+"Encendida":"Acceso",
+"Salta la caché de 10 minutos y vuelve a buscar":"Salta la cache di 10 minuti e cerca di nuovo",
+"Recargar":"Ricarica",
+"Modo batería":"Modalità batteria",
+"En un portátil con batería, el juego se limita a 30 FPS y activa el Modo FPS para durar más. Automático lo detecta solo":"Su un portatile a batteria il gioco è limitato a 30 FPS e si attiva la Modalità FPS per durare di più. Automatico lo rileva da solo",
+"Siempre":"Sempre",
+"Nunca":"Mai",
+"RAM recomendada":"RAM consigliata",
+"mod":"mod",
+"mods":"mod",
+"Usar la recomendada":"Usa la consigliata",
+"Tienes mucha más de la necesaria: puede dar tirones por el recolector de memoria":"Ne hai molta più del necessario: può scattare a causa del garbage collector",
+"Tienes menos de la recomendada: puede ir justo":"Ne hai meno del consigliato: potrebbe essere al limite",
+"Gráfica dedicada activada para esta instancia ✓":"Scheda grafica dedicata attivata per questa istanza ✓"
 }};

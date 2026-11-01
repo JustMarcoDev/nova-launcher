@@ -78,7 +78,7 @@ const CON=[];let cT=0,conN=0;
 const conLevel=t=>{if(/^── /.test(t))return"s";if(/^\s+at\s|^Caused by|^\s*\.\.\. \d+ more/.test(t))return"e";if(/\b(ERROR|FATAL|SEVERE)\b|Exception|\bCrash/i.test(t))return"e";if(/\bWARN(ING)?\b/i.test(t))return"w";if(/\b(DEBUG|TRACE)\b/.test(t))return"d";return"i"};
 function conAdd(t){for(const ln of String(t).split(/\r?\n/)){if(!ln.trim())continue;const l=conLevel(ln);CON.push({t:ln,l,n:++conN});}if(CON.length>5000)CON.splice(0,CON.length-4500);if($("con").classList.contains("on")&&!cT&&typeof conDraw==="function")cT=setTimeout(()=>{cT=0;typeof conTick==="function"?conTick():conDraw()},250)}
 // --- Peticiones a Modrinth y CurseForge ---
-const H=(u,h)=>A.http({url:u,headers:h}),enc=x=>encodeURIComponent(JSON.stringify(x));
+let MSF=false;const MS=u=>{const f=MSF;MSF=false;return A.modSearch({url:u,fresh:f})},H=(u,h)=>A.http({url:u,headers:h}),enc=x=>encodeURIComponent(JSON.stringify(x));
 // --- Jugar: antes de abrir Minecraft se revisan los mods de la instancia (si el ajuste está activado) ---
 let SHIFT=false;addEventListener("click",e=>{SHIFT=!!e.shiftKey},true);
 async function launch(o){

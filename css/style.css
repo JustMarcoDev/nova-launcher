@@ -4290,3 +4290,9 @@ html[data-cb=Grises] {
 .avb .avx:hover{opacity:1}
 .avb.aviso{border-color:#e0b04a}
 .avb.error{border-color:#e05a5a}
+
+/* RAM recomendada junto al deslizador (opciones de la instancia) */
+.rec { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 6px; font-size: 12px; color: var(--m); }
+.rec b { color: var(--t); }
+.rec .w { color: #ffb454; flex-basis: 100%; }
+.dga { margin-top: 6px; }

@@ -7,6 +7,7 @@ const { app, dialog, ipcMain, shell } = require('electron');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const HW = require('./hardware');
 const { S, R } = require('./compartido');
 // De módulos anteriores (ya cargados):
 const { MAN, addInst, fsp, insFile, li, load, rd, rmAsync, root, running, send, wr } = R; // base
@@ -69,6 +70,13 @@ async function ensureFabricApi(ins) {
   await dl(f.url, path.join(md, path.basename(f.filename)), { sha1: f.hashes && f.hashes.sha1, sha512: f.hashes && f.hashes.sha512 });
   mark(); return true;
 }
+// RAM recomendada según el número de mods activos (menos de 30 → 3 GB, 30–100 → 4–6, más de 100 → 6–8; nunca más de la mitad de la RAM del PC)
+ipcMain.handle('ram:rec', async (e, id) => {
+  const ins = getIns(id); let n = 0;
+  try { n = (await fsp.readdir(path.join(iDir(ins.id), 'mods'))).filter(f => /\.jar$/i.test(f) && !/^nova-menu/i.test(f)).length; } catch {}
+  const tot = Math.round(os.totalmem() / 1073741824), rec = HW.recommendRam(n, tot), cur = +ins.ram > 0 ? +ins.ram : load().ram;
+  return { mods: n, rec, total: tot, verdict: HW.ramVerdict(cur, rec) };
+});
 ipcMain.handle('inst:update', (e, { id, patch }) => {
   getIns(id); const p = {}, q = patch || {};
   if ('name' in q) { const n = String(q.name).trim().slice(0, 40); if (n) p.name = n; }

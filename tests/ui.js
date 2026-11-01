@@ -77,7 +77,7 @@ const w = dom.window, sleep = ms => new Promise(r => setTimeout(r, ms));
       if (!g('dn') || g('dn').value !== 'Mi instancia' || !g('dd') || g('dd').value !== 'Descripción de prueba') errors.push('Instancias: la ventana de detalle no muestra nombre y descripción');
       if (!g('mls') || !g('msr') || !g('mad')) errors.push('Instancias: faltan la lista de mods o los botones de añadir/buscar mods');
       // Panel «Añadir a esta instancia»: lo que ya tiene sale como instalado, y hay botones para shaders y texturas
-      const seen = []; api.http = async ({ url }) => { seen.push(url); return { total_hits: 2, hits: [{ project_id: 'p1', slug: 'sodium', title: 'Sodium', description: 'x', icon_url: '' }, { project_id: 'p2', slug: 'lithium', title: 'Lithium', description: 'y', icon_url: '' }] }; };
+      const seen = []; api.http = api.modSearch = async ({ url }) => { seen.push(url); return { total_hits: 2, hits: [{ project_id: 'p1', slug: 'sodium', title: 'Sodium', description: 'x', icon_url: '' }, { project_id: 'p2', slug: 'lithium', title: 'Lithium', description: 'y', icon_url: '' }] }; };
       api.modsProjects = async () => ({ ids: ['p1'], files: [] });
       g('msr').click(); for (let t = 0; t < 40 && !(w.document.querySelectorAll('#adl button').length >= 2 && /Instalado/.test(w.document.querySelector('#adl button').textContent)); t++) await sleep(100);
       const bs = [...w.document.querySelectorAll('#adl button')];
@@ -89,7 +89,7 @@ const w = dom.window, sleep = ms => new Promise(r => setTimeout(r, ms));
       const sb = [...w.document.querySelectorAll('#adk button')][1]; if (sb) sb.click(); else errors.push('Añadir a la instancia: no hay botón de shaders');
       for (let t = 0; t < 40 && !seen.some(u => u.includes('project_type%3Ashader')); t++) await sleep(100);
       if (!seen.some(u => u.includes('project_type%3Ashader'))) errors.push('Añadir a la instancia: el botón de shaders no busca shaders');
-      delete api.http; delete api.modsProjects;
+      delete api.http; delete api.modSearch; delete api.modsProjects;
       w.eval('closeModal()'); await sleep(400);
     }
     // Opciones de una instancia con Fabric: el desplegable de versiones del cargador debe traer la lista, no solo «Automática»

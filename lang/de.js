@@ -1248,5 +1248,18 @@ window.LANGS.de={name:"Deutsch",d:{
 "Necesita una cuenta de Microsoft":"Benötigt ein Microsoft-Konto",
 "Sincronizando…":"Synchronisiere…",
 "Última sincronización":"Letzte Synchronisierung",
-"Encendida":"An"
+"Encendida":"An",
+"Salta la caché de 10 minutos y vuelve a buscar":"Überspringt den 10-Minuten-Cache und sucht erneut",
+"Recargar":"Neu laden",
+"Modo batería":"Akkumodus",
+"En un portátil con batería, el juego se limita a 30 FPS y activa el Modo FPS para durar más. Automático lo detecta solo":"Bei einem Laptop im Akkubetrieb wird das Spiel auf 30 FPS begrenzt und der FPS-Modus aktiviert, damit der Akku länger hält. Automatisch erkennt das selbst",
+"Siempre":"Immer",
+"Nunca":"Nie",
+"RAM recomendada":"Empfohlener RAM",
+"mod":"Mod",
+"mods":"Mods",
+"Usar la recomendada":"Empfohlenen Wert nutzen",
+"Tienes mucha más de la necesaria: puede dar tirones por el recolector de memoria":"Du hast viel mehr als nötig: Die Speicherbereinigung kann Ruckler verursachen",
+"Tienes menos de la recomendada: puede ir justo":"Du hast weniger als empfohlen: es könnte knapp werden",
+"Gráfica dedicada activada para esta instancia ✓":"Dedizierte Grafikkarte für diese Instanz aktiviert ✓"
 }};

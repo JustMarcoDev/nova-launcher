@@ -26,6 +26,34 @@ ipcMain.handle('mod:install', async (e, { url, name, inst, dir, sha1, sha512 }) 
   } catch (x) { if (x && x.cancel) throw x; x.step = 'descargar el archivo'; throw withLog(x, logErr('mod', x, { 'Qué se intentaba': 'Instalar ' + name + ' en ' + sub, Dirección: url, Instancia: inst || '(carpeta general)' })); }
 });
 // Modpacks de Modrinth (.mrpack)
+// ---- Caché de búsquedas de Modrinth: 10 minutos, en memoria y en disco; clave = la dirección completa (texto, filtros, orden y página) ----
+// «Recargar» (fresh) se la salta y guarda el resultado nuevo. Solo se acepta api.modrinth.com/v2/search.
+const MS_TTL = 10 * 60 * 1000, MS_MAX = 80, MS_URL = /^https:\/\/api\.modrinth\.com\/v2\/search\?[^\s]*$/;
+const msFile = () => path.join(root, 'modrinth-cache.json');
+let msMem = null, msT = null;
+function msLoad() {
+  if (msMem) return msMem;
+  msMem = new Map();
+  try { const o = JSON.parse(fs.readFileSync(msFile(), 'utf8')); for (const [k, v] of Object.entries(o || {})) if (v && typeof v.t === 'number' && Date.now() - v.t < MS_TTL) msMem.set(k, v); } catch {}
+  return msMem;
+}
+function msSave() {
+  clearTimeout(msT);
+  msT = setTimeout(() => { try { const f = msFile(), t = f + '.tmp'; fs.writeFileSync(t, JSON.stringify(Object.fromEntries(msMem))); fs.renameSync(t, f); } catch {} }, 1500);
+}
+async function modSearch(url, fresh) {
+  if (!MS_URL.test(String(url))) throw new Error('Búsqueda no válida');
+  const m = msLoad(), hit = m.get(url);
+  if (!fresh && hit && Date.now() - hit.t < MS_TTL) return hit.v;
+  const v = await get(url, 'json', {});
+  m.set(url, { t: Date.now(), v });
+  for (const [k, x] of m) if (Date.now() - x.t >= MS_TTL) m.delete(k);
+  while (m.size > MS_MAX) m.delete(m.keys().next().value);
+  msSave();
+  return v;
+}
+ipcMain.handle('mods:search', (e, { url, fresh }) => modSearch(String(url || ''), !!fresh));
+
 ipcMain.handle('pack:versions', async (e, pid) => (await get(`https://api.modrinth.com/v2/project/${encodeURIComponent(pid)}/version`)).map(v => ({ id: v.id, name: v.name, num: v.version_number, mc: v.game_versions, ld: v.loaders, date: v.date_published, type: v.version_type })));
 ipcMain.handle('pack', async (e, a) => {
   const { id: pid, vid } = typeof a === 'string' ? { id: a } : a;

@@ -27,7 +27,8 @@ async function openDiag(id){
   let r;try{r=A?await A.diag(iid):await demoDiag()}catch(e){if($("dgl"))$("dgl").innerHTML=`<div class="dgw">${esc(em(e))}</div>`;return}
   if(!$("dgl"))return;
   const bad=r.checks.filter(c=>c.level==="bad").length,warn=r.checks.filter(c=>c.level==="warn").length;
-  $("dgl").innerHTML=`<div class="dgs ${bad?"b2":warn?"w2":"ok"}">${bad?bad+" problema"+(bad>1?"s":"")+" por resolver":warn?warn+" aviso"+(warn>1?"s":""):"Todo en orden"}${r.name?" · "+esc(r.name):""}</div>`+r.checks.map(c=>`<div class="dgr2 ${c.level==="warn"?"w2":c.level==="bad"?"b2":"ok"}"><i>${DGI[c.level]||"·"}</i><div><b>${esc(c.t)}</b><span>${esc(c.d)}</span></div></div>`).join("");
+  $("dgl").innerHTML=`<div class="dgs ${bad?"b2":warn?"w2":"ok"}">${bad?bad+" problema"+(bad>1?"s":"")+" por resolver":warn?warn+" aviso"+(warn>1?"s":""):"Todo en orden"}${r.name?" · "+esc(r.name):""}</div>`+r.checks.map(c=>`<div class="dgr2 ${c.level==="warn"?"w2":c.level==="bad"?"b2":"ok"}"><i>${DGI[c.level]||"·"}</i><div><b>${esc(c.t)}</b><span>${esc(c.d)}</span>${c.act?`<button class="btn sm dga" type="button" data-k="${esc(c.act.k)}" data-i="${esc(c.act.inst)}">${esc(c.act.label)}</button>`:""}</div></div>`).join("");
+  $("dgl").querySelectorAll(".dga").forEach(b=>b.onclick=async()=>{if(b.dataset.k==="gpu"){b.disabled=true;try{await A.instUpdate(b.dataset.i,{gpu:"high"});flash("Gráfica dedicada activada para esta instancia ✓");openDiag(iid)}catch(e){flash(em(e));b.disabled=false}}});
   $("dgc").disabled=$("dgr").disabled=$("dgi").disabled=false;
   $("dgi").onclick=()=>reportIssue("Problema detectado en el diagnóstico","Nova Launcher "+VER+"\n"+r.text);
   $("dgc").onclick=async()=>{try{await navigator.clipboard.writeText("Nova Launcher "+VER+"\n"+r.text);flash("Informe copiado")}catch{flash("No se pudo copiar")}};

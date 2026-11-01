@@ -1248,5 +1248,18 @@ window.LANGS.en={name:"English (US)",d:{
 "Necesita una cuenta de Microsoft":"Needs a Microsoft account",
 "Sincronizando…":"Syncing…",
 "Última sincronización":"Last sync",
-"Encendida":"On"
+"Encendida":"On",
+"Salta la caché de 10 minutos y vuelve a buscar":"Skips the 10-minute cache and searches again",
+"Recargar":"Reload",
+"Modo batería":"Battery mode",
+"En un portátil con batería, el juego se limita a 30 FPS y activa el Modo FPS para durar más. Automático lo detecta solo":"On a laptop running on battery, the game is capped at 30 FPS and FPS Mode is turned on so it lasts longer. Automatic detects it by itself",
+"Siempre":"Always",
+"Nunca":"Never",
+"RAM recomendada":"Recommended RAM",
+"mod":"mod",
+"mods":"mods",
+"Usar la recomendada":"Use the recommended",
+"Tienes mucha más de la necesaria: puede dar tirones por el recolector de memoria":"You have much more than needed: it can stutter because of garbage collection",
+"Tienes menos de la recomendada: puede ir justo":"You have less than recommended: it may run tight",
+"Gráfica dedicada activada para esta instancia ✓":"Dedicated graphics card turned on for this instance ✓"
 }};

@@ -92,7 +92,7 @@ let ic=ins.icon&&ICS.includes(ins.icon)?ins.icon:"box",col=ins.color||"";const h
 const d=modal(hdr(ins,"Opciones de la instancia",esc(LDN(ins.ld||"Vanilla"))+" · "+esc(ins.mc))+`<div class="fr"><label>Nombre</label><input id="on" type="text" maxlength="40" value="${esc(ins.name)}"></div>
 <div class="fr"><label>Icono</label><div class="icp" id="oic">${ICS.map(n=>`<button class="ib ${n===ic?"on":""}" data-i="${n}" type="button">${IC(n)}</button>`).join("")}</div></div>
 <div class="fr"><label>Color</label><div class="cs2" id="ocl"><div class="sw2 ${col?"":"on"}" data-c="" style="background:var(--ac)" title="Color del launcher"></div>${ICOL.map(c=>`<div class="sw2 ${col===c?"on":""}" data-c="${c}" style="background:${c}"></div>`).join("")}</div></div>
-<div class="fr"><label>Memoria RAM</label><div class="rr"><input type="range" id="orm" min="0" max="${Math.max(2,Math.min(32,tot))}" step="1" value="${ins.ram||0}"><b id="orv"></b></div></div>
+<div class="fr"><label>Memoria RAM</label><div class="rr"><input type="range" id="orm" min="0" max="${Math.max(2,Math.min(32,tot))}" step="1" value="${ins.ram||0}"><b id="orv"></b></div><div class="rec" id="orr"></div></div>
 <div class="fr"><label>Java</label><input id="oj" type="text" placeholder="Vacío = el de Ajustes (o Java automático)" value="${esc(ins.javaPath||"")}"></div>
 <div class="fr"><label>Etiquetas</label><input id="otg" type="text" maxlength="120" placeholder="Survival, Pruebas… (separadas por comas)" value="${esc((ins.tags||[]).join(", "))}"></div>
 <div class="fr"><label>Nota</label><textarea id="ont" rows="2" maxlength="600" placeholder="Para qué usas esta instancia, mods que faltan…">${esc(ins.note||"")}</textarea></div>
@@ -103,7 +103,12 @@ const d=modal(hdr(ins,"Opciones de la instancia",esc(LDN(ins.ld||"Vanilla"))+" �
 ${hasL?`<div class="fr"><label>Versión de ${esc(ins.ld)}</label><select id="olv"><option value="">Cargando…</option></select></div><small class="hint" id="olh" style="display:block;margin:-6px 0 12px 142px"></small>`:""}
 <div class="acts2"><button class="btn sm" data-a="fo">Abrir carpeta</button><button class="btn sm" data-a="dup">Duplicar</button><button class="btn sm" data-a="ex">Exportar…</button><button class="btn sm" data-a="wo">Mundos</button><button class="btn sm" data-a="sh">Capturas</button><button class="btn sm" data-a="bk">Copias de seguridad</button><button class="btn sm dg" data-a="del">Borrar instancia</button></div>
 <div class="acts"><button class="btn" data-x>Cancelar</button><button class="btn pr" id="osv">Guardar</button></div>`);
-const rv=()=>{const v=+$("orm").value;$("orv").textContent=v?v+" GB":"Global ("+cfg.ram+" GB)"};rv();$("orm").oninput=rv;
+let RREC=null;
+const rrec=()=>{const o=$("orr");if(!o||!RREC)return;const v=+$("orm").value||cfg.ram,sev=RREC.rec>0?(v>=RREC.rec+3&&v>=RREC.rec*1.6?"high":v<=RREC.rec-2?"low":""):"";
+ o.innerHTML=`<span>${trad("RAM recomendada")}: <b>${RREC.rec} GB</b> · ${RREC.mods} ${trad(RREC.mods===1?"mod":"mods")}</span>${sev?`<small class="w">${trad(sev==="high"?"Tienes mucha más de la necesaria: puede dar tirones por el recolector de memoria":"Tienes menos de la recomendada: puede ir justo")}</small>`:""}${v!==RREC.rec?`<button class="btn sm" id="orb" type="button">${trad("Usar la recomendada")}</button>`:""}`;
+ const b=$("orb");if(b)b.onclick=()=>{$("orm").value=RREC.rec;rv()}};
+const rv=()=>{const v=+$("orm").value;$("orv").textContent=v?v+" GB":"Global ("+cfg.ram+" GB)";rrec()};rv();$("orm").oninput=rv;
+if(A&&A.ramRec)A.ramRec(ins.id).then(r=>{RREC=r;rrec()}).catch(()=>{});
 $("oic").onclick=e=>{const b=e.target.closest("button");if(!b)return;ic=b.dataset.i;$("oic").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b))};
 $("ocl").onclick=e=>{const b=e.target.closest(".sw2");if(!b)return;col=b.dataset.c;$("ocl").querySelectorAll(".sw2").forEach(x=>x.classList.toggle("on",x===b))};
 if(hasL){const lv=async()=>{const s=$("olv");if(!s)return;let L=[],err="";s.innerHTML=`<option value="">Cargando…</option>`;const hh=$("olh");if(hh)hh.innerHTML="";

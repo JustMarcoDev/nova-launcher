@@ -10,7 +10,7 @@ resourcepack:[["16x","16x"],["32x","32x"],["64x","64x"],["128x","128x o más"],[
 const CTX=Object.fromEntries(Object.values(CATS).flat());
 const mcv=v=>{if(!v||!v.length)return"";const r=v.filter(x=>/^\d+\.\d+(\.\d+)?$/.test(x)),L=r.length?r:v;return L[L.length-1]},ldr=c=>(c||[]).filter(x=>["fabric","forge","neoforge","quilt"].includes(x)).map(x=>({fabric:"Fabric",forge:"Forge",neoforge:"NeoForge",quilt:"Quilt"}[x])).join(" · ");
 const fmtN=n=>n>=1e6?(n/1e6).toFixed(1).replace(".0","")+" M":n>=1e3?(n/1e3).toFixed(n>=1e4?0:1).replace(".0","")+" k":String(n||0);
-$("q").oninput=()=>{clearTimeout(mt);mt=setTimeout(()=>mods(),350)};$("mo").onchange=e=>{sort=e.target.value;mods()};$("mmore").onclick=()=>mods(true);
+$("q").oninput=()=>{clearTimeout(mt);mt=setTimeout(()=>mods(),350)};$("mo").onchange=e=>{sort=e.target.value;mods()};$("mmore").onclick=()=>mods(true);$("mre").onclick=()=>{MSF=true;mods()};
 function mchips(){chips($("mk"),KINDS,kind,k=>{kind=k;cat="";if(kind!=="mod"&&src==="cf"&&kind==="modpack"){}mchips();mods()});
 chips($("mc"),[["modrinth","Modrinth"],["cf","CurseForge"]],src,k=>{src=k;mchips();mods()});
 $("mo").innerHTML=SORTS.map(([k,n])=>`<option value="${k}"${k===sort?" selected":""}>${n}</option>`).join("");
@@ -25,7 +25,7 @@ $("mi").textContent="Buscando…";const my=++mySeq;
 try{let hits,tot;
 if(src==="modrinth"){const f=[["project_type:"+kind]];if(cmp[kind])f.push(["versions:"+t.mc]);if(kind==="mod"&&cmp[kind]&&t.ld!=="Vanilla")f.push(["categories:"+t.ld.toLowerCase()]);if(cat)f.push(["categories:"+cat]);
 const idx=sort==="relevance"&&!q?"downloads":sort;
-const r=await H(`https://api.modrinth.com/v2/search?limit=30&offset=${off}&index=${idx}&query=${encodeURIComponent(q)}&facets=${enc(f)}`);
+const r=await MS(`https://api.modrinth.com/v2/search?limit=30&offset=${off}&index=${idx}&query=${encodeURIComponent(q)}&facets=${enc(f)}`);
 hits=r.hits.map(h=>({id:h.project_id,slug:h.slug,t:h.title,d:h.description,i:h.icon_url,a:h.author,dl:h.downloads,fl:h.follows,v:h.versions,c:h.display_categories||h.categories||[]}));tot=r.total_hits}
 else{if(!cfg.cfKey){$("mi").textContent="Pon tu clave de CurseForge en Ajustes → Cuenta, o usa Modrinth (no necesita clave).";return}
 const sf={relevance:2,downloads:6,follows:2,newest:11,updated:3}[sort]||2;
@@ -167,7 +167,7 @@ async function openAdd(id,k0){
   const find=async(more)=>{const my=++seq;if(!more){off=0;RS=[];$("adl").innerHTML=""}$("adi").textContent="Buscando…";
     try{P=await instHas(id,dir());
       const f=[["project_type:"+k],["versions:"+ins.mc]];if(k==="mod"&&isL)f.push(["categories:"+ldl]);
-      const r=await H(`https://api.modrinth.com/v2/search?limit=30&offset=${off}&index=${q?"relevance":"downloads"}&query=${encodeURIComponent(q)}&facets=${enc(f)}`);
+      const r=await MS(`https://api.modrinth.com/v2/search?limit=30&offset=${off}&index=${q?"relevance":"downloads"}&query=${encodeURIComponent(q)}&facets=${enc(f)}`);
       if(my!==seq)return;RS=RS.concat(r.hits.map(h=>({id:h.project_id,slug:h.slug,t:h.title,d:h.description,i:h.icon_url})));off=RS.length;tot=r.total_hits;draw()}
     catch(e){if(my===seq)$("adi").textContent="Error de conexión: "+e.message}};
   const kinds=()=>chips($("adk"),ADK.map(x=>[x[0],x[1]]),k,x=>{k=x;kinds();find()});
