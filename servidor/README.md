@@ -38,3 +38,10 @@ No se guarda nada más que los UUID activos (caducan solos) y tokens de 24 h.
 - El launcher envía `POST /usage` con `{id, launcher, mc, loader}` solo si la persona marcó «Enviar estadísticas anónimas de uso» en Ajustes → Juego (apagada de fábrica) y `nova-config.json` no lleva `"usage"` en `off`. El `id` son 32 hex aleatorios de esa instalación (distintos de los de los informes de error). Nunca se envían nombres, cuentas ni IPs: la IP solo se usa para el límite de peticiones y no se guarda.
 - El Durable Object suma por día los lanzamientos de cada combinación launcher·Minecraft·cargador y las instalaciones distintas (se guardan 90 días).
 - Para leerlo: `npx wrangler secret put USAGE_SECRET` y luego `USAGE_SECRET=… node ../scripts/uso.js [días]` (también `GET /usage-summary?days=30` con `Authorization: Bearer <secreto>`).
+
+## Ajustes en la nube (`/cloud`, nuevo en 0.2.17)
+- Opcional y apagado de fábrica en el launcher (Ajustes → Cuenta → «Ajustes en la nube»). Hace falta una cuenta de Microsoft: el launcher hace `join` en Mojang con el `serverId` de `/challenge` y `/verify` devuelve el token (el mismo de la presencia).
+- `GET /cloud` → `{data, updated}` (404 si no hay nada), `PUT /cloud` guarda, `DELETE /cloud` borra. Todos con `Authorization: Bearer <token>`.
+- Se guarda en el Durable Object **`Cloud`** (uno por UUID, con SQLite; migración `v2` de `wrangler.toml`, así que hay que volver a hacer `npx wrangler deploy`). Una sola fila por jugador, **1 MB como máximo**.
+- Contenido: `menu` (menu.json del mod), `launcher` (solo el aspecto) y hasta **10 skins** PNG de ≤ 64 KB. Si el JSON trae algo cuyo nombre parezca un token, contraseña, sesión o clave de API, se rechaza (400).
+- Apagado a distancia: añade `"cloud"` a `off` en `nova-config.json`.
