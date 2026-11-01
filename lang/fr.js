@@ -1194,5 +1194,8 @@ window.LANGS.fr={name:"Français",d:{
 "Elige una instancia: abre un mundo fijo con su misma versión y sus mods (sin tocar tus mundos), recorre un camino de 30 s y mide FPS medios, el 1 % más bajo y la RAM. Después te dice qué ajustar. Tarda ~1 minuto y se cierra solo":"Choisis une instance : elle ouvre un monde fixe avec la même version et tes mods (tes mondes ne sont jamais touchés), suit un chemin de 30 s et mesure les FPS moyens, le 1 % le plus bas et la RAM. Ensuite elle te dit quoi ajuster. Dure environ une minute et se ferme toute seule",
 "Aplicar recomendaciones":"Appliquer les recommandations",
 "Enviar estadísticas anónimas de uso":"Envoyer des statistiques d'usage anonymes",
-"Al abrir Minecraft se cuenta un lanzamiento con la versión del launcher, la de Minecraft y el cargador, y un id aleatorio de esta instalación. Nunca se envían nombres, cuentas ni IPs. Apagado de fábrica":"À l'ouverture de Minecraft, un lancement est compté avec la version du launcher, celle de Minecraft et le chargeur, plus un id aléatoire de cette installation. Jamais de noms, de comptes ni d'IP. Désactivé par défaut"
+"Al abrir Minecraft se cuenta un lanzamiento con la versión del launcher, la de Minecraft y el cargador, y un id aleatorio de esta instalación. Nunca se envían nombres, cuentas ni IPs. Apagado de fábrica":"À l'ouverture de Minecraft, un lancement est compté avec la version du launcher, celle de Minecraft et le chargeur, plus un id aléatoire de cette installation. Jamais de noms, de comptes ni d'IP. Désactivé par défaut",
+"Prioridad del juego":"Priorité du jeu",
+"«Por encima de lo normal» da un poco más de CPU a Minecraft y baja la del launcher mientras juegas. Nunca usa prioridad alta ni de tiempo real":"« Supérieure à la normale » donne un peu plus de CPU à Minecraft et en retire au launcher pendant que tu joues. Jamais de priorité haute ni temps réel",
+"Por encima de lo normal":"Supérieure à la normale"
 }};

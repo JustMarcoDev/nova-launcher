@@ -8,6 +8,7 @@ const { Authenticator, Client } = require('minecraft-launcher-core');
 const { EventEmitter } = require('events');
 const { app, ipcMain, shell } = require('electron');
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const { S, R } = require('./compartido');
 // De módulos anteriores (ya cargados):
@@ -171,7 +172,7 @@ async function playGame(opts) {
     });
     l.on('data', d => { const t = String(d); mk(t); try { lg.w.write(t.endsWith('\n') ? t : t + '\n'); } catch {} for (const ln of t.split(/\r?\n/)) if (ln) tail.push(ln); if (tail.length > 500) tail.splice(0, tail.length - 300); send('log', t); });
     l.on('close', code => {
-      running.delete(id); try { lg.w.end(); } catch {} setTimeout(() => { try { R.bkSchedule(); } catch {} }, 4000); if (t0) { statsEnd(sk, Date.now() - t0); const cur = li().find(i => i.id === id) || {}; upIns(id, { playMs: (cur.playMs || 0) + (Date.now() - t0), lastPlayed: Date.now() }); } discordSet(null); send('running', running.size ? 1 : 0); send('progress', null);
+      running.delete(id); if (running.size === 0) restorePrio(); try { lg.w.end(); } catch {} setTimeout(() => { try { R.bkSchedule(); } catch {} }, 4000); if (t0) { statsEnd(sk, Date.now() - t0); const cur = li().find(i => i.id === id) || {}; upIns(id, { playMs: (cur.playMs || 0) + (Date.now() - t0), lastPlayed: Date.now() }); } discordSet(null); send('running', running.size ? 1 : 0); send('progress', null);
       if (S.switching && S.switching.id === id) {   // cambio de usuario desde el mod: se vuelve a abrir la misma instancia con la otra cuenta
         const nx = S.switching; S.switching = null; send('status', 'Cambiando de usuario…');
         setTimeout(() => { playGame({ id: nx.id, safe: nx.safe }).catch(() => {}); }, 700);
@@ -191,12 +192,27 @@ async function playGame(opts) {
     discordSet({ details: 'Preparando Minecraft ' + ins.mc, state: (ins.ld || 'Vanilla') + ' · Nova Launcher', startTimestamp: Date.now() });
     send('status', 'Descargando archivos del juego…');
     if (!(proc = await l.launch(o))) throw new Error('No se pudo iniciar Minecraft');
-    running.add(id); t0 = Date.now(); try { sk = statsStart(ins, server); } catch {} if (!ins.bench) { try { R.sendUsage(ins); } catch {} } upIns(id, { lastPlayed: t0 });
+    running.add(id); t0 = Date.now(); applyPrio(proc);
+    try { sk = statsStart(ins, server); } catch {} if (!ins.bench) { try { R.sendUsage(ins); } catch {} } upIns(id, { lastPlayed: t0 });
     send('running', 1); discordSet({ details: server && server.name ? 'En ' + server.name + ' · ' + ins.mc : 'Jugando a Minecraft ' + ins.mc, state: (ins.ld || 'Vanilla') + ' · Nova Launcher', startTimestamp: Date.now() }); send('status', 'Minecraft en ejecución'); if (cfg.closeOnLaunch) S.win.hide(); else if (cfg.gameMode !== false && cfg.conOpen === false) gameHide();
     return { ok: true };
   } catch (err) { send('status', 'Error: ' + err.message); send('progress', null); return { ok: false }; }
 }
 ipcMain.handle('play', (e, a) => playGame(a));
+// Prioridad del juego (punto 17): con «Por encima de lo normal» Java sube un escalón y el launcher baja uno mientras se juega. Nunca Alta ni Tiempo real; si falla, se ignora sin avisar.
+let prioDown = false;
+function applyPrio(proc) {
+  try {
+    if (load().gamePrio !== 'above' || !proc || !proc.pid) return;
+    os.setPriority(proc.pid, os.constants.priority.PRIORITY_ABOVE_NORMAL);
+    os.setPriority(0, os.constants.priority.PRIORITY_BELOW_NORMAL); prioDown = true;
+  } catch {}
+}
+function restorePrio() {
+  if (!prioDown) return;
+  prioDown = false;
+  try { os.setPriority(0, os.constants.priority.PRIORITY_NORMAL); } catch {}
+}
 // Ajustes de Java «Optimizar el juego»: recolector G1 afinado para menos tirones y arranque más rápido
 const JVM_OPT = ['-XX:+UseG1GC', '-XX:+ParallelRefProcEnabled', '-XX:MaxGCPauseMillis=130', '-XX:+UnlockExperimentalVMOptions', '-XX:+DisableExplicitGC',
   '-XX:G1NewSizePercent=28', '-XX:G1MaxNewSizePercent=45', '-XX:G1HeapRegionSize=16M', '-XX:G1ReservePercent=20', '-XX:G1HeapWastePercent=5',
