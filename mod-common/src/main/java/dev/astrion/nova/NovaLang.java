@@ -306,5 +306,6 @@ final class NovaLang {
         p("desactivado", "off", "désactivé", "aus", "disattivato", "desativado");
         p("Modo foto: esta versión hace la captura a resolución normal", "Photo mode: this version takes the screenshot at normal resolution", "Mode photo : cette version capture en résolution normale", "Fotomodus: Diese Version macht den Screenshot in normaler Auflösung", "Modalità foto: questa versione cattura a risoluzione normale", "Modo foto: esta versão captura em resolução normal");
         p("Foto", "Photo", "Photo", "Foto", "Foto", "Foto");
+        p("Modo streamer", "Streamer mode", "Mode streamer", "Streamermodus", "Modalità streamer", "Modo streamer");
     }
 }
