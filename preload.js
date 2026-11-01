@@ -12,7 +12,7 @@ contextBridge.exposeInMainWorld('api', {
   accAddOffline: n => r.invoke('acc:addOffline', n), accSwitch: id => r.invoke('acc:switch', id), accRemove: id => r.invoke('acc:remove', id),
   statsGet: () => r.invoke('stats:get'), shotsList: id => r.invoke('shots:list', id), shotsOpen: o => r.invoke('shots:open', o), shotsCopy: o => r.invoke('shots:copy', o), shotsDelete: o => r.invoke('shots:delete', o), shotsFolder: id => r.invoke('shots:folder', id),
   clip: t => r.invoke('clip:text', t), saveText: o => r.invoke('text:save', o),
-  worldsList: id => r.invoke('worlds:list', id), worldsCopy: o => r.invoke('worlds:copy', o), worldsImport: id => r.invoke('worlds:import', id),
+  worldsList: id => r.invoke('worlds:list', id), worldsAll: () => r.invoke('worlds:all'), worldOpen: o => r.invoke('worlds:open', o), worldBackup: o => r.invoke('worlds:backup', o), worldTrash: o => r.invoke('worlds:trash', o), worldsCopy: o => r.invoke('worlds:copy', o), worldsImport: id => r.invoke('worlds:import', id),
   modsHas: o => r.invoke('mods:has', o), modsProjects: o => r.invoke('mods:projects', o), modsBundle: o => r.invoke('mods:bundle', o),
   releases: () => r.invoke('app:releases'), rollback: o => r.invoke('app:rollback', o),
   importScan: () => r.invoke('import:scan'), importRun: d => r.invoke('import:run', d),

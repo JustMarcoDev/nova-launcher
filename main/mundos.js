@@ -104,5 +104,68 @@ async function openFileOrFolder(p) {
   return true;
 }
 
+// ---- Todos tus mundos (pestaña Mundos): los mundos de todas las instancias en una sola lista ----
+// El escaneo es asíncrono y en paralelo (por tandas) para no frenar la interfaz; level.dat se lee con main/nbt.js.
+// Resultado en caché (en memoria y en worlds-cache.json): un mundo solo se vuelve a leer si cambió su level.dat.
+const { levelInfo } = require('./nbt');
+const WCACHE = () => path.join(root, 'worlds-cache.json');
+let wc = null, wcDirty = false;
+function wcLoad() { if (wc) return wc; try { wc = JSON.parse(fs.readFileSync(WCACHE(), 'utf8')); if (!wc || typeof wc !== 'object' || Array.isArray(wc)) wc = {}; } catch { wc = {}; } return wc; }
+function wcSave() { if (!wcDirty) return; wcDirty = false; try { const f = WCACHE(), t = f + '.tmp'; fs.writeFileSync(t, JSON.stringify(wc)); fs.renameSync(t, f); } catch {} }
+async function pooled(items, n, fn) { const out = []; let i = 0; await Promise.all(Array.from({ length: Math.min(n, items.length) }, async () => { while (i < items.length) { const k = i++; out[k] = await fn(items[k]); } })); return out; }
+
+async function readWorld(inst, folder, c) {
+  const dir = path.join(iDir(inst.id), 'saves', folder), lv = path.join(dir, 'level.dat');
+  let st; try { st = await fs.promises.stat(lv); } catch { return null; }
+  const key = inst.id + '/' + folder, hit = c[key];
+  let w = hit && hit.m === st.mtimeMs ? hit : null;
+  if (!w) {
+    let inf = { name: '', mode: 'survival', ver: '', last: 0 };
+    try { inf = levelInfo(await fs.promises.readFile(lv)); } catch {}
+    let icon = ''; try { const b = await fs.promises.readFile(path.join(dir, 'icon.png')); if (b.length < 200000) icon = 'data:image/png;base64,' + b.toString('base64'); } catch {}
+    w = { m: st.mtimeMs, name: inf.name || folder, mode: inf.mode, ver: inf.ver, last: inf.last || st.mtimeMs, icon };
+    c[key] = w; wcDirty = true;
+  }
+  return { inst: inst.id, instName: inst.name, mc: inst.mc, qp: !!modernQP(inst.mc), folder, name: w.name, mode: w.mode, ver: w.ver, last: w.last, icon: w.icon };
+}
+
+/** Todos los mundos de todas las instancias. */
+async function worldsAll() {
+  const c = wcLoad(), jobs = [];
+  await pooled(li(), 4, async inst => {
+    let es = []; try { es = await fs.promises.readdir(path.join(iDir(inst.id), 'saves'), { withFileTypes: true }); } catch { return; }
+    for (const d of es) if (d.isDirectory()) jobs.push([inst, d.name]);
+  });
+  const res = (await pooled(jobs, 12, ([inst, f]) => readWorld(inst, f, c).catch(() => null))).filter(Boolean);
+  const live = new Set(jobs.map(([i, f]) => i.id + '/' + f));
+  for (const k of Object.keys(c)) if (!live.has(k)) { delete c[k]; wcDirty = true; }
+  wcSave();
+  return res.sort((a, b) => b.last - a.last);
+}
+const worldDir = (inst, folder) => {
+  const ins = getIns(inst), f = path.basename(String(folder)), d = path.join(iDir(ins.id), 'saves', f);
+  if (f !== String(folder) || !fs.existsSync(path.join(d, 'level.dat'))) throw new Error('Mundo no encontrado');
+  return { ins, d, f };
+};
+ipcMain.handle('worlds:all', () => worldsAll());
+ipcMain.handle('worlds:open', async (e, { inst, folder }) => { const { d } = worldDir(inst, folder); const r = await shell.openPath(d); if (r) throw new Error(r); return true; });
+ipcMain.handle('worlds:backup', async (e, { inst, folder }) => {
+  const { ins, d, f } = worldDir(inst, folder), t = new Date(), z = n => String(n).padStart(2, '0');
+  const stamp = `${t.getFullYear()}${z(t.getMonth() + 1)}${z(t.getDate())}-${z(t.getHours())}${z(t.getMinutes())}${z(t.getSeconds())}`;
+  const out = path.join(root, 'backups', 'mundos', ins.id, stamp + '__' + safeName(f, 'mundo') + '.zip');
+  send('status', 'Haciendo copia del mundo…');
+  try { await R.zipItems(out, path.join(iDir(ins.id), 'saves'), [f]); } finally { send('status', ''); }
+  return out;
+});
+ipcMain.handle('worlds:trash', async (e, { inst, folder }) => {
+  const { ins, d, f } = worldDir(inst, folder);
+  if (running.has(ins.id)) throw new Error('Cierra Minecraft antes de borrar un mundo');
+  await shell.trashItem(d);
+  const c = wcLoad(); delete c[ins.id + '/' + f]; wcDirty = true; wcSave();
+  return true;
+});
+
+Object.assign(R, { worldsAll });
+
 // Lo que usan otros módulos
 Object.assign(R, { dirSize, importWorldZips, shotAction, copyImageFile, openFileOrFolder });
