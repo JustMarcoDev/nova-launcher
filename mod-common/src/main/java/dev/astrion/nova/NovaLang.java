@@ -296,5 +296,10 @@ final class NovaLang {
         p("Entendido", "Got it", "Compris", "Verstanden", "Capito", "Entendi");
         p("Ver guía", "View guide", "Voir le guide", "Anleitung ansehen", "Vedi la guida", "Ver guia");
         p("Repite la guía de primera vez", "Replay the first-time guide", "Rejoue le guide de première fois", "Spielt die Einführung erneut ab", "Ripete la guida iniziale", "Repete o guia de primeira vez");
+        p("Sesión", "Session", "Session", "Sitzung", "Sessione", "Sessão");
+        p("Nunca", "Never", "Jamais", "Nie", "Mai", "Nunca");
+        p("Aviso de descanso", "Break reminder", "Rappel de pause", "Pausenerinnerung", "Promemoria pausa", "Aviso de pausa");
+        p("Avisos del launcher", "Launcher notices", "Avis du launcher", "Launcher-Hinweise", "Avvisi del launcher", "Avisos do launcher");
+        p("Llevas {0} jugando, ¿un descanso?", "You've been playing for {0}. Take a break?", "Tu joues depuis {0}. Une pause ?", "Du spielst seit {0}. Zeit für eine Pause?", "Giochi da {0}. Una pausa?", "Estás a jogar há {0}. Uma pausa?");
     }
 }

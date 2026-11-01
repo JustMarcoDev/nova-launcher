@@ -24,5 +24,7 @@ window.LANGS["es-419"]={name:"Español (Latinoamérica)",d:{
 "Prioridad del juego":"Prioridad del juego",
 "«Por encima de lo normal» da un poco más de CPU a Minecraft y baja la del launcher mientras juegas. Nunca usa prioridad alta ni de tiempo real":"«Por encima de lo normal» da un poco más de CPU a Minecraft y baja la del launcher mientras juegas. Nunca usa prioridad alta ni de tiempo real",
 "Normal":"Normal",
-"Por encima de lo normal":"Por encima de lo normal"
+"Por encima de lo normal":"Por encima de lo normal",
+"Sesión":"Sesión",
+"Sesión 1 h 23 min":"Sesión 1 h 23 min"
 }};

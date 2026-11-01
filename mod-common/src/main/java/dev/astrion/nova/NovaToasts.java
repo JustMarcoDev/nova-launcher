@@ -28,6 +28,10 @@ final class NovaToasts {
     }
 
     private static final ConcurrentLinkedQueue<Toast> QUEUE = new ConcurrentLinkedQueue<>();
+    /** Avisos del propio mod (descanso…): salen aunque estén apagados los avisos del launcher. */
+    private static final ConcurrentLinkedQueue<Toast> OWN = new ConcurrentLinkedQueue<>();
+
+    static void push(String texto) { OWN.add(new Toast("own-" + System.nanoTime(), texto, "rest")); }
     private static final Set<String> SEEN = new HashSet<>();   // solo lo toca el hilo de fondo
     private static final AtomicBoolean busy = new AtomicBoolean();
     private static long lastCheck, stamp = -1;
@@ -36,15 +40,17 @@ final class NovaToasts {
 
     /** Se llama en cada fotograma desde el hilo de render: lanza la comprobación (cada 2 s, fuera del hilo de render) y devuelve el aviso que toca enseñar, o null. */
     static Toast tick(long now) {
-        if (!NovaSettings.toasts || NovaOff.has("toasts")) { cur = null; return null; }
-        if (now - lastCheck >= 2000 && busy.compareAndSet(false, true)) {
+        if (NovaOff.has("toasts")) { cur = null; return null; }
+        boolean launcher = NovaSettings.toasts;
+        if (launcher && now - lastCheck >= 2000 && busy.compareAndSet(false, true)) {
             lastCheck = now;
             CompletableFuture.runAsync(() -> { try { check(); } catch (Throwable ignored) { } finally { busy.set(false); } });
         }
         Toast c = cur;
         if (c != null && now - born > SHOW_MS) { cur = null; c = null; }
         if (c == null) {
-            c = QUEUE.poll();
+            c = OWN.poll();
+            if (c == null && launcher) c = QUEUE.poll();
             if (c != null) { cur = c; born = now; }
         }
         return c;

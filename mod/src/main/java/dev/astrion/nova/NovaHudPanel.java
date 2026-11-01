@@ -97,7 +97,7 @@ final class NovaHudPanel {
     }
 
     static void buildEls(Host h, int x, int y, int w, int hh, int gap) {
-        String[] names = { "FPS", "CPS", tr("Coords"), tr("Teclas"), tr("Estado"), tr("Armadura"), tr("Pociones"), tr("Reloj"), tr("Brújula") };
+        String[] names = { "FPS", "CPS", tr("Coords"), tr("Teclas"), tr("Estado"), tr("Armadura"), tr("Pociones"), tr("Reloj"), tr("Brújula"), tr("Sesión") };
         int cw = (w - 2 * gap) / 3;
         for (int i = 0; i < NovaHud.ALL.length; i++) {
             final NovaHud.El e = NovaHud.ALL[i];
@@ -138,7 +138,8 @@ final class NovaHudPanel {
         });
         tog(h, x + half + gap, y + r * st, w - half - gap, hh, tr("Modo FPS") + ": " + yn(NovaFps.on()), NovaFps.on(), () -> { MinecraftClient mc = MinecraftClient.getInstance(); if (NovaFps.on()) NovaFps.restore(mc); else NovaFps.enable(mc); });
         r++;
-        tog(h, x, y + r * st, w, hh, tr("Avisos del launcher en el juego") + ": " + yn(NovaSettings.toasts), NovaSettings.toasts, () -> NovaSettings.toasts = !NovaSettings.toasts);
+        tog(h, x, y + r * st, half, hh, tr("Avisos del launcher") + ": " + yn(NovaSettings.toasts), NovaSettings.toasts, () -> NovaSettings.toasts = !NovaSettings.toasts);
+        btn(h, x + half + gap, y + r * st, w - half - gap, hh, tr("Aviso de descanso") + ": " + NovaSessionCore.restName(NovaSettings.restMin), -1, NovaSettings.restMin > 0 ? NovaButton.SELECTED : NovaButton.NORMAL, () -> { NovaSettings.restMin = NovaSessionCore.nextRest(NovaSettings.restMin); h.rebuild(); });
     }
 
     static void buildProf(Host h, int x, int y, int w, int hh, int gap) {

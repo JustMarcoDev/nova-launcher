@@ -59,6 +59,7 @@ public final class NovaHud extends NovaHudCore {
 
     static String[] lines(Minecraft mc, El e, boolean sample) {
         boolean has = mc.player != null && !sample;
+        if (e == SESSION) return new String[] { NovaSessionCore.label(sample, System.currentTimeMillis()) };
         if (e == FPS) return new String[] { fmt(mc.getFps()) + " FPS" };
         if (e == CPS) return new String[] { (has || sample ? cpsL() + " | " + cpsR() : "0 | 0") + " CPS" };
         if (e == XYZ) {
@@ -261,6 +262,9 @@ public final class NovaHud extends NovaHudCore {
             if (mc == null || mc.player == null) return;
             NovaSettings.load();
             NovaHud.syncServer(mc);
+            long nowMs = System.currentTimeMillis();
+            NovaSessionCore.tick(nowMs);
+            if (NovaSessionCore.restDue(nowMs)) NovaToasts.push(NovaSessionCore.restText());
             NovaBench.frame(mc);
             NovaPresence.frame(mc);
             NovaServers.frame();

@@ -46,7 +46,9 @@ abstract class NovaHudCore {
 
     public static final El COMPASS = new El("compass", false, 0.500f, 0.020f);
 
-    public static final El[] ALL = { FPS, CPS, XYZ, KEYS, STATE, ARMOR, POTS, CLOCK, COMPASS };
+    /** Tiempo de sesión (apagado de fábrica). */
+    public static final El SESSION = new El("session", false, 0.010f, 0.810f);
+    public static final El[] ALL = { FPS, CPS, XYZ, KEYS, STATE, ARMOR, POTS, CLOCK, COMPASS, SESSION };
 
     /** Zoom con tecla: activo, tecla (GLFW) y cuánto acerca (el campo de visión se multiplica por este número). */
     public static boolean zoomOn = true;

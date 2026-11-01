@@ -142,6 +142,7 @@ public class NovaTitleScreen extends NovaScreen {
         String forced = System.getProperty("nova.panel", "");
         if (!forced.isEmpty() && !tested2) { tested2 = true; panel = forced.equals("nova") ? 2 : forced.equals("profile") ? 1 : forced.equals("skins") ? 3 : forced.equals("servers") ? 4 : forced.equals("mods") ? 5 : 0; }
         labels.clear();
+        NovaSessionCore.reset();   // al volver al título la sesión empieza de cero
         if (panel == 0 && NovaGuide.due()) NovaGuide.start();   // primera vez: guía de 5 pasos
         int cx = width / 2;
         int bw = Math.min(124, width - 20), bh = 16, gap = 3;

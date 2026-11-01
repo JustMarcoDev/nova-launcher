@@ -1197,5 +1197,7 @@ window.LANGS["pt-BR"]={name:"Português (Brasil)",d:{
 "Al abrir Minecraft se cuenta un lanzamiento con la versión del launcher, la de Minecraft y el cargador, y un id aleatorio de esta instalación. Nunca se envían nombres, cuentas ni IPs. Apagado de fábrica":"Ao abrir o Minecraft conta-se uma inicialização com a versão do launcher, a do Minecraft e o carregador, mais um id aleatório desta instalação. Nomes, contas e IPs nunca são enviados. Desligado por padrão",
 "Prioridad del juego":"Prioridade do jogo",
 "«Por encima de lo normal» da un poco más de CPU a Minecraft y baja la del launcher mientras juegas. Nunca usa prioridad alta ni de tiempo real":"«Acima do normal» dá um pouco mais de CPU ao Minecraft e reduz a do launcher enquanto você joga. Nunca usa prioridade alta nem de tempo real",
-"Por encima de lo normal":"Acima do normal"
+"Por encima de lo normal":"Acima do normal",
+"Sesión":"Sessão",
+"Sesión 1 h 23 min":"Sessão 1 h 23 min"
 }};

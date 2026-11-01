@@ -39,6 +39,8 @@ final class NovaSettings {
     static String newsSeen = "";
     /** Ya se vio la guía de primera vez (o se saltó). */
     static boolean guideDone;
+    /** Aviso de descanso en minutos (0 = nunca). */
+    static int restMin;
     private static boolean loaded;
     /** Fecha (lastModified) de menu.json cuando se leyó o guardó: el launcher puede cambiarlo con el juego abierto. */
     private static long stamp;
@@ -85,6 +87,7 @@ final class NovaSettings {
             if (o.has("move") && o.get("move").isJsonObject()) NovaMove.read(o.getAsJsonObject("move"));
             if (o.has("newsSeen")) newsSeen = o.get("newsSeen").getAsString();
             if (o.has("guideDone")) guideDone = o.get("guideDone").getAsBoolean();
+            if (o.has("restMin")) restMin = Math.max(0, Math.min(240, o.get("restMin").getAsInt()));
             if (o.has("hud") && o.get("hud").isJsonObject()) NovaHud.read(o.getAsJsonObject("hud"));
             NovaHud.readProfiles(o);
             if (o.has("acc") && o.get("acc").isJsonObject()) NovaAcc.read(o.getAsJsonObject("acc"));
@@ -133,6 +136,7 @@ final class NovaSettings {
             o.add("move", NovaMove.write());
             o.addProperty("newsSeen", newsSeen);
             o.addProperty("guideDone", guideDone);
+            o.addProperty("restMin", restMin);
             o.add("hud", NovaHud.write());
             NovaHud.writeProfiles(o);
             o.add("acc", NovaAcc.write());

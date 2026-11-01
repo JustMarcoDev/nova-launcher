@@ -10,7 +10,8 @@ const NM_EL = [
   { id: "armor", n: "Armadura", w: 56, h: 76, d: { on: false, x: .010, y: .700, s: 1 }, txt: ["100%", "87%", "66%", "41%"] },
   { id: "pots", n: "Pociones", w: 110, h: 36, d: { on: false, x: .880, y: .300, s: 1 }, txt: ["Velocidad II  1:35", "Fuerza  0:07"] },
   { id: "clock", n: "Reloj", w: 84, h: 26, d: { on: false, x: .010, y: .880, s: 1 }, txt: ["21:45", "Día 12 · 06:00"] },
-  { id: "compass", n: "Brújula", w: 132, h: 24, d: { on: false, x: .500, y: .020, s: 1 }, txt: ["N    E    S", "352°"] }
+  { id: "compass", n: "Brújula", w: 132, h: 24, d: { on: false, x: .500, y: .020, s: 1 }, txt: ["N    E    S", "352°"] },
+  { id: "session", n: "Sesión", w: 84, h: 12, d: { on: false, x: .010, y: .810, s: 1 }, txt: ["Sesión 1 h 23 min"] }
 ];
 const NM_GUI = [640, 360]; // pantalla de 1080p con GUI x3: las medidas del mod están en estos píxeles
 let NM = { cfg: {}, bgs: [], accents: [], vals: [], shot: null, ok: false, prof: "default" }, nmHud = {}, nmSaveT = 0;

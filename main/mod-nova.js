@@ -337,7 +337,7 @@ function novaServersWrite(list) {
 // El mod relee el archivo al volver al menú si su fecha (lastModified) cambió. Solo se tocan los campos conocidos y el resto
 // (teclas, copia de las opciones de vídeo, «orig» del sprint fijo…) se conserva tal cual.
 const NMENU_ACCENTS = [0xFF8B6CFF, 0xFF4D8BFF, 0xFF2FD3E0, 0xFF3DDC84, 0xFFFF5FA8, 0xFFFF9A3D, 0xFFFF4D5E, 0xFFDADAF0].map(n => n | 0);
-const NMENU_EL = ['fps', 'cps', 'xyz', 'keys', 'state', 'armor', 'pots', 'clock', 'compass'];
+const NMENU_EL = ['fps', 'cps', 'xyz', 'keys', 'state', 'armor', 'pots', 'clock', 'compass', 'session'];
 const nmName = v => (typeof v === 'string' ? v.replace(/[\u0000-\u001f\u007f"\\]/g, '').trim().slice(0, 24) : '');
 const nmElems = h => { const r = {}; if (!h || typeof h !== 'object') return r; for (const k of NMENU_EL) { const e = h[k]; if (!e || typeof e !== 'object') continue; const q = {}; if (nmBool(e.on) !== undefined) q.on = e.on; const x = nmNum(e.x, 0, 1), y = nmNum(e.y, 0, 1), sc = nmNum(e.s, 0.5, 3); if (x !== undefined) q.x = x; if (y !== undefined) q.y = y; if (sc !== undefined) q.s = Math.round(sc * 100) / 100; r[k] = q; } return r; };
 const nmenuFile = () => path.join(novaDir(), 'menu.json');
