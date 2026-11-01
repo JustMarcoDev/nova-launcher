@@ -10,7 +10,7 @@ const hexId = v => { const n = typeof v === 'string' ? parseInt(v, 16) || parseI
 function classifyGpus(devs) {
   const gpus = (Array.isArray(devs) ? devs : []).filter(d => d && (d.vendorId || d.deviceId)).map(d => {
     const v = hexId(d.vendorId), name = String(d.deviceString || d.driverVendor || VENDOR[v] || 'Gráfica').replace(/\s+/g, ' ').trim().slice(0, 80);
-    const integrated = v === 0x8086 || /\b(intel|uhd|iris|vega\s*\d+\b|radeon\(tm\)\s*graphics|radeon graphics|apple)\b/i.test(name) && !/\b(rtx|gtx|rx\s*\d{3,4}|arc\s*a\d)/i.test(name);
+    const integrated = v === 0x8086 || /\b(intel|uhd|iris|vega\s*\d+\b|radeon\(tm\)\s*graphics|radeon graphics)\b/i.test(name) && !/\b(rtx|gtx|rx\s*\d{3,4}|arc\s*a\d)/i.test(name);
     return { name, vendor: VENDOR[v] || '', integrated, active: !!d.active };
   });
   const dedicated = gpus.filter(g => !g.integrated), integ = gpus.filter(g => g.integrated);
@@ -22,6 +22,7 @@ function classifyGpus(devs) {
 function tier({ ramGb, gpu, benchAvg }) {
   if (benchAvg > 0) return benchAvg < 50 ? 'low' : benchAvg < 110 ? 'mid' : 'high';
   const g = gpu || {};
+  if (!(g.gpus && g.gpus.length)) return ramGb <= 4 ? 'low' : 'mid';   // sin datos de la gráfica no se asume lo peor
   if (!g.hasDedicated || ramGb <= 4) return 'low';
   if (ramGb >= 16) return 'high';
   return 'mid';
