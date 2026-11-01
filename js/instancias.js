@@ -122,7 +122,7 @@ $("osv").onclick=async()=>{const b=$("osv");b.disabled=true;const p={name:$("on"
 try{await api.instUpdate(id,p);await loadI();closeModal();flash("Cambios guardados")}catch(e){b.disabled=false;flash(em(e))}};
 d.querySelector(".acts2").onclick=async e=>{const b=e.target.closest("button[data-a]");if(!b)return;const a=b.dataset.a;
 try{if(a==="fo"){if(A)A.instOpen(id,"");else pv("ifol")}
-else if(a==="dup"){b.disabled=true;b.textContent="Duplicando…";await api.instDup(id);await loadI();closeModal();flash("Instancia duplicada")}
+else if(a==="dup"){const w=await askDup(ins);if(w===null){openOpts(id);return}b.disabled=true;b.textContent="Duplicando…";await api.instDup({id,worlds:w});await loadI();closeModal();flash("Instancia duplicada")}
 else if(a==="ex")openExport(id);else if(a==="bk")openBackups(id);else if(a==="wo")openWorlds(id);else if(a==="sh")openShots(id);
 else if(a==="del"){if(!confirm("¿Borrar «"+ins.name+"» con sus mundos, mods y copias de seguridad? No se puede deshacer."))return;await api.delInst(id);await loadI();closeModal();flash("Instancia borrada")}}
 catch(x){flash(em(x));b.disabled=false}}}
@@ -165,3 +165,7 @@ const rows=(list,rec)=>list.length?list.map((v,k)=>`<div class="mr pv" data-k="$
 return new Promise(res=>{pickRes=res;let cur=build();const d=modal(`<div class="hd"><div class="iic">${IC("puzzle")}</div><div style="min-width:0"><h3>Versión de «${esc(h.t)}»</h3><span class="sub">Filtra por versión de Minecraft y elige la versión del modpack</span></div><button class="btn sm x" data-x>Cancelar</button></div><div class="wz"><label class="wl">Versión de Minecraft</label><select id="pmf" class="wmf"><option value="">Todas</option>${mcs.map(m=>`<option value="${esc(m)}"${m===f?" selected":""}>${esc(m)}</option>`).join("")}</select></div><div id="pvl" style="margin-top:12px">${rows(cur.list,cur.rec)}</div>`,"wide");
 d.querySelector("#pmf").onchange=e=>{f=e.target.value;cur=build();d.querySelector("#pvl").innerHTML=rows(cur.list,cur.rec)};
 d.querySelector("#pvl").onclick=e=>{const r=e.target.closest(".pv");if(!r)return;const v=cur.list[+r.dataset.k];pickRes=null;closeModal();res(v.id)}})}
+
+/* ¿Copiar también los mundos? Devuelve true (con mundos), false (sin mundos) o null (cancelar). */
+function askDup(ins){return new Promise(ok=>{modal(hdr(ins,"Duplicar instancia","¿Copiar también los mundos?")+`<p class="sub" style="margin-bottom:12px">Sin mundos se copia todo lo demás (mods, ajustes, packs) y la copia empieza sin partidas guardadas.</p><div class="acts"><button class="btn" id="dq0">Cancelar</button><button class="btn" id="dq2">Sin mundos</button><button class="btn pri" id="dq1">Con mundos</button></div>`);
+const f=v=>{ok(v)};$("dq1").onclick=()=>f(true);$("dq2").onclick=()=>f(false);$("dq0").onclick=()=>f(null)})}

@@ -95,10 +95,11 @@ ipcMain.handle('inst:update', (e, { id, patch }) => {
   if ('tags' in q) p.tags = [...new Set((Array.isArray(q.tags) ? q.tags : String(q.tags || '').split(',')).map(t => String(t).trim().replace(/\s+/g, ' ').slice(0, 24)).filter(Boolean))].slice(0, 8);
   wr(insFile, li().map(i => i.id === String(id) ? { ...i, ...p } : i)); return getIns(id);
 });
-ipcMain.handle('inst:dup', async (e, id) => {
+ipcMain.handle('inst:dup', async (e, arg) => {
+  const id = arg && typeof arg === 'object' ? arg.id : arg, worlds = !(arg && typeof arg === 'object') || arg.worlds !== false;   // sin mundos: se copia todo menos saves/
   const src = getIns(id), nid = Date.now().toString(36), { ...rest } = src;
   send('status', 'Duplicando instancia…');
-  try { if (fs.existsSync(iDir(id))) await fs.promises.cp(iDir(id), iDir(nid), { recursive: true, filter: f => path.basename(f) !== '.nova-pack.json' }); else fs.mkdirSync(iDir(nid), { recursive: true }); }
+  try { if (fs.existsSync(iDir(id))) await fs.promises.cp(iDir(id), iDir(nid), { recursive: true, filter: f => path.basename(f) !== '.nova-pack.json' && (worlds || path.relative(iDir(id), f).split(path.sep)[0] !== 'saves') }); else fs.mkdirSync(iDir(nid), { recursive: true }); }
   finally { send('status', ''); }
   const ins = { ...rest, id: nid, name: (src.name + ' (copia)').slice(0, 40), custom: true, playMs: 0, lastPlayed: 0 }; wr(insFile, [...li(), ins]); return ins;
 });
