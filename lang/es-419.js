@@ -26,5 +26,14 @@ window.LANGS["es-419"]={name:"Español (Latinoamérica)",d:{
 "Normal":"Normal",
 "Por encima de lo normal":"Por encima de lo normal",
 "Sesión":"Sesión",
-"Sesión 1 h 23 min":"Sesión 1 h 23 min"
+"Sesión 1 h 23 min":"Sesión 1 h 23 min",
+"Streamer":"Streamer",
+"Overlay para OBS":"Overlay para OBS",
+"Abre un pequeño servidor solo en tu PC (127.0.0.1) con una página transparente: tu cabeza, FPS, servidor (sin IP) y tiempo de sesión. En OBS: Fuentes → Navegador → pega la dirección":"Abre un pequeño servidor solo en tu PC (127.0.0.1) con una página transparente: tu cabeza, FPS, servidor (sin IP) y tiempo de sesión. En OBS: Fuentes → Navegador → pega la dirección",
+"Puerto":"Puerto",
+"Cámbialo solo si 7777 está ocupado":"Cámbialo solo si 7777 está ocupado",
+"Dirección para OBS":"Dirección para OBS",
+"Activa el overlay para verla":"Activa el overlay para verla",
+"Copiar":"Copiar",
+"Copiado ✓":"Copiado ✓"
 }};

@@ -1199,5 +1199,13 @@ window.LANGS.pt={name:"Português (Portugal)",d:{
 "«Por encima de lo normal» da un poco más de CPU a Minecraft y baja la del launcher mientras juegas. Nunca usa prioridad alta ni de tiempo real":"«Acima do normal» dá um pouco mais de CPU ao Minecraft e baixa a do launcher enquanto jogas. Nunca usa prioridade alta nem de tempo real",
 "Por encima de lo normal":"Acima do normal",
 "Sesión":"Sessão",
-"Sesión 1 h 23 min":"Sessão 1 h 23 min"
+"Sesión 1 h 23 min":"Sessão 1 h 23 min",
+"Streamer":"Streamer",
+"Overlay para OBS":"Overlay para OBS",
+"Abre un pequeño servidor solo en tu PC (127.0.0.1) con una página transparente: tu cabeza, FPS, servidor (sin IP) y tiempo de sesión. En OBS: Fuentes → Navegador → pega la dirección":"Abre um pequeno servidor só no teu PC (127.0.0.1) com uma página transparente: a tua cabeça, FPS, servidor (sem IP) e tempo de sessão. No OBS: Fontes → Navegador → cola o endereço",
+"Puerto":"Porta",
+"Cámbialo solo si 7777 está ocupado":"Muda só se a 7777 estiver ocupada",
+"Dirección para OBS":"Endereço para o OBS",
+"Activa el overlay para verla":"Ativa o overlay para a ver",
+"Copiado ✓":"Copiado ✓"
 }};

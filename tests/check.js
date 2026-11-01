@@ -93,6 +93,11 @@ if (ver !== pkg.version) bad('VER en js/base.js (' + ver + ') no coincide con pa
   const r = require('child_process').spawnSync(process.execPath, [path.join(__dirname, 'uso.js')], { encoding: 'utf8' });
   if (r.status !== 0) bad('tests/uso.js falló:\n' + (r.stdout || '') + (r.stderr || '')); else console.log(r.stdout.trim());
 }
+// Modo streamer: servidor local solo en 127.0.0.1
+{
+  const r = require('child_process').spawnSync(process.execPath, [path.join(__dirname, 'streamer.js')], { encoding: 'utf8' });
+  if (r.status !== 0) bad('tests/streamer.js falló:\n' + (r.stdout || '') + (r.stderr || '')); else console.log(r.stdout.trim());
+}
 // Marcadores seguros del mod (código por partida; el chat no puede pedirle nada al launcher)
 {
   const r = require('child_process').spawnSync(process.execPath, [path.join(__dirname, 'marcas.js')], { encoding: 'utf8' });
