@@ -128,5 +128,8 @@ window.LANGS["es-419"]={name:"Español (Latinoamérica)",d:{
 "★ Favorita":"★ Favorita",
 "Etiquetas separadas por comas":"Etiquetas separadas por comas",
 "Guardar etiquetas":"Guardar etiquetas",
-"Etiquetas guardadas":"Etiquetas guardadas"
+"Etiquetas guardadas":"Etiquetas guardadas",
+"Clips de los últimos 30 s":"Clips de los últimos 30 s",
+"Graba la ventana del juego (720p) y, al pulsar F8 en el juego, guarda los últimos 30 s (o hasta 60) como vídeo .webm en la carpeta de capturas. Apagado de fábrica; gasta unos 50 MB de RAM y necesita más de 8 GB en el PC. Se aplica al abrir el juego":"Graba la ventana del juego (720p) y, al pulsar F8 en el juego, guarda los últimos 30 s (o hasta 60) como vídeo .webm en la carpeta de capturas. Apagado de fábrica; gasta unos 50 MB de RAM y necesita más de 8 GB en el PC. Se aplica al abrir el juego",
+"Clips desactivados: este PC tiene poca RAM":"Clips desactivados: este PC tiene poca RAM"
 }};

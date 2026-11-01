@@ -1286,5 +1286,8 @@ window.LANGS.fr={name:"Français",d:{
 "★ Favorita":"★ Favori",
 "Etiquetas separadas por comas":"Étiquettes séparées par des virgules",
 "Guardar etiquetas":"Enregistrer les étiquettes",
-"Etiquetas guardadas":"Étiquettes enregistrées"
+"Etiquetas guardadas":"Étiquettes enregistrées",
+"Clips de los últimos 30 s":"Clips des 30 dernières secondes",
+"Graba la ventana del juego (720p) y, al pulsar F8 en el juego, guarda los últimos 30 s (o hasta 60) como vídeo .webm en la carpeta de capturas. Apagado de fábrica; gasta unos 50 MB de RAM y necesita más de 8 GB en el PC. Se aplica al abrir el juego":"Enregistre la fenêtre du jeu (720p) et, quand tu appuies sur F8 dans le jeu, sauvegarde les 30 dernières secondes (jusqu'à 60) en vidéo .webm dans le dossier des captures. Désactivé par défaut ; utilise environ 50 Mo de RAM et demande plus de 8 Go sur le PC. S'applique à l'ouverture du jeu",
+"Clips desactivados: este PC tiene poca RAM":"Clips désactivés : ce PC a peu de RAM"
 }};

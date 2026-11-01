@@ -41,6 +41,7 @@ require('./main/benchmark');
 require('./main/actualizaciones');
 require('./main/discord');
 require('./main/streamer');
+require('./main/clips');
 require('./main/nube');
 require('./main/sistema');
 require('./main/ventana');

@@ -1286,5 +1286,8 @@ window.LANGS.pt={name:"Português (Portugal)",d:{
 "★ Favorita":"★ Favorita",
 "Etiquetas separadas por comas":"Etiquetas separadas por vírgulas",
 "Guardar etiquetas":"Guardar etiquetas",
-"Etiquetas guardadas":"Etiquetas guardadas"
+"Etiquetas guardadas":"Etiquetas guardadas",
+"Clips de los últimos 30 s":"Clips dos últimos 30 s",
+"Graba la ventana del juego (720p) y, al pulsar F8 en el juego, guarda los últimos 30 s (o hasta 60) como vídeo .webm en la carpeta de capturas. Apagado de fábrica; gasta unos 50 MB de RAM y necesita más de 8 GB en el PC. Se aplica al abrir el juego":"Grava a janela do jogo (720p) e, ao premir F8 no jogo, guarda os últimos 30 s (até 60) como vídeo .webm na pasta das capturas. Desativado por defeito; usa cerca de 50 MB de RAM e precisa de mais de 8 GB no PC. Aplica-se ao abrir o jogo",
+"Clips desactivados: este PC tiene poca RAM":"Clips desativados: este PC tem pouca RAM"
 }};

@@ -1286,5 +1286,8 @@ window.LANGS.en={name:"English (US)",d:{
 "★ Favorita":"★ Favorite",
 "Etiquetas separadas por comas":"Tags separated by commas",
 "Guardar etiquetas":"Save tags",
-"Etiquetas guardadas":"Tags saved"
+"Etiquetas guardadas":"Tags saved",
+"Clips de los últimos 30 s":"Last-30-seconds clips",
+"Graba la ventana del juego (720p) y, al pulsar F8 en el juego, guarda los últimos 30 s (o hasta 60) como vídeo .webm en la carpeta de capturas. Apagado de fábrica; gasta unos 50 MB de RAM y necesita más de 8 GB en el PC. Se aplica al abrir el juego":"Records the game window (720p) and, when you press F8 in the game, saves the last 30 s (up to 60) as a .webm video in the screenshots folder. Off by default; uses about 50 MB of RAM and needs more than 8 GB on the PC. Applies when the game opens",
+"Clips desactivados: este PC tiene poca RAM":"Clips off: this PC has little RAM"
 }};
