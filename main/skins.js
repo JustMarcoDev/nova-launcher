@@ -149,4 +149,4 @@ async function novaSkinFor(act) {
 
 
 // Lo que usan otros módulos
-Object.assign(R, { novaSkinFor, accSkinFile, accSkinData });
+Object.assign(R, { novaSkinFor, accSkinFile, accSkinData, msBearer, skinsDir, skinsIdx, skinsPut, skinFile, isPng });

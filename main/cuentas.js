@@ -50,4 +50,25 @@ ipcMain.handle('acc:remove', (e, id) => { const st = accState(); if (st.a.length
 
 
 // Lo que usan otros módulos
-Object.assign(R, { accOut, accState, encryptOldTokens, saveAcc });
+// ---- Verificación de la cuenta para la nube (ajustes en la nube) ----
+// Se demuestra que la cuenta es de verdad con el mismo truco que usan los servidores: el launcher hace «join» en el sessionserver de Mojang con un serverId
+// que da el Worker (/challenge) y el Worker comprueba con Mojang (hasJoined) que ese join existió (/verify). El token que devuelve vive solo en memoria (23 h).
+const cloudBase = () => String(process.env.NOVA_PRESENCE || (() => { try { return require('../package.json').novaPresence || ''; } catch { return ''; } })()).replace(/\/+$/, '');
+let cloudTok = null;
+async function cloudToken(force) {
+  const base = cloudBase(); if (!base) throw new Error('No hay servidor de la nube configurado');
+  const st = accState(), act = st.act;
+  if (act.type !== 'microsoft') throw new Error('La nube necesita una cuenta de Microsoft');
+  if (!force && cloudTok && cloudTok.acc === act.id && cloudTok.exp > Date.now()) return cloudTok;
+  const j = async (r, what) => { if (!r.ok) throw new Error(what + ' (' + r.status + ')'); return r.json(); };
+  const ch = await j(await fetch(base + '/challenge', { signal: AbortSignal.timeout(15000) }), 'El servidor no respondió');
+  const tok = await R.msBearer();
+  const prof = await j(await fetch('https://api.minecraftservices.com/minecraft/profile', { headers: { Authorization: 'Bearer ' + tok }, signal: AbortSignal.timeout(15000) }), 'Mojang no dio el perfil');
+  const jr = await fetch('https://sessionserver.mojang.com/session/minecraft/join', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ accessToken: tok, selectedProfile: prof.id, serverId: ch.serverId }), signal: AbortSignal.timeout(15000) });
+  if (jr.status !== 204 && jr.status !== 200) throw new Error('Mojang no confirmó tu cuenta (' + jr.status + ')');
+  const v = await j(await fetch(base + '/verify', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name: prof.name, uuid: prof.id, serverId: ch.serverId }), signal: AbortSignal.timeout(15000) }), 'El servidor no pudo verificar la cuenta');
+  cloudTok = { token: v.token, uuid: prof.id, acc: act.id, exp: Date.now() + 23 * 3600e3 };
+  return cloudTok;
+}
+
+Object.assign(R, { cloudBase, cloudToken, accOut, accState, encryptOldTokens, saveAcc });
