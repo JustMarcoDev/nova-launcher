@@ -36,6 +36,7 @@ public final class NovaShots {
         try {
             NovaShotsCore.saved(MinecraftClient.getInstance().runDirectory, Util.getMeasuringTimeMs());
             bCopy = null; bView = null; bDir = null;
+            NovaPhoto.shotSaved();
         } catch (Throwable ignored) { }
     }
 

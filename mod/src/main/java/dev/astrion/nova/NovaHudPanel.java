@@ -58,7 +58,7 @@ final class NovaHudPanel {
         int sw = h.sw(), sh = h.sh();
         int hh = sh < 250 ? 12 : 15, gap = 3;
         int pw = Math.min(300, sw - 12), x = (sw - pw) / 2, pad = 8, cw = pw - 2 * pad;
-        int rows = 7;
+        int rows = 8;
         int headH = 16, tabsH = hh + 2, footH = hh;
         int ph = pad + headH + tabsH + 2 + rows * (hh + gap) + footH + pad - gap + 2;
         if (!open) {
@@ -140,6 +140,9 @@ final class NovaHudPanel {
         r++;
         tog(h, x, y + r * st, half, hh, tr("Avisos del launcher") + ": " + yn(NovaSettings.toasts), NovaSettings.toasts, () -> NovaSettings.toasts = !NovaSettings.toasts);
         btn(h, x + half + gap, y + r * st, w - half - gap, hh, tr("Aviso de descanso") + ": " + NovaSessionCore.restName(NovaSettings.restMin), -1, NovaSettings.restMin > 0 ? NovaButton.SELECTED : NovaButton.NORMAL, () -> { NovaSettings.restMin = NovaSessionCore.nextRest(NovaSettings.restMin); h.rebuild(); });
+        r++;
+        btn(h, x, y + r * st, half, hh, tr("Modo foto"), -1, NovaButton.NORMAL, () -> { });
+        btn(h, x + half + gap, y + r * st, w - half - gap, hh, listening == 3 ? tr("Pulsa una tecla…") : NovaHud.keyName(NovaHud.photoKey), -1, listening == 3 ? NovaButton.PRIMARY : NovaButton.NORMAL, () -> { listening = listening == 3 ? 0 : 3; h.rebuild(); });
     }
 
     static void buildProf(Host h, int x, int y, int w, int hh, int gap) {
@@ -210,7 +213,7 @@ final class NovaHudPanel {
     /** Devuelve true si el panel se ha quedado con la tecla (elegir tecla o escribir un nombre). */
     static boolean key(Host h, int key) {
         if (listening != 0) {
-            if (key != 256) { if (listening == 1) NovaHud.zoomKey = key; else NovaMove.freelookKey = key; }
+            if (key != 256) { if (listening == 1) NovaHud.zoomKey = key; else if (listening == 3) NovaHud.photoKey = key; else NovaMove.freelookKey = key; }
             listening = 0;
             h.rebuild();
             return true;
