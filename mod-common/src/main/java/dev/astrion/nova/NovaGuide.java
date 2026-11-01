@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Guía de primera vez (lógica común): 5 pasos sobre el menú de Nova (Jugar, Editar HUD, Skins, Servidores, Modo FPS).
+ * Guía de primera vez (lógica común): 6 pasos: los 5 del menú de Nova (Jugar, Editar HUD, Skins, Servidores, Modo FPS) y uno final que abre el launcher (marcador SETTINGS).
  * Aquí está el estado (paso actual, si ya se vio), los textos y el reparto del texto en líneas; el dibujo y los clics están en NovaGuideView de cada proyecto.
  * Se enseña sola una vez (guideDone en menu.json); «Ver guía» en el menú de Nova la repite. Con -Dnova.selftest=true nunca sale.
  */
@@ -20,6 +20,7 @@ final class NovaGuide {
         { "Skins" },
         { "Servidores" },
         { "Modo FPS", "Modo FPS activo", "Restaurar" },
+        { },   // último paso: sin resaltado, con el botón «Abrir el launcher»
     };
     static final int STEPS = TARGETS.length;
 
@@ -63,7 +64,8 @@ final class NovaGuide {
             case 1: return tr("Tu HUD");
             case 2: return tr("Tus skins");
             case 3: return tr("Tus servidores");
-            default: return tr("Modo FPS");
+            case 4: return tr("Modo FPS");
+            default: return tr("Y hay más");
         }
     }
 
@@ -73,9 +75,13 @@ final class NovaGuide {
             case 1: return tr("En el menú de Nova está «Editar HUD»: coloca FPS, CPS, coordenadas y teclas donde quieras.");
             case 2: return tr("Cambia, guarda y elimina tus skins sin salir del juego.");
             case 3: return tr("Entra a tu último servidor o a tus favoritos con un clic.");
-            default: return tr("Más rendimiento con un botón: partículas mínimas, sin nubes ni sombras. Se puede deshacer.");
+            case 4: return tr("Más rendimiento con un botón: partículas mínimas, sin nubes ni sombras. Se puede deshacer.");
+            default: return tr("Abre el launcher para más opciones");
         }
     }
+
+    /** El botón del último paso: pide al launcher que se abra en sus ajustes (marcador [NOVA:<código>:SETTINGS]). */
+    static void openLauncher() { NovaMark.say("SETTINGS", null); }
 
     static String counter() { return tr("{0} de {1}", step + 1, STEPS); }
 
