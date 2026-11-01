@@ -154,6 +154,9 @@ final class NovaLang {
         p("Mano visible", "Hand visible", "Main visible", "Hand sichtbar", "Mano visibile", "Mão visível");
         p("G: cuadrícula, H: mano", "G: grid, H: hand", "G : grille, H : main", "G: Raster, H: Hand", "G: griglia, H: mano", "G: grelha, H: mão");
         p("Palabras clave", "Keywords", "Mots-clés", "Stichwörter", "Parole chiave", "Palavras-chave");
+        p("Y hay más", "And there's more", "Et ce n'est pas tout", "Und es gibt mehr", "E c'è di più", "E há mais");
+        p("Abre el launcher para más opciones", "Open the launcher for more options", "Ouvre le launcher pour plus d'options", "Öffne den Launcher für weitere Optionen", "Apri il launcher per altre opzioni", "Abre o launcher para mais opções");
+        p("Abrir el launcher", "Open the launcher", "Ouvrir le launcher", "Launcher öffnen", "Apri il launcher", "Abrir o launcher");
         p("Modo FPS", "FPS mode", "Mode FPS", "FPS-Modus", "Modalità FPS", "Modo FPS");
         p("Partículas mínimas, sin nubes ni sombras, distancia 8: más rendimiento", "Minimal particles, no clouds or shadows, distance 8: more performance", "Particules minimales, sans nuages ni ombres, distance 8 : plus de performances", "Minimale Partikel, keine Wolken oder Schatten, Distanz 8: mehr Leistung", "Particelle minime, niente nuvole né ombre, distanza 8: più prestazioni", "Partículas mínimas, sem nuvens nem sombras, distância 8: mais desempenho");
         p("Modo FPS activo", "FPS mode on", "Mode FPS activé", "FPS-Modus aktiv", "Modalità FPS attiva", "Modo FPS ativo");
