@@ -3,6 +3,16 @@
 Todo lo que cambia en cada versión de Nova Launcher y del menú de Nova (el mod), de la más nueva a la más antigua. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**, y el flujo de publicación copia la entrada de cada versión a las notas de su release. Al sacar una versión nueva, añade su entrada `### x.y.z — Título` **al principio** de la lista.
 
 
+### 0.2.17 — Versión estable: overlay del streamer en tres estilos, correcciones y limpieza
+
+- **Overlay del streamer** (`main/streamer.js`, `js/ajustes.js`): tres estilos (barra, tarjeta y esquina) con vista previa y botón para copiar el enlace.
+- **Modo FPS** (`NovaFpsCore.hideEntity`, `FarEntityMixin`): las entidades de 3 bloques de ancho o más (dragón, wither, ghast…) ya no se ocultan a lo lejos.
+- **Clips** (`main/clips.js`, `main/clips.html`): ventana con partición propia (`nova-clips`) y permisos solo de captura, para no afectar al portapapeles de la ventana principal; se quita una CSP que no valía bajo `file://`.
+- **Hardware** (`main/hardware.js`): con GPU desconocida solo se considera gama baja si hay 4 GB de RAM o menos; las GPU de Apple no cuentan como integradas.
+- **Código sin uso**: eliminados los IPC `streamer:info` y `streamer:sync` y un import; el resto del barrido no encontró más código muerto.
+- **Diseño**: transiciones en filas de ajustes, foco visible por teclado, selección de texto con el color de acento.
+- Pendiente conocido: el punto 2.12 (más lógica compartida en `mod-common`) sigue sin hacerse; necesita una capa de tipos intermedia.
+
 ### 0.2.17-beta.3 — Clips de 30 s, cuadrícula en el modo foto, palabras clave del chat, favoritas en capturas y estadísticas por mes
 
 - **Clips de los últimos 30 s** (`main/clips.js`, `main/clips-core.js`, `main/clips.html`, `main/clips-page.js`, `main/clips-preload.js`, `tests/clips.js`; `NovaClipCore` y `NovaClip` en el mod): apagado de fábrica (Ajustes → Rendimiento) y solo con más de 8 GB de RAM; con poca RAM se desactiva y se avisa. Una ventana oculta graba la ventana de Minecraft (`desktopCapturer` + `MediaRecorder`, vp9, 30 fps, 720p). Un vídeo ya codificado no se puede cortar, así que hay dos grabadoras escalonadas que se reinician cada 60 s con 30 s de diferencia: el clip es siempre el de la que lleva más grabado, entre 30 y 60 s (los últimos 30 s como mínimo). F8 en el juego escribe `[NOVA:<código>:CLIP]`; el launcher guarda `nova-clip-AAAAMMDD-HHMMSS.webm` en `screenshots/` y el mod avisa al ver aparecer el archivo. La tecla F8 es fija en esta beta. No se ha probado con una captura real de ventana en un PC con el juego abierto: la lógica tiene test, el resto se comprueba jugando.

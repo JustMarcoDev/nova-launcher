@@ -4309,3 +4309,11 @@ html[data-cb=Grises] {
 .stpm.barra i{left:0;right:0;bottom:0;height:20%;border-radius:0}.stpm.barra b{left:4%;bottom:5%;width:8%;height:11%}
 .stpm.tarjeta i{left:6%;top:8%;width:46%;height:30%;border-radius:6px}.stpm.tarjeta b{left:9%;top:13%;width:9%;height:20%}
 .stpm.esquina i{right:5%;top:7%;width:30%;height:14%;border-radius:999px}.stpm.esquina b{right:26%;top:9%;width:7%;height:10%;border-radius:50%}
+
+/* 0.2.17 · retoques */
+.o { transition: background .15s, border-color .15s, transform .15s; }
+.o:active { transform: scale(.995); }
+button:focus-visible, .o:focus-visible, [data-stc]:focus-visible { outline: 2px solid var(--ac, #f5b942); outline-offset: 2px; }
+::selection { background: rgba(245, 185, 66, .35); }
+img { -webkit-user-drag: none; }
+@media (prefers-reduced-motion: reduce) { .o { transition: none; } }
