@@ -29,7 +29,7 @@ public final class NovaFps {
     /** Partícula nueva demasiado lejos del jugador: no se crea con el Modo FPS. */
     public static boolean farParticle(double d2) { return NovaFpsCore.dropParticle(d2); }
     /** Entidad (que no es jugador) demasiado lejos de la cámara: no se dibuja con el Modo FPS. */
-    public static boolean farEntity(boolean player, double d2) { return NovaFpsCore.hideEntity(player, d2); }
+    public static boolean farEntity(boolean player, double width, double d2) { return NovaFpsCore.hideEntity(player, width, d2); }
 
     static void enable(MinecraftClient mc) {
         try {

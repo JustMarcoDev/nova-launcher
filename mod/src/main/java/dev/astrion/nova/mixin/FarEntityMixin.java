@@ -15,6 +15,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class FarEntityMixin {
     @Inject(method = "shouldRender", at = @At("HEAD"), cancellable = true)
     private void nova$far(Entity entity, Frustum frustum, double x, double y, double z, CallbackInfoReturnable<Boolean> cir) {
-        if (NovaFps.farEntity(entity instanceof PlayerEntity, entity.squaredDistanceTo(x, y, z))) cir.setReturnValue(false);
+        if (NovaFps.farEntity(entity instanceof PlayerEntity, entity.getWidth(), entity.squaredDistanceTo(x, y, z))) cir.setReturnValue(false);
     }
 }
