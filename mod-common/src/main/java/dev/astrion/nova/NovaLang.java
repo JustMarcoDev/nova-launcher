@@ -301,5 +301,10 @@ final class NovaLang {
         p("Aviso de descanso", "Break reminder", "Rappel de pause", "Pausenerinnerung", "Promemoria pausa", "Aviso de pausa");
         p("Avisos del launcher", "Launcher notices", "Avis du launcher", "Launcher-Hinweise", "Avvisi del launcher", "Avisos do launcher");
         p("Llevas {0} jugando, ¿un descanso?", "You've been playing for {0}. Take a break?", "Tu joues depuis {0}. Une pause ?", "Du spielst seit {0}. Zeit für eine Pause?", "Giochi da {0}. Una pausa?", "Estás a jogar há {0}. Uma pausa?");
+        p("Modo foto", "Photo mode", "Mode photo", "Fotomodus", "Modalità foto", "Modo foto");
+        p("rueda: zoom, F2: captura", "wheel: zoom, F2: screenshot", "molette : zoom, F2 : capture", "Rad: Zoom, F2: Screenshot", "rotella: zoom, F2: schermata", "roda: zoom, F2: captura");
+        p("desactivado", "off", "désactivé", "aus", "disattivato", "desativado");
+        p("Modo foto: esta versión hace la captura a resolución normal", "Photo mode: this version takes the screenshot at normal resolution", "Mode photo : cette version capture en résolution normale", "Fotomodus: Diese Version macht den Screenshot in normaler Auflösung", "Modalità foto: questa versione cattura a risoluzione normale", "Modo foto: esta versão captura em resolução normal");
+        p("Foto", "Photo", "Photo", "Foto", "Foto", "Foto");
     }
 }
