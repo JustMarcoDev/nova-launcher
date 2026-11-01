@@ -41,6 +41,33 @@ final class NovaChatCore {
         return at >= 0 && at >= sep;   // no aparece, o habla el propio jugador
     }
 
+    static final int MAX_WORDS = 10, WORD_LEN = 24;
+
+    /** Limpia una lista de palabras: sin espacios sobrantes, sin repetidas (sin distinguir mayúsculas), hasta 10 de hasta 24 letras. */
+    static java.util.List<String> words(java.util.List<String> in) {
+        java.util.List<String> out = new java.util.ArrayList<>();
+        java.util.Set<String> seen = new java.util.HashSet<>();
+        if (in != null) for (String w : in) {
+            String t = w == null ? "" : w.replaceAll("[\\u0000-\\u001f]", "").trim();
+            if (t.length() > WORD_LEN) t = t.substring(0, WORD_LEN);
+            if (!t.isEmpty() && seen.add(t.toLowerCase(Locale.ROOT)) && out.size() < MAX_WORDS) out.add(t);
+        }
+        return out;
+    }
+
+    /** Lo que se escribe en el editor («uno, dos; tres») hecho lista. */
+    static java.util.List<String> parseWords(String csv) { return words(java.util.Arrays.asList((csv == null ? "" : csv).split("[,;\\n]"))); }
+
+    static String joinWords(java.util.List<String> w) { return String.join(", ", w); }
+
+    /** ¿El mensaje (de otro jugador) lleva tu nombre o alguna de tus palabras? Sin distinguir mayúsculas y como palabra entera. */
+    static boolean mentionsAny(String s, String me, java.util.List<String> extra) {
+        if (mentions(s, me)) return true;
+        if (extra == null || extra.isEmpty() || s == null) return false;
+        for (String w : extra) if (mentions(s, w)) return true;
+        return false;
+    }
+
     private static int indexOfWord(String low, String n, int from) {
         int i = from;
         while ((i = low.indexOf(n, i)) >= 0) {
