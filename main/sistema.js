@@ -108,12 +108,25 @@ ipcMain.handle('text:save', async (e, { name, text }) => {
 // ---- Capturas de pantalla ----
 const shotsDir = id => path.join(iDir(id), 'screenshots');
 const shotPath = (id, f) => { f = path.basename(String(f)); const p = path.join(shotsDir(getIns(id).id), f); if (!fs.existsSync(p)) throw new Error('Captura no encontrada'); return p; };
+// Favoritas y etiquetas: <instancia>/screenshots/nova-tags.json → { "archivo.png": { fav: true, tags: ["pvp"] } }
+const tagsFile = i => path.join(shotsDir(i), 'nova-tags.json');
+const tagsRead = async i => { try { const o = JSON.parse(await fs.promises.readFile(tagsFile(i), 'utf8')); return o && typeof o === 'object' && !Array.isArray(o) ? o : {}; } catch { return {}; } };
+const cleanTags = t => [...new Set((Array.isArray(t) ? t : []).map(x => String(x).replace(/[\u0000-\u001f<>"]/g, '').trim().slice(0, 24)).filter(Boolean))].slice(0, 8);
+ipcMain.handle('shots:tag', async (e, { id, file, fav, tags }) => {
+  const i = getIns(id).id, f = path.basename(String(file)); shotPath(i, f);
+  const all = await tagsRead(i), cur = all[f] || {};
+  const nx = { fav: fav === undefined ? !!cur.fav : !!fav, tags: tags === undefined ? cleanTags(cur.tags) : cleanTags(tags) };
+  if (nx.fav || nx.tags.length) all[f] = nx; else delete all[f];
+  await fs.promises.writeFile(tagsFile(i), JSON.stringify(all, null, 1));
+  return nx;
+});
 ipcMain.handle('shots:list', async (e, id) => {
   const ids = id === 'all' ? li().map(i => i.id) : [getIns(id).id];
   // se lee cada carpeta y se mira cada archivo a la vez (con muchas capturas el recorrido uno a uno tardaba)
   const parts = await Promise.all(ids.map(async i => {
     let es = []; try { es = await fs.promises.readdir(shotsDir(i)); } catch { return []; }
-    const r = await Promise.all(es.filter(f => /\.(png|jpe?g)$/i.test(f)).map(async f => { const p = path.join(shotsDir(i), f); try { const st = await fs.promises.stat(p); return { inst: i, file: f, date: st.mtimeMs, size: st.size, url: pathToFileURL(p).href }; } catch { return null; } }));
+    const tg = await tagsRead(i);
+    const r = await Promise.all(es.filter(f => /\.(png|jpe?g)$/i.test(f)).map(async f => { const p = path.join(shotsDir(i), f); try { const st = await fs.promises.stat(p); return { inst: i, file: f, date: st.mtimeMs, size: st.size, url: pathToFileURL(p).href, fav: !!(tg[f] && tg[f].fav), tags: cleanTags(tg[f] && tg[f].tags) }; } catch { return null; } }));
     return r.filter(Boolean);
   }));
   return parts.flat().sort((a, b) => b.date - a.date).slice(0, 600);

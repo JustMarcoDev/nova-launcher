@@ -38,19 +38,23 @@ if(r&&r.error){er.textContent=r.error;g.disabled=false;g.textContent=force?"Cont
 $("aag").onclick=go;$("aan").onkeydown=e=>{if(e.key==="Enter")go()}}
 // --- Capturas ---
 let SHOTRL=null;
-async function openShots(id){const api=A||DA;let L=[],cur=id||"all",lb=-1;
-modal(`<div class="hd"><div class="iic">${IC("camera")}</div><div style="min-width:0"><h3>Capturas</h3><span class="sub" id="shs">Cargando…</span></div><button class="btn sm x" data-x>Cerrar</button></div><div class="chips" id="shf" style="margin-bottom:12px"></div><div id="shb"></div>`,"wide2");
-const nm=i=>(I.find(x=>x.id===i)||{name:"Instancia"}).name,vis=()=>L.filter(s=>cur==="all"||s.inst===cur);
+async function openShots(id){const api=A||DA;let L=[],cur=id||"all",lb=-1,flt="all";
+modal(`<div class="hd"><div class="iic">${IC("camera")}</div><div style="min-width:0"><h3>Capturas</h3><span class="sub" id="shs">Cargando…</span></div><button class="btn sm x" data-x>Cerrar</button></div><div class="chips" id="shf" style="margin-bottom:8px"></div><div class="chips" id="shg" style="margin-bottom:12px"></div><div id="shb"></div>`,"wide2");
+const nm=i=>(I.find(x=>x.id===i)||{name:"Instancia"}).name,vis=()=>L.filter(s=>(cur==="all"||s.inst===cur)&&(flt==="all"||(flt==="fav"?s.fav:(s.tags||[]).includes(flt.slice(4)))));
 const draw=()=>{const v=vis();$("shs").textContent=v.length?v.length+(v.length===1?" captura":" capturas")+(cur==="all"?" en todas las instancias":" en «"+nm(cur)+"»"):"Sin capturas";
 const ids=[...new Set(L.map(s=>s.inst))];$("shf").style.display=lb>=0||ids.length<2?"none":"";chips($("shf"),[["all","Todas ("+L.length+")"],...ids.map(i=>[i,nm(i)+" ("+L.filter(s=>s.inst===i).length+")"])],cur,k=>{cur=k;draw()});
-if(lb>=0&&v[lb]){const s=v[lb];$("shb").innerHTML=`<div class="shv"><img src="${esc(s.url)}" alt=""><p class="sub" style="text-align:center;margin:8px 0 0">${esc(nm(s.inst))} · ${fmtD(s.date)} · ${fSz(s.size)}</p><div class="acts"><button class="btn sm" data-s="prev">‹ Anterior</button><button class="btn sm" data-s="open">Abrir</button><button class="btn sm" data-s="copy">Copiar</button><button class="btn sm dg" data-s="del">Borrar</button><button class="btn sm" data-s="next">Siguiente ›</button><button class="btn sm pr" data-s="back">Volver</button></div></div>`}
-else{lb=-1;$("shb").innerHTML=v.length?`<div class="shg">${v.map((s,k)=>`<button class="shi" data-k="${k}" title="${esc(s.file)}"><img data-src="${esc(s.url)}" alt=""><small>${fmtD(s.date)}</small></button>`).join("")}</div>`:'<div class="emp">Aún no hay capturas. Pulsa F2 dentro de Minecraft para hacer una.</div>'+""}
+{const base=L.filter(s=>cur==="all"||s.inst===cur),tg=[...new Set(base.flatMap(s=>s.tags||[]))].sort(),nf=base.filter(s=>s.fav).length;$("shg").style.display=lb>=0||(!nf&&!tg.length)?"none":"";if(flt!=="all"&&flt!=="fav"&&!tg.includes(flt.slice(4)))flt="all";
+chips($("shg"),[["all","Todas"],["fav","★ Favoritas ("+nf+")"],...tg.map(t=>["tag:"+t,"# "+t])],flt,k=>{flt=k;draw()})}
+if(lb>=0&&v[lb]){const s=v[lb];$("shb").innerHTML=`<div class="shv"><img src="${esc(s.url)}" alt=""><p class="sub" style="text-align:center;margin:8px 0 0">${esc(nm(s.inst))} · ${fmtD(s.date)} · ${fSz(s.size)}</p><div class="acts" style="margin-top:6px"><input class="inp" id="sht" maxlength="120" placeholder="Etiquetas separadas por comas" value="${esc((s.tags||[]).join(", "))}" style="flex:1;min-width:160px"><button class="btn sm" data-s="tag">Guardar etiquetas</button></div><div class="acts"><button class="btn sm" data-s="prev">‹ Anterior</button><button class="btn sm" data-s="fav">${s.fav?"★ Favorita":"☆ Favorita"}</button><button class="btn sm" data-s="open">Abrir</button><button class="btn sm" data-s="copy">Copiar</button><button class="btn sm dg" data-s="del">Borrar</button><button class="btn sm" data-s="next">Siguiente ›</button><button class="btn sm pr" data-s="back">Volver</button></div></div>`}
+else{lb=-1;$("shb").innerHTML=v.length?`<div class="shg">${v.map((s,k)=>`<button class="shi" data-k="${k}" title="${esc(s.file)}"><img data-src="${esc(s.url)}" alt=""><small>${s.fav?"★ ":""}${fmtD(s.date)}</small></button>`).join("")}</div>`:'<div class="emp">Aún no hay capturas. Pulsa F2 dentro de Minecraft para hacer una.</div>'+""}
 lazyImgs($("shb"));
 $("shb").insertAdjacentHTML("beforeend",`<div class="acts"><button class="btn sm" id="shfo">Abrir carpeta${cur==="all"?" (una instancia)":""}</button></div>`);
 $("shfo").onclick=()=>{const t=cur==="all"?(vis()[0]||{}).inst||(I[0]||{}).id:cur;if(t)api.shotsFolder(t)}};
 $("shb").onclick=async e=>{const t=e.target.closest(".shi"),b=e.target.closest("[data-s]"),v=vis();
 if(t){lb=+t.dataset.k;draw();return}if(!b)return;const s=v[lb];if(!s&&b.dataset.s!=="back")return;const a=b.dataset.s;
 try{if(a==="back"){lb=-1;draw()}else if(a==="prev"){lb=(lb-1+v.length)%v.length;draw()}else if(a==="next"){lb=(lb+1)%v.length;draw()}
+else if(a==="fav"){const r=await api.shotsTag({id:s.inst,file:s.file,fav:!s.fav});s.fav=r.fav;draw()}
+else if(a==="tag"){const r=await api.shotsTag({id:s.inst,file:s.file,tags:$("sht").value.split(/[,;]/)});s.tags=r.tags;draw();flash("Etiquetas guardadas")}
 else if(a==="open"){const m=await api.shotsOpen({id:s.inst,file:s.file});if(m&&typeof m==="string")flash(m)}
 else if(a==="copy"){await api.shotsCopy({id:s.inst,file:s.file});if(A)flash("Captura copiada ✓")}
 else if(a==="del"){if(!confirm("¿Borrar esta captura? Irá a la papelera."))return;await api.shotsDelete({id:s.inst,file:s.file});L=L.filter(z=>!(z.inst===s.inst&&z.file===s.file));lb=-1;draw();flash("Captura borrada")}}catch(x){flash(em(x))}};

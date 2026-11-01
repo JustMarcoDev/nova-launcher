@@ -87,3 +87,4 @@ Object.assign(DA,{dropInstall:async o=>{await new Promise(r=>setTimeout(r,300));
 
 // Simulaciones que arrancan solas en la vista previa
 setTimeout(()=>demoDq(),9000);setTimeout(()=>demoPrep(),11000);setTimeout(()=>{if(U.s==="idle")demoUpd("idle")},9000);
+Object.assign(DA,{shotsTag:async o=>({fav:!!o.fav,tags:(o.tags||[]).map(t=>String(t).trim()).filter(Boolean)})});
