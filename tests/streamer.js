@@ -33,6 +33,10 @@ const get = (port, p, ms) => new Promise((res, rej) => { const r = http.get({ ho
   ok((await get(port, '/../etc/passwd')).code === 404, 'ruta rara debe dar 404');
   const ev = await get(port, '/eventos', 1500);
   ok(/text\/event-stream/.test(ev.head['content-type'] || ''), '/eventos no es SSE');
+  { const r = (await get(port, '/overlay?head=0&ver=1&scale=1.5&op=0.5&time=0')).body;
+    ok(!r.includes('id="h"') && r.includes('id="v"') && !r.includes('id="t"'), 'head=0, ver=1 y time=0 no se aplican');
+    ok(r.includes('zoom:1.5') && r.includes('opacity:0.5'), 'scale y op no se aplican');
+    const x = (await get(port, '/overlay?scale=999&op=abc')).body; ok(x.includes('zoom:1}') && x.includes('opacity:1}'), 'scale/op fuera de rango deben caer al valor normal'); }
   s.stop();
   fs.rmSync(dir, { recursive: true, force: true });
   if (fails.length) { console.error('FALLOS en el modo streamer:\n' + fails.map(f => ' ✕ ' + f).join('\n')); process.exit(1); }

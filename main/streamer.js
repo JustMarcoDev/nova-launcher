@@ -23,19 +23,22 @@ function leerEstado(dir, activo) {
 }
 
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const numQ = (v, min, max, def) => { const n = parseFloat(v); return n >= min && n <= max ? n : def; };
 const colorOk = c => /^[0-9a-fA-F]{6}$/.test(c || '') ? '#' + c : '';
 
 /** Diseños del overlay: barra inferior, tarjeta (el de siempre) y esquina. Se eligen con ?estilo=barra|tarjeta|esquina. */
 const ESTILOS = ['barra', 'tarjeta', 'esquina'];
 const estiloOf = v => ESTILOS.includes(v) ? v : 'tarjeta';
 
-/** HTML del overlay: fondo transparente (fuente de navegador de OBS). Parámetros: ?estilo=barra|tarjeta|esquina&color=RRGGBB&fps=0&server=0&time=0 para esconder partes. */
+/** HTML del overlay: fondo transparente (fuente de navegador de OBS). Parámetros: ?estilo=barra|tarjeta|esquina&color=RRGGBB&fps=0&server=0&time=0&head=0 para esconder partes, &ver=1 para mostrar la versión, &scale=0.5–2 (tamaño) y &op=0.2–1 (opacidad). */
 function overlayHtml(accent, q) {
   const show = k => q.get(k) !== '0';
   const col = colorOk(q.get('color')) || accent || '#8b6cff', est = estiloOf(q.get('estilo'));
   return `<!doctype html><html><head><meta charset="utf-8"><title>Nova overlay</title><style>
+html{zoom:${numQ(q.get('scale'), 0.5, 2, 1)}}
 html,body{margin:0;background:transparent;font-family:system-ui,Segoe UI,sans-serif;color:#fff}
 .b{display:inline-flex;align-items:center;gap:12px;margin:10px;padding:10px 16px 10px 10px;border-radius:14px;background:rgba(14,14,30,.72);border:2px solid ${col};box-shadow:0 4px 18px rgba(0,0,0,.4)}
+.b{opacity:${numQ(q.get('op'), 0.2, 1, 1)}}
 .b[hidden]{display:none}
 img{width:48px;height:48px;image-rendering:pixelated;border-radius:8px}
 .n{font-weight:700;font-size:18px;line-height:1.1}.s{font-size:13px;opacity:.85;margin-top:2px;white-space:nowrap}
@@ -50,11 +53,11 @@ body.esquina .b{position:fixed;top:8px;right:8px;margin:0;gap:8px;padding:5px 12
 body.esquina img{width:28px;height:28px;border-radius:50%}
 body.esquina .n{font-size:13px}body.esquina .s{font-size:11px;margin:0}
 body.esquina .s #sv,body.esquina .s #t{display:none}
-</style></head><body class="${est}"><div class="b" id="b" hidden><img id="h" src="/cabeza.png" alt="">
-<div><div class="n" id="p"></div><div class="s">${show('fps') ? '<span class="f" id="f"></span> FPS' : ''}${show('fps') && show('server') ? ' · ' : ''}${show('server') ? '<span id="sv"></span>' : ''}${show('time') ? ' · <span id="t"></span>' : ''}</div></div></div>
+</style></head><body class="${est}"><div class="b" id="b" hidden>${show('head') ? '<img id="h" src="/cabeza.png" alt="">' : ''}
+<div><div class="n" id="p"></div><div class="s">${[show('fps') ? '<span class="f" id="f"></span> FPS' : '', show('server') ? '<span id="sv"></span>' : '', show('time') ? '<span id="t"></span>' : '', q.get('ver') === '1' ? '<span id="v"></span>' : ''].filter(Boolean).join(' · ')}</div></div></div>
 <script>
 const $=i=>document.getElementById(i);
-function put(e){$('b').hidden=!(e&&e.live&&e.inWorld);if(!e)return;$('p').textContent=e.player||'';if($('f'))$('f').textContent=e.fps;if($('sv'))$('sv').textContent=e.server||'';if($('t'))$('t').textContent=e.session||'';}
+function put(e){$('b').hidden=!(e&&e.live&&e.inWorld);if(!e)return;$('p').textContent=e.player||'';if($('f'))$('f').textContent=e.fps;if($('sv'))$('sv').textContent=e.server||'';if($('t'))$('t').textContent=e.session||'';if($('v'))$('v').textContent=e.version||'';}
 fetch('/estado').then(r=>r.json()).then(put).catch(()=>{});
 const es=new EventSource('/eventos');es.onmessage=m=>{try{put(JSON.parse(m.data))}catch{}};
 </script></body></html>`;
