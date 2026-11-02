@@ -367,6 +367,9 @@ function nmenuBgs() {
   try { const d = fondosDir(), names = fondosJson('nombres.json'); for (const f of fs.readdirSync(d).sort((a, b) => a.localeCompare(b))) if (/\.(png|jpe?g|webp|gif|mp4|webm|mov|mkv|avi)$/i.test(f)) L.push({ id: 'f:' + f, name: names[f] || f.replace(/\.[^.]+$/, '') }); } catch {}
   return L;
 }
+// Fondo del menú del mod para pintarlo también en el launcher (ajuste «Usar el fondo del menú de Nova»)
+const { fondoInfo } = require('./fondo-menu');
+ipcMain.handle('nmenu:bg', () => { let m = {}; try { m = JSON.parse(fs.readFileSync(nmenuFile(), 'utf8')) || {}; } catch {} return fondoInfo(m, fondosDir()); });
 ipcMain.handle('nmenu:get', () => {
   let cfg = {}, mtime = 0; try { cfg = JSON.parse(fs.readFileSync(nmenuFile(), 'utf8')) || {}; mtime = fs.statSync(nmenuFile()).mtimeMs; } catch {}
   return { cfg, mtime, bgs: nmenuBgs(), accents: NMENU_ACCENTS.map(n => '#' + (n >>> 0).toString(16).slice(2).padStart(6, '0')), accentVals: NMENU_ACCENTS };

@@ -4347,3 +4347,7 @@ img { -webkit-user-drag: none; }
 .sv p { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 /* Subtítulos de cada página */
 .pg > .sub { margin: -2px 0 14px; max-width: 70ch; }
+
+/* Fondo del menú de Nova en el launcher (imagen o vídeo del jugador) */
+#fmbg { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; filter: brightness(.5) saturate(1.05); pointer-events: none; }
+html.fm #cv { display: none; }

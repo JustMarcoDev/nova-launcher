@@ -3,6 +3,12 @@
 Todo lo que cambia en cada versión de Nova Launcher y del menú de Nova (el mod), de la más nueva a la más antigua. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**, y el flujo de publicación copia la entrada de cada versión a las notas de su release. Al sacar una versión nueva, añade su entrada `### x.y.z — Título` **al principio** de la lista.
 
 
+### 0.2.18-beta.5 — Fondo del launcher sincronizado con el menú de Nova
+
+- **Ajustes → Interfaz y fondo**: nuevo interruptor «Usar el fondo del menú de Nova» (`bgSync`). Si está activo, el launcher muestra el fondo elegido en el mod (imagen o vídeo de `nova/fondos`, o el agujero negro).
+- **Cómo funciona**: `main/fondo-menu.js` (`fondoInfo`) traduce `nova/menu.json` a `hole`/`image`/`video`; IPC `nmenu:bg`; el renderer lo aplica en `js/agujero-negro.js` (`fondoSync`) al activarlo, al volver a la ventana y al cambiarlo en «Menú de Nova». Con «reducir movimiento» el vídeo se pausa.
+- **Límites**: Nebulosa y Earth (`.nvb`) solo las reproduce el mod, y mkv/avi no se pueden mostrar: en el launcher salen como agujero negro. Probado con tests (`tests/fondo.js`) y una imagen en el navegador; no con vídeos reales.
+
 ### 0.2.18-beta.4 — TikTok con su enlace y limpieza del código sin uso
 
 - **Redes** (`js/social.js`): el enlace de TikTok ya apunta a https://www.tiktok.com/@justmarcodev.

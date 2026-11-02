@@ -34,7 +34,7 @@ let GM=false,RAF=0,HOMEON=true;new MutationObserver(()=>{HOMEON=$("home").classL
 function gameMode(on){const g=!!on&&cfg.gameMode!==false;if(g===GM)return;GM=g;document.documentElement.classList.toggle("gm",g);if(!RAF){dirty=60;RAF=requestAnimationFrame(frame)}}
 function frame(now){RAF=requestAnimationFrame(frame);
 const q=Q[cfg.quality]||Q.alta;HDS=q.d;const pg=RUN,cap=+cfg.fps||60;let f=q.f?Math.min(q.f,cap):0;if(pg&&f)f=Math.min(f,30);if(GM&&f)f=Math.min(f,document.hasFocus()?24:12);
-if(document.hidden||HOLD)return;if(f&&A&&cfg.pauseBlur!==false&&!document.hasFocus())f=Math.min(f,RUN?12:15);if(f&&!HOMEON)f=Math.min(f,30);   // fuera de Inicio el agujero negro es pequeño y tenue: 30 fps bastan y se ahorra la mitad de trabajo de pintado
+if(document.hidden||HOLD||FMON)return;if(f&&A&&cfg.pauseBlur!==false&&!document.hasFocus())f=Math.min(f,RUN?12:15);if(f&&!HOMEON)f=Math.min(f,30);   // fuera de Inicio el agujero negro es pequeño y tenue: 30 fps bastan y se ahorra la mitad de trabajo de pintado
 if(!f){if(dirty<=0)return}else{if(al<.02)f=Math.min(f,24);if(now-last<1000/f-3)return}
 last=now;dirty--;const k=f?60/f:0,sp=(cfg.rmotion?.15:1)*k*((cfg.bhSpeed==null?100:cfg.bhSpeed)/100);T+=.016*k;ang+=.0065*sp;
 if(hc--<=0||!HR){hc=15;HR=document.querySelector(".hero").getBoundingClientRect()}
@@ -56,3 +56,17 @@ half(true,tl,Rb,h0,s0);
 const n=q.n;for(let i=0;i<n;i++){const p=D[i];p.a+=p.s*.02/Math.pow(p.r,1.4)*sp;const c=Math.cos(p.a),s=Math.sin(p.a),rr=p.r*Rb,ux=c*rr,uy=s*rr*SQ+p.z*rr*.035,px=cx+ux*ct-uy*st,py=cy+ux*st+uy*ct;if(s<0&&Math.hypot(px-cx,py-cy)<Rb)continue;x.fillStyle=C8[p.b];x.globalAlpha=(1-p.t)*(.3+.7*(.5+.5*c))*.8*al;const z=1+(1-p.t)*1.4;x.fillRect(px,py,z,z)}
 if(q.b&&cfg.bhBloom!==false&&!pg){c1.drawImage(cv,0,0,b1.width,b1.height);c2.drawImage(b1,0,0,b2.width,b2.height);x.globalCompositeOperation="lighter";x.globalAlpha=.6;x.drawImage(b2,0,0,W,HT);x.globalAlpha=.4;x.drawImage(b1,0,0,W,HT)}}}
 RAF=requestAnimationFrame(frame);
+// ---- «Usar el fondo del menú de Nova»: el launcher pinta el mismo fondo que eligió el jugador en el menú del mod (imagen o vídeo propios; si no, el agujero negro) ----
+let FMON=false,FMEL=null,FMURL="";
+function fondoClear(){if(FMEL){FMEL.remove();FMEL=null}FMURL="";FMON=false;document.documentElement.classList.remove("fm");if(!RAF){dirty=60;RAF=requestAnimationFrame(frame)}}
+async function fondoSync(){
+ if(!A||!A.nmenuBg||cfg.bgSync!==true){if(FMEL||FMON)fondoClear();return}
+ let r=null;try{r=await A.nmenuBg()}catch{}
+ if(!r||r.kind==="hole"||!r.url){if(FMEL||FMON)fondoClear();return}
+ if(FMEL&&FMURL===r.url){FMEL.style.display="";if(FMEL.tagName==="VIDEO")cfg.rmotion?FMEL.pause():FMEL.play().catch(()=>{});return}
+ fondoClear();
+ const v=r.kind==="video",e=document.createElement(v?"video":"img");e.id="fmbg";e.alt="";e.draggable=false;
+ if(v){e.muted=true;e.loop=true;e.autoplay=!cfg.rmotion;e.playsInline=true}
+ e.onerror=fondoClear;e.src=r.url;$("cv").after(e);FMEL=e;FMURL=r.url;FMON=true;document.documentElement.classList.add("fm")}
+window.addEventListener("focus",()=>fondoSync());
+setTimeout(fondoSync,1500);

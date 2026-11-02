@@ -138,7 +138,7 @@ async function nmInit() {
   h.addEventListener("change", e => { const t = e.target; if (t.dataset && t.dataset.nmrule) { const r = nmRulesObj(); r[t.dataset.nmrule] = t.value; nmSetProfiles(nmProfsObj(), r) } });
   h.addEventListener("click", async e => {
     if (nmProfClick(e)) return;
-    const c = e.target.closest("[data-nmc] [data-v]"); if (c) { const k = c.parentElement.dataset.nmc, raw = c.dataset.v; nmSave(k === "fpsgoal" ? { fps: { goal: +raw } } : { [k]: k === "accent" ? +raw : raw }); c.parentElement.querySelectorAll("[data-v]").forEach(x => x.classList.toggle("on", x === c)); return }
+    const c = e.target.closest("[data-nmc] [data-v]"); if (c) { const k = c.parentElement.dataset.nmc, raw = c.dataset.v; if (k === "bg") setTimeout(fondoSync, 700); nmSave(k === "fpsgoal" ? { fps: { goal: +raw } } : { [k]: k === "accent" ? +raw : raw }); c.parentElement.querySelectorAll("[data-v]").forEach(x => x.classList.toggle("on", x === c)); return }
     const id = e.target.closest("button") && e.target.closest("button").id;
     if (id === "nmx") { const r = await A.nmenuExport(nmCode()); if (r && r.ok) flash("HUD exportado"); else if (r && !r.canceled) flash("No se pudo exportar") }
     if (id === "nmi") { const r = await A.nmenuImport(); if (!r || r.canceled) return; const o = r.ok && nmParse(r.text); if (!o) { flash("Ese archivo no es un HUD de Nova"); return } nmApply(o); flash("HUD importado") }

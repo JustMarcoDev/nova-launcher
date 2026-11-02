@@ -118,6 +118,11 @@ if (ver !== pkg.version) bad('VER en js/base.js (' + ver + ') no coincide con pa
   const r = require('child_process').spawnSync(process.execPath, [path.join(__dirname, 'restablecer.js')], { encoding: 'utf8' });
   if (r.status !== 0) bad('tests/restablecer.js falló:\n' + (r.stdout || '') + (r.stderr || '')); else console.log(r.stdout.trim());
 }
+// Fondo del menú de Nova en el launcher
+{
+  const r = require('child_process').spawnSync(process.execPath, [path.join(__dirname, 'fondo.js')], { encoding: 'utf8' });
+  if (r.status !== 0) bad('tests/fondo.js falló:\n' + (r.stdout || '') + (r.stderr || '')); else console.log(r.stdout.trim());
+}
 // Clips de los últimos 30 s: lógica pura
 {
   const r = require('child_process').spawnSync(process.execPath, [path.join(__dirname, 'clips.js')], { encoding: 'utf8' });

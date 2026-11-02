@@ -1279,5 +1279,7 @@ window.LANGS["pt-BR"]={name:"Português (Brasil)",d:{
 "Minijuegos, BedWars y Survival en alemán":"Minijogos, BedWars e Survival em alemão",
 "Uno de los más grandes de Europa: BedWars, SkyWars, Quake":"Um dos maiores da Europa: BedWars, SkyWars, Quake",
 "Rol político: partidos, elecciones y economía":"Roleplay político: partidos, eleições e economia",
-"Practica BedWars y mejora tu PvP":"Pratique BedWars e melhore seu PvP"
+"Practica BedWars y mejora tu PvP":"Pratique BedWars e melhore seu PvP",
+"Usar el fondo del menú de Nova":"Usar o plano de fundo do menu Nova",
+"El launcher muestra el mismo fondo que elegiste en el menú del juego: tu imagen o vídeo, o el agujero negro. Nebulosa y Earth se ven aquí como agujero negro. Se actualiza al cambiarlo en «Menú de Nova» y al volver a esta ventana":"O launcher mostra o mesmo plano de fundo que você escolheu no menu do jogo: sua imagem ou vídeo, ou o buraco negro. Nebulosa e Earth aparecem aqui como buraco negro. Atualiza ao mudar em «Menu Nova» e ao voltar a esta janela"
 }};
