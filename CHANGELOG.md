@@ -3,6 +3,15 @@
 Todo lo que cambia en cada versión de Nova Launcher y del menú de Nova (el mod), de la más nueva a la más antigua. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**, y el flujo de publicación copia la entrada de cada versión a las notas de su release. Al sacar una versión nueva, añade su entrada `### x.y.z — Título` **al principio** de la lista.
 
 
+### 0.2.18-beta.2 — Menos ajustes, más claros: lo que antes era opcional ahora funciona solo
+
+- **Interfaz y Fondo, juntos** (`js/ajustes.js`): un solo apartado «Interfaz y fondo».
+- **Rendimiento**: quitados Recolector de memoria (se elimina también la recomendación de ZGC de la prueba de rendimiento y su código en `main/juego.js`), Animación de entrada (siempre activa salvo «Reducir animaciones»), Buscar actualizaciones al abrir, Descargar actualizaciones automáticamente y Ventana de aviso de actualización (siempre automáticos), y Ahorrar recursos mientras juegas (hacía lo mismo que el Modo juego; ahora siempre activo).
+- **Accesibilidad**: quitados Otra tipografía, Tamaño de texto e interfaz (siempre 100 %; el mod recibe 100) y Resaltar el foco del teclado (siempre desactivado; se elimina su CSS).
+- **Interfaz**: quitado Mostrar tu skin arriba (siempre se ve).
+- **Juego**: quitado Fondos del menú de Nova y sus IPC `nvbg:list/get/del`; la descarga desde el juego sigue igual.
+- **Cuenta**: quitados Ajustes en la nube y su estado, junto con todo el cliente (`main/nube.js`, la verificación de cuenta de `main/cuentas.js`, el preload y `tests/nube-cliente.js`). El Worker de `servidor/` conserva `/cloud`, que ya no se usa.
+
 ### 0.2.18-beta.1 — Ajustes más claros: desinstalar y restablecer, Acerca de más limpio y un Streamer con más opciones
 
 - **Restablecer el launcher** (`main/restablecer.js`, `app:reset`, Ajustes → Desinstalación): borra cuentas, instancias, mundos, mods y ajustes y reinicia como la primera vez, con el asistente de bienvenida. Se niega si hay un juego abierto.

@@ -1338,5 +1338,6 @@ window.LANGS.it={name:"Italiano",d:{
 "Restablecer todo":"Ripristina tutto",
 "Cierra Minecraft antes de restablecer":"Chiudi Minecraft prima di ripristinare",
 "No se pudo restablecer":"Impossibile ripristinare",
-"Aceptar":"Accetta"
+"Aceptar":"Accetta",
+"Interfaz y fondo":"Interfaccia e sfondo"
 }};

@@ -1338,5 +1338,6 @@ window.LANGS.en={name:"English (US)",d:{
 "Restablecer todo":"Reset everything",
 "Cierra Minecraft antes de restablecer":"Close Minecraft before resetting",
 "No se pudo restablecer":"Could not reset",
-"Aceptar":"Accept"
+"Aceptar":"Accept",
+"Interfaz y fondo":"Interface and background"
 }};

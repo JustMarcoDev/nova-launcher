@@ -193,7 +193,6 @@ const nbvPath = f => path.join(root, 'nova', f);
 const nbvHave = f => { try { return fs.statSync(nbvPath(f)).size > 32; } catch { return false; } };
 function nbvState(f, o) {   // el mod lee este estado (fondos-estado.json) para enseñar el progreso dentro del juego
   const m = fondosJson('fondos-estado.json'); if (o) m[f] = o; else delete m[f]; fondosJson('fondos-estado.json', m);
-  send('nvbg:state', { file: f, have: nbvHave(f), ...(o || { state: 'ok' }) });
 }
 // Descarga un fondo (con progreso y comprobando el sha256). Sin conexión o si falla, no pasa nada grave: se sigue con el agujero negro.
 function novaBgGet(f) {
@@ -236,13 +235,6 @@ function novaBg(file = 'nova-bg.nvb') {
   try { const low = require('../nvb').lowPath(dst); if (!LOW720.has(dst) && (!fs.existsSync(low) || fs.statSync(low).mtimeMs < fs.statSync(dst).mtimeMs)) { LOW720.add(dst); require('../nvb').make720(dst).catch(() => {}).finally(() => LOW720.delete(dst)); } } catch {}
   return dst;
 }
-ipcMain.handle('nvbg:list', async () => {
-  let man = null; try { man = await fondosManifest(); } catch {}
-  const st = fondosJson('fondos-estado.json');
-  return Object.keys(NOVA_REMOTE_BG).map(f => { const e = man && man.files && man.files[f], s = st[f] || null; return { file: f, name: NOVA_REMOTE_BG[f], have: nbvHave(f), size: e && +e.size || 0, state: BGDL.has(f) ? 'working' : (s && s.state === 'error' ? 'error' : 'idle'), progress: s && s.progress || 0, online: !!man }; });
-});
-ipcMain.handle('nvbg:get', async (e, f) => { await novaBgGet(String(f)); return true; });
-ipcMain.handle('nvbg:del', (e, f) => { f = String(f); if (!NOVA_REMOTE_BG[f] || BGDL.has(f)) return false; try { fs.unlinkSync(nbvPath(f)); } catch {} try { const l = require('../nvb').lowPath(nbvPath(f)); fs.unlinkSync(l); } catch {} nbvState(f, null); return true; });
 // ===== Menú de Nova: actualizar el mod sin sacar una versión nueva del launcher =====
 // Cada release sube los nova-menu-<mc>.jar y un nova-menu.json (versión, URL y sha256 por versión de Minecraft). Antes de lanzar se mira ese JSON
 // (con caché de 6 h y sin esperar si no hay conexión). Si hay un jar más nuevo se descarga, se comprueba su sha256 y se usa; si algo falla se usa el jar
@@ -418,7 +410,7 @@ function novaAccSync(cfg) {
   try {
     const f = nmenuFile(); let o = {}; try { o = JSON.parse(fs.readFileSync(f, 'utf8')) || {}; } catch { return false; }
     if (!o.acc || o.acc.launcher !== true) return false;
-    const want = { launcher: true, text: Math.max(80, Math.min(150, Math.round(+cfg.tsize || 100))), contrast: !!cfg.contrast, motion: !!cfg.rmotion };
+    const want = { launcher: true, text: 100, contrast: !!cfg.contrast, motion: !!cfg.rmotion };
     if (o.acc.text === want.text && o.acc.contrast === want.contrast && o.acc.motion === want.motion) return false;
     o.acc = want; const tmp = f + '.tmp'; fs.writeFileSync(tmp, JSON.stringify(o)); fs.renameSync(tmp, f); return true;
   } catch { return false; }

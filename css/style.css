@@ -211,12 +211,6 @@ input[type=range]::-webkit-slider-thumb {
   border-radius: calc(2px*var(--rs,1));
 }
 
-/* Anillo de foco grande, solo si se activa «Resaltar foco» en Accesibilidad. */
-.fo :focus-visible {
-  outline: 2px solid var(--ac);
-  outline-offset: 2px;
-}
-
 .sub {
   font-size: 12px;
   display: block;
@@ -4317,7 +4311,6 @@ html[data-cb=Grises] {
 /* 0.2.17 · retoques */
 .o { transition: background .15s, border-color .15s, transform .15s; }
 .o:active { transform: scale(.995); }
-button:focus-visible, .o:focus-visible, [data-stc]:focus-visible { outline: 2px solid var(--ac, #f5b942); outline-offset: 2px; }
 ::selection { background: rgba(245, 185, 66, .35); }
 img { -webkit-user-drag: none; }
 @media (prefers-reduced-motion: reduce) { .o { transition: none; } }

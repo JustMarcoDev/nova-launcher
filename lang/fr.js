@@ -1338,5 +1338,6 @@ window.LANGS.fr={name:"Français",d:{
 "Restablecer todo":"Tout réinitialiser",
 "Cierra Minecraft antes de restablecer":"Ferme Minecraft avant de réinitialiser",
 "No se pudo restablecer":"Impossible de réinitialiser",
-"Aceptar":"Accepter"
+"Aceptar":"Accepter",
+"Interfaz y fondo":"Interface et arrière-plan"
 }};

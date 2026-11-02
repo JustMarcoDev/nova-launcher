@@ -5,9 +5,9 @@ const BHM={dorado:[44,100],azul:[205,100],violeta:[268,95],rosa:[328,95],verde:[
 const FF=[["Segoe UI","sans-serif"],["Segoe UI Variable Text","sans-serif","Segoe UI Variable"],["Bahnschrift","sans-serif"],["Calibri","sans-serif"],["Arial","sans-serif"],["Tahoma","sans-serif"],["Verdana","sans-serif"],["Trebuchet MS","sans-serif"],["Century Gothic","sans-serif"],["Candara","sans-serif"],["Corbel","sans-serif"],["Franklin Gothic Medium","sans-serif"],["Ebrima","sans-serif"],["Nirmala UI","sans-serif"],["Gill Sans MT","sans-serif"],["Cambria","serif"],["Constantia","serif"],["Georgia","serif"],["Palatino Linotype","serif"],["Sitka Text","serif"],["Times New Roman","serif"],["Comic Sans MS","cursive"],["Impact","sans-serif"],["Consolas","monospace"],["Cascadia Code","monospace"],["Lucida Console","monospace"],["Courier New","monospace"]];
 const FONTS=Object.fromEntries(FF.map(([n,g,l])=>[l||n,`"${n}",${n==="Segoe UI"?"system-ui,":""}${g}`]));
 // --- Estado compartido (versión, sistema, fondo) ---
-let VER="0.2.18-beta.1",SYS={total:16},secNow="gen",BG="#080a0f",BHs=BHM.dorado,dirty=60,RUN=false;
+let VER="0.2.18-beta.2",SYS={total:16},secNow="gen",BG="#080a0f",BHs=BHM.dorado,dirty=60,RUN=false;
 // --- Ajustes guardados ---
-const ECO={quality:"baja",fps:30,glassBlur:0,intro:false,stars:40,bhBloom:false,bhLens:false,bhOther:false,pauseBlur:true,pauseGame:true};
+const ECO={quality:"baja",fps:30,glassBlur:0,stars:40,bhBloom:false,bhLens:false,bhOther:false,pauseBlur:true};
 const rec=()=>Math.max(1,Math.floor(SYS.total/2));
 async function sv(c){cfg={...cfg,...c};if(A)await A.set(c);if(A&&c.dlLimit!==undefined)A.dqLimit(c.dlLimit);if(c.lang!==undefined)setTimeout(()=>langSync(c.lang),120);dirty=60}
 async function ramInit(){if(!cfg.ramSet)await sv({ram:rec(),ramSet:true});else if(cfg.ram>SYS.total)await sv({ram:SYS.total})}
@@ -15,16 +15,16 @@ async function ramInit(){if(!cfg.ramSet)await sv({ram:rec(),ramSet:true});else i
 let lastZ=0,lastSt=-1,lastN=0;
 function applyAp(){const r=document.documentElement,b=document.body,sy=r.style;
 sy.setProperty("--ac",cfg.accent||"#2ee06f");r.dataset.th=cfg.theme||"oscuro";
-const fam=(cfg.fontCustom||"").replace(/[^\w \-.]/g,"").trim();b.style.fontFamily=(fam?`"${fam}",`:"")+(FONTS[cfg.font]||FONTS["Segoe UI"]);
+b.style.fontFamily=FONTS[cfg.font]||FONTS["Segoe UI"];
 b.style.letterSpacing=(+cfg.lsp||0)+"px";b.style.lineHeight=String((+cfg.lh||145)/100);
-b.classList.toggle("bold",!!cfg.bold);b.classList.toggle("hc",!!cfg.contrast);b.classList.toggle("fo",!!cfg.focusRing);r.classList.toggle("rm",!!cfg.rmotion);r.dataset.cb=String(cfg.cb||"Ninguno").split(" ")[0].replace("Escala","Grises");r.classList.toggle("dys",!!cfg.dys);r.classList.toggle("nl",!!cfg.navLabels);r.classList.toggle("bt",!!cfg.bigTargets);r.classList.toggle("sol",!!cfg.solid);sy.setProperty("--wsp",(+cfg.wsp||0)+"px");
+b.classList.toggle("bold",!!cfg.bold);b.classList.toggle("hc",!!cfg.contrast);r.classList.toggle("rm",!!cfg.rmotion);r.dataset.cb=String(cfg.cb||"Ninguno").split(" ")[0].replace("Escala","Grises");r.classList.toggle("dys",!!cfg.dys);r.classList.toggle("nl",!!cfg.navLabels);r.classList.toggle("bt",!!cfg.bigTargets);r.classList.toggle("sol",!!cfg.solid);sy.setProperty("--wsp",(+cfg.wsp||0)+"px");
 const pa=cfg.panelAlpha==null?60:+cfg.panelAlpha,bl=cfg.glassBlur==null?12:+cfg.glassBlur;
 sy.setProperty("--rs",String((cfg.radius==null?100:+cfg.radius)/100));sy.setProperty("--pa",pa+"%");sy.setProperty("--pa2",Math.min(100,pa+14)+"%");sy.setProperty("--bl",bl+"px");r.classList.toggle("ng",bl===0);
 sy.setProperty("--d",String({compacta:.78,normal:1,comoda:1.25}[cfg.density]||1));sy.setProperty("--nw",(cfg.navLabels?Math.max(104,cfg.navW||76):(cfg.navW||76))+"px");
-const ni=cfg.intro===false||!!cfg.rmotion;r.classList.toggle("ni",ni);if(ni){sy.setProperty("--base","0s");const i=$("intro");i&&i.remove()}
-const z=(cfg.tsize||100)/100;if(z!==lastZ){lastZ=z;if(A)A.zoom(z);else b.style.zoom=z}
+const ni=!!cfg.rmotion;r.classList.toggle("ni",ni);if(ni){sy.setProperty("--base","0s");const i=$("intro");i&&i.remove()}
+const z=1;if(z!==lastZ){lastZ=z;if(A)A.zoom(z);else b.style.zoom=z}
 $("g2").classList.toggle("nonews",cfg.showNews===false);$("cardI").style.display=cfg.showInst===false?"none":"";$("cardS").style.display=cfg.showStatus===false?"none":"";$("wel").style.display="";
-$("av").style.display=cfg.showAvatar===false?"none":"";
+
 if(typeof NEWS!=="undefined"&&NEWS.length&&lastN!==(cfg.newsN||4))renderNews();
 BG=getComputedStyle(r).getPropertyValue("--bg").trim()||"#080a0f";BHs=BHM[cfg.bh]||BHM.dorado;
 if(cfg.stars!==lastSt){lastSt=cfg.stars;if(typeof rs==="function")rs()}

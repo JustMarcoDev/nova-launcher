@@ -67,7 +67,7 @@ const x=$("mdl").querySelector(".mx");if(x)x.remove();
 $("lga").focus();
 $("mdl").querySelector("details").addEventListener("toggle",async function(){const t=$("lgt");if(!this.open||!t||t.textContent)return;let v="";try{v=A&&A.notices?await A.notices():""}catch{}t.textContent=v||trad("Solo en la app instalada")},{once:true})}
 // --- Ajustes en un archivo ---
-const SXK=()=>SC.filter(s=>["apar","bg","ui","acc"].includes(s.id)).flatMap(s=>s.rows).filter(r=>r.k);
+const SXK=()=>SC.filter(s=>["apar","ui","acc"].includes(s.id)).flatMap(s=>s.rows).filter(r=>r.k);
 function pickJson(){return new Promise(res=>{const i=document.createElement("input");i.type="file";i.accept=".json";i.onchange=async()=>{const f=i.files[0];if(!f)return res({canceled:true});try{const j=JSON.parse(await f.text());if(!j||j.app!=="nova-launcher"||!j.settings)throw 0;res({settings:j.settings})}catch{res({error:1})}};i.click()})}
 async function sxExport(){const o={};SXK().forEach(r=>{if(cfg[r.k]!==undefined)o[r.k]=cfg[r.k]});
 try{if(A){const r=await A.settingsExport(o);if(!r.canceled)flash("Ajustes guardados ✓")}else{const b=new Blob([JSON.stringify({app:"nova-launcher",version:VER,settings:o},null,1)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="nova-ajustes.json";a.click();flash("Ajustes guardados ✓")}}catch(e){flash(em(e))}}

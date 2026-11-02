@@ -96,7 +96,7 @@ const checkUpd = async () => { await applyFeed(); return S.updater.checkForUpdat
 function initUpdater() {
   try {
     const { autoUpdater } = require('electron-updater'); S.updater = autoUpdater;
-    autoUpdater.autoDownload = load().autoDownload !== false; autoUpdater.allowPrerelease = load().channel === 'beta';
+    autoUpdater.autoDownload = true; autoUpdater.allowPrerelease = load().channel === 'beta';
     autoUpdater.autoInstallOnAppQuit = true;
     autoUpdater.on('checking-for-update', () => { if (upd.s !== 'downloading' && upd.s !== 'ready') setUpd({ s: 'checking' }); });
     autoUpdater.on('update-available', i => setUpd(autoUpdater.autoDownload ? { s: 'downloading', v: i.version, p: 0 } : { s: 'available', v: i.version }));
@@ -104,7 +104,7 @@ function initUpdater() {
     autoUpdater.on('download-progress', p => setUpd({ s: 'downloading', v: upd.v, p: p.percent, bps: p.bytesPerSecond }));
     autoUpdater.on('update-downloaded', i => setUpd({ s: 'ready', v: i.version }));
     autoUpdater.on('error', e => { if (upd.s !== 'ready') setUpd({ s: 'error', msg: String(e && e.message || e).slice(0, 80) }); });
-    S.chkNow = () => { S.lastChk = Date.now(); if (load().autoUpdate !== false && upd.s !== 'downloading' && upd.s !== 'ready') checkUpd().catch(() => {}); };
+    S.chkNow = () => { S.lastChk = Date.now(); if (upd.s !== 'downloading' && upd.s !== 'ready') checkUpd().catch(() => {}); };
     setTimeout(S.chkNow, 2500); setInterval(S.chkNow, 3600000);
   } catch {}
 }

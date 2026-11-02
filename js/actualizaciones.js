@@ -12,7 +12,7 @@ $("ubt").innerHTML=(s==="ready"?"":"<em>1</em>")+T.replace("1 actualización pen
 const b=$("ubb");b.textContent=B;b.disabled=s==="downloading";
 $("umt").textContent=T;$("ums").textContent=S;$("ump").style.width=(s==="ready"?100:pc)+"%";const mb=$("umb");mb.textContent=B;mb.disabled=s==="downloading";
 $("upt").textContent=s==="ready"?"Reiniciar e instalar":s==="downloading"?pc+"%":"1 actualización";
-const key=U.v||"x";if(umSeen!==key){umSeen=key;setTimeout(()=>{if(cfg.updPopup!==false&&(U.s==="available"||U.s==="downloading"||(U.s==="ready"&&!acT&&cfg.autoInstall===false)))um.classList.add("on")},Math.max(300,5300-performance.now()))}}
+const key=U.v||"x";if(umSeen!==key){umSeen=key;setTimeout(()=>{if((U.s==="available"||U.s==="downloading"||(U.s==="ready"&&!acT&&cfg.autoInstall===false)))um.classList.add("on")},Math.max(300,5300-performance.now()))}}
 else um.classList.remove("on");
 const mm=$("upm");if(mm)mm.textContent=ulabel();const c=$("chk");if(c){c.disabled=s==="checking"||s==="downloading";c.textContent=s==="available"?"Actualizar ahora":s==="ready"?"Reiniciar e instalar":s==="checking"?"Buscando…":"Buscar actualizaciones"}}
 let acT=null,acDone="";

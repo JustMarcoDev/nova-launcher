@@ -140,7 +140,7 @@ async function playGame(opts) {
       window: { width: cfg.width, height: cfg.height, fullscreen: cfg.fullscreen }, customArgs: [...(JVM_PRESETS[ins.jvmPreset] || [])] };
     await mirrorPrep(o, ins.mc);
     const jm = jvmModern(cfg, ins, java, ram);
-    if (cfg.optimize !== false && !ins.jvmPreset) o.customArgs.push(...(jm.zgc ? JVM_ZGC_BASE : JVM_OPT));
+    if (cfg.optimize !== false && !ins.jvmPreset) o.customArgs.push(...JVM_OPT);
     o.customArgs.push(...jm.args);
     try { await applyGpu(java, ins.gpu === 'high'); } catch {}
     const noNova = !!(safe || ins.noNova);   // modo seguro: sin el menú de Nova (Shift al lanzar o ajuste de la instancia)
@@ -164,7 +164,7 @@ async function playGame(opts) {
     if (world && !server && modernQP(ins.mc)) o.quickPlay = { type: 'singleplayer', identifier: String(world) };
         try { syncServers(dir, (cfg.myServers || []).filter(z => z && z.host).map(z => ({ name: String(z.name || z.host), ip: String(z.host) + (z.port && +z.port !== 25565 ? ':' + z.port : '') }))); } catch {}
     let proc = null; const l = new Client(), tail = [], lg = openLog(ins, java, ram), since = Date.now(); let t0 = 0, sk = '';
-    send('log', '── ' + ins.name + ' · Minecraft ' + ins.mc + ' · ' + (ins.ld || 'Vanilla') + ' · ' + (act.name) + ' ──\n'); send('log', novaMsg); if (jm.note) send('log', jm.note); if (jm.zgc || jm.compact) send('log', 'Java: ' + [jm.compact ? 'objetos compactos' : '', jm.zgc ? 'Generational ZGC' : ''].filter(Boolean).join(' + ') + '.\n');
+    send('log', '── ' + ins.name + ' · Minecraft ' + ins.mc + ' · ' + (ins.ld || 'Vanilla') + ' · ' + (act.name) + ' ──\n'); send('log', novaMsg); if (jm.note) send('log', jm.note); if (jm.compact) send('log', 'Java: objetos compactos.\n');
     l.on('progress', p => send('progress', p));
     // Marcadores del mod: solo valen los que llevan el código secreto de esta partida (main/marcas.js); un mensaje de chat no puede pedir nada
     const mk = marcas.handler(nova ? mkey : '', {
@@ -193,8 +193,8 @@ async function playGame(opts) {
         return;
       }
       // Si con las opciones modernas de Java se cierra con error en los primeros 30 s, se vuelve a G1 normal y se avisa
-      if (!!code && tail.length > 0 && t0 && (jm.zgc || jm.compact) && Date.now() - t0 < 30000 && !(opts && opts.gcRetry)) {
-        upIns(id, { gcOff: true }); send('status', 'Se cerró al arrancar con las opciones nuevas de Java: se vuelve a G1'); notify('Minecraft', 'Falló con ZGC / objetos compactos; se reintenta con el Java de siempre (G1).');
+      if (!!code && tail.length > 0 && t0 && jm.compact && Date.now() - t0 < 30000 && !(opts && opts.gcRetry)) {
+        upIns(id, { gcOff: true }); send('status', 'Se cerró al arrancar con las opciones nuevas de Java: se vuelve a G1'); notify('Minecraft', 'Falló con objetos compactos; se reintenta con el Java de siempre (G1).');
         setTimeout(() => { playGame({ id, server, world, safe, extraArgs: opts.extraArgs, gcRetry: true }).catch(() => {}); }, 700);
         return;
       }
@@ -245,19 +245,12 @@ function javaMajor(j) {
   try { const r = require('child_process').spawnSync(j, ['-version'], { encoding: 'utf8', timeout: 8000, windowsHide: true }), t = String(r.stderr || '') + String(r.stdout || ''), x = /version "(\d+)(?:\.(\d+))?/.exec(t); if (x) m = x[1] === '1' ? +x[2] : +x[1]; } catch {}
   return JMAJ[j] = m;
 }
-// Java moderno (punto 15): objetos más pequeños en Java 25+ y Generational ZGC (opcional, con 8 GB o más). Con ZGC no se mandan los argumentos de G1.
-const JVM_ZGC_BASE = ['-XX:+DisableExplicitGC', '-XX:+PerfDisableSharedMem', '-Xshare:auto', '-Dsun.java2d.noddraw=true'];
+// Java moderno (punto 15): objetos más pequeños en Java 25+.
 function jvmModern(cfg, ins, java, ram) {
-  const r = { args: [], zgc: false, compact: false, note: '' };
+  const r = { args: [], compact: false, note: '' };
   if (ins.gcOff) return r;   // una vez que fallaron en esta instancia, se queda en G1 normal
   const major = javaMajor(java);
   if (major >= 25) { r.args.push('-XX:+UseCompactObjectHeaders'); r.compact = true; }
-  if (cfg.gc === 'zgc') {
-    if (ram < 8) r.note = 'Nova: Generational ZGC solo se usa con 8 GB o más de RAM asignada; se usa G1.\n';
-    else if (major < 21) r.note = 'Nova: Generational ZGC necesita Java 21 o más; se usa G1.\n';
-    else if (ins.jvmPreset) r.note = 'Nova: esta instancia tiene un ajuste de Java propio; no se cambia el recolector.\n';
-    else { r.zgc = true; r.args.push('-XX:+UseZGC'); if (major < 23) r.args.push('-XX:+ZGenerational'); }
-  }
   return r;
 }
 const GPU_KEY = 'HKCU\\Software\\Microsoft\\DirectX\\UserGpuPreferences';

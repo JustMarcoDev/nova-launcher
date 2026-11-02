@@ -186,5 +186,6 @@ window.LANGS["es-419"]={name:"Español (Latinoamérica)",d:{
 "No se pudo restablecer":"No se pudo restablecer",
 "Aviso legal":"Aviso legal",
 "Licencias de terceros":"Licencias de terceros",
-"Aceptar":"Aceptar"
+"Aceptar":"Aceptar",
+"Interfaz y fondo":"Interfaz y fondo"
 }};

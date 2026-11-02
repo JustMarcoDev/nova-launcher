@@ -1338,5 +1338,6 @@ window.LANGS.de={name:"Deutsch",d:{
 "Restablecer todo":"Alles zurücksetzen",
 "Cierra Minecraft antes de restablecer":"Schließe Minecraft vor dem Zurücksetzen",
 "No se pudo restablecer":"Zurücksetzen nicht möglich",
-"Aceptar":"Akzeptieren"
+"Aceptar":"Akzeptieren",
+"Interfaz y fondo":"Oberfläche und Hintergrund"
 }};

@@ -61,7 +61,6 @@ function recs(e) {
   const out = [], tot = Math.round(os.totalmem() / 1073741824), cfg = load(), heap = e.heap || (e.ram || 4) * 1024, u = e.ramUsed || 0;
   if (u > heap * 0.85) { const v = Math.min(Math.max(2, Math.floor(tot * 0.5)), Math.max((e.ram || 4) + 2, Math.round(u / 1024 * 1.5) + 2)); if (v > (e.ram || 0)) out.push({ k: 'ram', v, txt: 'Subir la RAM a ' + v + ' GB' }); }
   else if (heap > 6144 && u < heap * 0.3) { const v = Math.max(4, Math.round(u / 1024 * 2) + 2); if (v < (e.ram || 0)) out.push({ k: 'ram', v, txt: 'Bajar la RAM a ' + v + ' GB' }); }
-  if (e.low1 < e.avg * 0.5 && tot >= 8 && cfg.gc !== 'zgc') out.push({ k: 'gc', v: 'zgc', txt: 'Usar Generational ZGC' });
   if (!e.fpsMode && e.avg < 60) out.push({ k: 'fps', v: 60, txt: 'Activar el Modo FPS (meta 60)' });
   return out;
 }
@@ -74,7 +73,7 @@ function onBench(id, a) {
   let j; try { j = JSON.parse(a); } catch { return; }
   if (!j || !(j.avg > 0)) return;
   const cfg = load(), src = li().find(i => i.id === cur.src) || {}, bi = li().find(i => i.id === cur.bid) || {};
-  const e = { t: Date.now(), ins: cur.src, insName: src.name || '', mc: bi.mc || src.mc, ld: bi.ld || 'Vanilla', mods: cur.mods || 0, ram: +bi.ram > 0 ? +bi.ram : cfg.ram, gc: cfg.gc || 'auto', optimize: cfg.optimize !== false, sys: sysInfo(),
+  const e = { t: Date.now(), ins: cur.src, insName: src.name || '', mc: bi.mc || src.mc, ld: bi.ld || 'Vanilla', mods: cur.mods || 0, ram: +bi.ram > 0 ? +bi.ram : cfg.ram, optimize: cfg.optimize !== false, sys: sysInfo(),
     avg: +j.avg, low1: +j.low1, min: +j.min, ramUsed: +j.ram, alloc: +j.alloc, heap: +j.heap, frames: +j.frames, secs: +j.secs, view: j.view, sim: j.sim, fpsMode: !!j.fpsMode };
   e.recs = recs(e);
   const all = [...hist(), e]; // máx. 30 por instancia
@@ -109,7 +108,6 @@ function apply(id, ts) {
   const done = [];
   for (const r of e.recs || []) {
     if (r.k === 'ram' && r.v > 0) { wr(insFile, li().map(i => i.id === id ? { ...i, ram: Math.min(64, Math.round(r.v)) } : i)); done.push(r.txt); }
-    else if (r.k === 'gc' && r.v === 'zgc') { wr(R.cfgFile, { ...load(), gc: 'zgc' }); done.push(r.txt); }
     else if (r.k === 'fps' && [30, 60, 90, 120, 144].includes(r.v)) { const f = path.join(R.novaDir(), 'menu.json'); let c = {}; try { c = JSON.parse(fs.readFileSync(f, 'utf8')) || {}; } catch {} c.fps = { ...(c.fps || {}), goal: r.v }; try { fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, JSON.stringify(c)); done.push(r.txt); } catch {} }
   }
   return { ok: true, done };

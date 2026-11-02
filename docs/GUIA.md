@@ -19,7 +19,7 @@ Las versiones de Windows y de GitHub solo admiten tres números (`0.2.8`), no cu
 Cuando publiques una versión nueva en GitHub, el launcher la detecta solo:
 
 1. Aparece un aviso en la portada y un botón **Actualizar** en la barra superior.
-2. Pulsa **Descargar** (o se descarga sola si tienes activado «Descargar actualizaciones automáticamente» en Ajustes).
+2. Pulsa **Descargar** (o se descarga sola: el launcher busca y descarga las actualizaciones por su cuenta).
 3. Cuando termine, el launcher avisa con una cuenta atrás de 10 segundos y se reinicia solo (puedes pulsar **Cancelar**). Tus mundos, mods, instancias y ajustes se conservan.
 
 También puedes comprobarlo a mano en **Ajustes → Acerca de → Buscar actualizaciones**.
@@ -64,7 +64,7 @@ La pestaña **Servidores** (Alt + 4) muestra servidores conocidos con jugadores 
 - **Novedades:** la primera vez que abres una versión nueva sale la ventana con lo que trae. También en Ajustes → Acerca de → Novedades.
 - **Todos tus mundos:** pestaña Mundos. Reúne los mundos de todas las instancias (nombre, modo, versión y última partida, leídos de `level.dat`), con búsqueda, orden y filtro; Jugar entra directo al mundo, y además copia, copia de seguridad, abrir carpeta y borrar (a la papelera).
 - **Modo streamer:** F7 en el juego (se cambia en «Editar HUD»). Oculta coordenadas, brújula e IP. Con Ajustes → Streamer encendido, el launcher sirve en `http://127.0.0.1:7777/overlay` una página transparente para una fuente de navegador de OBS; solo escucha en tu PC.
-- **Ajustes en la nube:** Ajustes → Cuenta → «Ajustes en la nube» (apagado de fábrica, solo cuentas de Microsoft). Sube el menú del juego, el aspecto del launcher y hasta 10 skins; nunca sesiones ni contraseñas. Detalles del servidor en `servidor/README.md`.
+- **Ajustes en la nube:** quitado en la 0.2.18-beta.2 (el launcher ya no sube ni baja ajustes; el Worker de `servidor/` conserva el endpoint `/cloud`, que ya no se usa).
 - **Mundos (por instancia):** Instancias → Opciones → Mundos. Lista los mundos, copia uno a otra instancia e importa mapas `.zip`.
 - **Tus servidores:** pestaña Servidores → Mis servidores. Se muestran con ping y jugadores y se añaden también a la lista de servidores de Minecraft (sin borrar los que ya tengas).
 - **Shaders:** al instalar un shader en una instancia sin Iris, el launcher ofrece instalar Iris y Sodium (Oculus y Embeddium en Forge), crear una instancia Fabric preparada o instalar solo el shader.
@@ -103,7 +103,7 @@ Con el canal Beta se mira la release más nueva (beta o estable); con Estable, l
 ## Revisión automática, idiomas y archivos (desde la 0.2.13)
 
 - **Revisión antes de publicar.** «Crear version» ahora ejecuta `npm test` (sintaxis, archivos enlazados, canales entre la app y la interfaz, versión, notas y traducciones, y una prueba de la interfaz en un navegador simulado) y `npm run smoke` (abre la app de verdad y mira que cargue sin errores). Si algo falla, el instalador no se sube. El flujo «Revision» hace lo mismo en cada `git push`, sin publicar nada.
-- **Estructura del proceso principal.** `main.js` solo carga los módulos de `main/`, cada uno con una parte del trabajo: `base` (rutas, archivos, ajustes), `red`, `errores`, `descargas`, `instancias`, `cuentas`, `skins`, `streamer` (overlay de OBS), `nube` (ajustes en la nube), `nbt` (lector de level.dat), `servidores`, `mundos`, `mods`, `cargadores` (Fabric/Forge/NeoForge), `mod-nova` (menú de Nova, fondos y actualización del mod), `juego` (lanzar Minecraft), `actualizaciones` (del launcher), `discord`, `sistema` (iconos, bandeja, capturas, diagnóstico), `ventana` y `limpieza`. `main/compartido.js` tiene `R` (lo que un módulo ofrece a otros: cada uno hace `Object.assign(R, {…})` al final) y `S` (variables que cambian y usan varios módulos, como la ventana). Un módulo solo puede usar valores —no funciones— de los que se cargan antes (el orden está en `main.js`); las funciones de módulos posteriores se llaman a través de `R`. Cada archivo empieza con lo que importa de los demás.
+- **Estructura del proceso principal.** `main.js` solo carga los módulos de `main/`, cada uno con una parte del trabajo: `base` (rutas, archivos, ajustes), `red`, `errores`, `descargas`, `instancias`, `cuentas`, `skins`, `streamer` (overlay de OBS), `nbt` (lector de level.dat), `servidores`, `mundos`, `mods`, `cargadores` (Fabric/Forge/NeoForge), `mod-nova` (menú de Nova, fondos y actualización del mod), `juego` (lanzar Minecraft), `actualizaciones` (del launcher), `discord`, `sistema` (iconos, bandeja, capturas, diagnóstico), `ventana` y `limpieza`. `main/compartido.js` tiene `R` (lo que un módulo ofrece a otros: cada uno hace `Object.assign(R, {…})` al final) y `S` (variables que cambian y usan varios módulos, como la ventana). Un módulo solo puede usar valores —no funciones— de los que se cargan antes (el orden está en `main.js`); las funciones de módulos posteriores se llaman a través de `R`. Cada archivo empieza con lo que importa de los demás.
 - **Estructura de la interfaz.** `index.html` solo tiene el esqueleto; los estilos están en `css/style.css` y el código en `js/` (un archivo por pestaña o función). Se cargan en el orden que marca `index.html`.
 - **Idiomas.** El español es la base. Hay seis: `es` (España), `es-419` (Latinoamérica, solo cambia las palabras distintas), `en`, `fr`, `de`, `it` y `pt`. Las traducciones están escritas con IA y no las ha revisado nadie nativo: si ves algo raro, corrígelo en su archivo de `lang/`. Cada idioma es un archivo en `lang/` (mira `lang/en.js`): la clave es el texto en español y el valor su traducción; `{1}`, `{2}`… son partes variables. Para añadir uno, copia `lang/en.js`, cambia `en` por su código, traduce y enlázalo en `index.html` antes de `js/idioma.js`. Lo que no esté traducido se ve en español.
 - **Descargas.** El cuadro de pausa, cancelar y límite controla lo que descarga el propio launcher (Java, mods, modpacks, instaladores). Los archivos del juego que baja Minecraft por su cuenta no pasan por él.
@@ -126,7 +126,7 @@ Para que el repositorio y el instalador pesen menos, estos archivos **no van en 
 | Archivo | Dónde vive | Cómo llega al usuario |
 |---|---|---|
 | `assets/nova-bg.nvb` (agujero negro) | release fija **«recursos»** de GitHub | `Crear version` lo descarga antes de compilar y va dentro del instalador |
-| `assets/nova-earth.nvb`, `assets/nova-nebulosa.nvb` | release **«recursos»** | **no** van en el instalador: el launcher los descarga cuando el usuario los elige (en el juego, o en Ajustes → Juego → «Fondos del menú de Nova») |
+| `assets/nova-earth.nvb`, `assets/nova-nebulosa.nvb` | release **«recursos»** | **no** van en el instalador: el launcher los descarga cuando el usuario los elige (en el juego) |
 | `assets/mods/nova-menu-<mc>.jar` | se compilan en `Crear version` | van en el instalador y se publican en `nova-menu.json` |
 
 La release «recursos» tiene un `fondos.json` con la URL, el tamaño y el **sha256** de cada fondo. El launcher lo lee, descarga el archivo mostrando el progreso, comprueba el sha256 y solo entonces lo usa. Sin conexión (o si algo falla) sigue con el agujero negro.

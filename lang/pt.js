@@ -1338,5 +1338,6 @@ window.LANGS.pt={name:"Português (Portugal)",d:{
 "Restablecer todo":"Repor tudo",
 "Cierra Minecraft antes de restablecer":"Fecha o Minecraft antes de repor",
 "No se pudo restablecer":"Não foi possível repor",
-"Aceptar":"Aceitar"
+"Aceptar":"Aceitar",
+"Interfaz y fondo":"Interface e fundo"
 }};

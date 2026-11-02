@@ -1338,5 +1338,6 @@ window.LANGS["pt-BR"]={name:"Português (Brasil)",d:{
 "Restablecer todo":"Redefinir tudo",
 "Cierra Minecraft antes de restablecer":"Feche o Minecraft antes de redefinir",
 "No se pudo restablecer":"Não foi possível redefinir",
-"Aceptar":"Aceitar"
+"Aceptar":"Aceitar",
+"Interfaz y fondo":"Interface e fundo"
 }};
