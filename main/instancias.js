@@ -35,7 +35,7 @@ function copyControls(ins) {
   const from = li().filter(i => i.id !== ins.id && i.lastPlayed && fs.existsSync(path.join(iDir(i.id), 'options.txt'))).sort((a, b) => b.lastPlayed - a.lastPlayed)[0];
   if (!from) return null;
   const src = optParse(fs.readFileSync(path.join(iDir(from.id), 'options.txt'), 'utf8'));
-  const sMin = mcMinor(from.mc), dMin = mcMinor(ins.mc), out = new Map();
+  const dMin = mcMinor(ins.mc), out = new Map();
   // Antes de la 1.13 las teclas se guardan como números y después como «key.keyboard.w»: si no coinciden, no se copian las key_*
   const sNum = [...src].filter(([k, v]) => k.startsWith('key_')).some(([, v]) => /^-?\d+$/.test(v));
   const sameKeys = sNum === (dMin < 13);

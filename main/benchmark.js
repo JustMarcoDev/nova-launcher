@@ -8,7 +8,7 @@ const { ipcMain } = require('electron');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { S, R } = require('./compartido');
+const { R } = require('./compartido');
 const { NOVA_MC } = R; // mod-nova
 const { li, load, rd, root, running, send, wr, insFile } = R; // base
 
@@ -58,7 +58,7 @@ function sysInfo() {
 }
 // Recomendaciones como acciones que el botón «Aplicar recomendaciones» puede ejecutar: RAM, recolector de memoria y Modo FPS
 function recs(e) {
-  const out = [], tot = Math.round(os.totalmem() / 1073741824), cfg = load(), heap = e.heap || (e.ram || 4) * 1024, u = e.ramUsed || 0;
+  const out = [], tot = Math.round(os.totalmem() / 1073741824), heap = e.heap || (e.ram || 4) * 1024, u = e.ramUsed || 0;
   if (u > heap * 0.85) { const v = Math.min(Math.max(2, Math.floor(tot * 0.5)), Math.max((e.ram || 4) + 2, Math.round(u / 1024 * 1.5) + 2)); if (v > (e.ram || 0)) out.push({ k: 'ram', v, txt: 'Subir la RAM a ' + v + ' GB' }); }
   else if (heap > 6144 && u < heap * 0.3) { const v = Math.max(4, Math.round(u / 1024 * 2) + 2); if (v < (e.ram || 0)) out.push({ k: 'ram', v, txt: 'Bajar la RAM a ' + v + ' GB' }); }
   if (!e.fpsMode && e.avg < 60) out.push({ k: 'fps', v: 60, txt: 'Activar el Modo FPS (meta 60)' });

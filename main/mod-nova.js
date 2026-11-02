@@ -10,7 +10,6 @@ const APP = path.join(__dirname, '..'); // carpeta de la app (donde están asset
 const { S, R } = require('./compartido');
 // De módulos anteriores (ya cargados):
 const { LOWRAM, UPD, load, mv, rd, root, running, send, wr } = R; // base
-const { UA } = R; // red
 const { dl, hashFile, rmQ } = R; // descargas
 // De módulos que se cargan después (funciones: se buscan al llamarlas):
 const pickNewestTag = (...a) => R.pickNewestTag(...a); // actualizaciones

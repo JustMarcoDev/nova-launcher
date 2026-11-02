@@ -22,7 +22,6 @@ function leerEstado(dir, activo) {
   } catch { return vacio; }
 }
 
-const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const numQ = (v, min, max, def) => { const n = parseFloat(v); return n >= min && n <= max ? n : def; };
 const colorOk = c => /^[0-9a-fA-F]{6}$/.test(c || '') ? '#' + c : '';
 

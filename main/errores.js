@@ -109,4 +109,4 @@ async function sendUsage(ins) {
 }
 
 // Lo que usan otros módulos
-Object.assign(R, { logErr, withLog, sendCrashReport, sendUsage, scrubReport: scrub });
+Object.assign(R, { logErr, withLog, sendCrashReport, sendUsage });

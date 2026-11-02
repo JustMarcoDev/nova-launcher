@@ -3,6 +3,13 @@
 Todo lo que cambia en cada versión de Nova Launcher y del menú de Nova (el mod), de la más nueva a la más antigua. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**, y el flujo de publicación copia la entrada de cada versión a las notas de su release. Al sacar una versión nueva, añade su entrada `### x.y.z — Título` **al principio** de la lista.
 
 
+### 0.2.18-beta.4 — TikTok con su enlace y limpieza del código sin uso
+
+- **Redes** (`js/social.js`): el enlace de TikTok ya apunta a https://www.tiktok.com/@justmarcodev.
+- **Código muerto eliminado** (sin cambios de comportamiento): el IPC `gpu:info` y su `gpuInfo` del preload (nadie los llamaba), `scrubReport` de `R`, variables y constantes sin uso en `main/benchmark.js`, `instancias.js`, `mod-nova.js`, `mundos.js` y `streamer.js`, los ajustes por defecto `greet` y `reopen`, el vídeo `bgv` (apuntaba a un archivo que no existe) y cuatro iconos SVG sin usar (`b-discord`, `b-x`, `b-youtube`, `i-music`).
+- **Traducciones**: borradas 83 entradas de `lang/*.js` de ajustes que ya no existen (nube, ZGC, volver a una versión anterior, fondos del menú, desinstalación antigua, etc.).
+- **Barrido**: funciones sin llamadas, clases e ids de CSS sin usar, canales IPC, archivos sin referencias y dependencias de `package.json`: no hay nada más sin uso.
+
 ### 0.2.18-beta.3 — Mundos con total, 15 servidores más, TikTok en Redes y un launcher más claro
 
 - **Redes** (`js/social.js`): TikTok sustituye a YouTube (el enlace queda vacío, «Próximamente», hasta tenerlo).

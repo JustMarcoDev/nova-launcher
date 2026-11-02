@@ -31,7 +31,6 @@ function gpuInfo() {
 function onBattery() { try { return !!powerMonitor.isOnBatteryPower(); } catch { return false; } }
 /** ¿Hay que lanzar el juego en Modo batería? (Ajustes → Rendimiento: Automático, Siempre o Nunca) */
 const batteryNow = () => HW.batteryOn(load().battery, onBattery());
-ipcMain.handle('gpu:info', () => gpuInfo());
 
 // ===== Icono de la app (ventana, barra de tareas y accesos directos) =====
 // El .ico va dentro del paquete (asar): para los accesos directos de Windows hace falta una copia real en disco.

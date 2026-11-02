@@ -150,7 +150,7 @@ const worldDir = (inst, folder) => {
 ipcMain.handle('worlds:all', () => worldsAll());
 ipcMain.handle('worlds:open', async (e, { inst, folder }) => { const { d } = worldDir(inst, folder); const r = await shell.openPath(d); if (r) throw new Error(r); return true; });
 ipcMain.handle('worlds:backup', async (e, { inst, folder }) => {
-  const { ins, d, f } = worldDir(inst, folder), t = new Date(), z = n => String(n).padStart(2, '0');
+  const { ins, f } = worldDir(inst, folder), t = new Date(), z = n => String(n).padStart(2, '0');
   const stamp = `${t.getFullYear()}${z(t.getMonth() + 1)}${z(t.getDate())}-${z(t.getHours())}${z(t.getMinutes())}${z(t.getSeconds())}`;
   const out = path.join(root, 'backups', 'mundos', ins.id, stamp + '__' + safeName(f, 'mundo') + '.zip');
   send('status', 'Haciendo copia del mundo…');
