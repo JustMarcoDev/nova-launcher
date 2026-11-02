@@ -5,12 +5,10 @@
 // =====================================================================================
 const { app, ipcMain, shell } = require('electron');
 const fs = require('fs');
-const os = require('os');
 const path = require('path');
 const { S, R } = require('./compartido');
 // De módulos anteriores (ya cargados):
-const { UPD, cfgFile, load, root, send, wr } = R; // base
-const { get } = R; // red
+const { UPD, load, root, send } = R; // base
 // De módulos que se cargan después (funciones: se buscan al llamarlas):
 const notify = (...a) => R.notify(...a); // sistema
 
@@ -39,15 +37,26 @@ ipcMain.handle('upd:install', () => {
   }, ok ? 8000 : 500);
   return true;
 });
-// Desinstalar desde Ajustes: abre el desinstalador de la carpeta de instalación (pide admin solo si la instalación antigua era «para todos»)
+// Desinstalar desde Ajustes: abre el desinstalador de la carpeta de instalación (pide admin solo si la instalación antigua era «para todos»).
+// modo: 'programa' (conserva todos los datos), 'cuentas' (borra todo menos las cuentas premium y sus skins) o 'todo'.
+const { borrar } = require('./restablecer');
+const modoUnin = o => o && (o.mode === 'todo' || o.mode === 'cuentas' || o.mode === 'programa') ? o.mode : (o && o.data ? 'todo' : 'programa');
 ipcMain.handle('app:uninstall', async (e, o) => {
   if (!app.isPackaged || process.platform !== 'win32') return { ok: false, why: 'dev' };
   const u = path.join(path.dirname(process.execPath), 'Uninstall Nova Launcher.exe');
   if (!fs.existsSync(u)) return { ok: false, why: 'nouninst' };
   const err = await shell.openPath(u);
   if (err) return { ok: false, why: err };
-  if (o && o.data) { try { require('child_process').spawn('cmd.exe', ['/c', 'timeout /t 8 /nobreak >nul & rmdir /s /q "' + root + '"'], { detached: true, stdio: 'ignore', windowsHide: true }).unref(); } catch {} }
+  const m = modoUnin(o);
+  if (m !== 'programa') await borrar(root, m === 'cuentas');
   setTimeout(() => app.exit(0), 900);
+  return { ok: true };
+});
+// Restablecer el launcher: borra todo (cuenta incluida) y se reinicia como la primera vez, con el asistente de bienvenida.
+ipcMain.handle('app:reset', async () => {
+  if (R.running && R.running.size) return { ok: false, why: 'running' };
+  await borrar(root, false);
+  app.relaunch(); setTimeout(() => app.exit(0), 300);
   return { ok: true };
 });
 // ===== Actualizaciones desde el launcher =====
@@ -99,22 +108,5 @@ function initUpdater() {
     setTimeout(S.chkNow, 2500); setInterval(S.chkNow, 3600000);
   } catch {}
 }
-// ---- Volver a una versión anterior ----
-const GH = 'JustMarcoDev/nova-launcher';
-ipcMain.handle('app:releases', async () => {
-  const r = await get(`https://api.github.com/repos/${GH}/releases?per_page=30`, 'json', { Accept: 'application/vnd.github+json' });
-  return r.filter(x => !x.draft).map(x => { const a = (x.assets || []).find(z => /\.exe$/i.test(z.name) && !/blockmap/i.test(z.name)); return { tag: x.tag_name, version: String(x.tag_name).replace(/^v/, ''), name: x.name || x.tag_name, date: x.published_at, pre: !!x.prerelease, url: a ? a.browser_download_url : '', size: a ? a.size : 0 }; }).filter(x => x.url);
-});
-ipcMain.handle('app:rollback', async (e, { url, version }) => {
-  if (!app.isPackaged) throw new Error('Solo funciona en la app instalada');
-  if (!String(url).startsWith(`https://github.com/${GH}/releases/download/`)) throw new Error('Enlace no válido');
-  send('status', 'Descargando Nova Launcher ' + version + '…');
-  const f = path.join(os.tmpdir(), 'NovaLauncher-' + String(version).replace(/[^\w.-]/g, '') + '-Setup.exe');
-  fs.writeFileSync(f, Buffer.from(await get(url, 'arrayBuffer')));
-  wr(cfgFile, { ...load(), autoUpdate: false });
-  require('child_process').spawn(f, [], { detached: true, stdio: 'ignore' }).unref(); setTimeout(() => app.quit(), 600); return true;
-});
-
-
 // Lo que usan otros módulos
 Object.assign(R, { checkUpd, initUpdater, pickNewestTag, verCmp, verParse });

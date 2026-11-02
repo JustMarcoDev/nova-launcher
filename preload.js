@@ -15,7 +15,7 @@ contextBridge.exposeInMainWorld('api', {
   worldsList: id => r.invoke('worlds:list', id), cloudStatus: () => r.invoke('cloud:status'), cloudSync: () => r.invoke('cloud:sync'), cloudNow: () => r.invoke('cloud:now'), cloudRestore: () => r.invoke('cloud:restore'), cloudKeep: () => r.invoke('cloud:keep'), cloudWipe: () => r.invoke('cloud:wipe'),
   worldsAll: () => r.invoke('worlds:all'), worldOpen: o => r.invoke('worlds:open', o), worldBackup: o => r.invoke('worlds:backup', o), worldTrash: o => r.invoke('worlds:trash', o), worldsCopy: o => r.invoke('worlds:copy', o), worldsImport: id => r.invoke('worlds:import', id),
   modsHas: o => r.invoke('mods:has', o), modsProjects: o => r.invoke('mods:projects', o), modsBundle: o => r.invoke('mods:bundle', o),
-  releases: () => r.invoke('app:releases'), rollback: o => r.invoke('app:rollback', o),
+  reset: () => r.invoke('app:reset'),
   importScan: () => r.invoke('import:scan'), importRun: d => r.invoke('import:run', d),
   settingsExport: o => r.invoke('settings:export', o), settingsImport: () => r.invoke('settings:import'),
   worldLast: () => r.invoke('world:last'), diag: id => r.invoke('diag:run', id),

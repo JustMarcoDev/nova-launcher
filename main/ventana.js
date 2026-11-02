@@ -115,11 +115,8 @@ ipcMain.handle('cfg:set', (e, c) => { wr(cfgFile, { ...load(), ...c }); if ('myS
 ipcMain.handle('folder', () => { fs.mkdirSync(root, { recursive: true }); return shell.openPath(root); });
 ipcMain.on('win', (e, a) => a === 'min' ? S.win.minimize() : a === 'max' ? (S.win.isMaximized() ? S.win.unmaximize() : S.win.maximize()) : S.win.close());
 ipcMain.handle('ver', () => app.getVersion());
-// Avisos de licencias de terceros: se copia a la carpeta de datos (no se puede abrir desde app.asar) y se abre
-ipcMain.handle('notices', async () => {
-  try { const dst = path.join(root, 'THIRD-PARTY-NOTICES.txt'); fs.mkdirSync(root, { recursive: true }); fs.writeFileSync(dst, fs.readFileSync(path.join(APP, 'THIRD-PARTY-NOTICES.txt'))); return !(await shell.openPath(dst)); }
-  catch { return false; }
-});
+// Avisos de licencias de terceros: se devuelve el texto para mostrarlo en un panel de la app
+ipcMain.handle('notices', async () => { try { return fs.readFileSync(path.join(APP, 'THIRD-PARTY-NOTICES.txt'), 'utf8'); } catch { return ''; } });
 ipcMain.handle('cache:clear', async () => { try { await S.win.webContents.session.clearCache(); fs.rmSync(path.join(root, 'versions_cache.json'), { force: true }); await rmAsync(imgDir()); } catch {} return true; });
 ipcMain.handle('disk:usage', async () => {
   let total = 0, n = 0; const walk = async d => { let es; try { es = await fs.promises.readdir(d, { withFileTypes: true }); } catch { return; }
