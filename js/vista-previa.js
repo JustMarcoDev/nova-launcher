@@ -75,7 +75,6 @@ Object.assign(DA,{worldsAll:async()=>[{inst:"d1",instName:"Fabric 1.21.1",mc:"1.
 // ---- her2 ----
 Object.assign(DA,{importScan:async()=>[{src:"oficial",label:"Launcher oficial",name:"Minecraft oficial",dir:"/x/.minecraft",mc:"1.21.1",ld:"Vanilla",worlds:6,mods:0,unsupported:""},{src:"prism",label:"Prism",name:"Mi Prism",dir:"/x/prism",mc:"1.20.1",ld:"Fabric",worlds:2,mods:34,unsupported:""},{src:"curseforge",label:"CurseForge",name:"All the Mods 9",dir:"/x/cf",mc:"1.20.1",ld:"Forge",worlds:1,mods:180,unsupported:""}],importRun:async()=>({ins:{}})});
 // ---- her3 ----
-Object.assign(DA,{releases:async()=>[{version:"0.2.11",date:"2026-10-05T10:00:00Z",size:84e6,pre:false,url:"https://x"},{version:"0.2.10",date:"2026-09-28T10:00:00Z",size:83e6,pre:false,url:"https://x"},{version:"0.2.9",date:"2026-09-20T10:00:00Z",size:82e6,pre:false,url:"https://x"}],rollback:async()=>{throw new Error("Vista previa: solo funciona en la app instalada")}});
 // ---- her_srv ----
 function pvSrv(s){SST[mkey(s)]={online:true,players:Math.round(Math.random()*40),max:100,ping:30,version:"1.21.1",motd:"Servidor de ejemplo"}}
 // ---- srv ----

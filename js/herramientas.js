@@ -45,12 +45,27 @@ modal(hdr(null,"Importar desde otro launcher","Minecraft oficial, CurseForge, Pr
 let L=[];try{L=await api.importScan()}catch(e){flash(em(e))}if(!$("iml"))return;
 $("iml").innerHTML=L.length?L.map((x,k)=>`<div class="mr"><div class="ico">${IC("folder")}</div><div class="nm"><b>${esc(x.name)}</b><small>${esc(x.label)} · ${esc(x.ld)} ${esc(x.mc||"?")} · ${x.worlds} mundos · ${x.mods} mods${x.unsupported?" · "+esc(x.unsupported):""}</small></div><button class="btn sm pr" data-k="${k}" ${x.unsupported?"disabled":""}>Importar</button></div>`).join(""):'<div class="emp">No se encontró nada en las carpetas habituales de otros launchers.</div>';
 $("iml").onclick=async e=>{const b=e.target.closest("button[data-k]");if(!b)return;const x=L[+b.dataset.k];b.disabled=true;b.textContent="Importando…";try{await api.importRun(x.dir);if(A)await loadI();b.textContent="Importada ✓";flash("Instancia importada: "+x.name)}catch(er){b.disabled=false;b.textContent="Reintentar";flash(em(er))}}}
-// --- Volver a una versión anterior ---
-async function openRollback(){const api=A||DA;
-modal(hdr(null,"Volver a una versión anterior","Ahora tienes la "+VER)+`<div class="wn">Se descargará e instalará la versión que elijas. Tus mundos, mods, cuentas y ajustes se conservan. Para que no vuelva a actualizarse sola, se desactiva «Buscar actualizaciones al abrir» (puedes activarlo otra vez en Ajustes → Rendimiento).</div><div id="rbl" style="display:flex;flex-direction:column;gap:7px"><div class="emp">Buscando versiones…</div></div><div class="acts"><button class="btn" data-x>Cerrar</button></div>`);
-let L=[];try{L=(await api.releases()).filter(r=>verCmp(r.version,VER)<0)}catch(e){if($("rbl"))$("rbl").innerHTML='<div class="emp">No se pudo leer la lista de versiones (¿sin conexión?).</div>';return}
-if(!$("rbl"))return;$("rbl").innerHTML=L.length?L.map((r,k)=>`<div class="mr"><div class="ico">${IC("dl")}</div><div class="nm"><b>Nova Launcher ${esc(r.version)}${r.pre?" · beta":""}</b><small>${new Date(r.date).toLocaleDateString(LCUR,{day:"numeric",month:"long",year:"numeric"})} · ${fSz(r.size)}</small></div><button class="btn sm pr" data-k="${k}">Instalar</button></div>`).join(""):'<div class="emp">No hay versiones anteriores publicadas.</div>';
-$("rbl").onclick=async e=>{const b=e.target.closest("button[data-k]");if(!b)return;const r=L[+b.dataset.k];if(!confirm("¿Instalar Nova Launcher "+r.version+"? El launcher se cerrará y se abrirá el instalador."))return;b.disabled=true;b.textContent="Descargando…";try{await api.rollback({url:r.url,version:r.version})}catch(x){b.disabled=false;b.textContent="Reintentar";flash(em(x))}}}
+// --- Desinstalar, restablecer y aviso legal ---
+function openUninstall(){
+const prem=(cfg.accounts||[]).some(a=>a.type==="microsoft");
+const OP=[["cuentas","user","Desinstalar y conservar mis cuentas premium",prem?"Borra instancias, mundos, mods y ajustes. Se quedan tus cuentas de Microsoft con su configuración (skin y cuenta activa)":"Ahora no tienes ninguna cuenta premium, así que se borrará todo"],
+["todo","trash","Desinstalar todo","Quita el programa y borra todos los datos: instancias, mundos, mods, cuentas y ajustes"],
+["programa","box","Solo el programa","Quita Nova Launcher y deja tus datos para cuando lo reinstales"]];
+modal(hdr(null,trad("Desinstalar Nova Launcher"),trad("Elige qué quieres hacer con tus datos"))+`<div class="unm">${OP.map(([k,i,t,d])=>`<button class="unc${k==="todo"?" dg":""}" data-um="${k}"><span class="oi">${IC(i)}</span><span class="ot"><b>${trad(t)}</b><span>${trad(d)}</span></span></button>`).join("")}</div>`);
+$("mdl").querySelector(".unm").onclick=e=>{const b=e.target.closest("[data-um]");if(!b)return;const k=b.dataset.um,o=OP.find(x=>x[0]===k);
+modal(hdr(null,trad("¿Seguro?"),trad(o[2]))+`<div class="wn">${trad(o[3])}${k==="programa"?"":"<br><b>"+trad("Esto no se puede deshacer.")+"</b>"}</div><div class="acts"><button class="btn" id="unx">${trad("Atrás")}</button><button class="btn dg" id="unq">${trad("Desinstalar")}</button></div>`);
+$("unx").onclick=openUninstall;
+$("unq").onclick=async ev=>{ev.target.disabled=true;if(!A||!A.uninstall){flash(trad("Solo en la app instalada"));ev.target.disabled=false;return}
+const r=await A.uninstall({mode:k}).catch(()=>null);if(!r||!r.ok){ev.target.disabled=false;flash(trad(r&&r.why==="nouninst"?"No se encontró el desinstalador. Usa Configuración de Windows → Aplicaciones":"No se pudo iniciar la desinstalación. Usa Configuración de Windows → Aplicaciones"))}}}}
+function openFactory(){
+modal(hdr(null,trad("Restablecer el launcher"),trad("Volverá a estar como la primera vez"))+`<div class="wn">${trad("Se borrarán tus cuentas, instancias, mundos, mods y ajustes, y el launcher se reiniciará con el asistente de bienvenida.")}<br><b>${trad("Esto no se puede deshacer.")}</b></div><div class="acts"><button class="btn" data-x>${trad("Cancelar")}</button><button class="btn dg" id="fcq">${trad("Restablecer todo")}</button></div>`);
+$("fcq").onclick=async e=>{if(!A||!A.reset){flash(trad("Solo en la app instalada"));return}e.target.disabled=true;const r=await A.reset().catch(()=>null);
+if(!r||!r.ok){e.target.disabled=false;flash(trad(r&&r.why==="running"?"Cierra Minecraft antes de restablecer":"No se pudo restablecer"))}}}
+async function openLegal(){
+modal(`<h3>${trad("Aviso legal")}</h3><div class="legal">Nova Launcher es un proyecto dirigido por <b>Astrion Studio</b>. © 2026 Astrion Studio. Todos los derechos reservados.<br>No tiene ninguna relación con Mojang Studios ni con Microsoft: no está afiliado, aprobado ni patrocinado por ellos. Minecraft es una marca registrada de Mojang Studios.</div><details class="lgd"><summary>${trad("Licencias de terceros")}</summary><pre class="lgx" id="lgt"></pre></details><div class="acts"><button class="btn" id="lga" data-x>${trad("Aceptar")}</button></div>`,"sm");
+const x=$("mdl").querySelector(".mx");if(x)x.remove();
+$("lga").focus();
+$("mdl").querySelector("details").addEventListener("toggle",async function(){const t=$("lgt");if(!this.open||!t||t.textContent)return;let v="";try{v=A&&A.notices?await A.notices():""}catch{}t.textContent=v||trad("Solo en la app instalada")},{once:true})}
 // --- Ajustes en un archivo ---
 const SXK=()=>SC.filter(s=>["apar","bg","ui","acc"].includes(s.id)).flatMap(s=>s.rows).filter(r=>r.k);
 function pickJson(){return new Promise(res=>{const i=document.createElement("input");i.type="file";i.accept=".json";i.onchange=async()=>{const f=i.files[0];if(!f)return res({canceled:true});try{const j=JSON.parse(await f.text());if(!j||j.app!=="nova-launcher"||!j.settings)throw 0;res({settings:j.settings})}catch{res({error:1})}};i.click()})}

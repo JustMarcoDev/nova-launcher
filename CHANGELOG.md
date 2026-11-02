@@ -3,6 +3,14 @@
 Todo lo que cambia en cada versión de Nova Launcher y del menú de Nova (el mod), de la más nueva a la más antigua. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**, y el flujo de publicación copia la entrada de cada versión a las notas de su release. Al sacar una versión nueva, añade su entrada `### x.y.z — Título` **al principio** de la lista.
 
 
+### 0.2.18-beta.1 — Ajustes más claros: desinstalar y restablecer, Acerca de más limpio y un Streamer con más opciones
+
+- **Restablecer el launcher** (`main/restablecer.js`, `app:reset`, Ajustes → Desinstalación): borra cuentas, instancias, mundos, mods y ajustes y reinicia como la primera vez, con el asistente de bienvenida. Se niega si hay un juego abierto.
+- **Desinstalar en tres modos** (`app:uninstall`): todo; conservar solo las cuentas premium (Microsoft) con su configuración (cuenta activa y skins elegidas); o solo el programa. El menú es un panel con tres opciones y un paso de confirmación, y el símbolo es una papelera (`i-trash`). `tests/restablecer.js` comprueba el borrado.
+- **Acerca de**: se quitan el asistente de bienvenida (sigue saliendo la primera vez y tras restablecer), la web de descarga y «Volver a una versión anterior» (`app:releases` y `app:rollback` eliminados). El aviso legal es un panel pequeño con un único botón «Aceptar»; las licencias de terceros se leen dentro del panel en vez de abrir un .txt.
+- **Historial de actualizaciones**: colores fijos — Añadido verde, Mejorado azul, Quitado rojo, Arreglado amarillo.
+- **Streamer** (`main/streamer.js`, `js/ajustes.js`): el overlay admite `head=0`, `ver=1`, `scale` (0,5–2) y `op` (0,2–1). En Ajustes se elige qué se ve (cabeza, FPS, servidor, tiempo, versión), el diseño por defecto, el color, el tamaño y la opacidad; el enlace se actualiza solo y hay un botón «Abrir en el navegador».
+
 ### 0.2.17 — Versión estable: overlay del streamer en tres estilos, correcciones y limpieza
 
 - **Overlay del streamer** (`main/streamer.js`, `js/ajustes.js`): tres estilos (barra, tarjeta y esquina) con vista previa y botón para copiar el enlace.

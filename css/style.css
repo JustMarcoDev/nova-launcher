@@ -2401,6 +2401,10 @@ main {
   color: #ff7b7b;
 }
 
+.ct.f {
+  color: #ffd93d;
+}
+
 .cv ul {
   margin: 0 0 6px 18px;
   color: var(--m);
@@ -4317,3 +4321,15 @@ button:focus-visible, .o:focus-visible, [data-stc]:focus-visible { outline: 2px 
 ::selection { background: rgba(245, 185, 66, .35); }
 img { -webkit-user-drag: none; }
 @media (prefers-reduced-motion: reduce) { .o { transition: none; } }
+
+/* Desinstalar, restablecer y aviso legal */
+.unm { display: grid; gap: 8px; margin-top: 12px; }
+.unc { display: flex; align-items: center; gap: 12px; text-align: left; width: 100%; padding: 12px 14px; border-radius: calc(12px*var(--rs,1)); border: 1px solid var(--bd, rgba(255,255,255,.1)); background: rgba(255,255,255,.04); color: inherit; font: inherit; cursor: pointer; transition: background .15s, border-color .15s, transform .15s; }
+.unc:hover { background: rgba(255,255,255,.08); border-color: var(--ac); }
+.unc.dg:hover { border-color: #ff6b6b; }
+.unc.dg .oi { color: #ff8a8a; }
+.unc .ot { display: grid; gap: 2px; min-width: 0; }
+.unc .ot span { color: var(--m); font-size: 12px; }
+.lgd { margin-top: 10px; font-size: 12px; color: var(--m); }
+.lgd summary { cursor: pointer; color: var(--tx); }
+.lgx { max-height: 180px; overflow: auto; white-space: pre-wrap; font: 11px/1.5 ui-monospace, Consolas, monospace; margin: 8px 0 0; padding: 8px; border-radius: 8px; background: rgba(0,0,0,.25); }

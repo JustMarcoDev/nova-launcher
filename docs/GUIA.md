@@ -68,7 +68,7 @@ La pestaña **Servidores** (Alt + 4) muestra servidores conocidos con jugadores 
 - **Mundos (por instancia):** Instancias → Opciones → Mundos. Lista los mundos, copia uno a otra instancia e importa mapas `.zip`.
 - **Tus servidores:** pestaña Servidores → Mis servidores. Se muestran con ping y jugadores y se añaden también a la lista de servidores de Minecraft (sin borrar los que ya tengas).
 - **Shaders:** al instalar un shader en una instancia sin Iris, el launcher ofrece instalar Iris y Sodium (Oculus y Embeddium en Forge), crear una instancia Fabric preparada o instalar solo el shader.
-- **Asistente de bienvenida** (primer inicio, o Ajustes → Acerca de): cuenta, RAM recomendada, color/tema y primera versión.
+- **Asistente de bienvenida** (primer inicio, o tras Ajustes → Desinstalación → Restablecer el launcher): cuenta, RAM recomendada, color/tema y primera versión.
 - **Buscador `Ctrl + K`:** versiones, instancias, ajustes y mods de Modrinth.
 - **Importar desde otros launchers:** `.minecraft` oficial, CurseForge y Prism/MultiMC (Instancias → Otros launchers). Copia mundos, mods, configuración, texturas y shaders; lo original no se toca. Las instancias con Quilt no se pueden importar.
 - **Ajustes en un archivo:** Ajustes → Acerca de → Guardar mis ajustes. Exporta e importa colores, tipografía, agujero negro y accesibilidad.
@@ -77,7 +77,7 @@ La pestaña **Servidores** (Alt + 4) muestra servidores conocidos con jugadores 
 
 - **Notas de la release:** el flujo **Crear version** (`.github/workflows/release.yml`) copia a la página de la versión la entrada de ese número en «Historial de actualizaciones» de este README (la saca `scripts/release-notes.js`). Por eso hay que escribir la entrada **antes** de ejecutar el flujo.
 - **Beta:** si la versión de `package.json` lleva guion (por ejemplo `0.2.14-beta.1`), el flujo la publica como *pre-release*. Solo la reciben los launchers con Ajustes → Rendimiento → Canal de actualizaciones = **Beta**. Los de **Estable** la ignoran. Para una beta sin entrada propia se usa la de la versión sin el sufijo.
-- **Volver a la versión anterior:** Ajustes → Acerca de → Volver a una versión anterior. Lista las releases de GitHub más antiguas que la instalada y ejecuta su instalador. Para que no se actualice sola otra vez, desactiva «Buscar actualizaciones al abrir»; vuelve a activarlo en Ajustes → Rendimiento cuando quieras.
+- **Desinstalar y restablecer:** Ajustes → Desinstalación. «Restablecer el launcher» lo deja como la primera vez (sin cuenta ni instancias). «Desinstalar» ofrece tres opciones: todo, conservar las cuentas premium con su configuración, o solo el programa.
 
 ## Instalar para todos los usuarios o solo para ti (desde la 0.2.15-beta.13)
 
