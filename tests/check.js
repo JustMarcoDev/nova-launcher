@@ -118,6 +118,11 @@ if (ver !== pkg.version) bad('VER en js/base.js (' + ver + ') no coincide con pa
   const r = require('child_process').spawnSync(process.execPath, [path.join(__dirname, 'streamer.js')], { encoding: 'utf8' });
   if (r.status !== 0) bad('tests/streamer.js falló:\n' + (r.stdout || '') + (r.stderr || '')); else console.log(r.stdout.trim());
 }
+// Restablecer / desinstalar: borrar datos conservando las cuentas premium
+{
+  const r = require('child_process').spawnSync(process.execPath, [path.join(__dirname, 'restablecer.js')], { encoding: 'utf8' });
+  if (r.status !== 0) bad('tests/restablecer.js falló:\n' + (r.stdout || '') + (r.stderr || '')); else console.log(r.stdout.trim());
+}
 // Clips de los últimos 30 s: lógica pura
 {
   const r = require('child_process').spawnSync(process.execPath, [path.join(__dirname, 'clips.js')], { encoding: 'utf8' });
