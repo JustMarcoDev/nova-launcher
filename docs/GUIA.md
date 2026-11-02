@@ -26,7 +26,7 @@ También puedes comprobarlo a mano en **Ajustes → Acerca de → Buscar actuali
 
 ## Redes sociales del creador
 
-La pestaña **Redes** está vacía de momento. Para activar una red, abre `index.html`, busca `const SOC=[` y pon el enlace en `u:""` (por ejemplo `u:"https://www.youtube.com/@tucanal"`).
+La pestaña **Redes** está vacía de momento. Para activar una red, abre `index.html`, busca `const SOC=[` y pon el enlace en `u:""` (por ejemplo `u:"https://www.tiktok.com/@tucanal"`).
 
 ## Discord: que todos vean «Nova Launcher» como actividad (desde la 0.2.7)
 

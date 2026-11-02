@@ -3,6 +3,14 @@
 Todo lo que cambia en cada versión de Nova Launcher y del menú de Nova (el mod), de la más nueva a la más antigua. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**, y el flujo de publicación copia la entrada de cada versión a las notas de su release. Al sacar una versión nueva, añade su entrada `### x.y.z — Título` **al principio** de la lista.
 
 
+### 0.2.18-beta.3 — Mundos con total, 15 servidores más, TikTok en Redes y un launcher más claro
+
+- **Redes** (`js/social.js`): TikTok sustituye a YouTube (el enlace queda vacío, «Próximamente», hasta tenerlo).
+- **Mundos** (`js/mundos.js`, `index.html`): total de mundos y de instancias arriba a la derecha (`#mut`) y más separación entre filas (`#mul`).
+- **Servidores** (`js/servidores.js`): 15 más (Minehut, Manacube, Mineland, Shotbow, Origin Realms, BlocksMC, JartexNetwork, Rinaorc, EarthMC, DonutSMP, MineMalia, Cytooxien, GommeHD, DemocracyCraft y BedWars Practice); descripción de hasta 3 líneas. Las direcciones están puestas de memoria y no se han comprobado una a una.
+- **Mods y modpacks** (`js/mods.js`): icono de relleno con la inicial, descripción de 3 líneas, botón «Instalar» más claro y más aire en las tarjetas.
+- **General**: subtítulo explicativo en Versiones, Mods y modpacks, Ajustes y Redes.
+
 ### 0.2.18-beta.2 — Menos ajustes, más claros: lo que antes era opcional ahora funciona solo
 
 - **Interfaz y Fondo, juntos** (`js/ajustes.js`): un solo apartado «Interfaz y fondo».
