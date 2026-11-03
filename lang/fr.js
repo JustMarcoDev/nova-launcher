@@ -1283,5 +1283,15 @@ window.LANGS.fr={name:"Français",d:{
 "Usar el fondo del menú de Nova":"Utiliser le fond du menu Nova",
 "El launcher muestra el mismo fondo que elegiste en el menú del juego: tu imagen o vídeo, o el agujero negro. Nebulosa y Earth se ven aquí como agujero negro. Se actualiza al cambiarlo en «Menú de Nova» y al volver a esta ventana":"Le launcher affiche le même fond que celui choisi dans le menu du jeu : ton image ou ta vidéo, ou le trou noir. Nébuleuse et Earth s'affichent ici comme le trou noir. Mise à jour quand tu le changes dans « Menu Nova » et quand tu reviens à cette fenêtre",
 "Comprobando servidores…":"Vérification des serveurs…",
-"Cargando estadísticas…":"Chargement des statistiques…"
+"Cargando estadísticas…":"Chargement des statistiques…",
+"Mostrar la cabeza de tu skin":"Afficher la tête de ton skin",
+"La cabeza de la skin que llevas equipada en el launcher":"La tête du skin équipé dans le launcher",
+"Mostrar el nombre del servidor":"Afficher le nom du serveur",
+"El servidor en el que juegas ahora: si cambias de servidor, el nombre cambia solo":"Le serveur sur lequel tu joues : si tu en changes, le nom change tout seul",
+"Mostrar la IP del servidor":"Afficher l'IP du serveur",
+"Ojo: la verán tus espectadores. Viene desactivado":"Attention : tes spectateurs la verront. Désactivé par défaut",
+"Mostrar la sesión":"Afficher la session",
+"El tiempo que llevas jugando en esta sesión, en directo":"Le temps joué pendant cette session, en direct",
+"Mostrar la versión y el lanzador":"Afficher la version et le lanceur",
+"Por ejemplo 1.21.1 · Fabric + Nova, Forge o NeoForge":"Par exemple 1.21.1 · Fabric + Nova, Forge ou NeoForge"
 }};

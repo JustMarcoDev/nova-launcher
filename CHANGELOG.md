@@ -3,6 +3,14 @@
 Todo lo que cambia en cada versión de Nova Launcher y del menú de Nova (el mod), de la más nueva a la más antigua. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**, y el flujo de publicación copia la entrada de cada versión a las notas de su release. Al sacar una versión nueva, añade su entrada `### x.y.z — Título` **al principio** de la lista.
 
 
+### 0.2.18-beta.8 — Overlay de streamer funcional y sus ajustes
+
+- **Ajustes → Streamer**: cabeza de la skin equipada en el launcher, nombre del servidor, IP del servidor (apagada por defecto, `stIp`), sesión y versión con lanzador (`stVer`, ahora encendido por defecto). Se quita el ajuste de FPS.
+- **El overlay ya no depende del mod** (`main/streamer.js`): antes solo se llenaba si el jugador activaba el modo streamer del mod (F7) y el mod escribía `estado.json`. Ahora el launcher apunta la partida al lanzarla (`R.streamerGame`: jugador, versión, lanzador, hora de inicio, servidor) y lee cada línea del registro: «Connecting to host, puerto» cambia el servidor (el nombre sale de `servers.dat` de la instancia, de Mis servidores o, si no hay, la dirección) y «Starting integrated minecraft server» pone «Un jugador». Si el mod escribió `estado.json` durante esta partida (`ts` ≥ inicio) completa el nombre del servidor y los FPS; un `estado.json` de otra partida se ignora.
+- **Lanzador**: Vanilla con el menú → «Nova», Fabric con el menú → «Fabric + Nova», y Forge, NeoForge o Quilt tal cual (sin menú de Nova: Vanilla/Fabric).
+- **En vivo**: los ajustes los lee el overlay desde el launcher, así que no hay que volver a copiar el enlace al cambiarlos; la sesión es un contador local (h:mm:ss); la IP solo viaja en `/estado` si el ajuste está encendido. `?demo=1` enseña datos de ejemplo (el botón «Abrir en el navegador» lo usa cuando no hay juego). `head=0`, `server=0`, `time=0`, `ver=0` siguen sirviendo para esconder cosas en una escena, y `fps=1` muestra los FPS si el mod los da.
+- **Límite**: sin el mod, al salir de un servidor al menú el launcher no se entera (no hay línea en el registro) y sigue mostrando el último hasta que entres a otro o a un mundo; con el mod activo y su `estado.json` al día sí se apaga. Probado con tests y navegador, no con Minecraft real.
+
 ### 0.2.18-beta.7 — Modo streamer más simple
 
 - **Streamer** (`js/ajustes.js`): quitados los ajustes **Puerto**, **Diseño por defecto**, **Tamaño del overlay** y **Opacidad**. El puerto sigue siendo 7777 (quien ya lo había cambiado conserva el suyo, `streamerPort` se sigue respetando), cada diseño tiene su propio botón de copiar enlace, y el tamaño y la opacidad se ajustan en OBS (también siguen funcionando `scale=` y `op=` en la dirección si se escriben a mano).

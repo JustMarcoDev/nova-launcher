@@ -104,5 +104,21 @@ function syncServers(dir, list) {
 }
 
 
+/** Nombre con el que el jugador guardó un servidor (servers.dat de la instancia), buscándolo por su dirección; '' si no está. */
+function serverNameOf(dir, host, port) {
+  try {
+    const root = nbtRead(fs.readFileSync(path.join(dir, 'servers.dat')));
+    const sv = root.tag.v.find(([k, x]) => k === 'servers' && x.t === 9); if (!sv) return '';
+    const want = String(host).toLowerCase(), alt = want + ':' + (port || 25565);
+    for (const c of sv[1].v) {
+      if (c.t !== 10) continue;
+      const ip = c.v.find(([k]) => k === 'ip'), nm = c.v.find(([k]) => k === 'name');
+      const a = ip ? String(ip[1].v).toLowerCase() : '';
+      if (nm && (a === alt || (a === want && (!port || port === 25565)))) return String(nm[1].v);
+    }
+  } catch {}
+  return '';
+}
+
 // Lo que usan otros módulos
-Object.assign(R, { modernQP, syncServers });
+Object.assign(R, { modernQP, syncServers, serverNameOf });

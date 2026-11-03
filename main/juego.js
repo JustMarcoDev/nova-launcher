@@ -184,9 +184,9 @@ async function playGame(opts) {
       CLIP: () => { if (R.clipsSave) R.clipsSave(id).catch(() => {}); },
       SHOW: () => { if (S.win) { if (S.win.isMinimized()) S.win.restore(); S.win.show(); S.win.focus(); } }
     });
-    l.on('data', d => { const t = String(d); mk(t); try { lg.w.write(t.endsWith('\n') ? t : t + '\n'); } catch {} for (const ln of t.split(/\r?\n/)) if (ln) tail.push(ln); if (tail.length > 500) tail.splice(0, tail.length - 300); send('log', t); });
+    l.on('data', d => { const t = String(d); mk(t); try { if (R.streamerGame) R.streamerGame.line(t, R.streamerGame.names); } catch {} try { lg.w.write(t.endsWith('\n') ? t : t + '\n'); } catch {} for (const ln of t.split(/\r?\n/)) if (ln) tail.push(ln); if (tail.length > 500) tail.splice(0, tail.length - 300); send('log', t); });
     l.on('close', code => {
-      running.delete(id); try { if (R.clipsStop) R.clipsStop().catch(() => {}); } catch {} if (running.size === 0) restorePrio(); try { lg.w.end(); } catch {} setTimeout(() => { try { R.bkSchedule(); } catch {} }, 4000); if (t0) { statsEnd(sk, Date.now() - t0); const cur = li().find(i => i.id === id) || {}; upIns(id, { playMs: (cur.playMs || 0) + (Date.now() - t0), lastPlayed: Date.now() }); } discordSet(null); send('running', running.size ? 1 : 0); send('progress', null);
+      running.delete(id); try { if (R.streamerGame) R.streamerGame.stop(); } catch {} try { if (R.clipsStop) R.clipsStop().catch(() => {}); } catch {} if (running.size === 0) restorePrio(); try { lg.w.end(); } catch {} setTimeout(() => { try { R.bkSchedule(); } catch {} }, 4000); if (t0) { statsEnd(sk, Date.now() - t0); const cur = li().find(i => i.id === id) || {}; upIns(id, { playMs: (cur.playMs || 0) + (Date.now() - t0), lastPlayed: Date.now() }); } discordSet(null); send('running', running.size ? 1 : 0); send('progress', null);
       if (S.switching && S.switching.id === id) {   // cambio de usuario desde el mod: se vuelve a abrir la misma instancia con la otra cuenta
         const nx = S.switching; S.switching = null; send('status', 'Cambiando de usuario…');
         setTimeout(() => { playGame({ id: nx.id, safe: nx.safe }).catch(() => {}); }, 700);
@@ -207,6 +207,11 @@ async function playGame(opts) {
     send('status', 'Descargando archivos del juego…');
     if (!(proc = await l.launch(o))) throw new Error('No se pudo iniciar Minecraft');
     running.add(id); t0 = Date.now(); applyPrio(proc);
+    try { // overlay del modo streamer: qué se juega, con qué lanzador y desde cuándo
+      const st = R.accState ? R.accState() : null, my = Array.isArray(cfg.myServers) ? cfg.myServers : [];
+      R.streamerGame.start({ t0, player: st && st.act ? st.act.name : cfg.username, mc: ins.mc, launcher: R.streamerLauncher(ins.ld, nova), server });
+      R.streamerGame.names = (h, p) => (R.serverNameOf ? R.serverNameOf(path.join(root, 'instances', String(id)), h, p) : '') || ((my.find(m => String(m.host).toLowerCase() === String(h).toLowerCase() && (+m.port || 25565) === (+p || 25565)) || {}).name || '');
+    } catch {}
     try { if (R.clipsWhy && R.clipsWhy()) send('status', R.clipsWhy()); if (R.clipsEnabled && R.clipsEnabled()) R.clipsStart(id, path.join(root, 'instances', String(id), 'screenshots')).catch(() => {}); } catch {}
     try { sk = statsStart(ins, server); } catch {} if (!ins.bench) { try { R.sendUsage(ins); } catch {} } upIns(id, { lastPlayed: t0 });
     send('running', 1); discordSet({ details: server && server.name && !streamerOn() ? 'En ' + server.name + ' · ' + ins.mc : 'Jugando a Minecraft ' + ins.mc, state: (ins.ld || 'Vanilla') + ' · Nova Launcher', startTimestamp: Date.now() }); send('status', 'Minecraft en ejecución'); if (cfg.closeOnLaunch) S.win.hide(); else if (cfg.gameMode !== false && cfg.conOpen === false) gameHide();
