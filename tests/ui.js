@@ -159,7 +159,9 @@ const w = dom.window, sleep = ms => new Promise(r => setTimeout(r, ms));
   // Pestaña Estadísticas: gráfico de 8 semanas, tres listas de top 5 y el total de capturas
   {
     const g = id => w.document.getElementById(id);
-    w.document.querySelector('nav [data-p=sta]').click(); await sleep(300);
+    w.document.querySelector('nav [data-p=sta]').click(); await sleep(100);
+    if (!g('stp').querySelector('.stld')) errors.push('Estadísticas: no sale la pantalla de carga');
+    await sleep(1900); // carga mínima + cuenta de las cifras
     if (g('stp').querySelectorAll('.stbar').length !== 8) errors.push('Estadísticas: el gráfico debe tener 8 barras (' + g('stp').querySelectorAll('.stbar').length + ')');
     if (g('stp').querySelectorAll('.stg3 .card').length !== 3) errors.push('Estadísticas: faltan las listas de instancias, versiones y servidores');
     if ([...g('stp').querySelectorAll('.stbig')].map(e => e.textContent).join() !== '7,3 h,6,7') errors.push('Estadísticas: no sale el total de capturas (' + [...g('stp').querySelectorAll('.stbig')].map(e => e.textContent).join() + ')');

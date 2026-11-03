@@ -41,12 +41,19 @@ async function stShare(){const d=STA.d;if(!d)return;const per=STA.per||"all",S=(
  const blob=await new Promise(r=>c.toBlob(r,"image/png"));
  try{await navigator.clipboard.write([new ClipboardItem({"image/png":blob})]);flash(trad("Imagen copiada al portapapeles ✓"))}
  catch{const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="nova-estadisticas.png";a.click();flash(trad("No se pudo copiar: se ha descargado la imagen"))}}
-async function statsOpen(){const el=$("stp");if(!el)return;const api=A||DA;let d;
- try{d=await api.statsGet()}catch(e){flash(em(e));return}
+let STTK=0;
+/* Cuenta de 0 al valor final en las cifras grandes (si no hay «reducir movimiento») */
+function stCount(el){const m=/^(\d+(?:[.,]\d+)?)(.*)$/.exec(el.textContent.trim());if(!m||cfg.rmotion||(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches))return;
+ const to=parseFloat(m[1].replace(",",".")),dec=/[.,]/.test(m[1])?1:0,u=m[2],t0=performance.now();
+ const f=t=>{const k=Math.min(1,(t-t0)/800),e=1-Math.pow(1-k,3),v=to*e;el.textContent=(dec?v.toFixed(1).replace(".",","):Math.round(v))+u;if(k<1)requestAnimationFrame(f);else el.textContent=m[1]+u};requestAnimationFrame(f)}
+async function statsOpen(quiet){const el=$("stp");if(!el)return;const api=A||DA,tk=++STTK;let d;
+ if(!quiet){el.classList.remove("go");el.innerHTML='<div class="stld"><i class="skspin"></i><span>Cargando estadísticas…</span></div>'}
+ try{const r=await Promise.all([api.statsGet(),quiet?0:new Promise(o=>setTimeout(o,550))]);d=r[0]}catch(e){flash(em(e));return}
+ if(tk!==STTK)return;
  STA.d=d;el.classList.remove("go");const per=STA.per||"all",S0=d.sessions||[],S=S0.filter(x=>stIn(x,per)),B=per==="all"?(d.before||[]):[],all=[...S,...B],P=stPeriods(S0);
  const tot=all.reduce((t,r)=>t+r.ms,0),pre=B.reduce((t,r)=>t+r.ms,0);
  const nm=r=>r.name||"Instancia",ver=r=>r.mc?"Minecraft "+r.mc+" · "+(r.ld||"Vanilla"):"";
  el.innerHTML=`<div class="acts" style="margin-bottom:10px"><select id="stper" class="inp" aria-label="Periodo"><option value="all">Todo el tiempo</option>${P.y.map(y=>`<option value="${y}">${y}</option>`).join("")}${P.m.map(m=>`<option value="${m}">${stPerLabel(m)}</option>`).join("")}</select><button class="btn sm" id="stsh">Compartir</button></div><div class="stk"><div class="card"><h4>Tiempo jugado</h4><b class="stbig">${stHrs(tot)}</b></div><div class="card"><h4>Partidas</h4><b class="stbig">${S.length}</b></div><div class="card"><h4>Capturas</h4><b class="stbig">${d.shots||0}</b></div></div>
  <div class="card stcc"><h4>Horas jugadas <small>${per==="all"?"últimas 8 semanas":per.length===4?"por mes":"por día"}</small></h4>${S.length?stChart(S,per):'<p class="sub" style="margin:6px 0 0">Aún no hay partidas con fecha. Juega y aparecerán aquí.</p>'}</div>
  <div class="stg3">${stList("Instancias",stTop(all,nm,5),"Sin datos todavía")}${stList("Versiones",stTop(all,ver,5),"Sin datos todavía")}${stList("Servidores",stTop(S,r=>r.server,5),"Aún no has entrado a ningún servidor desde el launcher")}</div>
- ${pre>0?`<p class="sub">Incluye ${stHrs(pre)} jugadas antes de que existieran las estadísticas (sin fecha: no salen en el gráfico).</p>`:""}`;const sel=$("stper");sel.value=per;sel.onchange=()=>{STA.per=sel.value;statsOpen()};$("stsh").onclick=stShare;void el.offsetWidth;el.classList.add("go")}
+ ${pre>0?`<p class="sub">Incluye ${stHrs(pre)} jugadas antes de que existieran las estadísticas (sin fecha: no salen en el gráfico).</p>`:""}`;const sel=$("stper");sel.value=per;sel.onchange=()=>{STA.per=sel.value;statsOpen(true)};$("stsh").onclick=stShare;void el.offsetWidth;el.classList.add("go");el.querySelectorAll(".stbig").forEach(stCount)}

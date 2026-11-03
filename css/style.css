@@ -4351,3 +4351,13 @@ img { -webkit-user-drag: none; }
 /* Fondo del menú de Nova en el launcher (imagen o vídeo del jugador) */
 #fmbg { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; filter: brightness(.5) saturate(1.05); pointer-events: none; }
 html.fm #cv { display: none; }
+
+/* Servidores: mientras se comprueba cada uno, su estado muestra un brillo suave y, al llegar, aparece con un fundido */
+.svm .dot.ld { background: var(--ac); animation: pulse 1s ease-in-out infinite; }
+.svsh { background: linear-gradient(90deg, var(--m) 20%, #fff 50%, var(--m) 80%) 0 0 / 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: svsh 1.4s linear infinite; }
+@keyframes svsh { to { background-position: -200% 0; } }
+.svs { animation: fadeUp .45s both; }
+/* Estadísticas: mini pantalla de carga antes de que los gráficos aparezcan */
+.stld { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 90px 0; color: var(--m); font-size: 13px; animation: fadeUp .25s both; }
+.stld .skspin { position: static; margin: 0; }
+@media (prefers-reduced-motion: reduce) { .svsh, .svs, .svm .dot.ld { animation: none !important; } }

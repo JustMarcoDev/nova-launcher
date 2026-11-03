@@ -56,8 +56,15 @@ try{if(a==="back"){lb=-1;draw()}else if(a==="prev"){lb=(lb-1+v.length)%v.length;
 else if(a==="fav"){const r=await api.shotsTag({id:s.inst,file:s.file,fav:!s.fav});s.fav=r.fav;draw()}
 else if(a==="tag"){const r=await api.shotsTag({id:s.inst,file:s.file,tags:$("sht").value.split(/[,;]/)});s.tags=r.tags;draw();flash("Etiquetas guardadas")}
 else if(a==="open"){const m=await api.shotsOpen({id:s.inst,file:s.file});if(m&&typeof m==="string")flash(m)}
-else if(a==="copy"){await api.shotsCopy({id:s.inst,file:s.file});if(A)flash("Captura copiada ✓")}
+else if(a==="copy"){try{await api.shotsCopy({id:s.inst,file:s.file})}catch(x){if(!A)throw x;await shotCopyAlt(s)}if(A)flash("Captura copiada ✓")}
 else if(a==="del"){if(!confirm("¿Borrar esta captura? Irá a la papelera."))return;await api.shotsDelete({id:s.inst,file:s.file});L=L.filter(z=>!(z.inst===s.inst&&z.file===s.file));lb=-1;draw();flash("Captura borrada")}}catch(x){flash(em(x))}};
 const rl=async()=>{try{L=await api.shotsList("all")}catch(x){flash(em(x))}if(cur!=="all"&&!L.some(s=>s.inst===cur)&&!L.length)cur="all";if($("shb"))draw()};
 SHOTRL=()=>{if(!$("shf")||!$("mdl").classList.contains("on")){SHOTRL=null;return}rl()};
 await rl()}
+
+/* Plan B para copiar una captura: la decodifica aquí y la pone en el portapapeles como PNG */
+async function shotCopyAlt(s){const b=await A.shotsBytes({id:s.inst,file:s.file});
+const bm=await createImageBitmap(new Blob([b],{type:/\.jpe?g$/i.test(s.file)?"image/jpeg":"image/png"}));
+const c=document.createElement("canvas");c.width=bm.width;c.height=bm.height;c.getContext("2d").drawImage(bm,0,0);
+const png=await new Promise(r=>c.toBlob(r,"image/png"));if(!png)throw new Error("No se pudo leer la imagen");
+await navigator.clipboard.write([new ClipboardItem({"image/png":png})])}

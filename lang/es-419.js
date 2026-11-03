@@ -191,5 +191,7 @@ window.LANGS["es-419"]={name:"Español (Latinoamérica)",d:{
 "Rol político: partidos, elecciones y economía":"Rol político: partidos, elecciones y economía",
 "Practica BedWars y mejora tu PvP":"Practica BedWars y mejora tu PvP",
 "Usar el fondo del menú de Nova":"Usar el fondo del menú de Nova",
-"El launcher muestra el mismo fondo que elegiste en el menú del juego: tu imagen o vídeo, o el agujero negro. Nebulosa y Earth se ven aquí como agujero negro. Se actualiza al cambiarlo en «Menú de Nova» y al volver a esta ventana":"El launcher muestra el mismo fondo que elegiste en el menú del juego: tu imagen o vídeo, o el agujero negro. Nebulosa y Earth se ven aquí como agujero negro. Se actualiza al cambiarlo en «Menú de Nova» y al volver a esta ventana"
+"El launcher muestra el mismo fondo que elegiste en el menú del juego: tu imagen o vídeo, o el agujero negro. Nebulosa y Earth se ven aquí como agujero negro. Se actualiza al cambiarlo en «Menú de Nova» y al volver a esta ventana":"El launcher muestra el mismo fondo que elegiste en el menú del juego: tu imagen o vídeo, o el agujero negro. Nebulosa y Earth se ven aquí como agujero negro. Se actualiza al cambiarlo en «Menú de Nova» y al volver a esta ventana",
+"Comprobando servidores…":"Comprobando servidores…",
+"Cargando estadísticas…":"Cargando estadísticas…"
 }};

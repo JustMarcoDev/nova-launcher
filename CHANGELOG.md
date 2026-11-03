@@ -3,6 +3,13 @@
 Todo lo que cambia en cada versión de Nova Launcher y del menú de Nova (el mod), de la más nueva a la más antigua. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**, y el flujo de publicación copia la entrada de cada versión a las notas de su release. Al sacar una versión nueva, añade su entrada `### x.y.z — Título` **al principio** de la lista.
 
 
+### 0.2.18-beta.6 — Cargas en Servidores y Estadísticas, y copiar capturas
+
+- **Servidores** (`js/servidores.js`): pantalla de carga («Comprobando servidores…», la misma de Skins) hasta que llega el estado online/offline y los jugadores; mientras tanto cada servidor muestra un brillo y un punto que late, y el dato aparece con un fundido.
+- **Estadísticas** (`js/estadisticas.js`): mini pantalla de carga (mínimo 0,55 s para que no parpadee) y, al terminar, las tarjetas, las barras del gráfico y las cifras grandes (que cuentan desde 0) se animan con suavidad. Al cambiar de periodo o al hacer una captura se actualiza sin pantalla de carga. Respeta «reducir movimiento».
+- **Capturas → Copiar**: `shots:copy` reintenta hasta 4 veces si el portapapeles está ocupado y, si aun así falla, el panel pide los bytes (`shots:bytes`), los decodifica y los copia como PNG (`shotCopyAlt`).
+- **Límite**: el error de copiar no se pudo reproducir aquí (no hay Windows/Electron real); el arreglo cubre las causas probables (portapapeles ocupado o imagen que Electron no lee).
+
 ### 0.2.18-beta.5 — Fondo del launcher sincronizado con el menú de Nova
 
 - **Ajustes → Interfaz y fondo**: nuevo interruptor «Usar el fondo del menú de Nova» (`bgSync`). Si está activo, el launcher muestra el fondo elegido en el mod (imagen o vídeo de `nova/fondos`, o el agujero negro).

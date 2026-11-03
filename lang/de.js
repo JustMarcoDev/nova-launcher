@@ -1281,5 +1281,7 @@ window.LANGS.de={name:"Deutsch",d:{
 "Rol político: partidos, elecciones y economía":"Politisches Rollenspiel: Parteien, Wahlen und Wirtschaft",
 "Practica BedWars y mejora tu PvP":"Übe BedWars und verbessere dein PvP",
 "Usar el fondo del menú de Nova":"Hintergrund des Nova-Menüs verwenden",
-"El launcher muestra el mismo fondo que elegiste en el menú del juego: tu imagen o vídeo, o el agujero negro. Nebulosa y Earth se ven aquí como agujero negro. Se actualiza al cambiarlo en «Menú de Nova» y al volver a esta ventana":"Der Launcher zeigt denselben Hintergrund wie im Spielmenü: dein Bild oder Video oder das Schwarze Loch. Nebel und Earth erscheinen hier als Schwarzes Loch. Wird aktualisiert, wenn du ihn im „Nova-Menü“ änderst und wenn du zu diesem Fenster zurückkehrst"
+"El launcher muestra el mismo fondo que elegiste en el menú del juego: tu imagen o vídeo, o el agujero negro. Nebulosa y Earth se ven aquí como agujero negro. Se actualiza al cambiarlo en «Menú de Nova» y al volver a esta ventana":"Der Launcher zeigt denselben Hintergrund wie im Spielmenü: dein Bild oder Video oder das Schwarze Loch. Nebel und Earth erscheinen hier als Schwarzes Loch. Wird aktualisiert, wenn du ihn im „Nova-Menü“ änderst und wenn du zu diesem Fenster zurückkehrst",
+"Comprobando servidores…":"Server werden geprüft…",
+"Cargando estadísticas…":"Statistiken werden geladen…"
 }};

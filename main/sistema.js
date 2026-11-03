@@ -131,7 +131,14 @@ ipcMain.handle('shots:list', async (e, id) => {
   return parts.flat().sort((a, b) => b.date - a.date).slice(0, 600);
 });
 ipcMain.handle('shots:open', async (e, { id, file }) => { const p = shotPath(id, file); if (!(await R.openFileOrFolder(p))) return 'No hay un programa para abrir la imagen: se ha mostrado en su carpeta'; return ''; });
-ipcMain.handle('shots:copy', (e, { id, file }) => R.copyImageFile(shotPath(id, file)));
+// El portapapeles de Windows puede estar ocupado un instante por otro programa: se reintenta antes de dar error
+ipcMain.handle('shots:copy', async (e, { id, file }) => {
+  const p = shotPath(id, file); let err;
+  for (let n = 0; n < 4; n++) { try { return R.copyImageFile(p); } catch (x) { err = x; await new Promise(r => setTimeout(r, 150)); } }
+  throw err;
+});
+// Bytes de la captura: el panel los usa como plan B para copiarla si el portapapeles de Electron no puede
+ipcMain.handle('shots:bytes', (e, { id, file }) => { const p = shotPath(id, file); if (fs.statSync(p).size > 60e6) throw new Error('La captura es demasiado grande'); return fs.readFileSync(p); });
 ipcMain.handle('shots:delete', async (e, { id, file }) => { const p = shotPath(id, file); try { await shell.trashItem(p); } catch { fs.rmSync(p, { force: true }); } return true; });
 ipcMain.handle('shots:folder', (e, id) => { fs.mkdirSync(shotsDir(getIns(id).id), { recursive: true }); return shell.openPath(shotsDir(id)); });
 // ---- Diagnóstico ----
