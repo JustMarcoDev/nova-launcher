@@ -3,6 +3,11 @@
 Todo lo que cambia en cada versión de Nova Launcher y del menú de Nova (el mod), de la más nueva a la más antigua. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**, y el flujo de publicación copia la entrada de cada versión a las notas de su release. Al sacar una versión nueva, añade su entrada `### x.y.z — Título` **al principio** de la lista.
 
 
+### 0.2.18-beta.7 — Modo streamer más simple
+
+- **Streamer** (`js/ajustes.js`): quitados los ajustes **Puerto**, **Diseño por defecto**, **Tamaño del overlay** y **Opacidad**. El puerto sigue siendo 7777 (quien ya lo había cambiado conserva el suyo, `streamerPort` se sigue respetando), cada diseño tiene su propio botón de copiar enlace, y el tamaño y la opacidad se ajustan en OBS (también siguen funcionando `scale=` y `op=` en la dirección si se escriben a mano).
+- Se mantienen: activar el overlay, la dirección y los diseños, qué mostrar (cabeza, FPS, servidor, tiempo, versión) y el color.
+
 ### 0.2.18-beta.6 — Cargas en Servidores y Estadísticas, y copiar capturas
 
 - **Servidores** (`js/servidores.js`): pantalla de carga («Comprobando servidores…», la misma de Skins) hasta que llega el estado online/offline y los jugadores; mientras tanto cada servidor muestra un brillo y un punto que late, y el dato aparece con un fundido.
