@@ -1293,5 +1293,17 @@ window.LANGS.it={name:"Italiano",d:{
 "Mostrar la sesión":"Mostra la sessione",
 "El tiempo que llevas jugando en esta sesión, en directo":"Da quanto tempo giochi in questa sessione, in diretta",
 "Mostrar la versión y el lanzador":"Mostra la versione e il launcher",
-"Por ejemplo 1.21.1 · Fabric + Nova, Forge o NeoForge":"Per esempio 1.21.1 · Fabric + Nova, Forge o NeoForge"
+"Por ejemplo 1.21.1 · Fabric + Nova, Forge o NeoForge":"Per esempio 1.21.1 · Fabric + Nova, Forge o NeoForge",
+"Posición del panel":"Posizione del pannello",
+"Dónde sale en tu escena de OBS. Va dentro del enlace: vuelve a copiarlo si lo cambias":"Dove appare nella tua scena OBS. È dentro il link: copialo di nuovo se lo cambi",
+"Arriba izquierda":"In alto a sinistra",
+"Arriba centro":"In alto al centro",
+"Arriba derecha":"In alto a destra",
+"Abajo izquierda":"In basso a sinistra",
+"Abajo centro":"In basso al centro",
+"Abajo derecha":"In basso a destra",
+"Tamaño del panel":"Dimensione del pannello",
+"100% = normal. También va dentro del enlace":"100% = normale. È anche dentro il link",
+"Fallo nativo de Java":"Errore nativo di Java",
+"Cierre brusco de Minecraft":"Chiusura improvvisa di Minecraft"
 }};

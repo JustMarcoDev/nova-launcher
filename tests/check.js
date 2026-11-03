@@ -113,6 +113,11 @@ if (ver !== pkg.version) bad('VER en js/base.js (' + ver + ') no coincide con pa
   const r = require('child_process').spawnSync(process.execPath, [path.join(__dirname, 'streamer.js')], { encoding: 'utf8' });
   if (r.status !== 0) bad('tests/streamer.js falló:\n' + (r.stdout || '') + (r.stderr || '')); else console.log(r.stdout.trim());
 }
+// Diagnóstico de cierres de Minecraft
+{
+  const r = require('child_process').spawnSync(process.execPath, [path.join(__dirname, 'diagnostico.js')], { encoding: 'utf8' });
+  if (r.status !== 0) bad('tests/diagnostico.js falló:\n' + (r.stdout || '') + (r.stderr || '')); else console.log(r.stdout.trim());
+}
 // Restablecer / desinstalar: borrar datos conservando las cuentas premium
 {
   const r = require('child_process').spawnSync(process.execPath, [path.join(__dirname, 'restablecer.js')], { encoding: 'utf8' });

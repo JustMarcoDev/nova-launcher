@@ -25,8 +25,8 @@ const get = (port, p, ms) => new Promise((res, rej) => { const r = http.get({ ho
   ok(o.code === 200 && /text\/html/.test(o.head['content-type']) && /background:transparent/.test(o.body) && o.body.includes('#ff0000'), 'overlay no es HTML transparente con el color');
   const o2 = await get(port, '/overlay?color=%22%3E%3Cscript%3E');
   ok(!o2.body.includes('<script>alert') && o2.body.includes('#112233'), 'un color malicioso debe ignorarse');
-  for (const st of ['barra', 'tarjeta', 'esquina']) { const r = await get(port, '/overlay?estilo=' + st); ok(r.code === 200 && r.body.includes('<body class="' + st + '"'), 'el diseño ' + st + ' no se aplica'); }
-  ok((await get(port, '/overlay?estilo=%22%3E%3Cx')).body.includes('<body class="tarjeta"'), 'un diseño raro debe caer en tarjeta');
+  for (const st of ['barra', 'tarjeta', 'esquina']) { const r = await get(port, '/overlay?estilo=' + st); ok(r.code === 200 && r.body.includes('<body class="' + st + ' '), 'el diseño ' + st + ' no se aplica'); }
+  ok((await get(port, '/overlay?estilo=%22%3E%3Cx')).body.includes('<body class="tarjeta '), 'un diseño raro debe caer en tarjeta');
   // Partida en curso: la apunta el launcher; el overlay se basa en eso (no hace falta el mod)
   ok(JSON.parse((await get(port, '/estado')).body).live === false, 'sin partida el overlay no debe salir');
   const T0 = Date.now() - 5000;
@@ -55,6 +55,8 @@ const get = (port, p, ms) => new Promise((res, rej) => { const r = http.get({ ho
   ok((await get(port, '/../etc/passwd')).code === 404, 'ruta rara debe dar 404');
   const ev = await get(port, '/eventos', 1500);
   ok(/text\/event-stream/.test(ev.head['content-type'] || ''), '/eventos no es SSE');
+  for (const ps of ['tl', 'tc', 'tr', 'bl', 'bc', 'br']) ok((await get(port, '/overlay?pos=' + ps)).body.includes(' p-' + ps + '"'), 'la posición ' + ps + ' no se aplica');
+  ok((await get(port, '/overlay?pos=%22%3E%3Cx')).body.includes(' p-tl"') && (await get(port, '/overlay')).body.includes(' p-tl"'), 'una posición rara o ausente debe caer en arriba a la izquierda');
   { const r = (await get(port, '/overlay?scale=1.5&op=0.5')).body;
     for (const id of ['h', 'p', 'r1', 'r2']) ok(r.includes('id="' + id + '"'), 'el overlay no tiene el elemento ' + id);
     ok(r.includes('zoom:1.5') && r.includes('opacity:0.5'), 'scale y op no se aplican');

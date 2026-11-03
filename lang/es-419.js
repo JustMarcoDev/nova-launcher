@@ -203,5 +203,17 @@ window.LANGS["es-419"]={name:"Español (Latinoamérica)",d:{
 "Mostrar la sesión":"Mostrar la sesión",
 "El tiempo que llevas jugando en esta sesión, en directo":"El tiempo que llevas jugando en esta sesión, en directo",
 "Mostrar la versión y el lanzador":"Mostrar la versión y el lanzador",
-"Por ejemplo 1.21.1 · Fabric + Nova, Forge o NeoForge":"Por ejemplo 1.21.1 · Fabric + Nova, Forge o NeoForge"
+"Por ejemplo 1.21.1 · Fabric + Nova, Forge o NeoForge":"Por ejemplo 1.21.1 · Fabric + Nova, Forge o NeoForge",
+"Posición del panel":"Posición del panel",
+"Dónde sale en tu escena de OBS. Va dentro del enlace: vuelve a copiarlo si lo cambias":"Dónde sale en tu escena de OBS. Va dentro del enlace: vuelve a copiarlo si lo cambias",
+"Arriba izquierda":"Arriba izquierda",
+"Arriba centro":"Arriba centro",
+"Arriba derecha":"Arriba derecha",
+"Abajo izquierda":"Abajo izquierda",
+"Abajo centro":"Abajo centro",
+"Abajo derecha":"Abajo derecha",
+"Tamaño del panel":"Tamaño del panel",
+"100% = normal. También va dentro del enlace":"100% = normal. También va dentro del enlace",
+"Fallo nativo de Java":"Fallo nativo de Java",
+"Cierre brusco de Minecraft":"Cierre brusco de Minecraft"
 }};

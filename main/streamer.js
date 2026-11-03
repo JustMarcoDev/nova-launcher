@@ -78,9 +78,12 @@ const colorOk = c => /^[0-9a-fA-F]{6}$/.test(c || '') ? '#' + c : '';
 /** Diseños del overlay: barra inferior, tarjeta (el de siempre) y esquina. Se eligen con ?estilo=barra|tarjeta|esquina. */
 const ESTILOS = ['barra', 'tarjeta', 'esquina'];
 const estiloOf = v => ESTILOS.includes(v) ? v : 'tarjeta';
+/** Posición del panel en la escena: tl/tc/tr (arriba izquierda/centro/derecha) y bl/bc/br (abajo). Se elige con ?pos=… */
+const POSICIONES = ['tl', 'tc', 'tr', 'bl', 'bc', 'br'];
+const posOf = v => POSICIONES.includes(v) ? v : 'tl';
 
 /** HTML del overlay: fondo transparente (fuente de navegador de OBS). Qué se enseña (cabeza, servidor, IP, sesión, versión) lo decide el launcher en vivo desde Ajustes → Streamer; no hace falta volver a copiar el enlace.
- *  Parámetros opcionales: ?estilo=barra|tarjeta|esquina&color=RRGGBB&scale=0.5–2&op=0.2–1, head=0 server=0 time=0 ver=0 para esconder partes en una escena concreta, fps=1 para los FPS (solo con el mod) y demo=1 para ver datos de ejemplo. */
+ *  Parámetros opcionales: ?pos=tl|tc|tr|bl|bc|br (posición del panel)&scale=0.5–2 (tamaño)&estilo=barra|tarjeta|esquina&color=RRGGBB&op=0.2–1, head=0 server=0 time=0 ver=0 para esconder partes en una escena concreta, fps=1 para los FPS (solo con el mod) y demo=1 para ver datos de ejemplo. */
 function overlayHtml(accent, q) {
   const col = colorOk(q.get('color')) || accent || '#8b6cff', est = estiloOf(q.get('estilo'));
   return `<!doctype html><html><head><meta charset="utf-8"><title>Nova overlay</title><style>
@@ -89,7 +92,11 @@ html,body{margin:0;background:transparent;font-family:system-ui,Segoe UI,sans-se
 .b{display:inline-flex;align-items:center;gap:12px;margin:10px;padding:10px 16px 10px 10px;border-radius:14px;background:rgba(14,14,30,.72);border:2px solid ${col};box-shadow:0 4px 18px rgba(0,0,0,.4);animation:in .4s both}
 .b{opacity:${numQ(q.get('op'), 0.2, 1, 1)}}
 .b[hidden]{display:none}
-@keyframes in{from{transform:translateY(8px);opacity:0}}
+@keyframes in{from{opacity:0}}
+/* posición del panel en la escena (?pos=): por defecto, arriba a la izquierda (solo en el diseño de tarjeta; barra y esquina tienen la suya) */
+body.tarjeta .b{position:fixed;margin:0;width:fit-content}
+body.tarjeta.p-tl .b{top:10px;left:10px}body.tarjeta.p-tr .b{top:10px;right:10px}body.tarjeta.p-bl .b{bottom:10px;left:10px}body.tarjeta.p-br .b{bottom:10px;right:10px}
+body.tarjeta.p-tc .b{top:10px;left:0;right:0;margin:0 auto}body.tarjeta.p-bc .b{bottom:10px;left:0;right:0;margin:0 auto}
 img{width:48px;height:48px;image-rendering:pixelated;border-radius:8px}
 img[hidden]{display:none}
 .n{font-weight:700;font-size:18px;line-height:1.1}.s{font-size:13px;opacity:.88;margin-top:3px;white-space:nowrap}.s[hidden]{display:none}
@@ -105,7 +112,7 @@ body.esquina .b{position:fixed;top:8px;right:8px;margin:0;gap:8px;padding:5px 12
 body.esquina img{width:28px;height:28px;border-radius:50%}
 body.esquina .n{font-size:13px}body.esquina .s{font-size:11px;margin:0}
 body.esquina .w{display:flex;align-items:center;gap:10px}
-</style></head><body class="${est}"><div class="b" id="b" hidden><img id="h" alt="" hidden>
+</style></head><body class="${est} p-${posOf(q.get('pos'))}"><div class="b" id="b" hidden><img id="h" alt="" hidden>
 <div class="w"><div class="n" id="p"></div><div class="s" id="r1"></div><div class="s" id="r2"></div></div></div>
 <script>
 const $=i=>document.getElementById(i),Q=new URLSearchParams(location.search),HIDE=k=>Q.get(k)==='0';
@@ -196,4 +203,4 @@ async function streamerSync() {
 setTimeout(() => { streamerSync().catch(() => {}); }, 3000);
 
 Object.assign(R, { streamerSync, streamerGame: game, streamerLauncher: lanzadorDe });
-module.exports = { crear, leerEstado, overlayHtml, portOf, ESTILOS, estiloOf, game, componer, lanzadorDe };
+module.exports = { crear, leerEstado, overlayHtml, portOf, ESTILOS, estiloOf, posOf, POSICIONES, game, componer, lanzadorDe };

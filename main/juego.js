@@ -86,12 +86,24 @@ const CAUSES = [
   [/UnsupportedClassVersionError|class file version|compiled by a more recent version of the Java|Unrecognized (VM )?option|Could not create the Java Virtual Machine|Invalid maximum heap size|Unable to access jarfile|Error: Could not find or load main class|requires Java \d+/i, 'java', 'Java equivocado o argumentos JVM no válidos', 'La versión de Java no sirve para esta versión de Minecraft o algún argumento JVM está mal. Deja la ruta de Java vacía (Java automático) y revisa los argumentos JVM en Ajustes → Juego.'],
   [/Mixin apply failed|MixinApplyError|InvalidMixinException|MixinTransformerError|ModResolutionException|Incompatible mod set|Missing or unsupported mandatory dependencies|requires (any version of )?(mod )?['"\w .-]+|depends on|Duplicate mods? found|duplicate mod|ModLoadingException|NoSuchMethodError|NoSuchFieldError|NoClassDefFoundError|ClassNotFoundException|Mod .+ was not loaded|FormattedException/i, 'mods', 'Mod incompatible o que falta', 'Algún mod no es compatible con esta versión, falta otro mod que necesita (por ejemplo Fabric API) o hay mods repetidos. Prueba a desactivar los últimos mods que añadiste desde el gestor de mods de la instancia.'],
   [/Invalid session|Failed to verify username|Authentication servers|Bad login|401 Unauthorized/i, 'auth', 'Problema con la cuenta', 'La sesión de Microsoft ha caducado o los servidores de Mojang no responden. Vuelve a iniciar sesión en Ajustes → Cuenta.'],
-  [/GLFW error|Pixel format not accepted|OpenGL|WGL|GLX|Failed to create window|EXCEPTION_ACCESS_VIOLATION|opengl32/i, 'gpu', 'Problema gráfico', 'Falló la tarjeta gráfica o el modo de ventana. Actualiza los drivers de tu GPU y desactiva mods de rendimiento o shaders para comprobar.']
+  // Ojo: la palabra «OpenGL» suelta NO vale: sale en el registro normal de cualquier arranque («Using graphics backend OpenGL…») y hacía culpar a la gráfica siempre
+  [/GLFW error|Pixel format not accepted|Failed to create window|Couldn't set pixel format|EXCEPTION_ACCESS_VIOLATION|opengl32\.dll|OpenGL (error|Error)|GL_INVALID_|Failed to (initialize|create) (GLFW|OpenGL|SDL)|nvoglv|nvlddmkm|atio6axx|ig[0-9a-z]*icd(32|64)/i, 'gpu', 'Problema gráfico', 'Falló la tarjeta gráfica o el modo de ventana. Actualiza los drivers de tu GPU y desactiva mods de rendimiento o shaders para comprobar.']
 ];
-function diagnose(lines) {
+/** Módulos de controladores de gráfica que salen como «Problematic frame» en un fallo nativo de Java */
+const GPU_DLL = /nvoglv|nvlddmkm|nvwgf|nvd3d|atio6axx|atioglxx|amdxx|amdvlk|ig[0-9a-z]*icd(32|64)|iris|igd[0-9a-z]*|opengl32|vulkan-1|dxgi|d3d1[012]/i;
+const hexCode = c => '0x' + (Number(c) >>> 0).toString(16).toUpperCase();
+function diagnose(lines, code) {
   const txt = lines.join('\n');
+  // Fallo nativo de Java: el propio Java escribe «Problematic frame: C [módulo.dll+0x…]»; con eso se sabe si es la gráfica o no
+  if (/A fatal error has been detected by the Java Runtime Environment|EXCEPTION_ACCESS_VIOLATION/.test(txt)) {
+    const l = lines.find(x => /^#\s*C\s+\[/.test(x)), mod = l ? (/\[([^\]+]+)/.exec(l) || [])[1] : '';
+    if (mod && GPU_DLL.test(mod)) return { id: 'gpu', t: 'Problema gráfico', d: 'El fallo vino del controlador de la tarjeta gráfica (' + mod + '). Prueba a reinstalar el driver en limpio, a quitar mods de rendimiento o shaders y a lanzar con la gráfica integrada para comparar.', hint: l.trim().slice(0, 220) };
+    if (mod) return { id: 'native', t: 'Fallo nativo de Java', d: 'Java se cerró de golpe dentro de «' + mod + '». No parece la gráfica: puede ser un mod con código nativo, un antivirus o un Java dañado.', hint: l.trim().slice(0, 220) };
+  }
   for (const [re, id, t, d] of CAUSES) if (re.test(txt)) { const l = lines.find(x => re.test(x)); return { id, t, d, hint: l ? l.trim().slice(0, 220) : '' }; }
-  return { id: 'unknown', t: 'Causa desconocida', d: 'Minecraft se cerró de forma inesperada. Mira las últimas líneas del registro; si usas mods, prueba sin ellos para descartar un conflicto.', hint: '' };
+  const cd = code != null && code !== '' && !isNaN(code) ? ' (código de salida ' + hexCode(code) + ')' : '';
+  const nat = code != null && Number(code) >>> 0 >= 0xC0000000;
+  return { id: 'unknown', t: nat ? 'Cierre brusco de Minecraft' : 'Causa desconocida', d: (nat ? 'Minecraft se cerró de golpe sin escribir ningún error' + cd + ': es un fallo nativo (memoria, controlador de la gráfica, antivirus o un mod con código nativo). ' : 'Minecraft se cerró de forma inesperada' + cd + ' y el registro no muestra un error claro. ') + 'Mira las últimas líneas del registro; si usas mods, prueba sin ellos para descartar un conflicto.', hint: '' };
 }
 function openLog(ins, java, ram) {
   const dir = path.join(root, 'logs'); fs.mkdirSync(dir, { recursive: true });
@@ -104,8 +116,8 @@ function openLog(ins, java, ram) {
 function reportCrash(ins, code, tail, file, since) {
   let report = '';
   try { const cr = path.join(root, 'instances', ins.id, 'crash-reports'), fl = fs.readdirSync(cr).filter(x => /^crash-.*\.txt$/.test(x)).map(x => ({ x, t: fs.statSync(path.join(cr, x)).mtimeMs })).filter(o => o.t >= since).sort((a, b) => b.t - a.t)[0]; if (fl) report = path.join(cr, fl.x); } catch {}
-  try { const cz = diagnose(tail); R.sendCrashReport({ mc: ins.mc, ld: ins.ld || 'Vanilla', loaderVersion: ins.loaderVersion, mod: require('../package.json').version, cause: cz.t + (cz.hint ? ' · ' + cz.hint : ''), code, tail, names: [load().username || '', ins.name || ''] }); } catch {}
-  send('crash', { id: ins.id, name: ins.name, mc: ins.mc, ld: ins.ld || 'Vanilla', code, cause: diagnose(tail), tail: tail.slice(-40), file, report });
+  try { const cz = diagnose(tail, code); R.sendCrashReport({ mc: ins.mc, ld: ins.ld || 'Vanilla', loaderVersion: ins.loaderVersion, mod: require('../package.json').version, cause: cz.t + (cz.hint ? ' · ' + cz.hint : ''), code, tail, names: [load().username || '', ins.name || ''] }); } catch {}
+  send('crash', { id: ins.id, name: ins.name, mc: ins.mc, ld: ins.ld || 'Vanilla', code, cause: diagnose(tail, code), tail: tail.slice(-40), file, report });
 }
 ipcMain.handle('log:open', (e, f) => { const p = path.resolve(String(f || '')); if (p.startsWith(root + path.sep) && fs.existsSync(p)) { shell.showItemInFolder(p); return true; } return false; });
 ipcMain.handle('logs:folder', () => { const d = path.join(root, 'logs'); fs.mkdirSync(d, { recursive: true }); return shell.openPath(d); });
@@ -201,7 +213,7 @@ async function playGame(opts) {
       const crashed = !!code && tail.length > 0;
       send('status', crashed ? 'Minecraft se cerró con un error' : 'Minecraft cerrado');
       if (running.size === 0 || crashed) { if (S.win.isMinimized()) S.win.restore(); S.win.show(); S.win.focus(); }
-      if (crashed) { reportCrash(ins, code, tail, lg.f, since - 5000); notify('Minecraft se cerró con un error', diagnose(tail).t); }
+      if (crashed) { reportCrash(ins, code, tail, lg.f, since - 5000); notify('Minecraft se cerró con un error', diagnose(tail, code).t); }
     });
     discordSet({ details: 'Preparando Minecraft ' + ins.mc, state: (ins.ld || 'Vanilla') + ' · Nova Launcher', startTimestamp: Date.now() });
     send('status', 'Descargando archivos del juego…');

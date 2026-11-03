@@ -3,6 +3,13 @@
 Todo lo que cambia en cada versión de Nova Launcher y del menú de Nova (el mod), de la más nueva a la más antigua. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**, y el flujo de publicación copia la entrada de cada versión a las notas de su release. Al sacar una versión nueva, añade su entrada `### x.y.z — Título` **al principio** de la lista.
 
 
+### 0.2.18-beta.10 — Posición y tamaño del panel del streamer, y diagnóstico de cierres arreglado
+
+- **Streamer → Posición del panel** (`stPos`: arriba/abajo × izquierda/centro/derecha) **y Tamaño del panel** (`stScale`, 50–200 %): se incluyen en el enlace de OBS (`?pos=br&scale=1.5`; los valores por defecto se omiten). El overlay entiende `pos=tl|tc|tr|bl|bc|br` (`main/streamer.js`, `posOf`); un valor raro cae en arriba a la izquierda. Comprobado en un navegador con las 6 posiciones y con zoom.
+- **Diagnóstico de cierres** (`main/juego.js`, `diagnose`): la causa «Problema gráfico» se activaba con la palabra `OpenGL` suelta, que sale en el registro normal de cualquier arranque (`Using graphics backend OpenGL, using drivers…`), así que casi cualquier cierre se achacaba a la gráfica y se pedía actualizar drivers. También afectaba a «Revisión» de la última partida. Ahora solo cuenta un error gráfico real (GLFW, formato de píxel, `opengl32.dll`, módulos de driver nvoglv/atio/ig…icd).
+- **Fallos nativos**: si Java escribe «Problematic frame: C [módulo.dll…]» se reparte entre gráfica (módulos de driver) y «Fallo nativo de Java» (otro módulo). Si no hay error en el registro, el aviso dice «Cierre brusco» o «Causa desconocida» con el código de salida (en hexadecimal, p. ej. `0xC0000005`).
+- **Pruebas**: `tests/diagnostico.js` (con el registro real de un usuario con RTX 5060, que antes daba «gpu»).
+
 ### 0.2.18-beta.9 — Streamer más limpio y overlay comprobado
 
 - **Ajustes → Streamer** (`js/ajustes.js`, `css/style.css`): quitado el panel «Diseños del overlay» (y su CSS y el botón de copiar enlace por diseño). El enlace de OBS lleva el diseño de tarjeta; `?estilo=barra|esquina` sigue funcionando en el servidor si se escribe a mano.
