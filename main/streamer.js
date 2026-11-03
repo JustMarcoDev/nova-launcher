@@ -176,7 +176,7 @@ function headPng() {
   if (!f) return null;
   const im = nativeImage.createFromPath(f);
   if (im.isEmpty()) return null;
-  return im.crop({ x: 8, y: 8, width: 8, height: 8 }).resize({ width: 64, height: 64, quality: 'pixelated' }).toPNG();
+  return im.crop({ x: 8, y: 8, width: 8, height: 8 }).toPNG(); // 8×8: el overlay lo agranda con image-rendering:pixelated (resize de Electron solo admite good/better/best y lo emborronaría)
 }
 function accent() {
   try { const o = JSON.parse(fs.readFileSync(path.join(R.novaDir(), 'menu.json'), 'utf8')); const a = o.accent >>> 0; return '#' + (a & 0xFFFFFF).toString(16).padStart(6, '0'); } catch { return ''; }

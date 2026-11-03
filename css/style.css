@@ -4295,18 +4295,7 @@ html[data-cb=Grises] {
 .rec .w { color: #ffb454; flex-basis: 100%; }
 .dga { margin-top: 6px; }
 
-/* Diseños del overlay de OBS (Ajustes → Streamer) */
-.strst{align-items:flex-start}
-.strst .ot{flex:1;min-width:0}
-.stpv{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
-.stpv .stpc span{opacity:1}
-.stpc{display:flex;flex-direction:column;gap:6px;align-items:center;font-size:12px}
-.stpm{position:relative;width:100%;aspect-ratio:16/9;border-radius:8px;background:repeating-conic-gradient(rgba(255,255,255,.06) 0 25%,transparent 0 50%) 0 0/14px 14px;overflow:hidden;border:1px solid rgba(255,255,255,.1)}
-.stpm i,.stpm b{position:absolute;display:block;background:var(--ac,#8b6cff);border-radius:4px}
-.stpm i{opacity:.35}
-.stpm.barra i{left:0;right:0;bottom:0;height:20%;border-radius:0}.stpm.barra b{left:4%;bottom:5%;width:8%;height:11%}
-.stpm.tarjeta i{left:6%;top:8%;width:46%;height:30%;border-radius:6px}.stpm.tarjeta b{left:9%;top:13%;width:9%;height:20%}
-.stpm.esquina i{right:5%;top:7%;width:30%;height:14%;border-radius:999px}.stpm.esquina b{right:26%;top:9%;width:7%;height:10%;border-radius:50%}
+.oilogo{width:26px;height:26px;border-radius:7px;object-fit:cover;display:block}
 
 /* 0.2.17 · retoques */
 .o { transition: background .15s, border-color .15s, transform .15s; }

@@ -3,6 +3,13 @@
 Todo lo que cambia en cada versión de Nova Launcher y del menú de Nova (el mod), de la más nueva a la más antigua. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**, y el flujo de publicación copia la entrada de cada versión a las notas de su release. Al sacar una versión nueva, añade su entrada `### x.y.z — Título` **al principio** de la lista.
 
 
+### 0.2.18-beta.9 — Streamer más limpio y overlay comprobado
+
+- **Ajustes → Streamer** (`js/ajustes.js`, `css/style.css`): quitado el panel «Diseños del overlay» (y su CSS y el botón de copiar enlace por diseño). El enlace de OBS lleva el diseño de tarjeta; `?estilo=barra|esquina` sigue funcionando en el servidor si se escribe a mano.
+- **Dirección para OBS**: el icono de la fila ahora es el logo de Nova.
+- **Cabeza del overlay** (`main/streamer.js`): se manda el recorte de 8×8 sin redimensionar (Electron solo admite calidad good/better/best y `pixelated` no existía, así que salía borrosa); el CSS la agranda con `image-rendering:pixelated`.
+- **Comprobación del overlay** con el servidor real y un navegador: oculto sin juego, aparece al empezar, cambia el servidor, enseña u oculta IP y sesión según los ajustes, contador de sesión, se apaga al cerrar, demo y los tres diseños. No probado con Minecraft ni OBS reales.
+
 ### 0.2.18-beta.8 — Overlay de streamer funcional y sus ajustes
 
 - **Ajustes → Streamer**: cabeza de la skin equipada en el launcher, nombre del servidor, IP del servidor (apagada por defecto, `stIp`), sesión y versión con lanzador (`stVer`, ahora encendido por defecto). Se quita el ajuste de FPS.
