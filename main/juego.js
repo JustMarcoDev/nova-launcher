@@ -60,6 +60,8 @@ async function mirrorPrep(o, mc) {
 async function javaFor(mc, cfg) {
   if (cfg.javaPath) return cfg.javaPath;
   const jc = path.join(root, 'java-cache.json'), cache = rd(jc, {}); let major;
+  // Atajo: si ya sabemos qué Java pide esta versión y está instalado, se usa sin consultar la red (ahorra dos peticiones en cada arranque).
+  if (cache[mc]) { const d0 = path.join(root, 'java', String(cache[mc])); try { const j0 = fs.existsSync(d0) && fs.readdirSync(d0).flatMap(x => [path.join(d0, x, 'bin', 'java.exe'), path.join(d0, x, 'bin', 'java')]).find(fs.existsSync); if (j0) return j0; } catch {} }
   try {
     const m = (await get(MAN)).versions.find(v => v.id === mc);
     major = m ? ((await get(m.url)).javaVersion || { majorVersion: 8 }).majorVersion : 17;

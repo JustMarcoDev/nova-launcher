@@ -3,6 +3,12 @@
 Todo lo que cambia en cada versión de Nova Launcher y del menú de Nova (el mod), de la más nueva a la más antigua. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**, y el flujo de publicación copia la entrada de cada versión a las notas de su release. Al sacar una versión nueva, añade su entrada `### x.y.z — Título` **al principio** de la lista.
 
 
+### 0.2.18-beta.12 — Actualizar con pantalla de progreso y arranque más ágil
+
+- **Instalación con progreso** (`main/actualizaciones.js`): `upd:install` usa `quitAndInstall(false, true)` en vez de la instalación silenciosa, así el instalador NSIS muestra su pantalla «Instalando…» y relanza el launcher. El respaldo manual ya no pasa `/S`. Sin probar en un Windows real desde el entorno de desarrollo.
+- **Reinicio al pasar a Beta** (`main/ventana.js` `cfg:set`): al cambiar de Estable a Beta el launcher se relanza; si hay una partida en marcha no se reinicia.
+- **Arranque del juego**: `javaFor` usa primero `java-cache.json` y el Java ya instalado, sin pedir el manifiesto de versiones a la red en cada partida.
+
 ### 0.2.18-beta.11 — Historial según el canal, fondo propio en el menú de Nova y menos ajustes
 
 - **Historial por canal** (`js/ajustes.js` `clhVista`, `scripts/release-notes.js`): con el canal **Beta** se ve el historial completo (betas y oficiales). Con el canal **Estable** solo salen las versiones oficiales y cada una trae dentro lo de todas sus betas (mezcladas por categoría en la app, sin repetir líneas; en las notas de la release, bajo «Y todo lo que llegó durante las betas»). Las betas de una versión que aún no tiene estable no aparecen. Cambiar de canal actualiza la lista al momento y «Novedades» enseña la primera entrada de tu vista. Las notas de una beta siguen llevando solo su entrada. `tests/historial.js`.
