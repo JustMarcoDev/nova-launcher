@@ -1309,5 +1309,11 @@ window.LANGS["pt-BR"]={name:"Português (Brasil)",d:{
 "+ Añadir fondo…":"+ Adicionar plano de fundo…",
 "Una imagen o un vídeo tuyo (png, jpg, webp, gif, mp4, webm, mov o mkv)":"Uma imagem ou vídeo seu (png, jpg, webp, gif, mp4, webm, mov ou mkv)",
 "Fondo añadido y elegido":"Plano de fundo adicionado e escolhido",
-"Fondos añadidos; el primero ya está elegido":"Planos de fundo adicionados; o primeiro já está escolhido"
+"Fondos añadidos; el primero ya está elegido":"Planos de fundo adicionados; o primeiro já está escolhido",
+"Hay que reiniciar el launcher":"O launcher tem de reiniciar",
+"Para cambiar de canal el launcher se va a reiniciar.":"Para mudar de canal, o launcher vai reiniciar.",
+"Para aplicar este cambio el launcher se va a reiniciar.":"Para aplicar esta alteração, o launcher vai reiniciar.",
+"Para aplicar el modo bajo consumo del todo el launcher se va a reiniciar.":"Para aplicar totalmente o modo de baixo consumo, o launcher vai reiniciar.",
+"Rechazar":"Recusar",
+"Cierra Minecraft para que se reinicie el launcher; el cambio ya está guardado":"Fecha o Minecraft para o launcher reiniciar; a alteração já está guardada"
 }};

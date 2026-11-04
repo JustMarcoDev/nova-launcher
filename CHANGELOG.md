@@ -3,6 +3,11 @@
 Todo lo que cambia en cada versión de Nova Launcher y del menú de Nova (el mod), de la más nueva a la más antigua. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**, y el flujo de publicación copia la entrada de cada versión a las notas de su release. Al sacar una versión nueva, añade su entrada `### x.y.z — Título` **al principio** de la lista.
 
 
+### 0.2.18-beta.13 — Aviso antes de reiniciar y un hueco menos en Ajustes
+
+- **Reinicio con confirmación** (`js/ajustes.js` `askRestart`/`restartApply`, IPC `app:restart`): canal de actualizaciones (en ambos sentidos), aceleración por hardware y modo bajo consumo muestran un aviso con «Aceptar»/«Rechazar». Rechazar deja el ajuste como estaba; aceptar lo guarda y relanza el launcher. Con una partida abierta el cambio se guarda pero no se reinicia. Se quita el reinicio automático de `cfg:set`.
+- **Hueco en blanco**: `#bnx` (resultado de «Probar rendimiento») se oculta mientras está vacío.
+
 ### 0.2.18-beta.12 — Actualizar con pantalla de progreso y arranque más ágil
 
 - **Instalación con progreso** (`main/actualizaciones.js`): `upd:install` usa `quitAndInstall(false, true)` en vez de la instalación silenciosa, así el instalador NSIS muestra su pantalla «Instalando…» y relanza el launcher. El respaldo manual ya no pasa `/S`. Sin probar en un Windows real desde el entorno de desarrollo.

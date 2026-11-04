@@ -1309,5 +1309,11 @@ window.LANGS.en={name:"English (US)",d:{
 "+ Añadir fondo…":"+ Add background…",
 "Una imagen o un vídeo tuyo (png, jpg, webp, gif, mp4, webm, mov o mkv)":"Your own image or video (png, jpg, webp, gif, mp4, webm, mov or mkv)",
 "Fondo añadido y elegido":"Background added and selected",
-"Fondos añadidos; el primero ya está elegido":"Backgrounds added; the first one is already selected"
+"Fondos añadidos; el primero ya está elegido":"Backgrounds added; the first one is already selected",
+"Hay que reiniciar el launcher":"The launcher needs to restart",
+"Para cambiar de canal el launcher se va a reiniciar.":"To switch channel the launcher will restart.",
+"Para aplicar este cambio el launcher se va a reiniciar.":"To apply this change the launcher will restart.",
+"Para aplicar el modo bajo consumo del todo el launcher se va a reiniciar.":"To fully apply low-usage mode the launcher will restart.",
+"Rechazar":"Decline",
+"Cierra Minecraft para que se reinicie el launcher; el cambio ya está guardado":"Close Minecraft so the launcher can restart; the change is already saved"
 }};

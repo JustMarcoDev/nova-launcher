@@ -219,5 +219,11 @@ window.LANGS["es-419"]={name:"Español (Latinoamérica)",d:{
 "+ Añadir fondo…":"+ Añadir fondo…",
 "Una imagen o un vídeo tuyo (png, jpg, webp, gif, mp4, webm, mov o mkv)":"Una imagen o un vídeo tuyo (png, jpg, webp, gif, mp4, webm, mov o mkv)",
 "Fondo añadido y elegido":"Fondo añadido y elegido",
-"Fondos añadidos; el primero ya está elegido":"Fondos añadidos; el primero ya está elegido"
+"Fondos añadidos; el primero ya está elegido":"Fondos añadidos; el primero ya está elegido",
+"Hay que reiniciar el launcher":"Hay que reiniciar el launcher",
+"Para cambiar de canal el launcher se va a reiniciar.":"Para cambiar de canal el launcher se va a reiniciar.",
+"Para aplicar este cambio el launcher se va a reiniciar.":"Para aplicar este cambio el launcher se va a reiniciar.",
+"Para aplicar el modo bajo consumo del todo el launcher se va a reiniciar.":"Para aplicar el modo bajo consumo del todo el launcher se va a reiniciar.",
+"Rechazar":"Rechazar",
+"Cierra Minecraft para que se reinicie el launcher; el cambio ya está guardado":"Cierra Minecraft para que se reinicie el launcher; el cambio ya está guardado"
 }};

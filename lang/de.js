@@ -1309,5 +1309,11 @@ window.LANGS.de={name:"Deutsch",d:{
 "+ Añadir fondo…":"+ Hintergrund hinzufügen…",
 "Una imagen o un vídeo tuyo (png, jpg, webp, gif, mp4, webm, mov o mkv)":"Dein eigenes Bild oder Video (png, jpg, webp, gif, mp4, webm, mov oder mkv)",
 "Fondo añadido y elegido":"Hintergrund hinzugefügt und ausgewählt",
-"Fondos añadidos; el primero ya está elegido":"Hintergründe hinzugefügt; der erste ist schon ausgewählt"
+"Fondos añadidos; el primero ya está elegido":"Hintergründe hinzugefügt; der erste ist schon ausgewählt",
+"Hay que reiniciar el launcher":"Der Launcher muss neu starten",
+"Para cambiar de canal el launcher se va a reiniciar.":"Zum Wechseln des Kanals wird der Launcher neu gestartet.",
+"Para aplicar este cambio el launcher se va a reiniciar.":"Zum Anwenden dieser Änderung wird der Launcher neu gestartet.",
+"Para aplicar el modo bajo consumo del todo el launcher se va a reiniciar.":"Um den Sparmodus vollständig anzuwenden, wird der Launcher neu gestartet.",
+"Rechazar":"Ablehnen",
+"Cierra Minecraft para que se reinicie el launcher; el cambio ya está guardado":"Schließe Minecraft, damit der Launcher neu starten kann; die Änderung ist bereits gespeichert"
 }};

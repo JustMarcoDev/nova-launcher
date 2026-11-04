@@ -1309,5 +1309,11 @@ window.LANGS.fr={name:"Français",d:{
 "+ Añadir fondo…":"+ Ajouter un fond…",
 "Una imagen o un vídeo tuyo (png, jpg, webp, gif, mp4, webm, mov o mkv)":"Une image ou une vidéo à toi (png, jpg, webp, gif, mp4, webm, mov ou mkv)",
 "Fondo añadido y elegido":"Fond ajouté et sélectionné",
-"Fondos añadidos; el primero ya está elegido":"Fonds ajoutés ; le premier est déjà sélectionné"
+"Fondos añadidos; el primero ya está elegido":"Fonds ajoutés ; le premier est déjà sélectionné",
+"Hay que reiniciar el launcher":"Le launcher doit redémarrer",
+"Para cambiar de canal el launcher se va a reiniciar.":"Pour changer de canal, le launcher va redémarrer.",
+"Para aplicar este cambio el launcher se va a reiniciar.":"Pour appliquer ce changement, le launcher va redémarrer.",
+"Para aplicar el modo bajo consumo del todo el launcher se va a reiniciar.":"Pour appliquer pleinement le mode économe, le launcher va redémarrer.",
+"Rechazar":"Refuser",
+"Cierra Minecraft para que se reinicie el launcher; el cambio ya está guardado":"Ferme Minecraft pour que le launcher redémarre ; le changement est déjà enregistré"
 }};

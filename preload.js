@@ -16,6 +16,7 @@ contextBridge.exposeInMainWorld('api', {
   worldsAll: () => r.invoke('worlds:all'), worldOpen: o => r.invoke('worlds:open', o), worldBackup: o => r.invoke('worlds:backup', o), worldTrash: o => r.invoke('worlds:trash', o), worldsCopy: o => r.invoke('worlds:copy', o), worldsImport: id => r.invoke('worlds:import', id),
   modsHas: o => r.invoke('mods:has', o), modsProjects: o => r.invoke('mods:projects', o), modsBundle: o => r.invoke('mods:bundle', o),
   reset: () => r.invoke('app:reset'),
+  restart: () => r.invoke('app:restart'),
   importScan: () => r.invoke('import:scan'), importRun: d => r.invoke('import:run', d),
   settingsExport: o => r.invoke('settings:export', o), settingsImport: () => r.invoke('settings:import'),
   worldLast: () => r.invoke('world:last'), diag: id => r.invoke('diag:run', id),

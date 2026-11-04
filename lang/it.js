@@ -1309,5 +1309,11 @@ window.LANGS.it={name:"Italiano",d:{
 "+ Añadir fondo…":"+ Aggiungi sfondo…",
 "Una imagen o un vídeo tuyo (png, jpg, webp, gif, mp4, webm, mov o mkv)":"Un'immagine o un video tuo (png, jpg, webp, gif, mp4, webm, mov o mkv)",
 "Fondo añadido y elegido":"Sfondo aggiunto e selezionato",
-"Fondos añadidos; el primero ya está elegido":"Sfondi aggiunti; il primo è già selezionato"
+"Fondos añadidos; el primero ya está elegido":"Sfondi aggiunti; il primo è già selezionato",
+"Hay que reiniciar el launcher":"Il launcher deve riavviarsi",
+"Para cambiar de canal el launcher se va a reiniciar.":"Per cambiare canale il launcher verrà riavviato.",
+"Para aplicar este cambio el launcher se va a reiniciar.":"Per applicare questa modifica il launcher verrà riavviato.",
+"Para aplicar el modo bajo consumo del todo el launcher se va a reiniciar.":"Per applicare del tutto la modalità a basso consumo il launcher verrà riavviato.",
+"Rechazar":"Rifiuta",
+"Cierra Minecraft para que se reinicie el launcher; el cambio ya está guardado":"Chiudi Minecraft per riavviare il launcher; la modifica è già salvata"
 }};
