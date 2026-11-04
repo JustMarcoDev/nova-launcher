@@ -23,16 +23,16 @@ ipcMain.handle('upd:download', async () => {
   if (S.updater && upd.s === 'available') { setUpd({ s: 'downloading', v: upd.v, p: 0 }); S.updater.downloadUpdate().catch(e => setUpd({ s: 'error', msg: String(e && e.message || e).slice(0, 80) })); }
   return upd;
 });
-// Instalación NO silenciosa: el instalador muestra su pantalla de progreso («Instalando…») y relanza el launcher al terminar.
+// Instalación silenciosa: sin pantalla del instalador; el launcher se cierra, se actualiza y vuelve a abrirse solo.
 ipcMain.handle('upd:install', () => {
   if (!S.updater || upd.s !== 'ready') return false;
   let ok = true;
-  try { S.updater.quitAndInstall(false, true); } catch { ok = false; }
+  try { S.updater.quitAndInstall(true, true); } catch { ok = false; }
   // Si tras unos segundos el launcher sigue vivo, quitAndInstall no cerró la app: se lanza el instalador descargado a mano y se sale.
   setTimeout(() => {
     try {
       const f = S.updater.downloadedUpdateHelper && S.updater.downloadedUpdateHelper.file;
-      if (f && fs.existsSync(f)) require('child_process').spawn(f, ['--updated', '--force-run'], { detached: true, stdio: 'ignore' }).on('error', () => {}).unref();
+      if (f && fs.existsSync(f)) require('child_process').spawn(f, ['/S', '--updated', '--force-run'], { detached: true, stdio: 'ignore' }).on('error', () => {}).unref();
     } catch {}
     app.exit(0);
   }, ok ? 8000 : 500);
