@@ -1,6 +1,6 @@
 // Novedades y asistente de bienvenida
 // --- Novedades y asistente de bienvenida ---
-function openNews(){const cv='<div class="cv">'+CLH.split('<div class="cv">')[1];modal(hdr(null,"Novedades de Nova Launcher "+VER,"Esto es lo que trae esta versión")+`<div class="cl" style="max-height:min(56vh,460px)">${cv}</div><div class="acts"><button class="btn pr" data-x>Entendido</button></div>`,"wide")}
+function openNews(){const cv=clhActual().split('<div class="cv">').slice(0,2).join('<div class="cv">');modal(hdr(null,"Novedades de Nova Launcher "+VER,"Esto es lo que trae esta versión")+`<div class="cl" style="max-height:min(56vh,460px)">${cv}</div><div class="acts"><button class="btn pr" data-x>Entendido</button></div>`,"wide")}
 function openWizard(withLang){let st=0;const W={ld:sel.ld||"Vanilla",mc:sel.mc,type:sel.type,lang:LCUR},SK=(withLang?["l"]:[]).concat(["a","r","c","v"]);
 const syncSet=()=>{if($("set").classList.contains("on")&&typeof buildSet==="function")buildSet()};
 const themes=SC.find(s=>s.id==="apar").rows.find(r=>r.k==="theme").o;

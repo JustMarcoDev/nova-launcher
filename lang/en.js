@@ -1305,5 +1305,9 @@ window.LANGS.en={name:"English (US)",d:{
 "Tamaño del panel":"Panel size",
 "100% = normal. También va dentro del enlace":"100% = normal. It also goes inside the link",
 "Fallo nativo de Java":"Native Java crash",
-"Cierre brusco de Minecraft":"Minecraft closed abruptly"
+"Cierre brusco de Minecraft":"Minecraft closed abruptly",
+"+ Añadir fondo…":"+ Add background…",
+"Una imagen o un vídeo tuyo (png, jpg, webp, gif, mp4, webm, mov o mkv)":"Your own image or video (png, jpg, webp, gif, mp4, webm, mov or mkv)",
+"Fondo añadido y elegido":"Background added and selected",
+"Fondos añadidos; el primero ya está elegido":"Backgrounds added; the first one is already selected"
 }};

@@ -1305,5 +1305,9 @@ window.LANGS.pt={name:"Português (Portugal)",d:{
 "Tamaño del panel":"Tamanho do painel",
 "100% = normal. También va dentro del enlace":"100% = normal. Também vai dentro do link",
 "Fallo nativo de Java":"Falha nativa do Java",
-"Cierre brusco de Minecraft":"Fecho abrupto do Minecraft"
+"Cierre brusco de Minecraft":"Fecho abrupto do Minecraft",
+"+ Añadir fondo…":"+ Adicionar fundo…",
+"Una imagen o un vídeo tuyo (png, jpg, webp, gif, mp4, webm, mov o mkv)":"Uma imagem ou vídeo teu (png, jpg, webp, gif, mp4, webm, mov ou mkv)",
+"Fondo añadido y elegido":"Fundo adicionado e escolhido",
+"Fondos añadidos; el primero ya está elegido":"Fundos adicionados; o primeiro já está escolhido"
 }};

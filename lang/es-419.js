@@ -215,5 +215,9 @@ window.LANGS["es-419"]={name:"Español (Latinoamérica)",d:{
 "Tamaño del panel":"Tamaño del panel",
 "100% = normal. También va dentro del enlace":"100% = normal. También va dentro del enlace",
 "Fallo nativo de Java":"Fallo nativo de Java",
-"Cierre brusco de Minecraft":"Cierre brusco de Minecraft"
+"Cierre brusco de Minecraft":"Cierre brusco de Minecraft",
+"+ Añadir fondo…":"+ Añadir fondo…",
+"Una imagen o un vídeo tuyo (png, jpg, webp, gif, mp4, webm, mov o mkv)":"Una imagen o un vídeo tuyo (png, jpg, webp, gif, mp4, webm, mov o mkv)",
+"Fondo añadido y elegido":"Fondo añadido y elegido",
+"Fondos añadidos; el primero ya está elegido":"Fondos añadidos; el primero ya está elegido"
 }};

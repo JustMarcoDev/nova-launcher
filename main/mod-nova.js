@@ -98,12 +98,13 @@ async function fondosScan() {
 function fondosWatch() { if (!FTIMER) FTIMER = setInterval(() => { if (running.size > 0) fondosScan().catch(() => {}); }, 2500); }
 let PICKING = false;
 async function novaPickBg(target) {
-  if (PICKING) return; PICKING = true;
+  const added = [];
+  if (PICKING) return added; PICKING = true;
   const wasMin = !!(S.win && S.win.isMinimized());
   try {
     if (S.win) { if (wasMin) S.win.restore(); S.win.show(); S.win.focus(); }
     const r = await dialog.showOpenDialog(S.win || undefined, { title: 'Fondo para el menú de Nova', properties: target ? ['openFile'] : ['openFile', 'multiSelections'], filters: [{ name: 'Imagen o vídeo', extensions: ['png', 'jpg', 'jpeg', 'webp', 'bmp', 'gif', 'mp4', 'm4v', 'mov', 'webm', 'mkv'] }] });
-    if (r.canceled || !r.filePaths.length) return;
+    if (r.canceled || !r.filePaths.length) return added;
     const dir = fondosDir(), names = fondosJson('nombres.json');
     for (const p of r.filePaths) {
       if (!MEDIA.test(p)) continue;
@@ -118,11 +119,12 @@ async function novaPickBg(target) {
         for (let i = 2; fs.existsSync(path.join(dir, dest)); i++) dest = base + ' (' + i + ')' + ext;
       }
       fs.copyFileSync(p, path.join(dir, dest));
-      FFAIL.delete(dest);
+      FFAIL.delete(dest); added.push(dest);
     }
     fondosJson('nombres.json', names);
     setTimeout(() => fondosScan().catch(() => {}), 1700);
   } catch {} finally { PICKING = false; if (wasMin && S.win) { try { S.win.minimize(); } catch {} } }
+  return added;
 }
 const LOW720 = new Set();
    // fondos que se están reescalando a 720p ahora mismo
@@ -384,27 +386,8 @@ ipcMain.handle('nmenu:set', (e, patch) => {
   try { fs.writeFileSync(tmp, JSON.stringify(next)); fs.renameSync(tmp, f); } catch (er) { try { fs.unlinkSync(tmp); } catch {} return { ok: false, why: String(er && er.message || er) }; }
   return { ok: true, mtime: fs.statSync(f).mtimeMs };
 });
-// Captura de fondo para el editor del HUD: la última captura de pantalla de tus instancias (reducida a 960 px) o, si no hay, null
-ipcMain.handle('nmenu:shot', () => {
-  try {
-    const { nativeImage } = require('electron'); let best = null;
-    const ids = (R.getIns ? (rd(path.join(root, 'instances.json'), []) || []) : []).map(i => i.id);
-    for (const id of ids) { const d = path.join(R.iDir(id), 'screenshots'); let L = []; try { L = fs.readdirSync(d); } catch { continue; } for (const f of L) if (/\.png$/i.test(f)) { const p = path.join(d, f), m = fs.statSync(p).mtimeMs; if (!best || m > best.m) best = { p, m }; } }
-    if (!best) return null;
-    const im = nativeImage.createFromPath(best.p); if (im.isEmpty()) return null;
-    return im.resize({ width: 960, quality: 'good' }).toDataURL();
-  } catch { return null; }
-});
-ipcMain.handle('nmenu:export', async (e, text) => {
-  const r = await dialog.showSaveDialog(S.win || undefined, { title: 'Exportar mi HUD', defaultPath: path.join(app.getPath('downloads'), 'mi-hud.novahud'), filters: [{ name: 'HUD de Nova', extensions: ['novahud'] }] });
-  if (r.canceled || !r.filePath) return { ok: false, canceled: true };
-  try { fs.writeFileSync(r.filePath, String(text)); return { ok: true, file: r.filePath }; } catch (er) { return { ok: false, why: String(er && er.message || er) }; }
-});
-ipcMain.handle('nmenu:import', async () => {
-  const r = await dialog.showOpenDialog(S.win || undefined, { title: 'Importar un HUD', properties: ['openFile'], filters: [{ name: 'HUD de Nova', extensions: ['novahud', 'txt'] }] });
-  if (r.canceled || !r.filePaths[0]) return { ok: false, canceled: true };
-  try { const st = fs.statSync(r.filePaths[0]); if (st.size > 65536) return { ok: false, why: 'big' }; return { ok: true, text: fs.readFileSync(r.filePaths[0], 'utf8') }; } catch (er) { return { ok: false, why: String(er && er.message || er) }; }
-});
+// Añadir un fondo propio desde Ajustes → Menú de Nova (el mismo selector que usa el mod): devuelve los nombres de los archivos añadidos
+ipcMain.handle('nmenu:addbg', async () => ({ added: await novaPickBg() }));
 
 // «Usar la accesibilidad del launcher»: si el jugador lo marcó en el mod (menu.json → acc.launcher), al lanzar el juego se copian aquí
 // el tamaño del texto, el alto contraste y reducir animaciones del launcher.

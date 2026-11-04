@@ -1305,5 +1305,9 @@ window.LANGS.de={name:"Deutsch",d:{
 "Tamaño del panel":"Größe des Panels",
 "100% = normal. También va dentro del enlace":"100 % = normal. Steckt ebenfalls im Link",
 "Fallo nativo de Java":"Nativer Java-Absturz",
-"Cierre brusco de Minecraft":"Minecraft wurde abrupt beendet"
+"Cierre brusco de Minecraft":"Minecraft wurde abrupt beendet",
+"+ Añadir fondo…":"+ Hintergrund hinzufügen…",
+"Una imagen o un vídeo tuyo (png, jpg, webp, gif, mp4, webm, mov o mkv)":"Dein eigenes Bild oder Video (png, jpg, webp, gif, mp4, webm, mov oder mkv)",
+"Fondo añadido y elegido":"Hintergrund hinzugefügt und ausgewählt",
+"Fondos añadidos; el primero ya está elegido":"Hintergründe hinzugefügt; der erste ist schon ausgewählt"
 }};

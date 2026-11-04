@@ -1305,5 +1305,9 @@ window.LANGS.fr={name:"Français",d:{
 "Tamaño del panel":"Taille du panneau",
 "100% = normal. También va dentro del enlace":"100 % = normal. C'est aussi dans le lien",
 "Fallo nativo de Java":"Plantage natif de Java",
-"Cierre brusco de Minecraft":"Fermeture brutale de Minecraft"
+"Cierre brusco de Minecraft":"Fermeture brutale de Minecraft",
+"+ Añadir fondo…":"+ Ajouter un fond…",
+"Una imagen o un vídeo tuyo (png, jpg, webp, gif, mp4, webm, mov o mkv)":"Une image ou une vidéo à toi (png, jpg, webp, gif, mp4, webm, mov ou mkv)",
+"Fondo añadido y elegido":"Fond ajouté et sélectionné",
+"Fondos añadidos; el primero ya está elegido":"Fonds ajoutés ; le premier est déjà sélectionné"
 }};

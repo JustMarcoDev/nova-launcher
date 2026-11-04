@@ -3,6 +3,13 @@
 Todo lo que cambia en cada versión de Nova Launcher y del menú de Nova (el mod), de la más nueva a la más antigua. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**, y el flujo de publicación copia la entrada de cada versión a las notas de su release. Al sacar una versión nueva, añade su entrada `### x.y.z — Título` **al principio** de la lista.
 
 
+### 0.2.18-beta.11 — Historial según el canal, fondo propio en el menú de Nova y menos ajustes
+
+- **Historial por canal** (`js/ajustes.js` `clhVista`, `scripts/release-notes.js`): con el canal **Beta** se ve el historial completo (betas y oficiales). Con el canal **Estable** solo salen las versiones oficiales y cada una trae dentro lo de todas sus betas (mezcladas por categoría en la app, sin repetir líneas; en las notas de la release, bajo «Y todo lo que llegó durante las betas»). Las betas de una versión que aún no tiene estable no aparecen. Cambiar de canal actualiza la lista al momento y «Novedades» enseña la primera entrada de tu vista. Las notas de una beta siguen llevando solo su entrada. `tests/historial.js`.
+- **Línea bajo «Arreglado»**: la categoría usaba la clase `.f`, que ya existe como fila de formulario (con `border-bottom`, relleno y `display:flex`); ahora es `.ct.fx`.
+- **Ajustes → Menú de Nova → Fondo del menú**: botón «+ Añadir fondo…» (`nmenu:addbg` → `novaPickBg`, el mismo selector que usa el mod): copia la imagen o el vídeo a `nova/fondos`, lo elige como fondo y actualiza la lista; el mod lo convierte solo.
+- **Quitado el editor del HUD del launcher** (último ajuste de Menú de Nova): lienzo, exportar/importar y copiar/pegar código, junto con sus IPC (`nmenu:shot`, `nmenu:export`, `nmenu:import`), su CSS y el código asociado. Se mantienen los perfiles del HUD por servidor y todo lo demás; el HUD se sigue editando dentro del juego.
+
 ### 0.2.18-beta.10 — Posición y tamaño del panel del streamer, y diagnóstico de cierres arreglado
 
 - **Streamer → Posición del panel** (`stPos`: arriba/abajo × izquierda/centro/derecha) **y Tamaño del panel** (`stScale`, 50–200 %): se incluyen en el enlace de OBS (`?pos=br&scale=1.5`; los valores por defecto se omiten). El overlay entiende `pos=tl|tc|tr|bl|bc|br` (`main/streamer.js`, `posOf`); un valor raro cae en arriba a la izquierda. Comprobado en un navegador con las 6 posiciones y con zoom.
