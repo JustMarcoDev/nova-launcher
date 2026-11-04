@@ -43,13 +43,15 @@ ipcMain.handle('err:folder', () => { fs.mkdirSync(errDir(), { recursive: true })
 // Solo se envían si el jugador activa «Enviar informes de error anónimos». Antes de salir se borran nombres de usuario,
 // rutas de usuario, IPs y tokens. El id es aleatorio por instalación (nunca el nombre de la cuenta).
 const crypto = require('crypto');
-function installId() {
-  const f = path.join(root, 'report-id.txt');
+// Id aleatorio persistente de esta instalación (un archivo por uso, para que informes y estadísticas no se puedan cruzar).
+function randomId(name) {
+  const f = path.join(root, name);
   try { const t = fs.readFileSync(f, 'utf8').trim(); if (/^[0-9a-f]{32}$/.test(t)) return t; } catch {}
   const id = crypto.randomBytes(16).toString('hex');
   try { fs.mkdirSync(root, { recursive: true }); fs.writeFileSync(f, id); } catch {}
   return id;
 }
+const installId = () => randomId('report-id.txt');
 function scrub(text, names = []) {
   let t = String(text == null ? '' : text);
   t = t.replace(/\b(Bearer|Basic)\s+[A-Za-z0-9._~+\/=-]{8,}/gi, '$1 [token]')
@@ -89,13 +91,7 @@ async function sendCrashReport(info) {
 
 // ---- Recuento anónimo de versiones (casilla «Enviar estadísticas anónimas de uso», apagada de fábrica; se apaga a distancia con off: «usage») ----
 // Solo viaja {id aleatorio de esta instalación (distinto del de los informes), versión del launcher, de Minecraft y cargador}: nunca nombres, cuentas ni IPs.
-function usageId() {
-  const f = path.join(root, 'usage-id.txt');
-  try { const t = fs.readFileSync(f, 'utf8').trim(); if (/^[0-9a-f]{32}$/.test(t)) return t; } catch {}
-  const id = crypto.randomBytes(16).toString('hex');
-  try { fs.mkdirSync(root, { recursive: true }); fs.writeFileSync(f, id); } catch {}
-  return id;
-}
+const usageId = () => randomId('usage-id.txt');
 async function sendUsage(ins) {
   try {
     if (R.novaOff && R.novaOff('usage')) return false;

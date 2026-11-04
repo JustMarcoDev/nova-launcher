@@ -3,6 +3,11 @@
 Todo lo que cambia en cada versión de Nova Launcher y del menú de Nova (el mod), de la más nueva a la más antigua. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**, y el flujo de publicación copia la entrada de cada versión a las notas de su release. Al sacar una versión nueva, añade su entrada `### x.y.z — Título` **al principio** de la lista.
 
 
+### 0.2.18 — Versión estable: ajustes más claros, modo streamer con overlay, historial por canal, fondo propio en el menú de Nova y limpieza del código
+
+- **Revisión completa antes de la estable**: barrido de código sin uso (ESLint, búsqueda de funciones, IPC y claves de configuración sin referencias) y de código repetido (jscpd): solo había un par de bloques repetidos en `main/errores.js` (`installId`/`usageId`), ahora unificados en `randomId`. Se quitan 53 textos de traducción sin uso.
+- **Privacidad**: revisado que el repositorio no contiene claves, rutas de usuario, IPs ni datos personales; los informes de error borran IPs, rutas, tokens y nombres; el overlay del streamer solo escucha en `127.0.0.1`; el Worker usa la IP solo en memoria para limitar peticiones.
+
 ### 0.2.18-beta.14 — Actualizar sin pantalla de instalación
 
 - **Quitada la pantalla de carga del instalador** (`main/actualizaciones.js`): `upd:install` vuelve a `quitAndInstall(true, true)` (instalación silenciosa y reapertura) y el respaldo manual vuelve a pasar `/S`. Deshace el cambio de la beta.12.
