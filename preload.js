@@ -17,6 +17,7 @@ contextBridge.exposeInMainWorld('api', {
   modsHas: o => r.invoke('mods:has', o), modsProjects: o => r.invoke('mods:projects', o), modsBundle: o => r.invoke('mods:bundle', o),
   reset: () => r.invoke('app:reset'),
   restart: () => r.invoke('app:restart'),
+  shareMake: id => r.invoke('share:make', id), packPending: () => r.invoke('pack:pending'), packPick: () => r.invoke('pack:pick'), packPreview: o => r.invoke('pack:preview', o), packInstall: o => r.invoke('pack:install', o),
   importScan: () => r.invoke('import:scan'), importRun: d => r.invoke('import:run', d),
   settingsExport: o => r.invoke('settings:export', o), settingsImport: () => r.invoke('settings:import'),
   worldLast: () => r.invoke('world:last'), diag: id => r.invoke('diag:run', id),

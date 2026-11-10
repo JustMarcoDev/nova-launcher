@@ -13,6 +13,7 @@
 //   servidores   ping, servers.dat
 //   mundos       mundos de cada instancia
 //   mods         gestor de mods, modpacks, shaders, revisión antes de jugar, arrastrar y soltar
+//   pack         compartir modpacks con un enlace (nova://) y añadir modpacks (pack-core.js = lógica pura)
 //   cargadores   Fabric, Forge, NeoForge
 //   mod-nova     menú de Nova dentro del juego (mod, fondos, actualización del mod)
 //   juego        lanzar Minecraft (Java, versiones, ajustes, cierre)
@@ -34,6 +35,7 @@ require('./main/skins');
 require('./main/servidores');
 require('./main/mundos');
 require('./main/mods');
+require('./main/pack');
 require('./main/cargadores');
 require('./main/mod-nova');
 require('./main/juego');

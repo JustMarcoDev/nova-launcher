@@ -1,6 +1,6 @@
 {
   "name": "nova-launcher",
-  "version": "0.2.18",
+  "version": "0.2.19-beta.1",
   "novaPresence": "",
   "description": "Nova Launcher para Minecraft",
   "author": "Astrion Studio",
@@ -56,6 +56,7 @@
       "!tests/**",
       "!scripts/**",
       "!servidor/**",
+      "!web/**",
       "!*.bat",
       "!README.md",
       "!CHANGELOG.md",

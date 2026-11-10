@@ -113,6 +113,36 @@ const w = dom.window, sleep = ms => new Promise(r => setTimeout(r, ms));
     w.eval('closeModal()'); delete api.loaderVersions;
     mock.insts = []; await w.eval('loadI()');
   }
+  // Compartir modpack y Añadir modpack: enlace con dos formatos, aviso de lo que se queda fuera, vista previa y «Instalar»
+  {
+    const g = id => w.document.getElementById(id), $q = s => w.document.querySelector(s);
+    mock.insts = [{ id: 'i9', name: 'Mi pack', mc: '1.21.1', ld: 'Vanilla' }];
+    await w.eval('loadI()'); for (let k = 0; k < 30 && !/Mi pack/.test(g('il').textContent); k++) await sleep(100);
+    api.shareMake = async () => ({ app: 'nova://pack?d=ABC', web: 'https://x.dev/pack#ABC', length: 3, shared: 5, left: [{ t: 'm', file: 'propio.jar' }] });
+    const copied = []; api.clip = async t => { copied.push(t); };
+    $q('#il [data-a=opt]').click(); for (let k = 0; k < 30 && !$q('.md [data-a=lk]'); k++) await sleep(100);
+    if (!$q('.md [data-a=lk]')) errors.push('Compartir modpack: falta el botón en las opciones de la instancia');
+    else {
+      await sleep(300); $q('.md [data-a=lk]').click(); for (let k = 0; k < 30 && !g('shc'); k++) await sleep(100);
+      if (!g('shc') || g('shl').value !== 'https://x.dev/pack#ABC' || !/propio\.jar/.test(g('shb').textContent)) errors.push('Compartir modpack: no muestra el enlace ni lo que se queda fuera: ' + (($q('.md') || {}).textContent || '').slice(0, 300));
+      else { g('shc').click(); await sleep(50); if (copied[0] !== 'https://x.dev/pack#ABC') errors.push('Compartir modpack: «Copiar enlace» no copia el enlace'); }
+    }
+    w.eval('closeModal(true)');
+    const pv = { name: 'Mi pack', mc: '1.21.1', ld: 'Fabric', lv: '0.16.9', ram: 6, mods: 3, resourcepacks: 1, shaders: 0, size: 5242880, missing: 2, exists: { id: 'i9', name: 'Mi pack' } };
+    let got = null; api.packPreview = async a => { got = a; return pv; };
+    const inst = []; api.packInstall = async a => { inst.push(a); return { ins: { id: 'n1', name: 'Mi pack (2)' }, failed: [] }; };
+    w.document.getElementById('iam').click(); for (let k = 0; k < 30 && !g('pkl'); k++) await sleep(100);
+    if (!g('pkl') || !g('pkf') || !g('pkm')) errors.push('Añadir modpack: faltan las tres opciones (pegar, archivo, Modrinth)');
+    else {
+      g('pkl').value = 'nova://pack?d=ABC'; g('pkg').click(); for (let k = 0; k < 30 && !g('pki'); k++) await sleep(100);
+      const t = $q('.md').textContent;
+      if (!g('pki') || !/3 mods/.test(t) || !/5\.0 MB/.test(t) || !/Faltan archivos.*2/.test(t) || !g('pkx')) errors.push('Añadir modpack: la vista previa no muestra mods, tamaño, lo que falta y la opción de reemplazar o copiar');
+      else { g('pki').click(); for (let k = 0; k < 30 && !inst.length; k++) await sleep(100); if (!inst[0] || inst[0].text !== 'nova://pack?d=ABC' || inst[0].mode !== 'copy') errors.push('Añadir modpack: «Instalar» no manda el enlace con el modo elegido'); }
+      if (!got || got.text !== 'nova://pack?d=ABC') errors.push('Añadir modpack: la vista previa no recibió el enlace');
+    }
+    w.eval('closeModal(true)');
+    delete api.shareMake; delete api.clip; delete api.packPreview; delete api.packInstall; mock.insts = []; await w.eval('loadI()');
+  }
   // Pestaña Skin: lista de skins guardadas, texto según la cuenta (offline / Microsoft) y capas solo en Microsoft
   {
     const g = id => w.document.getElementById(id);

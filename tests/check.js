@@ -138,6 +138,11 @@ if (ver !== pkg.version) bad('VER en js/base.js (' + ver + ') no coincide con pa
   const r = require('child_process').spawnSync(process.execPath, [path.join(__dirname, 'clips.js')], { encoding: 'utf8' });
   if (r.status !== 0) bad('tests/clips.js falló:\n' + (r.stdout || '') + (r.stderr || '')); else console.log(r.stdout.trim());
 }
+// Compartir modpacks: manifiesto, enlaces y vista previa (lógica pura)
+{
+  const r = require('child_process').spawnSync(process.execPath, [path.join(__dirname, 'pack.js')], { encoding: 'utf8' });
+  if (r.status !== 0) bad('tests/pack.js falló:\n' + (r.stdout || '') + (r.stderr || '')); else console.log(r.stdout.trim());
+}
 // Marcadores seguros del mod (código por partida; el chat no puede pedirle nada al launcher)
 {
   const r = require('child_process').spawnSync(process.execPath, [path.join(__dirname, 'marcas.js')], { encoding: 'utf8' });

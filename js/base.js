@@ -5,7 +5,7 @@ const BHM={dorado:[44,100],azul:[205,100],violeta:[268,95],rosa:[328,95],verde:[
 const FF=[["Segoe UI","sans-serif"],["Segoe UI Variable Text","sans-serif","Segoe UI Variable"],["Bahnschrift","sans-serif"],["Calibri","sans-serif"],["Arial","sans-serif"],["Tahoma","sans-serif"],["Verdana","sans-serif"],["Trebuchet MS","sans-serif"],["Century Gothic","sans-serif"],["Candara","sans-serif"],["Corbel","sans-serif"],["Franklin Gothic Medium","sans-serif"],["Ebrima","sans-serif"],["Nirmala UI","sans-serif"],["Gill Sans MT","sans-serif"],["Cambria","serif"],["Constantia","serif"],["Georgia","serif"],["Palatino Linotype","serif"],["Sitka Text","serif"],["Times New Roman","serif"],["Comic Sans MS","cursive"],["Impact","sans-serif"],["Consolas","monospace"],["Cascadia Code","monospace"],["Lucida Console","monospace"],["Courier New","monospace"]];
 const FONTS=Object.fromEntries(FF.map(([n,g,l])=>[l||n,`"${n}",${n==="Segoe UI"?"system-ui,":""}${g}`]));
 // --- Estado compartido (versión, sistema, fondo) ---
-let VER="0.2.18",SYS={total:16},secNow="gen",BG="#080a0f",BHs=BHM.dorado,dirty=60,RUN=false;
+let VER="0.2.19-beta.1",SYS={total:16},secNow="gen",BG="#080a0f",BHs=BHM.dorado,dirty=60,RUN=false;
 // --- Ajustes guardados ---
 const ECO={quality:"baja",fps:30,glassBlur:0,stars:40,bhBloom:false,bhLens:false,bhOther:false,pauseBlur:true};
 const rec=()=>Math.max(1,Math.floor(SYS.total/2));
@@ -108,8 +108,12 @@ async function launch(o){
 // --- Arranque: novedades y asistente (las ventanas se cargan solo cuando hacen falta) ---
 // ¿Hay ya un perfil creado? Sin cuentas guardadas, sin Microsoft y con el nombre de fábrica «Jugador», no.
 function needProfile(){return!(cfg.accounts||[]).length&&!cfg.ms&&(!cfg.username||cfg.username==="Jugador")}
-function startup212(){if(!A)return;const go=()=>{if(cfg._first){sv({setupDone:true,seenVersion:VER});openWizard()}else if(cfg.seenVersion!==VER){sv({seenVersion:VER});openNews()}};
+function startup212(){if(!A)return;
+// Enlaces nova://pack: con el launcher abierto llegan por pack:link; con el launcher cerrado esperan en pack:pending
+if(A.on)A.on("pack:link",l=>openAddPack(l));if(A.packPending)A.packPending().then(l=>{if(l)setTimeout(()=>openAddPack(l),900)}).catch(()=>{});
+const go=()=>{if(cfg._first){sv({setupDone:true,seenVersion:VER});openWizard()}else if(cfg.seenVersion!==VER){sv({seenVersion:VER});openNews()}};
 if(needProfile())openAddAcc(true,go);else go()}
 lazyFn("asistente",["openNews","openWizard"],["ajustes"]);
 lazyFn("instancias",["showCrash","openOpts","openBackups","pickPackVersion","openCreate"]);
 lazyFn("mods",["openAdd"]);
+lazyFn("compartir",["openShare","openAddPack"]);

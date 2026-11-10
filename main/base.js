@@ -73,7 +73,7 @@ if (process.platform === 'win32') app.setAppUserModelId('com.nova.launcher');
 if (process.platform === 'linux' && app.commandLine) app.commandLine.appendSwitch('no-sandbox');
 const single = app.requestSingleInstanceLock();
 if (!single) app.quit();
-else app.on('second-instance', () => { if (S.win) { if (S.win.isMinimized()) S.win.restore(); S.win.show(); S.win.focus(); } });
+else app.on('second-instance', (e, argv) => { if (S.win) { if (S.win.isMinimized()) S.win.restore(); S.win.show(); S.win.focus(); } if (R.packOpen) R.packOpen(argv); });   // argv puede traer un enlace nova://
 const send = (c, d) => S.win && S.win.webContents.send(c, d);
 const running = new Set();
 // Repositorio de GitHub del que salen las actualizaciones, las versiones anteriores y las notas

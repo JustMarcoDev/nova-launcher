@@ -58,6 +58,7 @@ function openCreate(pre){
 }
 $("icr").onclick=()=>openCreate({mc:sel.mc,ld:sel.ld,type:sel.type});
 $("ish").onclick=()=>openShots("all");$("imo2").onclick=()=>openImport();
+$("iam").onclick=()=>{if(A)openAddPack();else pv("iam")};
 $("imp").onclick=async()=>{if(!A){pv("imp");return}
 const b=$("imp");b.disabled=true;try{const r=await A.instImport();if(r&&!r.canceled){await loadI();flash("Instancia importada: "+r.ins.name+(r.failed&&r.failed.length?" (faltan "+r.failed.length+" archivos)":""))}}catch(e){flash("No se pudo importar: "+em(e))}finally{b.disabled=false}};
 $("ifo").onclick=()=>{if(A)A.folder();else pv("ifo")};
@@ -101,7 +102,7 @@ const d=modal(hdr(ins,"Opciones de la instancia",esc(LDN(ins.ld||"Vanilla"))+" �
 <div class="fr"><label>Copias automáticas</label><select id="obf"><option value="">Nunca</option><option value="daily" ${ins.bkFreq==="daily"?"selected":""}>Diaria</option><option value="3d" ${ins.bkFreq==="3d"?"selected":""}>Cada 3 días</option><option value="weekly" ${ins.bkFreq==="weekly"?"selected":""}>Semanal</option></select></div><div class="fr"><label>Máximo de copias automáticas</label><input id="obm" type="number" min="1" max="50" value="${ins.bkMax||5}" style="width:90px"></div><small class="hint" style="margin:-6px 0 12px 142px">Se hacen al abrir el launcher y al cerrar el juego, nunca con la instancia abierta. Al pasar el máximo se borran las automáticas más antiguas; las manuales no se tocan.</small>
 <div class="fr"><label>Tarjeta gráfica</label><select id="ogp"><option value="">Automática</option><option value="high" ${ins.gpu==="high"?"selected":""}>Usar la más potente</option></select></div><small class="hint" style="margin:-6px 0 12px 142px">En portátiles con dos tarjetas gráficas obliga a Java a usar la dedicada (Windows 10/11).</small>
 ${hasL?`<div class="fr"><label>Versión de ${esc(ins.ld)}</label><select id="olv"><option value="">Cargando…</option></select></div><small class="hint" id="olh" style="display:block;margin:-6px 0 12px 142px"></small>`:""}
-<div class="acts2"><button class="btn sm" data-a="fo">Abrir carpeta</button><button class="btn sm" data-a="dup">Duplicar</button><button class="btn sm" data-a="ex">Exportar…</button><button class="btn sm" data-a="wo">Mundos</button><button class="btn sm" data-a="sh">Capturas</button><button class="btn sm" data-a="bk">Copias de seguridad</button><button class="btn sm dg" data-a="del">Borrar instancia</button></div>
+<div class="acts2"><button class="btn sm" data-a="fo">Abrir carpeta</button><button class="btn sm" data-a="dup">Duplicar</button><button class="btn sm" data-a="ex">Exportar…</button><button class="btn sm" data-a="lk">Compartir modpack</button><button class="btn sm" data-a="wo">Mundos</button><button class="btn sm" data-a="sh">Capturas</button><button class="btn sm" data-a="bk">Copias de seguridad</button><button class="btn sm dg" data-a="del">Borrar instancia</button></div>
 <div class="acts"><button class="btn" data-x>Cancelar</button><button class="btn pr" id="osv">Guardar</button></div>`);
 let RREC=null;
 const rrec=()=>{const o=$("orr");if(!o||!RREC)return;const v=+$("orm").value||cfg.ram,sev=RREC.rec>0?(v>=RREC.rec+3&&v>=RREC.rec*1.6?"high":v<=RREC.rec-2?"low":""):"";
@@ -123,7 +124,7 @@ try{await api.instUpdate(id,p);await loadI();closeModal();flash("Cambios guardad
 d.querySelector(".acts2").onclick=async e=>{const b=e.target.closest("button[data-a]");if(!b)return;const a=b.dataset.a;
 try{if(a==="fo"){if(A)A.instOpen(id,"");else pv("ifol")}
 else if(a==="dup"){const w=await askDup(ins);if(w===null){openOpts(id);return}b.disabled=true;b.textContent="Duplicando…";await api.instDup({id,worlds:w});await loadI();closeModal();flash("Instancia duplicada")}
-else if(a==="ex")openExport(id);else if(a==="bk")openBackups(id);else if(a==="wo")openWorlds(id);else if(a==="sh")openShots(id);
+else if(a==="ex")openExport(id);else if(a==="lk"){if(A)openShare(id);else pv("lk")}else if(a==="bk")openBackups(id);else if(a==="wo")openWorlds(id);else if(a==="sh")openShots(id);
 else if(a==="del"){if(!confirm("¿Borrar «"+ins.name+"» con sus mundos, mods y copias de seguridad? No se puede deshacer."))return;await api.delInst(id);await loadI();closeModal();flash("Instancia borrada")}}
 catch(x){flash(em(x));b.disabled=false}}}
 // --- Exportar ---

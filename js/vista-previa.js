@@ -1,7 +1,7 @@
 // Vista previa: datos y avisos de ejemplo para abrir index.html en un navegador (sin la app).
 // Solo se carga cuando no existe window.api y no va dentro del instalador (build.files).
 // Avisos «Vista previa»
-const PVN={rep:"se abriría la carpeta de informes",txt:"en la app se guarda un archivo .txt",wfo:"se abriría la carpeta de mundos",wim:"en la app eliges un .zip con el mapa",imp:"en la app puedes importar un .mrpack o un .zip de Nova Launcher",ifo:"abre la carpeta del juego desde la app",mad:"en la app puedes añadir tus propios .jar",ifol:"se abriría la carpeta de la instancia",exp:"en la app se guardaría un archivo ."};
+const PVN={iam:"se abriría el diálogo para añadir un modpack",lk:"se crearía el enlace para compartir el modpack",rep:"se abriría la carpeta de informes",txt:"en la app se guarda un archivo .txt",wfo:"se abriría la carpeta de mundos",wim:"en la app eliges un .zip con el mapa",imp:"en la app puedes importar un .mrpack o un .zip de Nova Launcher",ifo:"abre la carpeta del juego desde la app",mad:"en la app puedes añadir tus propios .jar",ifol:"se abriría la carpeta de la instancia",exp:"en la app se guardaría un archivo ."};
 const pv=(k,x)=>flash("Vista previa: "+PVN[k]+(x||""));
 const pvPlay=()=>{$("st").textContent="Vista previa: instala la app de escritorio para jugar"};
 const pvJoin=el=>{el.textContent="Vista previa";setTimeout(()=>el.textContent="Unirse",1500)};
