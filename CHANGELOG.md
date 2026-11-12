@@ -3,6 +3,15 @@
 Todo lo que cambia en cada versión de Nova Launcher y del menú de Nova (el mod), de la más nueva a la más antigua. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**, y el flujo de publicación copia la entrada de cada versión a las notas de su release. Al sacar una versión nueva, añade su entrada `### x.y.z — Título` **al principio** de la lista.
 
 
+### 0.2.19-beta.4 · Logros de Minecraft y acceso directo del escritorio
+
+**Añadido**
+- Logros de Minecraft: 64 avances normales del juego (Historia, Nether, El End, Aventura y Granja, algunos «ocultos» que no enseñan el nombre hasta conseguirlos) en una sección nueva de Logros. Solo cuentan con el menú de Nova (Vanilla o Fabric, 1.20 o superior), en mundos de un jugador y desde esta beta. No cuentan para el platino. Al conseguir uno sale el aviso dentro del juego; Minecraft guarda el progreso al autoguardar o al salir del mundo, así que puede tardar un poco.
+
+**Arreglado**
+- El acceso directo del escritorio ya no se vuelve a crear en cada actualización: solo se crea la primera vez (si lo borras, no vuelve). El instalador tampoco lo recrea al actualizar y limpia copias repetidas del tipo «Nova Launcher (2)».
+- Si el launcher está instalado «para todos los usuarios» (carpeta Archivos de programa), el aviso de actualización explica que por eso Windows pide administrador y cómo evitarlo (instalar con «Solo para mí»). Una instalación «solo para mí» no lo pide.
+
 ### 0.2.19-beta.3 · Logros ampliados (85 + platino), pantallas de carga y todo a cero
 
 **Añadido**

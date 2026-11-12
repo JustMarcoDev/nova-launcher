@@ -1,6 +1,6 @@
 {
   "name": "nova-launcher",
-  "version": "0.2.19-beta.3",
+  "version": "0.2.19-beta.4",
   "novaPresence": "",
   "description": "Nova Launcher para Minecraft",
   "author": "Astrion Studio",
@@ -34,7 +34,7 @@
     },
     "nsis": {
       "oneClick": false,
-      "createDesktopShortcut": "always",
+      "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "language": "3082",
       "shortcutName": "Nova Launcher",

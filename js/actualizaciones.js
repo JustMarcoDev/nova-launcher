@@ -8,9 +8,9 @@ function renderU(){const s=U.s,act=s==="available"||s==="downloading"||s==="read
 ub.classList.toggle("on",act);ub.classList.toggle("dl",s==="downloading");ub.classList.toggle("rdy",s==="ready");up.classList.toggle("on",act);up.classList.toggle("rdy",s==="ready");um.classList.toggle("dl",s==="downloading");
 document.querySelectorAll("nav [data-p=home],nav [data-p=set]").forEach(b=>b.classList.toggle("bd",act));
 if(act){const T=s==="ready"?"Actualización lista para instalar":"1 actualización pendiente",S=s==="ready"?"La versión"+v+" ya está descargada. Reinicia para instalarla; tus mundos, mods y ajustes se conservan.":s==="downloading"?"Descargando la versión"+v+"… "+pc+"%"+(U.bps?" · "+fmtB(U.bps):""):"Nova Launcher"+v+" está disponible. Tus mundos, mods y ajustes se conservan.",B=s==="ready"?"Reiniciar e instalar":s==="downloading"?"Descargando… "+pc+"%":"Actualizar ahora";
-$("ubt").innerHTML=(s==="ready"?"":"<em>1</em>")+T.replace("1 actualización pendiente","actualización pendiente");$("ubs").textContent=S;$("ubp").style.width=(s==="ready"?100:pc)+"%";
+const AD=U.admin?" "+trad("Esta copia está instalada para todos los usuarios y por eso Windows pide permisos de administrador; instala el launcher con «Solo para mí» y dejará de pedirlos."):"";$("ubt").innerHTML=(s==="ready"?"":"<em>1</em>")+T.replace("1 actualización pendiente","actualización pendiente");$("ubs").textContent=S;$("ubp").style.width=(s==="ready"?100:pc)+"%";
 const b=$("ubb");b.textContent=B;b.disabled=s==="downloading";
-$("umt").textContent=T;$("ums").textContent=S;$("ump").style.width=(s==="ready"?100:pc)+"%";const mb=$("umb");mb.textContent=B;mb.disabled=s==="downloading";
+$("umt").textContent=T;$("ums").textContent=S+AD;$("ump").style.width=(s==="ready"?100:pc)+"%";const mb=$("umb");mb.textContent=B;mb.disabled=s==="downloading";
 $("upt").textContent=s==="ready"?"Reiniciar e instalar":s==="downloading"?pc+"%":"1 actualización";
 const key=U.v||"x";if(umSeen!==key){umSeen=key;setTimeout(()=>{if((U.s==="available"||U.s==="downloading"||(U.s==="ready"&&!acT&&cfg.autoInstall===false)))um.classList.add("on")},Math.max(300,5300-performance.now()))}}
 else um.classList.remove("on");

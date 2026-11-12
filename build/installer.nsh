@@ -19,3 +19,9 @@ LangString freshInstallForAll 3082 "Instalación para todos los usuarios. Pedir�
 LangString perMachineInstallExists 3082 "Ya está instalado para todos los usuarios. Cada actualización pedirá permisos de administrador. Para evitarlo, elige «Solo para mí»: "
   !pragma warning enable 6030
 !macroend
+
+; Accesos directos repetidos del escritorio («Nova Launcher (2).lnk», etc.) de actualizaciones anteriores: se quitan; el principal se conserva.
+!macro customInstall
+  Delete "$DESKTOP\Nova Launcher (*).lnk"
+  Delete "$DESKTOP\Nova Launcher - *.lnk"
+!macroend

@@ -5,10 +5,12 @@
 // La lista y las métricas están en logros-core.js (lógica pura, con pruebas).
 // =====================================================================================
 const { app, ipcMain } = require('electron');
+const fsp = require('fs').promises;
 const path = require('path');
 const { R } = require('./compartido');
 const C = require('./logros-core');
-const { li, rd, wr, root, send } = R; // base
+const { li, rd, wr, root, running, send } = R; // base
+const iDir = id => path.join(root, 'instances', String(id));
 const file = path.join(root, 'logros.json');
 
 // Qué acción cuenta para qué contador. Se engancha a ipcMain.handle ANTES de que se registren los demás módulos (este se carga justo después de base),
@@ -59,14 +61,52 @@ let saveT = null;
 const save = () => { clearTimeout(saveT); saveT = setTimeout(() => { try { wr(file, st); } catch {} }, 500); };
 app.on('before-quit', () => { try { wr(file, st); } catch {} });
 
+// ---- Logros de Minecraft: avances hechos en mundos de un jugador (saves/<mundo>/advancements/*.json) de instancias con el menú de Nova ----
+// Solo cuentan los que se consiguen a partir de la beta.4 (por la hora de cada avance). Minecraft guarda el progreso en el disco al autoguardar (cada pocos minutos)
+// y al salir del mundo, así que el aviso puede llegar con ese retraso. En servidores no se puede leer (el progreso lo guarda el servidor).
+if (!st.mcSince) { st.mcSince = Date.now(); }
+const novaInst = i => !i.noNova && (!i.ld || i.ld === 'Vanilla' || i.ld === 'Fabric') && R.NOVA_MC && R.NOVA_MC.includes(i.mc);
+const advCache = new Map();   // archivo → { m: fecha de modificación, done: [avances hechos] }
+async function mcDone() {
+  const out = new Set();
+  for (const ins of li()) {
+    if (!novaInst(ins)) continue;
+    const sd = path.join(iDir(ins.id), 'saves');
+    let worlds = []; try { worlds = await fsp.readdir(sd); } catch { continue; }
+    for (const w of worlds) {
+      const ad = path.join(sd, w, 'advancements');
+      let fl = []; try { fl = (await fsp.readdir(ad)).filter(f => f.endsWith('.json')); } catch { continue; }
+      for (const f of fl) {
+        const fp = path.join(ad, f);
+        try {
+          const mt = (await fsp.stat(fp)).mtimeMs;
+          if (mt < st.mcSince) continue;   // no se ha tocado desde el reinicio: no puede tener nada nuevo
+          let e = advCache.get(fp);
+          if (!e || e.m !== mt) {
+            const done = C.advDone(JSON.parse(await fsp.readFile(fp, 'utf8')), st.mcSince);
+            e = { m: mt, done }; advCache.set(fp, e);
+          }
+          for (const k of e.done) out.add(k);
+        } catch {}
+      }
+    }
+  }
+  return out;
+}
+// Con una partida abierta se mira cada 30 s (barato: solo se vuelven a leer los archivos que han cambiado)
+setInterval(() => { if (running && running.size) soon(); }, 30000).unref();
+
+// Logros del launcher conseguidos (sin el platino ni los de Minecraft): es lo que mira el platino
+const mainCount = () => Object.keys(st.unlocked).filter(k => { const d = C.BY_ID.get(k); return d && !d.bonus && k !== C.PLAT.id; }).length;
 const shotsC = { t: 0, n: 0 };
 async function inputs() {
   let d = { sessions: [], before: [] }; try { d = R.statsLoad(); } catch {}
   let shots = shotsC.n; if (Date.now() - shotsC.t > 15000) { try { shots = shotsC.n = await R.shotsCount(); shotsC.t = Date.now(); } catch {} }   // leer todas las carpetas de capturas cada vez sería un gasto inútil
   if (st.shotsBase === undefined) { st.shotsBase = shots; save(); }   // las capturas que ya había antes del reinicio no cuentan
   shots = Math.max(0, shots - st.shotsBase);
-  const unlockedCount = Object.keys(st.unlocked).filter(k => k !== C.PLAT.id).length;
-  return { ...C.derive({ sessions: d.sessions, before: d.before || [], insts: li().length, shots, counters: st.counters }), unlockedCount };
+  const m = { ...C.derive({ sessions: d.sessions, before: d.before || [], insts: li().length, shots, counters: st.counters }), unlockedCount: mainCount() };
+  m.mcDone = await mcDone();
+  return m;
 }
 
 // Avisa de un logro nuevo: en el launcher (tarjeta) y dentro del juego. El texto del juego lo traduce la ventana (que sabe el idioma) y lo devuelve por
@@ -74,7 +114,7 @@ async function inputs() {
 const waiting = new Map();
 const kind = id => id === C.PLAT.id ? 'platino' : 'logro';
 function announce(def, m) {
-  const v = C.view(def, m, st.unlocked[def.id]);
+  const v = C.view(def, def.bonus ? { [def.key]: 1 } : m, st.unlocked[def.id]);
   try { send('logro:unlock', v); } catch {}
   clearTimeout(waiting.get(def.id));
   waiting.set(def.id, setTimeout(() => { waiting.delete(def.id); try { R.novaAviso(kind(def.id), v.name + ' · ' + v.desc); } catch {} }, 1500));
@@ -93,10 +133,10 @@ async function evalNow() {
   busy = true;
   try {
     const m = await inputs();
-    const ids = C.check(m, st.unlocked), now = Date.now();
+    const ids = [...C.checkMc(m.mcDone, st.unlocked), ...C.check(m, st.unlocked)], now = Date.now();
     for (const id of ids) {
       st.unlocked[id] = { t: now, seen: false };
-      m.unlockedCount = Object.keys(st.unlocked).filter(k => k !== C.PLAT.id).length;
+      m.unlockedCount = mainCount();
     }
     if (ids.length) save();
     for (const id of ids) announce(C.BY_ID.get(id), m);
@@ -114,9 +154,9 @@ function evt(key, n = 1) {
 }
 
 ipcMain.handle('logros:get', async () => {
-  const m = await inputs(), list = C.ALL.map(d => C.view(d, m, st.unlocked[d.id]));
+  const m = await inputs(), list = C.ALL.map(d => C.view(d, m, st.unlocked[d.id])), mc = C.MCDEFS.map(d => C.view(d, { [d.key]: m.mcDone.has(d.adv) ? 1 : 0 }, st.unlocked[d.id]));
   const got = list.filter(x => x.got);
-  return { cats: C.CATS, tiers: C.TIERS, list, got: got.length, total: list.length, pts: got.reduce((a, x) => a + x.pts, 0), ptsTotal: list.reduce((a, x) => a + x.pts, 0), plat: !!st.unlocked[C.PLAT.id] };
+  return { cats: [...C.CATS, ['mc', 'Minecraft']], tiers: C.TIERS, list: [...list, ...mc], got: got.length, total: list.length, pts: got.reduce((a, x) => a + x.pts, 0), ptsTotal: list.reduce((a, x) => a + x.pts, 0), plat: !!st.unlocked[C.PLAT.id], mcGot: mc.filter(x => x.got).length, mcTotal: mc.length };
 });
 ipcMain.handle('logros:seen', () => { let ch = false; for (const k of Object.keys(st.unlocked)) if (st.unlocked[k].seen === false) { st.unlocked[k].seen = true; ch = true; } if (ch) save(); return true; });
 

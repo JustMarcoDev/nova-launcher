@@ -5,10 +5,11 @@ const mock = { accAddOffline: { accounts: [{ id: 'o1', type: 'offline', name: 'M
 mock.skinList = { skins: [{ id: 'sabc1', name: 'Prueba', model: 'slim', data: 'data:image/png;base64,iVBORw0KGgo=' }], sel: 'sabc1', acc: { type: 'offline', name: 'Marco_1' } };
 const _n = Date.now(); mock.statsGet = { sessions: [0, 1, 2, 3, 4, 5].map(k => ({ id: 'i' + (k % 2), name: ['Survival', 'Skyblock'][k % 2], mc: ['1.21.4', '1.20.1'][k % 2], ld: 'Fabric', server: k % 3 === 0 ? 'play.test.net' : '', start: _n - k * 864e5 * 3, ms: (k + 1) * 9e5 })), before: [{ id: 'i0', name: 'Survival', mc: '1.21.4', ld: 'Fabric', ms: 72e5 }], shots: 7 };
 mock.worldsAll = [{ inst: 'i1', instName: 'Survival', mc: '1.21.4', qp: true, folder: 'Beta', name: 'Beta', mode: 'creative', ver: '1.21.4', last: 2000, icon: '' }, { inst: 'i1', instName: 'Survival', mc: '1.21.4', qp: true, folder: 'Alfa', name: 'Alfa', mode: 'hardcore', ver: '1.21.4', last: 3000, icon: '' }, { inst: 'i2', instName: 'Skyblock', mc: '1.20.1', qp: false, folder: 'Cielo', name: 'Cielo', mode: 'survival', ver: '', last: 1000, icon: '' }];
-mock.logrosGet = { cats: [['jugar', 'Jugar']], tiers: {}, got: 1, total: 4, pts: 10, ptsTotal: 245, plat: false, list: [
+mock.logrosGet = { cats: [['jugar', 'Jugar']], tiers: {}, got: 1, total: 4, pts: 10, ptsTotal: 245, plat: false, mcGot: 1, mcTotal: 64, list: [
   { id: 'j1', cat: 'jugar', tier: 'b', name: 'Primer paso', desc: 'Lanza el juego por primera vez', got: true, t: 1700000000000, seen: true, have: 1, goal: 1, pct: 100, pts: 10 },
   { id: 'h10', cat: 'jugar', tier: 'b', name: 'Le voy cogiendo el gusto', desc: 'Juega 10 horas en total', got: false, t: 0, seen: true, have: 6, goal: 10, pct: 60, pts: 10 },
   { id: 'nt', cat: 'jugar', tier: 's', name: 'Logro secreto', desc: 'Sigue jugando para descubrirlo', secret: true, got: false, t: 0, seen: true, have: 0, goal: 0, pct: 0, pts: 25 },
+  { id: 'mc:story/mine_stone', cat: 'mc', tier: 'b', bonus: true, name: 'Edad de piedra', desc: 'Avance de Minecraft · Historia', got: true, t: 1700000000000, seen: true, have: 1, goal: 1, pct: 100, pts: 10 },
   { id: 'plat', cat: 'plat', tier: 'p', name: 'Platino de Nova', desc: 'Consigue todos los demás logros', got: false, t: 0, seen: true, have: 1, goal: 3, pct: 33, pts: 200 }] };
 mock.worldLast = { inst: 'i1', name: 'Mundo de prueba', instName: 'Instancia', date: 123, mc: '1.21.4', ld: 'Vanilla' };
 const EV = {}, api = new Proxy({ on(c, f) { EV[c] = f; }, win() {}, zoom() {}, folder() {}, open() {}, filePath: () => '' }, { get: (t, k) => k in t ? t[k] : async () => (k in mock ? JSON.parse(JSON.stringify(mock[k])) : (k === 'http' ? Promise.reject(new Error('sin red')) : undefined)) });
@@ -23,6 +24,7 @@ const w = dom.window, sleep = ms => new Promise(r => setTimeout(r, ms));
   for (const p of need) { const b = w.document.querySelector(`nav [data-p=${p}]`); if (!b) { errors.push('falta el botón de ' + p); continue; } b.click(); await sleep(150); if (!w.document.getElementById(p).classList.contains('on')) errors.push('no se abre la pestaña ' + p); }
   await sleep(500);
   for (const id of ['vers', 'inst', 'mods', 'mun', 'lgr']) { const l = w.document.querySelector('#' + id + '>.skld'); if (!l) errors.push('Pantalla de carga: falta en ' + id); else if (!l.hidden) errors.push('Pantalla de carga: se queda puesta en ' + id); }
+  w.eval("LG.cat='mc';lgPaint()"); if (!/Edad de piedra|Stone Age/.test(w.document.getElementById('lgp').textContent)) errors.push('Logros: la pestaña de Minecraft no enseña los avances'); w.eval("LG.cat='all';lgPaint()");
   if (w.document.querySelectorAll('#lgp .lgc').length < 3) errors.push('Logros: la pestaña no pinta las tarjetas');
   for (const s of w.document.querySelectorAll('#sn button')) { try { s.click(); } catch (e) { errors.push('ajustes: ' + e.message); } await sleep(10); }
   // Ajustes → Menú de Nova: pinta las opciones, ya no hay editor del HUD, y «Añadir fondo» elige el fondo nuevo

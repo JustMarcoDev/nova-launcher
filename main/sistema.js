@@ -72,11 +72,12 @@ function ensureShortcut(force) {
     const c = load(), first = c.lastRun !== app.getVersion();
     if (!force && !first) return true;
     const ico = iconFile(), opt = { target: process.execPath, cwd: path.dirname(process.execPath), description: 'Nova Launcher', icon: ico, iconIndex: 0, appUserModelId: 'com.nova.launcher' };
-    if (!fs.existsSync(lnk)) shell.writeShortcutLink(lnk, 'create', opt);
+    // El acceso directo se crea UNA vez (o cuando se pide a propósito). En las actualizaciones solo se retoca el icono del que ya existe: si lo borraste, no vuelve a salir.
+    if (!fs.existsSync(lnk)) { if (force || (!c.lnkDone && !c.lastRun)) shell.writeShortcutLink(lnk, 'create', opt); }
     else { try { shell.writeShortcutLink(lnk, 'update', { icon: ico, iconIndex: 0 }); } catch {} }
     // el acceso directo del menú Inicio (lo crea el instalador) también se actualiza con el icono
     try { const sm = path.join(app.getPath('appData'), 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'Nova Launcher.lnk'); if (fs.existsSync(sm)) shell.writeShortcutLink(sm, 'update', { icon: ico, iconIndex: 0 }); } catch {}
-    wr(cfgFile, { ...c, lastRun: app.getVersion() });
+    wr(cfgFile, { ...c, lastRun: app.getVersion(), lnkDone: true });
     return fs.existsSync(lnk);
   } catch { return false; }
 }

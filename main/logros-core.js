@@ -111,9 +111,42 @@ const RAW = [
 ];
 
 const DEFS = RAW.map(([id, cat, tier, name, desc, key, goal, secret]) => ({ id, cat, tier, name, desc, key, goal, secret: !!secret }));
+// ===== Logros de Minecraft (solo con el menú de Nova) =====
+// Son los avances normales del juego (los de «Historia», «Nether», «El End», «Aventura» y «Granja»). El launcher los lee de las partidas guardadas
+// (saves/<mundo>/advancements/*.json) de las instancias con el menú de Nova. NO cuentan para el platino ni para el total de logros del launcher.
+const MC_CATS = { story: 'Avance de Minecraft · Historia', nether: 'Avance de Minecraft · Nether', end: 'Avance de Minecraft · El End', adventure: 'Avance de Minecraft · Aventura', husbandry: 'Avance de Minecraft · Granja' };
+// [avance (sin «minecraft:»), tipo, nombre, secreto?]. Los «secretos» son los más difíciles: no enseñan su nombre hasta conseguirlos.
+const MCRAW = [
+  ['story/mine_stone', 'b', 'Edad de piedra'], ['story/upgrade_tools', 'b', 'Mejorando herramientas'], ['story/smelt_iron', 'b', 'Adquirir equipo'],
+  ['story/obtain_armor', 'b', 'Equípate'], ['story/lava_bucket', 'b', 'Cosa caliente'], ['story/iron_tools', 'b', '¿No es de hierro?'],
+  ['story/deflect_arrow', 's', 'No hoy, gracias'], ['story/form_obsidian', 's', 'Desafío del cubo de hielo'], ['story/mine_diamond', 's', '¡Diamantes!'],
+  ['story/enter_the_nether', 's', 'Debemos ir más profundo'], ['story/shiny_gear', 's', 'Cúbreme de diamantes'], ['story/enchant_item', 's', 'Encantador'],
+  ['story/follow_ender_eye', 's', 'Ojo espía'], ['story/cure_zombie_villager', 'g', 'Médico zombi'], ['story/enter_the_end', 'g', '¿El final?'],
+  ['nether/obtain_blaze_rod', 'b', 'Dentro del fuego'], ['nether/brew_potion', 'b', 'Barman local'], ['nether/return_to_sender', 's', 'Devolver al remitente'],
+  ['nether/find_bastion', 's', 'Aquellos eran otros tiempos'], ['nether/obtain_ancient_debris', 's', 'Escondido en las profundidades'], ['nether/find_fortress', 's', 'Una terrible fortaleza'],
+  ['nether/obtain_crying_obsidian', 's', '¿Quién corta cebollas?'], ['nether/distract_piglin', 's', 'Oh, brillante'], ['nether/ride_strider', 's', 'Este barco tiene patas'],
+  ['nether/create_beacon', 's', 'Trae el faro a casa'], ['nether/fast_travel', 'g', 'Viaje subespacial'], ['nether/netherite_armor', 'g', 'Cúbreme de restos antiguos'],
+  ['nether/summon_wither', 'g', 'Marchitando'], ['nether/uneasy_alliance', 'g', 'Alianza incómoda', true],
+  ['end/kill_dragon', 'g', 'Libera el End'], ['end/enter_end_gateway', 's', 'Escapada remota'], ['end/dragon_breath', 's', 'Hay que lavarse la boca'],
+  ['end/find_end_city', 's', 'La ciudad del fin del juego'], ['end/elytra', 'g', 'El cielo es el límite'], ['end/dragon_egg', 'g', 'La siguiente generación'],
+  ['adventure/kill_a_mob', 'b', 'Cazador de monstruos'], ['adventure/trade', 'b', '¡Qué buen trato!'], ['adventure/honey_block_slide', 'b', 'Situación pegajosa'],
+  ['adventure/ol_betsy', 'b', 'Vieja Betsy'], ['adventure/sleep_in_bed', 'b', 'Dulces sueños'], ['adventure/shoot_arrow', 'b', 'Tirador'],
+  ['adventure/voluntary_exile', 's', 'Exilio voluntario'], ['adventure/throw_trident', 's', 'Un tiro certero'], ['adventure/totem_of_undying', 's', 'Posmortal'],
+  ['adventure/summon_iron_golem', 's', 'Contratar refuerzos'], ['adventure/hero_of_the_village', 'g', 'Héroe de la aldea'], ['adventure/adventuring_time', 'g', 'Hora de aventuras'],
+  ['adventure/kill_all_mobs', 'g', 'Monstruos cazados'], ['adventure/sniper_duel', 'g', 'Duelo de francotiradores', true], ['adventure/bullseye', 'g', 'Diana', true],
+  ['adventure/avoid_vibration', 's', 'Sigilo 100', true], ['adventure/overoverkill', 'g', 'Superexceso', true],
+  ['husbandry/plant_seed', 'b', 'Un lugar con semillas'], ['husbandry/breed_an_animal', 'b', 'Los loros y los murciélagos'], ['husbandry/tame_an_animal', 'b', 'Mejores amigos para siempre'],
+  ['husbandry/fishy_business', 'b', 'Negocio sospechoso'], ['husbandry/wax_on', 'b', 'Encerar'], ['husbandry/tactical_fishing', 'b', 'Pesca táctica'],
+  ['husbandry/safely_harvest_honey', 'b', 'Un lugar acogedor'], ['husbandry/axolotl_in_a_bucket', 's', 'El más lindo de los depredadores'],
+  ['husbandry/balanced_diet', 'g', 'Una dieta equilibrada'], ['husbandry/bred_all_animals', 'g', 'Dos por dos'], ['husbandry/obtain_netherite_hoe', 'g', 'Dedicación seria'],
+  ['husbandry/complete_catalogue', 'g', 'Un catálogo completo', true],
+];
+const MCDEFS = MCRAW.map(([path, tier, name, secret]) => ({ id: 'mc:' + path, cat: 'mc', tier, name, desc: MC_CATS[path.split('/')[0]], key: 'mc:' + path, goal: 1, secret: !!secret, bonus: true, adv: 'minecraft:' + path }));
+const MC_ADV = new Map(MCDEFS.map(d => [d.adv, d]));
+
 const PLAT = { id: 'plat', cat: 'plat', tier: 'p', name: 'Platino de Nova', desc: 'Consigue todos los demás logros', key: 'unlockedCount', goal: DEFS.length, secret: false };
 const ALL = [...DEFS, PLAT];
-const BY_ID = new Map(ALL.map(d => [d.id, d]));
+const BY_ID = new Map([...ALL, ...MCDEFS].map(d => [d.id, d]));   // incluye los de Minecraft (para validar avisos), que no están en ALL ni cuentan para el platino
 
 const dayNum = t => { const d = new Date(t); return Math.round(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 864e5); };
 
@@ -165,11 +198,31 @@ function check(m, unlocked = {}) {
   return fresh;
 }
 
+/** Hora de un avance en el JSON de Minecraft («2024-01-02 10:20:30 +0100») en milisegundos; 0 si no se entiende. */
+function advTime(t) { const n = Date.parse(String(t).replace(' ', 'T').replace(/ ([+-])(\d\d)(\d\d)$/, '$1$2:$3')); return Number.isFinite(n) ? n : 0; }
+
+/** Avances de nuestra lista hechos (done) y conseguidos a partir de `since`, dentro del JSON de un jugador (saves/<mundo>/advancements/<uuid>.json). */
+function advDone(j, since) {
+  const out = [];
+  if (!j || typeof j !== 'object') return out;
+  for (const [k, v] of Object.entries(j)) {
+    if (!v || v.done !== true || !MC_ADV.has(k)) continue;
+    const ts = Object.values(v.criteria || {}).map(advTime).filter(Boolean);
+    if (ts.length && Math.max(...ts) >= since) out.push(k);
+  }
+  return out;
+}
+
+/** Logros de Minecraft nuevos: done = Set con los avances hechos («minecraft:story/mine_stone»…). */
+function checkMc(done, unlocked = {}) {
+  return MCDEFS.filter(d => !unlocked[d.id] && done.has(d.adv)).map(d => d.id);
+}
+
 /** Datos de un logro para la interfaz y para el juego. Los secretos no enseñan nombre ni descripción hasta conseguirlos. */
 function view(def, m, entry) {
   const got = !!entry, hide = def.secret && !got;
   const p = progress(def, m);   // el platino mira `unlockedCount` (los logros ya conseguidos), que pone quien llama
-  return { id: def.id, cat: def.cat, tier: def.tier, name: hide ? 'Logro secreto' : def.name, desc: hide ? 'Sigue jugando para descubrirlo' : def.desc, secret: def.secret, got, t: got ? entry.t : 0, seen: got ? entry.seen !== false : true, have: hide ? 0 : p.have, goal: hide ? 0 : p.goal, pct: hide ? 0 : p.pct, pts: TIERS[def.tier].pts };
+  return { id: def.id, cat: def.cat, tier: def.tier, name: hide ? 'Logro secreto' : def.name, desc: hide ? 'Sigue jugando para descubrirlo' : def.desc, secret: def.secret, got, t: got ? entry.t : 0, seen: got ? entry.seen !== false : true, have: hide ? 0 : p.have, goal: hide ? 0 : p.goal, pct: hide ? 0 : p.pct, pts: TIERS[def.tier].pts, bonus: !!def.bonus };
 }
 
-module.exports = { TIERS, CATS, DEFS, PLAT, ALL, BY_ID, derive, progress, check, view };
+module.exports = { TIERS, CATS, DEFS, PLAT, ALL, BY_ID, MCDEFS, MC_ADV, MC_CATS, derive, progress, check, checkMc, advTime, advDone, view };

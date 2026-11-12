@@ -64,7 +64,9 @@ ipcMain.handle('app:reset', async () => {
 let upd = { s: 'idle' };
 S.lastChk = 0;
 S.chkNow = () => {};
-const setUpd = o => { const was = upd.s; upd = o; send('upd:state', upd); if (was !== o.s && o.s === 'ready') try { R.novaAviso('update', 'Actualización lista · ' + (o.v || '')); } catch {} if (was !== o.s && o.s === 'ready') notify('Actualización lista', 'Nova Launcher ' + (o.v || '') + ' está listo para instalarse'); if (was !== o.s && o.s === 'available') notify('Hay una actualización', 'Nova Launcher ' + (o.v || '') + ' está disponible'); };
+// Instalada «para todos los usuarios» (carpeta Archivos de programa): cada actualización pide administrador. Instalada «solo para mí» no lo pide nunca.
+const perMachine = process.platform === 'win32' && app.isPackaged && /^[a-z]:\\program files/i.test(process.execPath);
+const setUpd = o => { const was = upd.s; upd = perMachine ? { ...o, admin: true } : o; send('upd:state', upd); if (was !== o.s && o.s === 'ready') try { R.novaAviso('update', 'Actualización lista · ' + (o.v || '')); } catch {} if (was !== o.s && o.s === 'ready') notify('Actualización lista', 'Nova Launcher ' + (o.v || '') + ' está listo para instalarse'); if (was !== o.s && o.s === 'available') notify('Hay una actualización', 'Nova Launcher ' + (o.v || '') + ' está disponible'); };
 function verParse(v) { const m = /^v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?/.exec(String(v)); return m ? { n: [+m[1], +m[2], +m[3]], pre: m[4] ? m[4].split('.') : null } : null; }
 function verCmp(a, b) {
   a = verParse(a); b = verParse(b); if (!a || !b) return 0;

@@ -50,4 +50,19 @@ const sec = C.DEFS.find(d => d.secret); assert(sec);
 const v0 = C.view(sec, m, null), v1 = C.view(sec, m, { t: 5, seen: false });
 assert(!v0.got && !/Noct|Nostal/.test(v0.name + v0.desc), 'un secreto sin conseguir no enseña su nombre'); assert(v1.got && v1.name === sec.name);
 const vp = C.view(C.DEFS.find(d => d.id === 'h10'), { hours: 99 }, null); assert.strictEqual(vp.pct, 100); assert(vp.have <= vp.goal);
+// Logros de Minecraft: aparte del platino y del total, un avance por logro, con ids únicos y sin repetir avances
+assert(C.MCDEFS.length >= 50, 'logros de Minecraft: ' + C.MCDEFS.length);
+assert.strictEqual(new Set(C.MCDEFS.map(d => d.id)).size, C.MCDEFS.length); assert.strictEqual(C.MC_ADV.size, C.MCDEFS.length);
+for (const d of C.MCDEFS) { assert(/^minecraft:(story|nether|end|adventure|husbandry)\/[a-z_]+$/.test(d.adv), d.id); assert(d.bonus && C.MC_CATS[d.adv.split('/')[0].slice(10)] === d.desc, d.id); assert(!C.ALL.includes(d)); }
+assert(C.MCDEFS.some(d => d.secret) && C.BY_ID.get('mc:story/mine_stone').bonus);
+assert.deepStrictEqual(C.checkMc(new Set(['minecraft:story/mine_stone', 'minecraft:nada']), {}), ['mc:story/mine_stone']);
+assert.deepStrictEqual(C.checkMc(new Set(['minecraft:story/mine_stone']), { 'mc:story/mine_stone': { t: 1 } }), []);
+assert.deepStrictEqual(C.check({ ...big, mcDone: new Set() }, { ...all, j1: 1, 'mc:story/mine_stone': { t: 1 } }), [C.PLAT.id], 'los de Minecraft no cuentan ni estorban para el platino');
+const noMc = C.check(big, Object.fromEntries(C.DEFS.map(d => [d.id, 1]))); assert.deepStrictEqual(noMc, [C.PLAT.id], 'el platino sale sin ningún logro de Minecraft');
+const t0 = Date.UTC(2026, 10, 12, 12, 0, 0);
+assert.strictEqual(C.advTime('2026-11-12 13:00:00 +0100'), t0); assert.strictEqual(C.advTime('basura'), 0);
+const adv = { 'minecraft:story/mine_stone': { done: true, criteria: { get_stone: '2026-11-12 14:00:00 +0100' } }, 'minecraft:story/upgrade_tools': { done: true, criteria: { a: '2020-01-01 10:00:00 +0100' } },
+  'minecraft:story/smelt_iron': { done: false, criteria: { a: '2026-11-12 14:00:00 +0100' } }, 'minecraft:recipes/x': { done: true, criteria: {} }, DataVersion: 4000 };
+assert.deepStrictEqual(C.advDone(adv, t0), ['minecraft:story/mine_stone'], 'solo avances hechos, de nuestra lista y posteriores al reinicio');
+assert.deepStrictEqual(C.advDone(null, 0), []); assert.deepStrictEqual(C.advDone({ 'minecraft:story/mine_stone': { done: true, criteria: {} } }, 5), []);
 console.log('tests/logros.js: ' + C.DEFS.length + ' logros + platino, métricas, comprobación y secretos correctos');
