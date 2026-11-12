@@ -289,11 +289,11 @@ function statsEnd(key, ms) {
   const d = statsLoad(), s = d.sessions.find(x => x.key === key);
   if (s) { s.ms = Math.max(0, Math.round(ms)); try { wr(statsFile, d); } catch {} }
 }
+const shotsCount = async () => (await Promise.all(li().map(async i => { try { return (await fs.promises.readdir(path.join(iDir(i.id), 'screenshots'))).filter(f => /\.(png|jpe?g)$/i.test(f)).length; } catch { return 0; } }))).reduce((a, b) => a + b, 0);
 ipcMain.handle('stats:get', async () => {
-  const d = statsLoad();
-  const shots = (await Promise.all(li().map(async i => { try { return (await fs.promises.readdir(path.join(iDir(i.id), 'screenshots'))).filter(f => /\.(png|jpe?g)$/i.test(f)).length; } catch { return 0; } }))).reduce((a, b) => a + b, 0);
+  const d = statsLoad(), shots = await shotsCount();
   return { sessions: d.sessions.map(({ key, ...r }) => r), before: d.before || [], shots };
 });
 
 // Lo que usan otros módulos
-Object.assign(R, { bkSchedule, statsStart, statsEnd, autoBackup, bkList, ensureFabricApi, getIns, iDir, importInstanceFile, safeName, upIns });
+Object.assign(R, { bkSchedule, statsLoad, shotsCount, statsStart, statsEnd, autoBackup, bkList, ensureFabricApi, getIns, iDir, importInstanceFile, safeName, upIns });

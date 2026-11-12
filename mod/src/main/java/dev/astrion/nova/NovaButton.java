@@ -70,6 +70,7 @@ public class NovaButton extends NovaButtonBase {
         last = now;
         boolean hot = this.active && (this.isHovered() || this.isFocused());
         glow = NovaAcc.still() ? (hot ? 1f : 0f) : hot ? Math.min(1f, glow + dt) : Math.max(0f, glow - dt);
+        float g = NovaEase.smooth(glow);   // el brillo sube y baja con curva suave
 
         int x = getX(), y = getY(), w = getWidth(), h = getHeight();
         if (swatch != 0 && NovaGfx.ok) {
@@ -77,7 +78,7 @@ public class NovaButton extends NovaButtonBase {
                 MinecraftClient m = MinecraftClient.getInstance();
                 int d = Math.min(w, h);
                 NovaGfx.swatch(m, d, swatch, swatchOn, false).draw(c, x - 4, y - 4, 1f);
-                if (glow > 0.02f) NovaGfx.swatch(m, d, swatch, swatchOn, true).draw(c, x - 4, y - 4, glow);
+                if (g > 0.02f) NovaGfx.swatch(m, d, swatch, swatchOn, true).draw(c, x - 4, y - 4, g);
                 return;
             } catch (Throwable t) {
                 NovaGfx.ok = false;
@@ -89,7 +90,7 @@ public class NovaButton extends NovaButtonBase {
                 String lab = getMessage().getString();
                 NovaGfx.Tex n = NovaGfx.button(m, w, h, lab, icon, style, false, active);
                 n.draw(c, x - 5, y - 5, 1f);
-                if (glow > 0.02f && active) NovaGfx.button(m, w, h, lab, icon, style, true, true).draw(c, x - 5, y - 5, glow);
+                if (g > 0.02f && active) NovaGfx.button(m, w, h, lab, icon, style, true, true).draw(c, x - 5, y - 5, g);
                 return;
             } catch (Throwable t) {
                 NovaGfx.ok = false;
@@ -98,16 +99,16 @@ public class NovaButton extends NovaButtonBase {
         int acc = style == DANGER ? 0xFFFF4D5E : NovaGfxCore.accent;
         if (swatch != 0) { panel(c, x, y, w, h, Math.min(w, h) / 2, 0xFF000000 | swatch, swatchOn ? 0xFFFFFFFF : 0); return; }
         int r = style == PRIMARY ? 8 : Math.min(6, h / 3);
-        if (glow > 0.02f) panel(c, x - 2, y - 2, w + 4, h + 4, r + 2, ((int) (0x38 * glow) << 24) | (acc & 0xFFFFFF), 0);
+        if (g > 0.02f) panel(c, x - 2, y - 2, w + 4, h + 4, r + 2, ((int) (0x38 * g) << 24) | (acc & 0xFFFFFF), 0);
         int baseFill = style == DANGER ? 0xC0200A14 : style == PRIMARY ? 0xC4140F2E : 0xB80E0C20;
         int hotFill = style == DANGER ? 0xD84A1020 : style == PRIMARY ? 0xDC2A1F5C : 0xD01E1844;
         int baseBorder = style == DANGER ? 0xFF5A2030 : style == PRIMARY ? 0xFF4A3C8C : 0xFF332B66;
         if (!active) { baseFill = 0x90100E1C; baseBorder = 0xFF26223E; }
-        panel(c, x, y, w, h, r, mix(baseFill, hotFill, glow), mix(baseBorder, 0xFF000000 | (acc & 0xFFFFFF), glow));
+        panel(c, x, y, w, h, r, mix(baseFill, hotFill, g), mix(baseBorder, 0xFF000000 | (acc & 0xFFFFFF), g));
         // brillo superior suave
-        c.fill(x + r, y + 1, x + w - r, y + 2, mix(0x18FFFFFF, 0x38FFFFFF, glow));
+        c.fill(x + r, y + 1, x + w - r, y + 2, mix(0x18FFFFFF, 0x38FFFFFF, g));
 
-        int col = !active ? 0xFF6A6A80 : style == DANGER ? mix(0xFFFF7A86, 0xFFFFFFFF, glow) : mix(0xFFD8D8F0, 0xFFFFFFFF, glow);
+        int col = !active ? 0xFF6A6A80 : style == DANGER ? mix(0xFFFF7A86, 0xFFFFFFFF, g) : mix(0xFFD8D8F0, 0xFFFFFFFF, g);
         MinecraftClient mc = MinecraftClient.getInstance();
         int tw = mc.textRenderer.getWidth(getMessage());
         int cx = x + (w - tw) / 2;

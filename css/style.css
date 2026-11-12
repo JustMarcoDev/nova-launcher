@@ -4341,3 +4341,34 @@ html.fm #cv { display: none; }
 .stld { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 90px 0; color: var(--m); font-size: 13px; animation: fadeUp .25s both; }
 .stld .skspin { position: static; margin: 0; }
 @media (prefers-reduced-motion: reduce) { .svsh, .svs, .svm .dot.ld { animation: none !important; } }
+
+/* Logros: cabecera con progreso, tarjetas por tipo y aviso al conseguir uno. */
+.lgh { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+.lgr { --p: 0; width: 84px; height: 84px; border-radius: 50%; display: grid; place-items: center; flex: none; background: conic-gradient(var(--ac) calc(var(--p)*1%), var(--p2) 0); position: relative; }
+.lgr::before { content: ""; position: absolute; inset: 7px; border-radius: 50%; background: var(--p); }
+.lgr b { position: relative; font-size: 18px; }
+.lgs { flex: 1; min-width: 220px; }
+.lgs h3 { margin: 0 0 2px; }
+.lgs .chips { margin-top: 10px; }
+.lgg { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; margin-top: 14px; }
+.lgc { --tc: #c8814a; display: flex; gap: 12px; align-items: flex-start; padding: 12px; border-radius: 12px; background: var(--p2); border: 1px solid var(--l); transition: .2s; }
+.lgc.s { --tc: #c3ccd8; } .lgc.g { --tc: #f2c14e; } .lgc.p { --tc: #7fe3ff; }
+.lgc.got { border-color: color-mix(in srgb, var(--tc) 55%, var(--l)); background: linear-gradient(135deg, color-mix(in srgb, var(--tc) 14%, var(--p2)), var(--p2)); }
+.lgc.no { opacity: .72; }
+.lgc.no:hover { opacity: 1; }
+.lgi { width: 42px; height: 42px; flex: none; border-radius: 10px; display: grid; place-items: center; background: color-mix(in srgb, var(--tc) 22%, transparent); color: var(--tc); border: 1px solid color-mix(in srgb, var(--tc) 50%, transparent); }
+.lgc.no .lgi { filter: grayscale(.8); }
+.lgi .ic { width: 22px; height: 22px; }
+.lgt { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.lgt b { font-size: 14px; }
+.lgt span { color: var(--m); font-size: 12.5px; }
+.lgt small { color: var(--m); font-size: 11.5px; }
+.lgb { height: 6px; border-radius: 9px; background: var(--l); overflow: hidden; margin-top: 6px; }
+.lgb i { display: block; height: 100%; background: var(--tc); border-radius: 9px; transition: width .5s cubic-bezier(.2,.8,.2,1); }
+.lgplat { flex: 1 1 280px; }
+.lgplat.got { box-shadow: 0 0 28px color-mix(in srgb, var(--tc) 35%, transparent); }
+.lgtoast { --tc: #c8814a; position: fixed; top: 18px; right: 18px; z-index: 90; width: 320px; display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 12px; background: #151a26; border: 1px solid color-mix(in srgb, var(--tc) 60%, var(--l)); box-shadow: 0 14px 40px #000a, 0 0 24px color-mix(in srgb, var(--tc) 30%, transparent); transform: translateX(120%); opacity: 0; transition: transform .45s cubic-bezier(.2,.9,.25,1.1), opacity .3s; pointer-events: none; }
+.lgtoast.s { --tc: #c3ccd8; } .lgtoast.g { --tc: #f2c14e; } .lgtoast.p { --tc: #7fe3ff; }
+.lgtoast.on { transform: none; opacity: 1; }
+.lgtoast .lgt small { color: var(--tc); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; font-size: 10.5px; }
+@media (prefers-reduced-motion: reduce) { .lgtoast, .lgb i { transition: none; } }

@@ -939,7 +939,7 @@ public class NovaTitleScreen extends NovaScreen {
     public void renderBackground(DrawContext c, int mx, int my, float delta) {
         float t = (Util.getMeasuringTimeMs() - born) / 1000f;
         c.fill(0, 0, width, height, 0xFF04040C);
-        if (!NovaBg.draw(c, width, height, (NovaAcc.still() ? 1f : Math.min(1f, t / 0.9f)))) c.fillGradient(0, 0, width, height, NovaGfxCore.shade(NovaGfxCore.accent, 0.16f, 255), 0xFF020208);
+        if (!NovaBg.draw(c, width, height, (NovaAcc.still() ? 1f : NovaEase.smooth(t / 0.9f)))) c.fillGradient(0, 0, width, height, NovaGfxCore.shade(NovaGfxCore.accent, 0.16f, 255), 0xFF020208);
         c.fillGradient(0, 0, width, height, 0x10000000, 0x90000008);   // oscurece un poco abajo para leer los textos
     }
 
@@ -958,7 +958,7 @@ public class NovaTitleScreen extends NovaScreen {
     public void render(DrawContext c, int mx, int my, float delta) {
         poll();
         super.render(c, mx, my, delta);   // fondo + botones
-        float fade = NovaAcc.still() ? 1f : Math.min(1f, (Util.getMeasuringTimeMs() - born) / 600f);
+        float fade = NovaAcc.still() ? 1f : NovaEase.smooth((Util.getMeasuringTimeMs() - born) / 600f);
         // logo del propio juego (LogoDrawer), reducido
         float k = 0.62f;
         NovaCompat.pushScale(c, k);
@@ -990,7 +990,7 @@ public class NovaTitleScreen extends NovaScreen {
         long now = Util.getMeasuringTimeMs();
         if (h != hoverBtn) { hoverBtn = h; hoverSince = now; }
         if (h == null || !NovaGfx.ok) return;
-        float a = Math.min(1f, (now - hoverSince - 350) / 160f);
+        float a = NovaEase.smooth((now - hoverSince - 350) / 160f);
         if (a <= 0f) return;
         try {
             NovaGfx.Tex t = NovaGfx.tooltip(client, h.tipTitle, h.tipDesc);

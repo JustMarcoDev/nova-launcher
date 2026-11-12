@@ -26,7 +26,7 @@ const NOVA_MC = ['1.20', '1.20.1', '1.20.2', '1.20.3', '1.20.4', '1.20.5', '1.20
 function novaDir() { const d = path.join(root, 'nova'); try { fs.mkdirSync(d, { recursive: true }); } catch {} return d; }
 
 // ---- Avisos del launcher dentro del juego (nova/avisos.json): el mod los lee cada 2 s y los enseña de uno en uno (NovaToast) ----
-// Solo mientras hay una partida abierta con el menú de Nova; el archivo se vacía al lanzar. Tipos: download, update, backup.
+// Solo mientras hay una partida abierta con el menú de Nova; el archivo se vacía al lanzar. Tipos: download, update, backup, logro, platino.
 const AVISOS = () => path.join(novaDir(), 'avisos.json');
 function novaAvisosReset() { try { fs.writeFileSync(AVISOS(), '[]'); } catch {} }
 function novaAviso(tipo, texto) {

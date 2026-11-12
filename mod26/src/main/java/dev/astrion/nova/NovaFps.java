@@ -133,10 +133,10 @@ public final class NovaFps {
         lastNow = now;
         long age = doneAt != 0 ? now - doneAt : now - born, life = doneAt != 0 ? 1800 : NovaFpsCore.SHOW_MS;
         if (age > life) { born = 0; doneAt = 0; return; }
-        float a = Math.min(1f, age / 180f) * Math.min(1f, (life - age) / 300f);
+        float a = NovaEase.smooth(age / 180f) * NovaEase.smooth((life - age) / 300f);
         if (NovaAcc.still()) a = 1f;   // reducir movimiento: sin fundidos
         if (a <= 0f) return;
-        if (!NovaAcc.still()) x += (int) ((1f - Math.min(1f, age / 180f)) * 14);
+        if (!NovaAcc.still()) x += (int) ((1f - NovaEase.outCubic(age / 260f)) * 22);
         NovaButton.panel(c, x, y, w, h, 6, NovaShots.withAlpha(0xF010102A, a), NovaShots.withAlpha(0xFF4A3C8C, a));
         if (doneAt != 0) {
             NovaShots.txt(c, mc, "✓ " + tr("Modo FPS activado"), x + 10, y + h / 2 - 5, 7.2f, 0xFFFFFFFF, true, a);

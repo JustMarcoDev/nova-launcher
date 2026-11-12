@@ -9,7 +9,7 @@ function insOrder(L,sort){
 }
 function insRow(i){
   const ic=i.icon&&ICS.includes(i.icon)?i.icon:"box";
-  return `<div class="ir ${i.fav?"fav":""}" data-i="${esc(i.id)}" style="${i.color?"--ic:"+esc(i.color):""}"><button class="star ${i.fav?"on":""}" data-a="fav" type="button" title="${i.fav?"Quitar de favoritas":"Fijar arriba como favorita"}" aria-label="Favorita">${i.fav?"★":"☆"}</button><div class="iic">${IC(ic)}</div><div class="im"><div class="t"><span class="tn">${esc(i.name)}</span>${(i.tags||[]).map(t=>`<span class="etq" data-t="${esc(t)}">${esc(t)}</span>`).join("")}</div><div class="s">${esc(LDN(i.ld||"Vanilla"))} · ${esc(i.mc)}${i.ram?" · "+i.ram+" GB":""}</div>${i.note?`<div class="nt">${esc(i.note)}</div>`:""}</div><div class="ip s">${esc(plLine(i))}</div><div class="a"><button class="btn pr sm" data-a="play">Jugar</button><button class="btn sm" data-a="mods">Detalles y mods</button><button class="btn sm" data-a="shots">Capturas</button><button class="btn sm" data-a="opt">Opciones</button><button class="btn sm dg" data-a="del" title="Borrar instancia">Borrar</button></div></div>`;
+  return `<div class="ir ${i.fav?"fav":""}" data-i="${esc(i.id)}" style="${i.color?"--ic:"+esc(i.color):""}"><button class="star ${i.fav?"on":""}" data-a="fav" type="button" title="${i.fav?"Quitar de favoritas":"Fijar arriba como favorita"}" aria-label="Favorita">${i.fav?"★":"☆"}</button><div class="iic">${IC(ic)}</div><div class="im"><div class="t"><span class="tn">${esc(i.name)}</span>${(i.tags||[]).map(t=>`<span class="etq" data-t="${esc(t)}">${esc(t)}</span>`).join("")}</div><div class="s">${esc(LDN(i.ld||"Vanilla"))} · ${esc(i.mc)}${i.ram?" · "+i.ram+" GB":""}</div>${i.note?`<div class="nt">${esc(i.note)}</div>`:""}</div><div class="ip s">${esc(plLine(i))}</div><div class="a"><button class="btn pr sm" data-a="play">Jugar</button><button class="btn sm" data-a="mods">Detalles y mods</button><button class="btn sm" data-a="shots">Capturas</button><button class="btn sm" data-a="lk" title="Crea un enlace con los mods, texturas y shaders de este modpack para que otra persona lo instale (sin mundos ni cuentas)">Compartir modpack</button><button class="btn sm" data-a="opt">Opciones</button><button class="btn sm dg" data-a="del" title="Borrar instancia">Borrar</button></div></div>`;
 }
 function ri(){
   const sort=cfg.instSort||"last",tags=[...new Set(I.flatMap(i=>i.tags||[]))].sort((a,b)=>a.localeCompare(b));
@@ -30,7 +30,7 @@ $("il").onclick=async e=>{
   const b=e.target.closest("button[data-a]");if(!b){const row=e.target.closest(".ir");if(row)openMods(row.dataset.i);return}const id=b.closest(".ir").dataset.i,i=I.find(x=>x.id===id),a=b.dataset.a;if(!i)return;
   if(a==="fav"){try{await(A||DA).instUpdate(id,{fav:!i.fav});await loadI()}catch(x){flash(em(x))}return}
   if(a==="del"){if(!confirm("¿Borrar «"+i.name+"» con sus mundos, mods y copias de seguridad? No se puede deshacer."))return;try{await api.delInst(id);await loadI();flash("Instancia borrada")}catch(x){flash(em(x))}return}
-  if(a==="play"){pick(i.mc,i.type||"release",i.ld);sel.inst=i.id;show("home");play(i.id)}else if(a==="mods")openMods(id);else if(a==="shots")openShots(id);else openOpts(id)};
+  if(a==="play"){pick(i.mc,i.type||"release",i.ld);sel.inst=i.id;show("home");play(i.id)}else if(a==="mods")openMods(id);else if(a==="shots")openShots(id);else if(a==="lk"){if(A)openShare(id);else pv("lk")}else openOpts(id)};
 // --- Crear una instancia a mano (sin lanzar el juego) ---
 function openCreate(pre){
   pre=pre||{};let ld=pre.ld||"Vanilla",type=pre.type||"release",mc=pre.mc||sel.mc,nmT=false;
@@ -102,7 +102,7 @@ const d=modal(hdr(ins,"Opciones de la instancia",esc(LDN(ins.ld||"Vanilla"))+" �
 <div class="fr"><label>Copias automáticas</label><select id="obf"><option value="">Nunca</option><option value="daily" ${ins.bkFreq==="daily"?"selected":""}>Diaria</option><option value="3d" ${ins.bkFreq==="3d"?"selected":""}>Cada 3 días</option><option value="weekly" ${ins.bkFreq==="weekly"?"selected":""}>Semanal</option></select></div><div class="fr"><label>Máximo de copias automáticas</label><input id="obm" type="number" min="1" max="50" value="${ins.bkMax||5}" style="width:90px"></div><small class="hint" style="margin:-6px 0 12px 142px">Se hacen al abrir el launcher y al cerrar el juego, nunca con la instancia abierta. Al pasar el máximo se borran las automáticas más antiguas; las manuales no se tocan.</small>
 <div class="fr"><label>Tarjeta gráfica</label><select id="ogp"><option value="">Automática</option><option value="high" ${ins.gpu==="high"?"selected":""}>Usar la más potente</option></select></div><small class="hint" style="margin:-6px 0 12px 142px">En portátiles con dos tarjetas gráficas obliga a Java a usar la dedicada (Windows 10/11).</small>
 ${hasL?`<div class="fr"><label>Versión de ${esc(ins.ld)}</label><select id="olv"><option value="">Cargando…</option></select></div><small class="hint" id="olh" style="display:block;margin:-6px 0 12px 142px"></small>`:""}
-<div class="acts2"><button class="btn sm" data-a="fo">Abrir carpeta</button><button class="btn sm" data-a="dup">Duplicar</button><button class="btn sm" data-a="ex">Exportar…</button><button class="btn sm" data-a="lk">Compartir modpack</button><button class="btn sm" data-a="wo">Mundos</button><button class="btn sm" data-a="sh">Capturas</button><button class="btn sm" data-a="bk">Copias de seguridad</button><button class="btn sm dg" data-a="del">Borrar instancia</button></div>
+<div class="acts2"><button class="btn sm" data-a="fo">Abrir carpeta</button><button class="btn sm" data-a="dup">Duplicar</button><button class="btn sm" data-a="ex">Exportar…</button><button class="btn sm" data-a="lk">Compartir modpack</button><button class="btn sm" data-a="wo">Mundos</button><button class="btn sm" data-a="sh">Capturas</button><button class="btn sm" data-a="fp" title="Instala los mods de rendimiento de tu cargador y baja ajustes de vídeo pesados (guarda una copia de options.txt)">Optimizar FPS</button><button class="btn sm" data-a="bk">Copias de seguridad</button><button class="btn sm dg" data-a="del">Borrar instancia</button></div>
 <div class="acts"><button class="btn" data-x>Cancelar</button><button class="btn pr" id="osv">Guardar</button></div>`);
 let RREC=null;
 const rrec=()=>{const o=$("orr");if(!o||!RREC)return;const v=+$("orm").value||cfg.ram,sev=RREC.rec>0?(v>=RREC.rec+3&&v>=RREC.rec*1.6?"high":v<=RREC.rec-2?"low":""):"";
@@ -124,7 +124,7 @@ try{await api.instUpdate(id,p);await loadI();closeModal();flash("Cambios guardad
 d.querySelector(".acts2").onclick=async e=>{const b=e.target.closest("button[data-a]");if(!b)return;const a=b.dataset.a;
 try{if(a==="fo"){if(A)A.instOpen(id,"");else pv("ifol")}
 else if(a==="dup"){const w=await askDup(ins);if(w===null){openOpts(id);return}b.disabled=true;b.textContent="Duplicando…";await api.instDup({id,worlds:w});await loadI();closeModal();flash("Instancia duplicada")}
-else if(a==="ex")openExport(id);else if(a==="lk"){if(A)openShare(id);else pv("lk")}else if(a==="bk")openBackups(id);else if(a==="wo")openWorlds(id);else if(a==="sh")openShots(id);
+else if(a==="ex")openExport(id);else if(a==="lk"){if(A)openShare(id);else pv("lk")}else if(a==="fp"){await optFps(ins,b)}else if(a==="bk")openBackups(id);else if(a==="wo")openWorlds(id);else if(a==="sh")openShots(id);
 else if(a==="del"){if(!confirm("¿Borrar «"+ins.name+"» con sus mundos, mods y copias de seguridad? No se puede deshacer."))return;await api.delInst(id);await loadI();closeModal();flash("Instancia borrada")}}
 catch(x){flash(em(x));b.disabled=false}}}
 // --- Exportar ---
@@ -170,3 +170,19 @@ d.querySelector("#pvl").onclick=e=>{const r=e.target.closest(".pv");if(!r)return
 /* ¿Copiar también los mundos? Devuelve true (con mundos), false (sin mundos) o null (cancelar). */
 function askDup(ins){return new Promise(ok=>{modal(hdr(ins,"Duplicar instancia","¿Copiar también los mundos?")+`<p class="sub" style="margin-bottom:12px">Sin mundos se copia todo lo demás (mods, ajustes, packs) y la copia empieza sin partidas guardadas.</p><div class="acts"><button class="btn" id="dq0">Cancelar</button><button class="btn" id="dq2">Sin mundos</button><button class="btn pri" id="dq1">Con mundos</button></div>`);
 const f=v=>{ok(v)};$("dq1").onclick=()=>f(true);$("dq2").onclick=()=>f(false);$("dq0").onclick=()=>f(null)})}
+
+/* «Optimizar FPS» de una instancia: mods de rendimiento + ajustes de options.txt que solo se bajan. Cuenta lo que hizo y avisa de lo que no pudo. */
+async function optFps(ins,b){
+ const van=!ins.ld||ins.ld==="Vanilla";
+ if(!confirm(trad(van?"Se bajarán algunos ajustes de vídeo pesados (se guarda una copia de options.txt). Con Fabric ganarías bastante más: se pueden instalar mods de rendimiento. ¿Seguir?":"Se instalarán mods de rendimiento y se bajarán algunos ajustes de vídeo pesados (se guarda una copia de options.txt). ¿Seguir?")))return;
+ b.disabled=true;const t=b.textContent;b.textContent=trad("Optimizando…");
+ try{
+  if(!A){flash("Disponible en la app instalada");return}
+  const r=await A.instOptimize(ins.id),p=[];
+  if(r.installed.length)p.push(r.installed.length+" "+trad("mods instalados"));
+  if(r.changes.length)p.push(r.changes.length+" "+trad("ajustes bajados"));
+  if(r.noOptions)p.push(trad("juega una vez para que se pueda ajustar options.txt"));
+  if(r.failed.length)p.push(r.failed.length+" "+trad("sin versión para esta instancia"));
+  flash(p.length?trad("FPS")+": "+p.join(" · "):trad("Ya estaba optimizada"));
+ }catch(x){flash(em(x))}finally{b.disabled=false;b.textContent=t}
+}

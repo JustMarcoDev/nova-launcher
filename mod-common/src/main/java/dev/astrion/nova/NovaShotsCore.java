@@ -91,8 +91,6 @@ final class NovaShotsCore {
 
     static int withAlpha(int argb, float a) { return (((int) ((argb >>> 24) * a)) << 24) | (argb & 0xFFFFFF); }
 
-    static boolean inside(double mx, double my, int x, int y, int w, int h) { return mx >= x && mx < x + w && my >= y && my < y + h; }
-
     /** Pulsación en este fotograma (flanco de bajada). */
     static boolean press(boolean down) { boolean r = down && !wasDown; wasDown = down; return r; }
 }

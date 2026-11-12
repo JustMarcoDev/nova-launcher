@@ -5,6 +5,11 @@ const mock = { accAddOffline: { accounts: [{ id: 'o1', type: 'offline', name: 'M
 mock.skinList = { skins: [{ id: 'sabc1', name: 'Prueba', model: 'slim', data: 'data:image/png;base64,iVBORw0KGgo=' }], sel: 'sabc1', acc: { type: 'offline', name: 'Marco_1' } };
 const _n = Date.now(); mock.statsGet = { sessions: [0, 1, 2, 3, 4, 5].map(k => ({ id: 'i' + (k % 2), name: ['Survival', 'Skyblock'][k % 2], mc: ['1.21.4', '1.20.1'][k % 2], ld: 'Fabric', server: k % 3 === 0 ? 'play.test.net' : '', start: _n - k * 864e5 * 3, ms: (k + 1) * 9e5 })), before: [{ id: 'i0', name: 'Survival', mc: '1.21.4', ld: 'Fabric', ms: 72e5 }], shots: 7 };
 mock.worldsAll = [{ inst: 'i1', instName: 'Survival', mc: '1.21.4', qp: true, folder: 'Beta', name: 'Beta', mode: 'creative', ver: '1.21.4', last: 2000, icon: '' }, { inst: 'i1', instName: 'Survival', mc: '1.21.4', qp: true, folder: 'Alfa', name: 'Alfa', mode: 'hardcore', ver: '1.21.4', last: 3000, icon: '' }, { inst: 'i2', instName: 'Skyblock', mc: '1.20.1', qp: false, folder: 'Cielo', name: 'Cielo', mode: 'survival', ver: '', last: 1000, icon: '' }];
+mock.logrosGet = { cats: [['jugar', 'Jugar']], tiers: {}, got: 1, total: 4, pts: 10, ptsTotal: 245, plat: false, list: [
+  { id: 'j1', cat: 'jugar', tier: 'b', name: 'Primer paso', desc: 'Lanza el juego por primera vez', got: true, t: 1700000000000, seen: true, have: 1, goal: 1, pct: 100, pts: 10 },
+  { id: 'h10', cat: 'jugar', tier: 'b', name: 'Le voy cogiendo el gusto', desc: 'Juega 10 horas en total', got: false, t: 0, seen: true, have: 6, goal: 10, pct: 60, pts: 10 },
+  { id: 'nt', cat: 'jugar', tier: 's', name: 'Logro secreto', desc: 'Sigue jugando para descubrirlo', secret: true, got: false, t: 0, seen: true, have: 0, goal: 0, pct: 0, pts: 25 },
+  { id: 'plat', cat: 'plat', tier: 'p', name: 'Platino de Nova', desc: 'Consigue todos los demás logros', got: false, t: 0, seen: true, have: 1, goal: 3, pct: 33, pts: 200 }] };
 mock.worldLast = { inst: 'i1', name: 'Mundo de prueba', instName: 'Instancia', date: 123, mc: '1.21.4', ld: 'Vanilla' };
 const EV = {}, api = new Proxy({ on(c, f) { EV[c] = f; }, win() {}, zoom() {}, folder() {}, open() {}, filePath: () => '' }, { get: (t, k) => k in t ? t[k] : async () => (k in mock ? JSON.parse(JSON.stringify(mock[k])) : (k === 'http' ? Promise.reject(new Error('sin red')) : undefined)) });
 const dom = new JSDOM(inline(), { runScripts: 'dangerously', pretendToBeVisual: true, url: 'file:///x/index.html', virtualConsole: vc, beforeParse(w) {
@@ -14,8 +19,9 @@ const dom = new JSDOM(inline(), { runScripts: 'dangerously', pretendToBeVisual: 
 const w = dom.window, sleep = ms => new Promise(r => setTimeout(r, ms));
 (async () => {
   await sleep(1500);
-  const need = ['home', 'vers', 'mods', 'srv', 'inst', 'con', 'soc', 'set', 'sk', 'sta', 'mun'];
+  const need = ['home', 'vers', 'mods', 'srv', 'inst', 'con', 'soc', 'set', 'sk', 'sta', 'mun', 'lgr'];
   for (const p of need) { const b = w.document.querySelector(`nav [data-p=${p}]`); if (!b) { errors.push('falta el botón de ' + p); continue; } b.click(); await sleep(150); if (!w.document.getElementById(p).classList.contains('on')) errors.push('no se abre la pestaña ' + p); }
+  if (w.document.querySelectorAll('#lgp .lgc').length < 3) errors.push('Logros: la pestaña no pinta las tarjetas');
   for (const s of w.document.querySelectorAll('#sn button')) { try { s.click(); } catch (e) { errors.push('ajustes: ' + e.message); } await sleep(10); }
   // Ajustes → Menú de Nova: pinta las opciones, ya no hay editor del HUD, y «Añadir fondo» elige el fondo nuevo
   { mock.nmenuGet = { cfg: { hud: { fps: { on: true, x: 0.5, y: 0.5, s: 1 } } }, mtime: 1, bgs: [{ id: 'hole', name: 'Agujero negro' }], accents: ['#8b6cff'], accentVals: [-7639809] };
@@ -141,6 +147,10 @@ const w = dom.window, sleep = ms => new Promise(r => setTimeout(r, ms));
       if (!got || got.text !== 'nova://pack?d=ABC') errors.push('Añadir modpack: la vista previa no recibió el enlace');
     }
     w.eval('closeModal(true)');
+    // «Pegar enlace de modpack» en el desplegable de Lanzar juego abre el mismo diálogo con el cuadro del enlace listo
+    w.document.getElementById('ppk').click(); for (let k = 0; k < 30 && !g('pkl'); k++) await sleep(100);
+    if (!g('pkl') || !g('pkg')) errors.push('Pegar enlace de modpack: el botón del desplegable no abre el diálogo');
+    w.eval('closeModal(true)');
     delete api.shareMake; delete api.clip; delete api.packPreview; delete api.packInstall; mock.insts = []; await w.eval('loadI()');
   }
   // Pestaña Skin: lista de skins guardadas, texto según la cuenta (offline / Microsoft) y capas solo en Microsoft
@@ -233,5 +243,5 @@ const w = dom.window, sleep = ms => new Promise(r => setTimeout(r, ms));
     else { const base = new Set(JSON.parse(fs.readFileSync(bf, 'utf8'))), nuevos = [...seen].filter(t => !base.has(t)); if (nuevos.length) { errors.push('Textos sin traducir (añádelos a lang/*.js; si son datos y no hay que traducirlos, a tests/lang-baseline.json):\n    · ' + nuevos.slice(0, 25).join('\n    · ')); } }
   }
   if (errors.length) { console.log('FALLOS en la interfaz:'); errors.forEach(e => console.log(' ✕ ' + e)); process.exit(1); }
-  console.log('Interfaz correcta: arranca, abre las 11 pestañas y los ajustes sin errores'); process.exit(0);
+  console.log('Interfaz correcta: arranca, abre las 12 pestañas y los ajustes sin errores'); process.exit(0);
 })();

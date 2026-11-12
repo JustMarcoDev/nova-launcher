@@ -3,6 +3,20 @@
 Todo lo que cambia en cada versión de Nova Launcher y del menú de Nova (el mod), de la más nueva a la más antigua. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**, y el flujo de publicación copia la entrada de cada versión a las notas de su release. Al sacar una versión nueva, añade su entrada `### x.y.z — Título` **al principio** de la lista.
 
 
+### 0.2.19-beta.2 · Logros del launcher, Optimizar FPS y animaciones más suaves
+
+**Añadido**
+- Nueva pestaña «Logros» con 63 logros en 8 categorías (jugar, instancias, mods, servidores, capturas, personalización, rendimiento y cuidado del launcher), 2 secretos y 1 platino que se consigue al tener todos los demás. Cada logro enseña su progreso.
+- Al conseguir un logro sale una tarjeta en el launcher y, si estás jugando con el menú de Nova, también dentro del juego, arriba a la derecha y con estilo de logro de Minecraft (el platino con destello). El texto sale en el idioma del launcher.
+- «Compartir modpack» ahora está en cada instancia de la lista, y el desplegable de «Lanzar juego» tiene «Pegar enlace de modpack»: crea la instancia con todos sus mods al terminar de descargarlos.
+- Nuevo botón «Optimizar FPS» en las opciones de la instancia: instala los mods de rendimiento de su cargador que falten (Sodium, Lithium, FerriteCore, ImmediatelyFast, EntityCulling y ModernFix en Fabric; Embeddium o Sodium, FerriteCore, ModernFix y EntityCulling en Forge y NeoForge) y baja ajustes de vídeo pesados de options.txt. Solo baja, nunca sube, y guarda options.nova-antes.txt.
+
+**Mejorado**
+- Animaciones del menú de Nova más suaves: el brillo de los botones, el fundido del título y del fondo, los avisos y el aviso del Modo FPS usan curvas de entrada y salida en vez de movimientos lineales (se respeta «reducir movimiento»).
+
+**Quitado**
+- Código sin uso: una función del mod, una constante y una variable del launcher.
+
 ### 0.2.19-beta.1 — Comparte modpacks con un enlace
 
 - **Compartir modpack** (`main/pack.js` `share:make`, `main/pack-core.js`, `js/compartir.js`): botón en las opciones de la instancia. El manifiesto lleva nombre, versión de Minecraft, cargador y su versión, RAM, icono (nombre y color del icono de la instancia) y, por archivo, tipo (mod, textura o shader), id de proyecto y de versión de Modrinth y sha1. Se comprime (deflate + base64url) y se ofrece como `nova://pack?d=…` y como `https://justmarcodev.github.io/nova-launcher-web/pack#…`. Nunca incluye mundos, cuentas ni `options.txt`. Lo que Modrinth no reconoce por su sha1 (jar propios o de CurseForge) se queda fuera y se avisa. El icono de una instancia es un icono de la lista, no una imagen, así que no hay imagen de ≤ 32 KB que incluir.

@@ -19,7 +19,7 @@ $("shl").onfocus=e=>e.target.select();
 $("shc").onclick=async()=>{flash(await copyText(r[fm])?"Enlace copiado":"No se pudo copiar")}}
 
 // --- Añadir modpack ---
-function openAddPack(prefill){const api=A;
+function openAddPack(prefill,mode){const api=A;
 const head=hdr(null,"Añadir modpack","Desde un enlace, un archivo o Modrinth");
 const home=()=>{modal(head+`<div class="fr" style="display:block"><label style="display:block;margin-bottom:6px">${trad("Pegar enlace o código")}</label><textarea id="pkl" rows="3" maxlength="200000" placeholder="nova://pack?d=…  ·  https://…/pack#…" style="width:100%"></textarea><div class="acts2" style="margin-top:8px"><button class="btn sm pr" id="pkg" type="button">Continuar</button></div></div><div class="acts2"><button class="btn sm" id="pkf" type="button">Elegir archivo…</button><button class="btn sm" id="pkm" type="button">Buscar en Modrinth</button></div><p class="sub" style="margin-top:8px">${trad("Archivos admitidos: .mrpack o .zip exportado por Nova")}</p><div class="acts"><button class="btn" data-x>Cancelar</button></div>`);
  $("pkg").onclick=()=>{const t=$("pkl").value.trim();if(!t){flash("Pega un enlace o un código");return}showPv({text:t})};
@@ -40,4 +40,4 @@ async function showPv(src){
  $("pki").onclick=async()=>{const b=$("pki");b.disabled=true;$("pkc").disabled=true;$("pkp").style.display="block";MLOCK=true;PKB=1;
   try{const r=await api.packInstall({...src,mode:p.exists?mode:undefined});MLOCK=false;PKB=null;closeModal(true);await loadI();flash(trad("Modpack instalado")+": "+r.ins.name+(r.failed&&r.failed.length?" ("+trad("faltan")+" "+r.failed.length+")":""));if($("inst")&&$("inst").classList.contains("on"))ri()}
   catch(e){MLOCK=false;PKB=null;if(e&&/cancel/i.test(String(e.message||e))){closeModal(true);return}$("pkp").style.display="none";b.disabled=false;$("pkc").disabled=false;flash("No se pudo instalar: "+em(e))}}}
-if(prefill)showPv({text:prefill});else home()}
+if(prefill)showPv({text:prefill});else{home();if(mode==="paste"&&$("pkl")){$("pkl").focus();try{navigator.clipboard.readText().then(t=>{if(t&&/^(nova:\/\/pack|https:\/\/\S+\/pack#)/.test(t.trim())&&$("pkl")&&!$("pkl").value)$("pkl").value=t.trim()}).catch(()=>{})}catch{}}}}

@@ -4,6 +4,7 @@
 // Aquí solo se cargan los módulos de main/. Cada uno se ocupa de una parte y se puede
 // leer por separado; la interfaz (index.html + js/) les pide cosas por IPC (ver preload.js).
 //   base         rutas, archivos (guardado seguro), ajustes, instancia única
+//   logros       logros del launcher (logros-core.js = lista y lógica pura); va justo después de base
 //   red          fetch, get/post, ejecutar comandos, comprobar conexión
 //   errores      informes de errores
 //   descargas    descargas con reanudación y huella, cola con pausa, descompresión
@@ -26,6 +27,7 @@
 // compartido.js tiene R (lo que unos módulos ofrecen a otros) y S (variables que cambian: ventana, actualizador…).
 // =====================================================================================
 require('./main/base');
+require('./main/logros');   // justo después de base: engancha los manejadores IPC de los módulos siguientes
 require('./main/red');
 require('./main/errores');
 require('./main/descargas');

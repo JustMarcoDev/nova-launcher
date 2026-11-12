@@ -8,8 +8,9 @@ const { execFile } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const { S, R } = require('./compartido');
+const O = require('./optimizar-core');
 // De módulos anteriores (ya cargados):
-const { addInst, fsp, load, mvSync, rd, rmAsync, root, send, wr } = R; // base
+const { addInst, fsp, load, mvSync, rd, rmAsync, root, running, send, wr } = R; // base
 const { dl, hashOf, pool, prog, unzipSafe, win32 } = R; // descargas
 const { logErr, withLog } = R; // errores
 const { UA, get, post } = R; // red
@@ -169,8 +170,9 @@ ipcMain.handle('mods:has', (e, { id, names }) => {
   let fl = []; try { fl = fs.readdirSync(path.join(iDir(getIns(id).id), 'mods')).filter(f => /\.jar(\.disabled)?$/i.test(f) && !/\.disabled$/i.test(f)).map(f => f.toLowerCase()); } catch {}
   const out = {}; for (const n of names || []) out[n] = fl.some(f => f.includes(String(n).toLowerCase())); return out;
 });
-ipcMain.handle('mods:bundle', async (e, { id, slugs }) => {
-  const ins = getIns(id), md = path.join(iDir(ins.id), 'mods'), ld = String(ins.ld || '').toLowerCase(), failed = [], done = new Set(), q = x => encodeURIComponent(JSON.stringify(x));
+// Instala proyectos de Modrinth (con sus dependencias obligatorias) en una instancia, para su versión de Minecraft y su cargador
+async function bundleInstall(ins, slugs, onStep) {
+  const md = path.join(iDir(ins.id), 'mods'), ld = String(ins.ld || '').toLowerCase(), failed = [], done = new Set(), q = x => encodeURIComponent(JSON.stringify(x));
   if (!['fabric', 'forge', 'neoforge'].includes(ld)) throw new Error('Elige Fabric, Forge o NeoForge');
   fs.mkdirSync(md, { recursive: true });
   const one = async (pid, lvl) => {
@@ -181,6 +183,24 @@ ipcMain.handle('mods:bundle', async (e, { id, slugs }) => {
   };
   let n = 0; await pool(slugs || [], 3, async s => { try { await one(String(s), 0); } catch { failed.push(s); } prog('Instalando', ++n, (slugs || []).length); });
   send('progress', null); return { failed };
+}
+ipcMain.handle('mods:bundle', (e, { id, slugs }) => bundleInstall(getIns(id), slugs));
+
+// «Optimizar FPS»: mods de rendimiento del cargador (los que no estén ya) y ajustes de options.txt que solo se bajan. Antes se guarda options.nova-antes.txt.
+ipcMain.handle('inst:optimize', async (e, id) => {
+  const ins = getIns(id), dir = iDir(ins.id);
+  if (running.has(ins.id)) throw new Error('Cierra Minecraft antes de optimizar la instancia');
+  const want = O.modsFor(ins.ld, ins.mc);
+  let have = []; try { have = fs.readdirSync(path.join(dir, 'mods')).filter(f => /\.jar$/i.test(f)).map(f => f.toLowerCase().replace(/[^a-z0-9]/g, '')); } catch {}
+  const todo = want.filter(m => !have.some(f => f.includes(m[1].replace(/[^a-z0-9]/g, '')))), skipped = want.filter(m => !todo.includes(m)).map(m => m[0]);
+  let failed = [];
+  if (todo.length) failed = (await bundleInstall(ins, todo.map(m => m[0]))).failed;
+  const of = path.join(dir, 'options.txt'); let changes = [], noOptions = false;
+  try {
+    const r = O.tweak(fs.readFileSync(of, 'utf8')); changes = r.changes;
+    if (changes.length) { const bk = path.join(dir, 'options.nova-antes.txt'); if (!fs.existsSync(bk)) fs.copyFileSync(of, bk); fs.writeFileSync(of, r.text); }
+  } catch { noOptions = true; }
+  return { ok: true, ld: ins.ld || 'Vanilla', installed: todo.map(m => m[0]).filter(s => !failed.includes(s)), skipped, failed, changes, noOptions };
 });
 // ---- Revisión de mods antes de jugar ----
 // Consulta Modrinth por la huella de cada mod activo y avisa de: mod de otro cargador, de otra versión de Minecraft,

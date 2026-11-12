@@ -7,17 +7,17 @@ const ord=v=>v.replace(/^[ab]/,"").split(".").map(Number),gte=(v,m)=>{const a=or
 let LS={f:null,g:null,n:null};
 const LDN=k=>k==="Vanilla"?"Nova":k;
 const LD={Vanilla:()=>true,Fabric:v=>LS.f?LS.f.has(v):(/^\d/.test(v)&&gte(v,"1.14")),Forge:v=>/^\d/.test(v)&&gte(v,"1.12")&&(LS.g?LS.g.has(v):true),NeoForge:v=>LS.n?LS.n.has(v):(/^\d/.test(v)&&gte(v,"1.20.2"))};
-const TN={all:"Todas",release:"Release",snapshot:"Snapshot",old_beta:"Beta",old_alpha:"Alpha"},PT={home:"Launchpad",vers:"Versiones",mods:"Mods",inst:"Instancias",con:"Consola",set:"Ajustes",soc:"Redes",srv:"Servidores",sk:"Skin",sta:"Estadísticas",mun:"Mundos"};
+const TN={all:"Todas",release:"Release",snapshot:"Snapshot",old_beta:"Beta",old_alpha:"Alpha"},PT={home:"Launchpad",vers:"Versiones",mods:"Mods",inst:"Instancias",con:"Consola",set:"Ajustes",soc:"Redes",srv:"Servidores",sk:"Skin",sta:"Estadísticas",mun:"Mundos",lgr:"Logros"};
 const ACC={"#2ee06f":"Verde","#4f8cff":"Azul","#8b5cff":"Violeta","#22d3ee":"Cian","#ff5fa8":"Rosa","#ff4d4d":"Rojo","#ff9f2e":"Naranja","#ffd93d":"Amarillo","#f2f4f8":"Blanco"};
 let V=DEMO,sel={mc:"1.21.1",ld:"Vanilla",type:"release"},tf="release",I=[],cfg={username:"Jugador",ram:4,javaPath:"",width:1280,height:720,fullscreen:false,jvmArgs:"",closeOnLaunch:false,autoBackup:true,backupKeep:8,cfKey:"",accent:"#2ee06f",theme:"oscuro",bh:"dorado",font:"Segoe UI",bold:false,contrast:false,rmotion:false,quality:"alta",gameMode:true,modCheck:true,conOpen:true,optimize:true,ramSet:false,radius:100,panelAlpha:60,glassBlur:12,density:"normal",navW:76,lsp:0,lh:145,tray:true,notify:true,channel:"estable",myServers:[],accounts:[],activeAccount:"",seenVersion:"",setupDone:false,autoInstall:true,shortcuts:true,hwaccel:true,listN:150,cb:"Ninguno",dys:false,navLabels:false,bigTargets:false,solid:false,wsp:0,discord:true,discordId:"",bhSize:100,bhSpeed:100,bhTilt:-6,stars:100,bhLens:true,bhBloom:true,bhOther:true,showNews:true,showInst:true,showStatus:true,newsN:4,fps:60,pauseBlur:true,dlLimit:0,lang:"auto",instSort:"last",prefetchOn:false,stHead:true,stSrv:true,stIp:false,stTime:true,stVer:true,stPos:"tl",stScale:100,stColor:""};
 const chips=(el,items,on,fn)=>{el.innerHTML=items.map(([k,n,d])=>`<button class="chip ${k===on?"on":""} ${d?"dis":""}" data-k="${k}">${n}</button>`).join("");el.querySelectorAll("button").forEach(b=>b.onclick=e=>{e.stopPropagation();fn(b.dataset.k)})};
 // Navegación
 document.querySelectorAll("nav button").forEach(b=>{b.onclick=()=>b.dataset.act==="addacc"?openAddAcc():show(b.dataset.p);b.setAttribute("aria-label",b.title);b.insertAdjacentHTML("beforeend",`<span class="nlb">${b.title}</span>`)});
 // Las pestañas pesadas se cargan la primera vez que se abren (mientras tanto el botón y el título indican que está cargando)
-const TABF={mods:"mods",inst:"instancias",set:"ajustes",srv:"servidores",mun:"mundos",con:"consola",sta:"estadisticas",soc:"social",sk:"skin"};let PEND="";
+const TABF={mods:"mods",inst:"instancias",set:"ajustes",srv:"servidores",mun:"mundos",con:"consola",sta:"estadisticas",lgr:"logros",soc:"social",sk:"skin"};let PEND="";
 function show(p){const f=TABF[p];if(f&&!LOK[f]){PEND=p;const b=document.querySelector(`nav [data-p=${p}]`);b.classList.add("ld");$("pt").textContent="Cargando…";
  lazyLoad(f).then(()=>{b.classList.remove("ld");if(PEND===p){PEND="";show(p)}}).catch(e=>{b.classList.remove("ld");PEND="";$("pt").textContent=PT[document.querySelector(".pg.on").id]||"";flash(em(e))});return}
- PEND="";document.querySelectorAll(".pg,nav button").forEach(e=>e.classList.remove("on"));$(p).classList.add("on");document.querySelector(`nav [data-p=${p}]`).classList.add("on");$("pt").textContent=PT[p];$("pop").classList.remove("on");dirty=60;HR=null;if(p==="set")setTimeout(renderU,0);if(p==="vers")rv();if(p==="inst")ri();if(p==="mods"){mchips();mods()}if(p==="srv")loadSrv();if(p==="mun")munOpen();if(p==="con")rcon();if(p==="sk")skOpen();if(p==="sta")statsOpen();}
+ PEND="";document.querySelectorAll(".pg,nav button").forEach(e=>e.classList.remove("on"));$(p).classList.add("on");document.querySelector(`nav [data-p=${p}]`).classList.add("on");$("pt").textContent=PT[p];$("pop").classList.remove("on");dirty=60;HR=null;if(p==="set")setTimeout(renderU,0);if(p==="vers")rv();if(p==="inst")ri();if(p==="mods"){mchips();mods()}if(p==="srv")loadSrv();if(p==="mun")munOpen();if(p==="con")rcon();if(p==="sk")skOpen();if(p==="sta")statsOpen();if(p==="lgr")lgOpen();}
 // Selección de versión (sin crear instancias a mano)
 const save=()=>sv({last:sel});
 function head(){$("gs").textContent=`Minecraft ${sel.mc} con ${LDN(sel.ld)}`;const n=curAcc().name;$("hn").textContent=$("un").textContent=n;$("av").innerHTML=accAv(curAcc(),22);
@@ -60,6 +60,7 @@ function qi(){const L=[...I].sort((a,b)=>(!!b.fav-!!a.fav)||(b.lastPlayed||0)-(a
 $("qi").querySelectorAll(".row").forEach(r=>r.onclick=()=>{const i=I.find(x=>x.id===r.dataset.i);pick(i.mc,i.type||"release",i.ld);sel.inst=i.id;save();qi()})}
 // Jugar
 $("go").onclick=()=>play();
+$("ppk").onclick=()=>{$("pop").classList.remove("on");openAddPack(null,"paste")};
 async function play(id){if(!A){pvPlay();return}$("go").disabled=true;try{const i=id?I.find(x=>x.id===id):await ensure();if(i)await launch({id:i.id})}finally{$("go").disabled=false}}
 // Carga diferida: estos archivos (type="lazy" en index.html) solo se cargan la primera vez que se necesitan
 const LZ={},LOK={};
@@ -68,6 +69,7 @@ function lazyLoad(n){return LZ[n]||(LZ[n]=new Promise((ok,no)=>{const el=documen
   s.onload=()=>{LOK[n]=1;ok()};s.onerror=()=>{delete LZ[n];no(new Error("No se pudo cargar "+n+".js"))};s.src=el.getAttribute("src");document.head.appendChild(s)}))}
 function lazyFn(n,names,deps){for(const f of names){const stub=(...a)=>Promise.all([...(deps||[]),n].map(lazyLoad)).then(()=>{if(window[f]===stub)throw new Error("No se pudo cargar "+n);return window[f](...a)});window[f]=stub}}
 lazyFn("limpieza",["openClean"]);
+lazyFn("logros",["lgToast"]);
 lazyFn("menu-nova",["nmInit"]);
 // Ctrl + K abre el buscador: la primera vez se carga su archivo
 addEventListener("keydown",function lk(e){if(LZ.buscador)return;if(e.ctrlKey&&!e.altKey&&e.key.toLowerCase()==="k"&&(typeof cfg==="undefined"||cfg.shortcuts!==false)){e.preventDefault();lazyLoad("buscador").then(()=>palOpen(true)).catch(()=>{})}});

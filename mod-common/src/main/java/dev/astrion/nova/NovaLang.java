@@ -291,6 +291,8 @@ final class NovaLang {
         p("Usar la accesibilidad del launcher", "Use the launcher's accessibility", "Utiliser l'accessibilité du launcher", "Barrierefreiheit des Launchers verwenden", "Usa l'accessibilità del launcher", "Usar a acessibilidade do launcher");
         p("no se llega al objetivo con este equipo", "target not reachable on this PC", "objectif inatteignable sur ce PC", "Ziel mit diesem PC nicht erreichbar", "obiettivo non raggiungibile su questo PC", "meta inalcançável neste PC");
         p("Descarga terminada", "Download finished", "Téléchargement terminé", "Download abgeschlossen", "Download completato", "Transferência concluída");
+        p("Logro conseguido", "Achievement unlocked", "Succès obtenu", "Erfolg freigeschaltet", "Traguardo ottenuto", "Conquista desbloqueada");
+        p("¡Platino conseguido!", "Platinum unlocked!", "Platine obtenu !", "Platin freigeschaltet!", "Platino ottenuto!", "Platina desbloqueada!");
         p("Actualización lista", "Update ready", "Mise à jour prête", "Update bereit", "Aggiornamento pronto", "Atualização pronta");
         p("Copia de seguridad hecha", "Backup done", "Sauvegarde effectuée", "Sicherung erstellt", "Backup completato", "Cópia de segurança feita");
         p("Avisos del launcher en el juego", "Launcher notices in game", "Avis du launcher en jeu", "Launcher-Hinweise im Spiel", "Avvisi del launcher in gioco", "Avisos do launcher no jogo");
