@@ -3,12 +3,14 @@ const assert = require('assert');
 const C = require('../main/logros-core');
 
 // Lista: más de 50 logros, ids únicos, métricas conocidas y un solo platino
-assert(C.DEFS.length > 50, 'tiene que haber más de 50 logros, hay ' + C.DEFS.length);
+assert.strictEqual(C.DEFS.length, 85, 'tiene que haber 85 logros más el platino, hay ' + C.DEFS.length);
+const per = {}; for (const d of C.DEFS) per[d.cat] = (per[d.cat] || 0) + 1;
+assert.deepStrictEqual(per, { jugar: 25, inst: 16, mods: 12, online: 8, media: 8, estilo: 8, cuidado: 8 }, 'logros por categoría: ' + JSON.stringify(per));
 const ids = C.ALL.map(d => d.id); assert.strictEqual(new Set(ids).size, ids.length, 'ids repetidos');
 assert.strictEqual(C.ALL.filter(d => d.tier === 'p').length, 1, 'tiene que haber un único platino');
 assert.strictEqual(C.ALL[C.ALL.length - 1].id, C.PLAT.id);
 const cats = new Set(C.CATS.map(c => c[0]));
-const keys = new Set(Object.keys(C.derive({ sessions: [{ start: 1, ms: 1, mc: '1.21', ld: 'Fabric' }] })).concat(['modsInstalled', 'packsInstalled', 'packShares', 'packLinks', 'exports', 'imports', 'clips', 'skinsSaved', 'settings', 'langs', 'bgAdded', 'bench', 'benchApply', 'optimized', 'backups', 'updates', 'diags', 'cleans', 'streamerOn', 'views', 'unlockedCount']));
+const keys = new Set(Object.keys(C.derive({ sessions: [{ start: 1, ms: 1, mc: '1.21', ld: 'Fabric' }] })).concat(['modsInstalled', 'packsInstalled', 'packShares', 'packLinks', 'exports', 'imports', 'clips', 'skinsSaved', 'settings', 'langs', 'bgAdded', 'bench', 'benchApply', 'optimized', 'backups', 'updates', 'diags', 'cleans', 'streamerOn', 'unlockedCount']));
 for (const d of C.DEFS) {
   assert(cats.has(d.cat), d.id + ': categoría desconocida ' + d.cat);
   assert(C.TIERS[d.tier] && d.tier !== 'p', d.id + ': tipo no válido');

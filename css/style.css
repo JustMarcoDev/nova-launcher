@@ -4372,3 +4372,6 @@ html.fm #cv { display: none; }
 .lgtoast.on { transform: none; opacity: 1; }
 .lgtoast .lgt small { color: var(--tc); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; font-size: 10.5px; }
 @media (prefers-reduced-motion: reduce) { .lgtoast, .lgb i { transition: none; } }
+
+/* «Pegar enlace de modpack» del desplegable: ocupa el ancho sin salirse (caja con relleno incluido) */
+.pop #ppk { display: flex; align-items: center; justify-content: center; box-sizing: border-box; width: 100%; margin-top: 8px; padding: 10px 16px; }

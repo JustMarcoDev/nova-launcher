@@ -22,7 +22,7 @@ function lgPaint(){
 }
 async function lgOpen(){
  const el=$("lgp");if(!el)return;const tk=++LG.tk;
- try{const d=await(A?A.logrosGet():DA.logrosGet());if(tk!==LG.tk)return;LG.d=d;lgPaint();if(A){A.logrosView().catch(()=>{});if(d.list.some(x=>x.got&&!x.seen))A.logrosSeen().catch(()=>{})}}
+ try{const d=await(A?A.logrosGet():DA.logrosGet());if(tk!==LG.tk)return;LG.d=d;lgPaint();if(A){if(d.list.some(x=>x.got&&!x.seen))A.logrosSeen().catch(()=>{})}}
  catch(e){el.innerHTML=`<p class="sub">${esc(em(e))}</p>`}
 }
 /* Tarjeta de «Logro conseguido» en el launcher (parecida a la de Minecraft). Se apilan si llegan varias a la vez. */

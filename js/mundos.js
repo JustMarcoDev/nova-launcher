@@ -19,7 +19,7 @@ async function munLoad(){
  const api=A||DA;$("mul").innerHTML=`<div class="emp">${trad("Buscando mundos…")}</div>`;
  try{MUN.all=(await api.worldsAll())||[]}catch(e){MUN.all=[];flash(em(e))}
  munRender()}
-function munOpen(){if(!MUN.bound){MUN.bound=true;munBind()}munLoad()}
+function munOpen(){if(!MUN.bound){MUN.bound=true;munBind()}return munLoad()}
 function munBind(){
  $("muq").oninput=e=>{MUN.q=e.target.value;munRender()};
  $("mui").onchange=e=>{MUN.inst=e.target.value;munRender()};

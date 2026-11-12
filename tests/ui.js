@@ -21,6 +21,8 @@ const w = dom.window, sleep = ms => new Promise(r => setTimeout(r, ms));
   await sleep(1500);
   const need = ['home', 'vers', 'mods', 'srv', 'inst', 'con', 'soc', 'set', 'sk', 'sta', 'mun', 'lgr'];
   for (const p of need) { const b = w.document.querySelector(`nav [data-p=${p}]`); if (!b) { errors.push('falta el botón de ' + p); continue; } b.click(); await sleep(150); if (!w.document.getElementById(p).classList.contains('on')) errors.push('no se abre la pestaña ' + p); }
+  await sleep(500);
+  for (const id of ['vers', 'inst', 'mods', 'mun', 'lgr']) { const l = w.document.querySelector('#' + id + '>.skld'); if (!l) errors.push('Pantalla de carga: falta en ' + id); else if (!l.hidden) errors.push('Pantalla de carga: se queda puesta en ' + id); }
   if (w.document.querySelectorAll('#lgp .lgc').length < 3) errors.push('Logros: la pestaña no pinta las tarjetas');
   for (const s of w.document.querySelectorAll('#sn button')) { try { s.click(); } catch (e) { errors.push('ajustes: ' + e.message); } await sleep(10); }
   // Ajustes → Menú de Nova: pinta las opciones, ya no hay editor del HUD, y «Añadir fondo» elige el fondo nuevo
@@ -75,7 +77,7 @@ const w = dom.window, sleep = ms => new Promise(r => setTimeout(r, ms));
   {
     const g = id => w.document.getElementById(id);
     mock.insts = [{ id: 'i1', name: 'Mi instancia', mc: '1.21.1', ld: 'Fabric', note: 'Descripción de prueba' }];
-    await w.eval('loadI()'); await sleep(100);
+    w.eval("show('inst')"); await w.eval('loadI()'); await sleep(100);
     const row = w.document.querySelector('#il .ir');
     if (!row) errors.push('Instancias: no se pintó la tarjeta');
     else {
@@ -101,7 +103,7 @@ const w = dom.window, sleep = ms => new Promise(r => setTimeout(r, ms));
     // Opciones de una instancia con Fabric: el desplegable de versiones del cargador debe traer la lista, no solo «Automática»
     mock.insts = [{ id: 'i2', name: 'Con Fabric', mc: '1.21.1', ld: 'Fabric', loaderVersion: '' }];
     mock.loaderVersions = [{ v: '0.16.14', stable: true }, { v: '0.16.13', stable: true }, { v: '0.17.0-beta.1', stable: false }];
-    await w.eval('loadI()'); for (let k = 0; k < 30 && !/Con Fabric/.test(w.document.getElementById('il').textContent); k++) await sleep(100);
+    w.eval("show('inst')"); await w.eval('loadI()'); for (let k = 0; k < 30 && !/Con Fabric/.test(w.document.getElementById('il').textContent); k++) await sleep(100);
     w.eval('closeModal()'); await sleep(200);
     w.document.querySelector('#il [data-a=opt]').click(); for (let k = 0; k < 30 && !(g('olv') && g('olv').options.length > 1); k++) await sleep(100);
     {
@@ -112,18 +114,18 @@ const w = dom.window, sleep = ms => new Promise(r => setTimeout(r, ms));
     delete mock.loaderVersions;
     // si la lista falla se ve el aviso con «Reintentar» (antes solo salía «Automática» sin explicación)
     mock.insts = [{ id: 'i3', name: 'Sin red', mc: '1.21.1', ld: 'Fabric', loaderVersion: '' }];
-    await w.eval('loadI()'); for (let k = 0; k < 30 && !/Sin red/.test(w.document.getElementById('il').textContent); k++) await sleep(100);
+    w.eval("show('inst')"); await w.eval('loadI()'); for (let k = 0; k < 30 && !/Sin red/.test(w.document.getElementById('il').textContent); k++) await sleep(100);
     api.loaderVersions = async () => { throw new Error('No se pudo cargar la lista'); };
     w.document.querySelector('#il [data-a=opt]').click(); for (let k = 0; k < 30 && !g('olr'); k++) await sleep(100);
     if (!g('olr')) errors.push('Instancias: si falla la lista de versiones de Fabric no sale «Reintentar»');
     w.eval('closeModal()'); delete api.loaderVersions;
-    mock.insts = []; await w.eval('loadI()');
+    mock.insts = []; w.eval("show('inst')"); await w.eval('loadI()');
   }
   // Compartir modpack y Añadir modpack: enlace con dos formatos, aviso de lo que se queda fuera, vista previa y «Instalar»
   {
     const g = id => w.document.getElementById(id), $q = s => w.document.querySelector(s);
     mock.insts = [{ id: 'i9', name: 'Mi pack', mc: '1.21.1', ld: 'Vanilla' }];
-    await w.eval('loadI()'); for (let k = 0; k < 30 && !/Mi pack/.test(g('il').textContent); k++) await sleep(100);
+    w.eval("show('inst')"); await w.eval('loadI()'); for (let k = 0; k < 30 && !/Mi pack/.test(g('il').textContent); k++) await sleep(100);
     api.shareMake = async () => ({ app: 'nova://pack?d=ABC', web: 'https://x.dev/pack#ABC', length: 3, shared: 5, left: [{ t: 'm', file: 'propio.jar' }] });
     const copied = []; api.clip = async t => { copied.push(t); };
     $q('#il [data-a=opt]').click(); for (let k = 0; k < 30 && !$q('.md [data-a=lk]'); k++) await sleep(100);
@@ -151,7 +153,7 @@ const w = dom.window, sleep = ms => new Promise(r => setTimeout(r, ms));
     w.document.getElementById('ppk').click(); for (let k = 0; k < 30 && !g('pkl'); k++) await sleep(100);
     if (!g('pkl') || !g('pkg')) errors.push('Pegar enlace de modpack: el botón del desplegable no abre el diálogo');
     w.eval('closeModal(true)');
-    delete api.shareMake; delete api.clip; delete api.packPreview; delete api.packInstall; mock.insts = []; await w.eval('loadI()');
+    delete api.shareMake; delete api.clip; delete api.packPreview; delete api.packInstall; mock.insts = []; w.eval("show('inst')"); await w.eval('loadI()');
   }
   // Pestaña Skin: lista de skins guardadas, texto según la cuenta (offline / Microsoft) y capas solo en Microsoft
   {

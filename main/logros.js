@@ -5,7 +5,6 @@
 // La lista y las métricas están en logros-core.js (lógica pura, con pruebas).
 // =====================================================================================
 const { app, ipcMain } = require('electron');
-const fs = require('fs');
 const path = require('path');
 const { R } = require('./compartido');
 const C = require('./logros-core');
@@ -48,9 +47,11 @@ ipcMain.handle = (ch, fn) => {
   return origHandle(ch, h ? async (e, ...a) => { const r = await fn(e, ...a); try { h(a[0], r); } catch {} return r; } : fn);
 };
 
-const first = !fs.existsSync(file);   // primera vez: lo que ya se cumple por el historial se apunta sin avisos (si no, saldrían todos de golpe)
+// Reinicio de la 0.2.19-beta.3: los logros empiezan a contar desde esa beta (se conservan solo la versión y el idioma, para detectar actualizaciones y cambios de idioma).
+const RESET = 3;
 let st = rd(file, null);
 if (!st || typeof st !== 'object') st = {};
+if (st.rst !== RESET) st = { rst: RESET, ver: st.ver, lang: st.lang };
 st.unlocked = st.unlocked && typeof st.unlocked === 'object' ? st.unlocked : {};
 st.counters = st.counters && typeof st.counters === 'object' ? st.counters : {};
 
@@ -58,9 +59,12 @@ let saveT = null;
 const save = () => { clearTimeout(saveT); saveT = setTimeout(() => { try { wr(file, st); } catch {} }, 500); };
 app.on('before-quit', () => { try { wr(file, st); } catch {} });
 
+const shotsC = { t: 0, n: 0 };
 async function inputs() {
   let d = { sessions: [], before: [] }; try { d = R.statsLoad(); } catch {}
-  let shots = 0; try { shots = await R.shotsCount(); } catch {}
+  let shots = shotsC.n; if (Date.now() - shotsC.t > 15000) { try { shots = shotsC.n = await R.shotsCount(); shotsC.t = Date.now(); } catch {} }   // leer todas las carpetas de capturas cada vez sería un gasto inútil
+  if (st.shotsBase === undefined) { st.shotsBase = shots; save(); }   // las capturas que ya había antes del reinicio no cuentan
+  shots = Math.max(0, shots - st.shotsBase);
   const unlockedCount = Object.keys(st.unlocked).filter(k => k !== C.PLAT.id).length;
   return { ...C.derive({ sessions: d.sessions, before: d.before || [], insts: li().length, shots, counters: st.counters }), unlockedCount };
 }
@@ -91,12 +95,11 @@ async function evalNow() {
     const m = await inputs();
     const ids = C.check(m, st.unlocked), now = Date.now();
     for (const id of ids) {
-      st.unlocked[id] = { t: now, seen: first && !st.armed };
+      st.unlocked[id] = { t: now, seen: false };
       m.unlockedCount = Object.keys(st.unlocked).filter(k => k !== C.PLAT.id).length;
     }
     if (ids.length) save();
-    if (!first || st.armed) for (const id of ids) announce(C.BY_ID.get(id), m);
-    st.armed = true;
+    for (const id of ids) announce(C.BY_ID.get(id), m);
     return ids;
   } finally { busy = false; if (again) { again = false; setTimeout(() => evalNow().catch(() => {}), 300); } }
 }
@@ -116,7 +119,6 @@ ipcMain.handle('logros:get', async () => {
   return { cats: C.CATS, tiers: C.TIERS, list, got: got.length, total: list.length, pts: got.reduce((a, x) => a + x.pts, 0), ptsTotal: list.reduce((a, x) => a + x.pts, 0), plat: !!st.unlocked[C.PLAT.id] };
 });
 ipcMain.handle('logros:seen', () => { let ch = false; for (const k of Object.keys(st.unlocked)) if (st.unlocked[k].seen === false) { st.unlocked[k].seen = true; ch = true; } if (ch) save(); return true; });
-ipcMain.handle('logros:view', () => { evt('views'); return true; });
 
 // Al arrancar (sin competir con la ventana): si la versión cambió desde la última vez, es una actualización; después se mira todo
 setTimeout(() => {

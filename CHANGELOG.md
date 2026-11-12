@@ -3,6 +3,20 @@
 Todo lo que cambia en cada versión de Nova Launcher y del menú de Nova (el mod), de la más nueva a la más antigua. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**, y el flujo de publicación copia la entrada de cada versión a las notas de su release. Al sacar una versión nueva, añade su entrada `### x.y.z — Título` **al principio** de la lista.
 
 
+### 0.2.19-beta.3 · Logros ampliados (85 + platino), pantallas de carga y todo a cero
+
+**Añadido**
+- Logros ampliados a 85 más el platino: Jugar 25, Instancias 16, Mods y modpacks 12, Servidores 8, Capturas 8, Personalización 8 y Cuidado del launcher 8.
+- Pantalla de carga (la misma de Skin y Estadísticas) en Logros, Instancias, Mundos, Mods y Versiones.
+
+**Mejorado**
+- Cada pestaña carga su contenido solo cuando entras en ella: Instancias y Versiones ya no se pintan en segundo plano.
+- El botón «Pegar enlace de modpack» del desplegable de «Lanzar juego» ya cabe dentro del desplegable.
+- Los logros y las estadísticas empiezan de cero en esta beta: solo cuenta lo que hagas a partir de ahora (las capturas anteriores tampoco cuentan).
+
+**Quitado**
+- Los logros «Obsesionado con los FPS» y «Curioso», y sus textos de traducción sin uso.
+
 ### 0.2.19-beta.2 · Logros del launcher, Optimizar FPS y animaciones más suaves
 
 **Añadido**

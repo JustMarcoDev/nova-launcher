@@ -17,7 +17,14 @@ document.querySelectorAll("nav button").forEach(b=>{b.onclick=()=>b.dataset.act=
 const TABF={mods:"mods",inst:"instancias",set:"ajustes",srv:"servidores",mun:"mundos",con:"consola",sta:"estadisticas",lgr:"logros",soc:"social",sk:"skin"};let PEND="";
 function show(p){const f=TABF[p];if(f&&!LOK[f]){PEND=p;const b=document.querySelector(`nav [data-p=${p}]`);b.classList.add("ld");$("pt").textContent="Cargando…";
  lazyLoad(f).then(()=>{b.classList.remove("ld");if(PEND===p){PEND="";show(p)}}).catch(e=>{b.classList.remove("ld");PEND="";$("pt").textContent=PT[document.querySelector(".pg.on").id]||"";flash(em(e))});return}
- PEND="";document.querySelectorAll(".pg,nav button").forEach(e=>e.classList.remove("on"));$(p).classList.add("on");document.querySelector(`nav [data-p=${p}]`).classList.add("on");$("pt").textContent=PT[p];$("pop").classList.remove("on");dirty=60;HR=null;if(p==="set")setTimeout(renderU,0);if(p==="vers")rv();if(p==="inst")ri();if(p==="mods"){mchips();mods()}if(p==="srv")loadSrv();if(p==="mun")munOpen();if(p==="con")rcon();if(p==="sk")skOpen();if(p==="sta")statsOpen();if(p==="lgr")lgOpen();}
+ PEND="";document.querySelectorAll(".pg,nav button").forEach(e=>e.classList.remove("on"));$(p).classList.add("on");document.querySelector(`nav [data-p=${p}]`).classList.add("on");$("pt").textContent=PT[p];$("pop").classList.remove("on");dirty=60;HR=null;if(p==="set")setTimeout(renderU,0);const O=TABLD[p];if(O)pgRun(p,O[0],O[1]).catch(e=>flash(em(e)));if(p==="srv")loadSrv();if(p==="con")rcon();if(p==="sk")skOpen();if(p==="sta")statsOpen();}
+/* Pantalla de carga de una pestaña (la misma de Skin y Estadísticas): sale al entrar, deja pintar un fotograma y se quita al terminar de cargar su contenido.
+   El contenido de cada zona solo se carga/pinta cuando estás en ella; fuera, ri() y rv() no hacen nada (al volver se pintan al entrar). Dura 200 ms como mínimo para no parpadear. */
+const TABLD={vers:["Cargando versiones…",()=>rv()],inst:["Cargando instancias…",()=>ri()],mods:["Cargando mods…",()=>{mchips();return mods()}],mun:["Cargando mundos…",()=>munOpen()],lgr:["Cargando logros…",()=>lgOpen()]};
+async function pgRun(id,txt,fn){const pg=$(id);let e=pg.querySelector(":scope>.skld");if(!e){e=document.createElement("div");e.className="skld";e.innerHTML='<i class="skspin"></i><span></span>';pg.prepend(e)}
+ const t0=performance.now(),k=pg.dataset.ldk=String(+pg.dataset.ldk+1||1);e.lastChild.textContent=trad(txt);e.hidden=false;
+ await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+ try{await fn()}finally{const w=200-(performance.now()-t0);if(w>0)await new Promise(r=>setTimeout(r,w));if(pg.dataset.ldk===k)e.hidden=true}}
 // Selección de versión (sin crear instancias a mano)
 const save=()=>sv({last:sel});
 function head(){$("gs").textContent=`Minecraft ${sel.mc} con ${LDN(sel.ld)}`;const n=curAcc().name;$("hn").textContent=$("un").textContent=n;$("av").innerHTML=accAv(curAcc(),22);
@@ -38,7 +45,7 @@ $("ver").innerHTML=list.map(v=>`<option ${v.id===sel.mc?"selected":""}>${v.id}</
 $("ver").onchange=e=>{const v=V.find(z=>z.id===e.target.value);pick(e.target.value,v?v.type:tf)};
 let vlim=150,rpK="",vsrc="demo",vt;
 const cnt=k=>k==="all"?V.length:V.filter(v=>v.type===k).length;
-function rv(more){if(!more)vlim=+cfg.listN||150;$("vinfo").textContent=A?(vsrc==="error"?"No se pudo cargar la lista oficial. Pulsa «Recargar lista».":V.length+" versiones · "+(vsrc==="cache"?"copia guardada (sin conexión)":"lista oficial de Mojang")):demoVers();chips($("tf2"),Object.entries(TN).map(([k,n])=>[k,`${n} (${cnt(k)})`]),tf,k=>{tf=k;rv()});const q=$("vq").value.toLowerCase().trim();
+function rv(more){if(!$("vers").classList.contains("on"))return;if(!more)vlim=+cfg.listN||150;$("vinfo").textContent=A?(vsrc==="error"?"No se pudo cargar la lista oficial. Pulsa «Recargar lista».":V.length+" versiones · "+(vsrc==="cache"?"copia guardada (sin conexión)":"lista oficial de Mojang")):demoVers();chips($("tf2"),Object.entries(TN).map(([k,n])=>[k,`${n} (${cnt(k)})`]),tf,k=>{tf=k;rv()});const q=$("vq").value.toLowerCase().trim();
 const L=V.filter(v=>(tf==="all"||v.type===tf)&&v.id.toLowerCase().includes(q));
 $("vl").innerHTML=L.slice(0,vlim).map(v=>`<div class="row ${v.id===sel.mc?"on":""}" data-v="${v.id}" data-t="${v.type}"><span class="n">${v.id}</span>${tf==="all"?`<span class="s">${TN[v.type]||v.type}</span>`:""}<span class="s">${Object.keys(LD).filter(k=>LD[k](v.id)).map(LDN).join(" · ")}</span></div>`).join("")+(L.length>vlim?`<button class="btn" id="vm" style="margin-top:10px">Mostrar más (${L.length-vlim} restantes)</button>`:"")+(L.length?"":'<div style="color:var(--m)">Sin resultados</div>')}
 $("vl").onclick=e=>{if(e.target.id==="vm"){vlim+=250;rv(1);return}const r=e.target.closest(".row");if(r){pick(r.dataset.v,r.dataset.t);show("home")}};

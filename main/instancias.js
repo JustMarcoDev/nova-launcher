@@ -270,10 +270,11 @@ ipcMain.handle('import:run', async (e, dir) => {
 // ---- Estadísticas de juego: stats.json guarda cada partida (instancia, versión, cargador, servidor, inicio y duración)
 // Las partidas anteriores a esta función solo tienen el tiempo total de cada instancia: se importa como «previo».
 const statsFile = path.join(root, 'stats.json');
+// Las estadísticas empezaron de cero en la 0.2.19-beta.3 (rst = 3): lo anterior no se cuenta.
 function statsLoad() {
   const d = rd(statsFile, null);
-  if (d && Array.isArray(d.sessions)) return d;
-  const o = { v: 1, sessions: [], before: li().filter(i => i.playMs > 0).map(i => ({ id: i.id, name: i.name, mc: i.mc, ld: i.ld || 'Vanilla', ms: i.playMs })) };
+  if (d && Array.isArray(d.sessions) && d.rst === 3) return d;
+  const o = { v: 1, rst: 3, sessions: [], before: [] };
   try { wr(statsFile, o); } catch {}
   return o;
 }
