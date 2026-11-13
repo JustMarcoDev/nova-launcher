@@ -78,7 +78,8 @@ public final class NovaGfx {
         return r;
     }
 
-    public static final int I_USER = 0, I_GEAR = 1, I_CLOSE = 2, I_EARTH = 6, I_NOVA = 8, I_REALMS = 10, I_USERS = 11, I_CHECK = 12, I_PLUS = 13, I_HEAD = 14, I_EDIT = 15, I_SWAP = 16, I_TRASH = 17, I_FOLDER = 18, I_RESIZE = 19, I_SERVER = 20, I_PLAY = 21, I_BOLT = 22, I_MODS = 23;
+    public static final int I_USER = 0, I_GEAR = 1, I_CLOSE = 2, I_EARTH = 6, I_NOVA = 8, I_REALMS = 10, I_USERS = 11, I_CHECK = 12, I_PLUS = 13, I_HEAD = 14, I_EDIT = 15, I_SWAP = 16, I_TRASH = 17, I_FOLDER = 18, I_RESIZE = 19, I_SERVER = 20, I_PLAY = 21, I_BOLT = 22, I_MODS = 23,
+            I_GAUGE = 24, I_CURSOR = 25, I_PIN = 26, I_KEYS = 27, I_SWITCH = 28, I_SHIELD = 29, I_FLASK = 30, I_CLOCK = 31, I_COMPASS = 32, I_HOURGLASS = 33;
 
     public static Tex button(MinecraftClient mc, int w, int h, String label, int icon, int style, boolean hot, boolean enabled) {
         int s = begin(mc);
@@ -90,6 +91,15 @@ public final class NovaGfx {
         BM m = new BM(); m.w = w; m.h = h; m.icon = icon; m.style = style; m.hot = hot; m.en = enabled; m.acc = acc; m.sk = sk; m.ep = epoch; m.label = label; m.t = c;
         BMEMO[bmNext] = m; bmNext = (bmNext + 1) % BMEMO.length;
         return c;
+    }
+
+    /** Tarjeta de un elemento del HUD (icono, nombre, descripción corta e interruptor). */
+    public static Tex card(MinecraftClient mc, int w, int h, String name, String desc, int icon, boolean on, boolean hot) {
+        int s = begin(mc);
+        String key = "c|" + w + "x" + h + "|" + name + "|" + desc + "|" + icon + "|" + on + "|" + hot + "|" + NovaGfxCore.accent;
+        Tex c = CACHE.get(key);
+        if (c != null) return c;
+        return upload(mc, key, NovaGfxCore.card(w, h, name, desc, icon, on, hot, s), s);
     }
 
     public static Tex swatch(MinecraftClient mc, int d, int rgb, boolean selected, boolean hot) {

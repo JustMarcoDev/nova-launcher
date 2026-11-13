@@ -70,7 +70,7 @@ public class NovaHudScreen extends NovaScreen implements NovaHudPanel.Host {
             for (int i = NovaHud.ALL.length - 1; i >= 0; i--) {
                 int[] b = box[i];
                 if (b == null) continue;
-                int[] xb = xBtn(b, sw), hb = handle(b);
+                int[] xb = NovaHud.xBtn(b, sw, sh), hb = NovaHud.handle(b, sw, sh);
                 if (in(mx, my, xb[0], xb[1], XS, XS)) { NovaHud.ALL[i].on = false; clearAndInit(); box[i] = null; break; }
                 if (in(mx, my, hb[0], hb[1], HS, HS)) {
                     size = NovaHud.ALL[i]; sizeX0 = b[0]; sizeY0 = b[1];
@@ -83,7 +83,7 @@ public class NovaHudScreen extends NovaScreen implements NovaHudPanel.Host {
         if (!down) { drag = null; size = null; }
         if (size != null) {   // cambiar el tamaño: la esquina de arriba a la izquierda se queda quieta
             int i = java.util.Arrays.asList(NovaHud.ALL).indexOf(size);
-            float k = NovaHud.clampS(Math.max((mx - sizeX0) / sizeUW, (my - sizeY0) / sizeUH));
+            float k = NovaHud.clampS(Math.max((mx - HOFF - sizeX0) / sizeUW, (my - HOFF - sizeY0) / sizeUH));
             size.scale = k;
             int nw = Math.max(1, Math.round(sizeUW * k)), nh = Math.max(1, Math.round(sizeUH * k));
             size.fx = NovaHud.clamp01(sizeX0 / Math.max(1, sw - nw));
@@ -104,15 +104,12 @@ public class NovaHudScreen extends NovaScreen implements NovaHudPanel.Host {
         for (int i = 0; i < NovaHud.ALL.length; i++) {
             int[] b = box[i];
             if (b == null) continue;
+            // X para quitarlo (rojo) y esquina para cambiar el tamaño: salen fuera del elemento, sin taparlo
+            int[] xb = NovaHud.xBtn(b, sw, sh), hb = NovaHud.handle(b, sw, sh);
+            boolean hot = NovaHud.ALL[i] == drag || NovaHud.ALL[i] == size || in(mx, my, b[0] - 3, b[1] - 3, b[2] + 6, b[3] + 6) || in(mx, my, xb[0], xb[1], XS, XS) || in(mx, my, hb[0], hb[1], HS, HS);
+            int col = hot ? 0xCC000000 | (NovaSettings.accent & 0xFFFFFF) : 0x66FFFFFF;
+            NovaButton.panel(c, b[0] - 3, b[1] - 3, b[2] + 6, b[3] + 6, 4, hot ? 0x22000000 | (NovaSettings.accent & 0xFFFFFF) : 0x12FFFFFF, col);   // recuadro redondeado alrededor
             NovaHud.drawS(c, client, NovaHud.ALL[i], b[0], b[1], sample);
-            boolean hot = NovaHud.ALL[i] == drag || NovaHud.ALL[i] == size || in(mx, my, b[0] - 2, b[1] - 2, b[2] + 4, b[3] + 4);
-            int col = hot ? 0xCC000000 | (NovaSettings.accent & 0xFFFFFF) : 0x55FFFFFF;
-            c.fill(b[0] - 2, b[1] - 2, b[0] + b[2] + 2, b[1] - 1, col);
-            c.fill(b[0] - 2, b[1] + b[3] + 1, b[0] + b[2] + 2, b[1] + b[3] + 2, col);
-            c.fill(b[0] - 2, b[1] - 1, b[0] - 1, b[1] + b[3] + 1, col);
-            c.fill(b[0] + b[2] + 1, b[1] - 1, b[0] + b[2] + 2, b[1] + b[3] + 1, col);
-            // X para quitarlo (rojo) y esquina para cambiar el tamaño
-            int[] xb = xBtn(b, sw), hb = handle(b);
             boolean ox = in(mx, my, xb[0], xb[1], XS, XS), oh = in(mx, my, hb[0], hb[1], HS, HS) || NovaHud.ALL[i] == size;
             boolean drawn = false;
             if (NovaGfx.ok) {
@@ -129,19 +126,13 @@ public class NovaHudScreen extends NovaScreen implements NovaHudPanel.Host {
             }
             if (hot) c.drawCenteredTextWithShadow(textRenderer, Math.round(NovaHud.ALL[i].scale * 100f) + "%", b[0] + b[2] / 2, Math.min(sh - 10, b[1] + b[3] + 4), 0xFFFFFFFF);
         }
-        c.drawCenteredTextWithShadow(textRenderer, tr("Editar HUD"), width / 2, 10, 0xFFFFFFFF);
-        c.drawCenteredTextWithShadow(textRenderer, tr("Arrastra: mover · Esquina: tamaño · X: quitar"), width / 2, 22, 0xFFB8B8D8);
     }
 
-    private static final int XS = 13, HS = 13;
+    private static final int XS = NovaHud.XS, HS = NovaHud.HS;
+    /** Del centro del botón de tamaño a la esquina del elemento: así al agarrarlo el elemento no pega un salto. */
+    private static final int HOFF = 3 + HS / 2;
 
     private static boolean in(int mx, int my, int x, int y, int w, int h) { return mx >= x && mx < x + w && my >= y && my < y + h; }
-
-    /** Botón X: arriba a la derecha del elemento, sin salirse de la pantalla. */
-    private static int[] xBtn(int[] b, int sw) { return new int[] { Math.min(b[0] + b[2] + 1, sw - XS), Math.max(0, b[1] - XS + 1) }; }
-
-    /** Esquina de abajo a la derecha para cambiar el tamaño. */
-    private static int[] handle(int[] b) { return new int[] { b[0] + b[2] - 6, b[1] + b[3] - 6 }; }
 
     private boolean overWidget(int mx, int my) {
         for (Element ch : children()) if (ch.isMouseOver(mx, my)) return true;

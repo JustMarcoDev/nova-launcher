@@ -10,6 +10,7 @@ import java.util.function.Supplier;
  * 1) espera a la pantalla de título y comprueba que es NovaTitleScreen;
  * 2) prueba el zoom (el campo de visión se encoge al mantenerlo y vuelve a 1 al soltarlo);
  * 3) abre el menú de pausa de Nova y deja que se dibuje;
+ *    y después el editor del HUD (pestañas «Elementos» y «Juego»);
  * 4) en cada paso escribe «[NOVA-SELFTEST] SHOT <nombre>» (el CI hace la captura de la pantalla en ese momento) y
  *    termina con «[NOVA-SELFTEST] PASS» y código 0, o con «FAIL <motivo>» y código 1.
  * No usa ninguna API de Minecraft: la pantalla de título le pasa lo que necesita.
@@ -47,8 +48,8 @@ final class NovaSelfTest {
         return f.get(20, TimeUnit.SECONDS);
     }
 
-    /** La pantalla de título la llama una vez en init(): main = ejecutor del hilo del juego; cur = nombre de la pantalla abierta; pause = abre el menú de pausa de Nova. */
-    static void start(Executor main, Supplier<String> cur, Runnable pause) {
+    /** La pantalla de título la llama una vez en init(): main = ejecutor del hilo del juego; cur = nombre de la pantalla abierta; pause = abre el menú de pausa de Nova; hud = abre el editor del HUD. */
+    static void start(Executor main, Supplier<String> cur, Runnable pause, Runnable hud) {
         if (!ON || started) return;
         started = true;
         Thread t = new Thread(() -> {
@@ -80,6 +81,19 @@ final class NovaSelfTest {
                 Thread.sleep(1200);
                 log("PAUSE OK");
                 log("SHOT pause"); Thread.sleep(2500);
+
+                // editor del HUD: pestaña de elementos (tarjetas) y pestaña de juego
+                for (int tab = 0; tab < 2; tab++) {
+                    final int tb = tab == 0 ? NovaHudPanel.T_EL : NovaHudPanel.T_GAME;
+                    onMain(main, () -> { NovaHudPanel.tab = tb; hud.run(); return 1; });
+                    Thread.sleep(1800);
+                    s = onMain(main, cur);
+                    if (s == null || !s.endsWith("NovaHudScreen")) { fail("no se abrió NovaHudScreen sino " + s); return; }
+                    Thread.sleep(800);
+                    log(tab == 0 ? "HUD OK" : "HUD JUEGO OK");
+                    log(tab == 0 ? "SHOT hud" : "SHOT hudjuego"); Thread.sleep(2500);
+                }
+                onMain(main, () -> { NovaHudPanel.tab = NovaHudPanel.T_EL; return 1; });
                 log("PASS");
                 Runtime.getRuntime().halt(0);
             } catch (Throwable e) {

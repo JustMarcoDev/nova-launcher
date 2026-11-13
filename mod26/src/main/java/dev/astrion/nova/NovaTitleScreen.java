@@ -138,7 +138,7 @@ public class NovaTitleScreen extends NovaScreen {
         ensure(minecraft);
         NovaBg.start(minecraft);
         if (System.getProperty("nova.pause") != null && !tested3) { tested3 = true; minecraft.execute(() -> NovaGui.setScreen(minecraft, new NovaPauseScreen())); }   // solo para pruebas
-        NovaSelfTest.start(minecraft::execute, () -> { Object sc = NovaGui.screen(minecraft); return sc == null ? null : sc.getClass().getName(); }, () -> NovaGui.setScreen(minecraft, new NovaPauseScreen()));
+        NovaSelfTest.start(minecraft::execute, () -> { Object sc = NovaGui.screen(minecraft); return sc == null ? null : sc.getClass().getName(); }, () -> NovaGui.setScreen(minecraft, new NovaPauseScreen()), () -> NovaGui.setScreen(minecraft, new NovaHudScreen(null)));
         String forced = System.getProperty("nova.panel", "");
         if (!forced.isEmpty() && !tested2) { tested2 = true; panel = forced.equals("nova") ? 2 : forced.equals("profile") ? 1 : forced.equals("skins") ? 3 : forced.equals("servers") ? 4 : forced.equals("mods") ? 5 : 0; }
         labels.clear();

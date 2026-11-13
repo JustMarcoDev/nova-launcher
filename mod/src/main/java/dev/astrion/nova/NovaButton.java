@@ -17,6 +17,9 @@ public class NovaButton extends NovaButtonBase {
     String tipTitle = "", tipDesc = "";
     /** Si no es null, el botón solo pinta esto (fondo de paneles). Recibe el contexto gráfico. */
     java.util.function.Consumer<Object> paint;
+    /** Si no está vacía, el botón se dibuja como tarjeta (icono, nombre, esta descripción e interruptor) en vez de como botón normal. */
+    String desc = "";
+    boolean cardOn;
     private float glow;
     private long last = Util.getMeasuringTimeMs();
 
@@ -59,6 +62,7 @@ public class NovaButton extends NovaButtonBase {
     public NovaButton tip(String title, String desc) { tipTitle = title; tipDesc = desc; return this; }
     public NovaButton style(int st) { style = st; return this; }
     public NovaButton swatch(int rgb, boolean on) { swatch = rgb; swatchOn = on; return this; }
+    public NovaButton card(String d, boolean on) { desc = d; cardOn = on; return this; }
 
     // 1.20.x usa renderButton y 1.21 renderWidget: se declaran las dos (sin @Override) y cada versión llama a la suya
     public void renderButton(DrawContext c, int mx, int my, float delta) { renderWidget(c, mx, my, delta); }
@@ -79,6 +83,17 @@ public class NovaButton extends NovaButtonBase {
                 int d = Math.min(w, h);
                 NovaGfx.swatch(m, d, swatch, swatchOn, false).draw(c, x - 4, y - 4, 1f);
                 if (g > 0.02f) NovaGfx.swatch(m, d, swatch, swatchOn, true).draw(c, x - 4, y - 4, g);
+                return;
+            } catch (Throwable t) {
+                NovaGfx.ok = false;
+            }
+        }
+        if (!desc.isEmpty() && NovaGfx.ok) {
+            try {
+                MinecraftClient m = MinecraftClient.getInstance();
+                String lab = getMessage().getString();
+                NovaGfx.card(m, w, h, lab, desc, icon, cardOn, false).draw(c, x - 5, y - 5, 1f);
+                if (g > 0.02f && active) NovaGfx.card(m, w, h, lab, desc, icon, cardOn, true).draw(c, x - 5, y - 5, g);
                 return;
             } catch (Throwable t) {
                 NovaGfx.ok = false;

@@ -16,46 +16,13 @@ import org.lwjgl.glfw.GLFW;
 public final class NovaHud extends NovaHudCore {
     private NovaHud() { }
 
-
-
-
-    // ---- guardar / leer (dentro de menu.json, lo llama NovaSettings) ----
-
-
-
-
-
-    // ---- perfiles del HUD (uno por servidor) ----
-    // menu.json guarda «hudProfiles» (nombre → distribución), «hudRules» (dirección del servidor o «singleplayer» → nombre) y «hudProfile» (el que está en uso).
-    // La distribución de «hud» es siempre la del perfil en uso. Al entrar en un servidor se aplica su perfil y al salir, el predeterminado.
-
-
-
-
-
-
-
-
-
-
-
-
-
     /** Al entrar en un servidor aplica su perfil y al salir vuelve al predeterminado (la lógica está en NovaHudCore). */
     static void syncServer(MinecraftClient mc) { syncServer(currentKey(mc)); }
 
     /** El servidor (o «singleplayer») en el que está el jugador ahora, o "" si no está en una partida. */
     public static String currentKey(MinecraftClient mc) { return NovaX.serverKey(mc); }
 
-
-
-
-
-
-
     // ---- medidas y dibujo ----
-
-
 
     static String[] lines(MinecraftClient mc, El e, boolean sample) {
         boolean has = mc.player != null && !sample;
@@ -69,9 +36,6 @@ public final class NovaHud extends NovaHudCore {
         }
         return new String[0];
     }
-
-
-
 
     /** Tamaño del elemento tal como se dibuja ahora. */
     public static int[] size(MinecraftClient mc, El e, boolean sample) {
@@ -107,7 +71,6 @@ public final class NovaHud extends NovaHudCore {
         try { draw(c, mc, e, Math.round(x / k), Math.round(y / k), sample); } finally { NovaCompat.popScale(c); }
     }
 
-
     static int border() { return (NovaSettings.accent & 0xFFFFFF) | 0x66000000; }
 
     static void box(DrawContext c, int x, int y, int w, int h, boolean lit) {
@@ -123,13 +86,7 @@ public final class NovaHud extends NovaHudCore {
         return s.length() > 3 ? s.substring(0, 3) : s;
     }
 
-
     // ---- elementos nuevos: armadura, pociones, reloj y brújula ----
-
-
-
-
-
 
     /** Reloj: línea 1 = hora real; línea 2 = día y hora del mundo (el día de Minecraft empieza a las 6:00). */
     static String[] clockLines(MinecraftClient mc, boolean sample) {
@@ -138,7 +95,6 @@ public final class NovaHud extends NovaHudCore {
         long h = (w[0] / 1000 + 6) % 24, m = (w[0] % 1000) * 60 / 1000;
         return new String[] { two(now.getHour()) + ":" + two(now.getMinute()), tr("Día") + " " + w[1] + " \u00b7 " + two(h) + ":" + two(m) };
     }
-
 
     static void drawExtra(DrawContext c, MinecraftClient mc, El e, int x, int y, boolean sample) {
         int[] sz = size(mc, e, sample);
@@ -249,7 +205,16 @@ public final class NovaHud extends NovaHudCore {
         }
         NovaButton.panel(c, x, y, sz[0], sz[1], 3, 0x9A0C0C14, border());
         c.fill(x + 3, y + 3, x + 4, y + sz[1] - 3, NovaSettings.accent);   // barrita de acento
-        for (int i = 0; i < L.length; i++) NovaX.text(c, mc, L[i], x + 7, y + 2 + i * 10, i == 0 ? 0xFFFFFFFF : 0xFFB8B8D8, true);
+        for (int i = 0; i < L.length; i++) {
+            int sp = e == FPS || e == CPS ? L[i].lastIndexOf(' ') : -1;   // «60 FPS»: el número con su color y la unidad más apagada
+            if (sp < 0) { NovaX.text(c, mc, L[i], x + 7, y + 2 + i * 10, i == 0 ? 0xFFFFFFFF : 0xFFB8B8D8, true); continue; }
+            String num = L[i].substring(0, sp), unit = L[i].substring(sp);
+            int fv = 0;
+            try { fv = Integer.parseInt(num.trim()); } catch (NumberFormatException ignored) { }
+            int col = e == FPS && !NovaAcc.hc() ? fpsColor(fv, NovaSettings.fpsGoal) : 0xFFFFFFFF;
+            NovaX.text(c, mc, num, x + 7, y + 2 + i * 10, col, true);
+            NovaX.text(c, mc, unit, x + 7 + NovaX.width(mc, num), y + 2 + i * 10, 0xFFB8B8D8, true);
+        }
     }
 
     /** Dibuja el HUD en la pantalla de la partida (lo llama HudMixin al final del HUD del juego). */
@@ -290,9 +255,6 @@ public final class NovaHud extends NovaHudCore {
         } catch (Throwable t) { /* el HUD nunca debe tirar el juego */ }
     }
 
-    // ---- CPS ----
-
-
     static boolean mouseDown(MinecraftClient mc, int button) {
         try { return GLFW.glfwGetMouseButton(mc.getWindow().getHandle(), button) == GLFW.GLFW_PRESS; } catch (Throwable t) { return false; }
     }
@@ -301,7 +263,6 @@ public final class NovaHud extends NovaHudCore {
     static void pollMouse(MinecraftClient mc) {
         poll(mouseDown(mc, 0), mouseDown(mc, 1), mc.currentScreen != null);
     }
-
 
     // ---- zoom ----
 

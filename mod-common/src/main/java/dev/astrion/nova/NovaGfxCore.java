@@ -60,7 +60,8 @@ final class NovaGfxCore {
 
     private static Font bold, reg;
 
-    static final int I_USER = 0, I_GEAR = 1, I_CLOSE = 2, I_EARTH = 6, I_NOVA = 8, I_REALMS = 10, I_USERS = 11, I_CHECK = 12, I_PLUS = 13, I_HEAD = 14, I_EDIT = 15, I_SWAP = 16, I_TRASH = 17, I_FOLDER = 18, I_RESIZE = 19, I_SERVER = 20, I_PLAY = 21, I_BOLT = 22, I_MODS = 23;
+    static final int I_USER = 0, I_GEAR = 1, I_CLOSE = 2, I_EARTH = 6, I_NOVA = 8, I_REALMS = 10, I_USERS = 11, I_CHECK = 12, I_PLUS = 13, I_HEAD = 14, I_EDIT = 15, I_SWAP = 16, I_TRASH = 17, I_FOLDER = 18, I_RESIZE = 19, I_SERVER = 20, I_PLAY = 21, I_BOLT = 22, I_MODS = 23,
+            I_GAUGE = 24, I_CURSOR = 25, I_PIN = 26, I_KEYS = 27, I_SWITCH = 28, I_SHIELD = 29, I_FLASK = 30, I_CLOCK = 31, I_COMPASS = 32, I_HOURGLASS = 33;
 
     static void person(Graphics2D g, double cx, double top, double s) {
         g.fill(new Ellipse2D.Double(cx - 0.17 * s, top, 0.34 * s, 0.34 * s));
@@ -233,6 +234,95 @@ final class NovaGfxCore {
                 q.draw(t3);
                 break;
             }
+            case I_GAUGE: {   // velocímetro: arco con aguja (FPS)
+                q.setStroke(new BasicStroke(0.085f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                q.draw(new Arc2D.Double(0.12, 0.16, 0.76, 0.76, -15, 210, Arc2D.OPEN));
+                q.draw(new Line2D.Double(0.5, 0.56, 0.68, 0.34));
+                q.fill(new Ellipse2D.Double(0.43, 0.49, 0.14, 0.14));
+                break;
+            }
+            case I_CURSOR: {   // puntero del ratón (CPS)
+                Path2D c1 = new Path2D.Double();
+                c1.moveTo(0.28, 0.12); c1.lineTo(0.28, 0.80); c1.lineTo(0.45, 0.65); c1.lineTo(0.57, 0.90); c1.lineTo(0.67, 0.85); c1.lineTo(0.55, 0.61); c1.lineTo(0.78, 0.59); c1.closePath();
+                q.fill(c1);
+                q.setStroke(new BasicStroke(0.06f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                q.draw(c1);
+                break;
+            }
+            case I_PIN: {   // chincheta de mapa (coordenadas)
+                Area pin = new Area(new Ellipse2D.Double(0.22, 0.08, 0.56, 0.56));
+                Path2D tip = new Path2D.Double();
+                tip.moveTo(0.27, 0.50); tip.lineTo(0.73, 0.50); tip.lineTo(0.5, 0.92); tip.closePath();
+                pin.add(new Area(tip));
+                pin.subtract(new Area(new Ellipse2D.Double(0.4, 0.26, 0.2, 0.2)));
+                q.fill(pin);
+                break;
+            }
+            case I_KEYS: {   // teclas W A S D
+                q.setStroke(new BasicStroke(0.07f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                q.draw(new RoundRectangle2D.Double(0.36, 0.14, 0.28, 0.28, 0.07, 0.07));
+                q.draw(new RoundRectangle2D.Double(0.07, 0.52, 0.27, 0.27, 0.07, 0.07));
+                q.draw(new RoundRectangle2D.Double(0.365, 0.52, 0.27, 0.27, 0.07, 0.07));
+                q.draw(new RoundRectangle2D.Double(0.66, 0.52, 0.27, 0.27, 0.07, 0.07));
+                break;
+            }
+            case I_SWITCH: {   // dos interruptores (estado: sprint, agachado…)
+                q.setStroke(new BasicStroke(0.07f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                q.draw(new RoundRectangle2D.Double(0.1, 0.17, 0.8, 0.28, 0.28, 0.28));
+                q.draw(new RoundRectangle2D.Double(0.1, 0.55, 0.8, 0.28, 0.28, 0.28));
+                q.fill(new Ellipse2D.Double(0.6, 0.215, 0.19, 0.19));
+                q.fill(new Ellipse2D.Double(0.21, 0.595, 0.19, 0.19));
+                break;
+            }
+            case I_SHIELD: {   // escudo (armadura)
+                Path2D sh = new Path2D.Double();
+                sh.moveTo(0.5, 0.09); sh.lineTo(0.84, 0.23); sh.lineTo(0.84, 0.50); sh.quadTo(0.84, 0.78, 0.5, 0.93); sh.quadTo(0.16, 0.78, 0.16, 0.50); sh.lineTo(0.16, 0.23); sh.closePath();
+                q.setStroke(new BasicStroke(0.08f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                q.draw(sh);
+                Path2D half = new Path2D.Double();
+                half.moveTo(0.5, 0.09); half.lineTo(0.84, 0.23); half.lineTo(0.84, 0.50); half.quadTo(0.84, 0.78, 0.5, 0.93); half.closePath();
+                q.fill(half);
+                break;
+            }
+            case I_FLASK: {   // matraz (pociones)
+                Path2D fl = new Path2D.Double();
+                fl.moveTo(0.40, 0.10); fl.lineTo(0.60, 0.10); fl.moveTo(0.43, 0.10); fl.lineTo(0.43, 0.38); fl.lineTo(0.17, 0.82); fl.quadTo(0.13, 0.90, 0.22, 0.90); fl.lineTo(0.78, 0.90); fl.quadTo(0.87, 0.90, 0.83, 0.82); fl.lineTo(0.57, 0.38); fl.lineTo(0.57, 0.10);
+                q.setStroke(new BasicStroke(0.08f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                q.draw(fl);
+                Path2D liq = new Path2D.Double();
+                liq.moveTo(0.29, 0.63); liq.lineTo(0.71, 0.63); liq.lineTo(0.80, 0.80); liq.lineTo(0.20, 0.80); liq.closePath();
+                q.fill(liq);
+                break;
+            }
+            case I_CLOCK: {   // reloj
+                q.setStroke(new BasicStroke(0.085f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                q.draw(new Ellipse2D.Double(0.13, 0.13, 0.74, 0.74));
+                q.draw(new Line2D.Double(0.5, 0.5, 0.5, 0.28));
+                q.draw(new Line2D.Double(0.5, 0.5, 0.67, 0.6));
+                break;
+            }
+            case I_COMPASS: {   // brújula
+                q.setStroke(new BasicStroke(0.08f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                q.draw(new Ellipse2D.Double(0.12, 0.12, 0.76, 0.76));
+                Path2D nd = new Path2D.Double();
+                nd.moveTo(0.5, 0.22); nd.lineTo(0.62, 0.5); nd.lineTo(0.5, 0.78); nd.lineTo(0.38, 0.5); nd.closePath();
+                q.setStroke(new BasicStroke(0.05f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                q.draw(nd);
+                Path2D up = new Path2D.Double();
+                up.moveTo(0.5, 0.22); up.lineTo(0.62, 0.5); up.lineTo(0.38, 0.5); up.closePath();
+                q.fill(up);
+                break;
+            }
+            case I_HOURGLASS: {   // reloj de arena (sesión)
+                Path2D hg = new Path2D.Double();
+                hg.moveTo(0.26, 0.12); hg.lineTo(0.74, 0.12); hg.lineTo(0.74, 0.26); hg.lineTo(0.54, 0.5); hg.lineTo(0.74, 0.74); hg.lineTo(0.74, 0.88); hg.lineTo(0.26, 0.88); hg.lineTo(0.26, 0.74); hg.lineTo(0.46, 0.5); hg.lineTo(0.26, 0.26); hg.closePath();
+                q.setStroke(new BasicStroke(0.08f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                q.draw(hg);
+                Path2D sand = new Path2D.Double();
+                sand.moveTo(0.36, 0.80); sand.lineTo(0.64, 0.80); sand.lineTo(0.5, 0.62); sand.closePath();
+                q.fill(sand);
+                break;
+            }
             case I_HEAD: {
                 java.awt.image.BufferedImage h = NovaSkin.head;
                 if (h == null) { person(q, 0.5, 0.1, 0.8); break; }
@@ -306,6 +396,51 @@ final class NovaGfxCore {
             g.setColor(col(txt));
             g.drawString(label, (float) (x0 + isz + gap), (float) (by + (bh - fm.getHeight()) / 2 + fm.getAscent()));
         }
+        g.dispose();
+        return im;
+    }
+
+    /** Corta un texto con «…» para que quepa en el ancho dado con la fuente actual del contexto. */
+    static String fit(Graphics2D g, String str, double maxW) {
+        if (maxW <= 0) return "";
+        FontMetrics fm = g.getFontMetrics();
+        if (fm.getStringBounds(str, g).getWidth() <= maxW) return str;
+        String t = str;
+        while (t.length() > 1 && fm.getStringBounds(t + "\u2026", g).getWidth() > maxW) t = t.substring(0, t.length() - 1);
+        return t.trim() + "\u2026";
+    }
+
+    /** Tarjeta de un elemento del HUD: recuadro con icono, nombre, descripción corta e interruptor (encendido o apagado). */
+    static BufferedImage card(int w, int h, String name, String desc, int icon, boolean on, boolean hot, int s) {
+        BufferedImage im = button(w, h, "", -1, on ? SELECTED : NORMAL, hot, true, s);
+        Graphics2D g = g2(im);
+        int m = 5;
+        double bx = m * s, by = m * s, bw = w * s, bh = h * s, pad = 4 * s;
+        double tile = Math.min(bh - 2 * pad, 24 * s), tx = bx + pad, ty = by + (bh - tile) / 2;
+        g.setPaint(new GradientPaint(0, (float) ty, col(on ? shade(accent, 1.0f, 0xFF) : 0x44FFFFFF), 0, (float) (ty + tile), col(on ? shade(accent, 0.55f, 0xFF) : 0x22FFFFFF)));
+        g.fill(new RoundRectangle2D.Double(tx, ty, tile, tile, 6 * s, 6 * s));
+        icon(g, icon, tx + tile * 0.19, ty + tile * 0.19, tile * 0.62, on || NovaAcc.hc() ? 0xFFFFFFFF : 0xFFC4C4E0);
+        double sw = 15 * s, sh = 8 * s, sx = bx + bw - pad - sw, sy = by + (bh - sh) / 2;
+        g.setColor(col(on ? shade(accent, 1.1f, 0xFF) : 0x58FFFFFF));
+        g.fill(new RoundRectangle2D.Double(sx, sy, sw, sh, sh, sh));
+        double kr = sh - 2 * s;
+        g.setColor(Color.WHITE);
+        g.fill(new Ellipse2D.Double(on ? sx + sw - kr - s : sx + s, sy + s, kr, kr));
+        double textX = tx + tile + 5 * s, maxW = sx - 4 * s - textX;
+        float np = (float) (7.4 * s * NovaAcc.text()), dp = (float) (5.7 * s * NovaAcc.text());
+        g.setFont(fontFor(name, true, np));
+        FontMetrics nf = g.getFontMetrics();
+        String nm = fit(g, name, maxW);
+        g.setFont(fontFor(desc, false, dp));
+        FontMetrics df = g.getFontMetrics();
+        String ds = fit(g, desc, maxW);
+        double block = nf.getHeight() + df.getHeight() - 1 * s, top = by + (bh - block) / 2;
+        g.setFont(fontFor(name, true, np));
+        g.setColor(col(NovaAcc.hc() || on || hot ? 0xFFFFFFFF : 0xFFE2E2F6));
+        g.drawString(nm, (float) textX, (float) (top + nf.getAscent()));
+        g.setFont(fontFor(desc, false, dp));
+        g.setColor(col(NovaAcc.hc() ? 0xFFFFFFFF : on ? 0xFFD6D6F0 : 0xFF9C9CC0));
+        g.drawString(ds, (float) textX, (float) (top + nf.getHeight() - 1 * s + df.getAscent()));
         g.dispose();
         return im;
     }

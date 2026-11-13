@@ -277,6 +277,32 @@ abstract class NovaHudCore {
         return new int[] { Math.round(e.fx * Math.max(0, sw - w)), Math.round(e.fy * Math.max(0, sh - h)) };
     }
 
+    /** Tamaño (en píxeles de interfaz) de los botones X y de cambiar el tamaño que enseña el editor alrededor de cada elemento. */
+    public static final int XS = 11, HS = 11;
+
+    /**
+     * Botón X (quitar): fuera del elemento, en diagonal arriba a la derecha; si no cabe arriba se pone a su lado y, si no cabe a la derecha, a la izquierda.
+     * Nunca tapa el propio elemento. b = {x, y, ancho, alto} del elemento.
+     */
+    public static int[] xBtn(int[] b, int sw, int sh) {
+        int x = b[0] + b[2] + 3, y = b[1] - XS - 3;
+        if (y < 0) y = Math.min(b[1], Math.max(0, sh - XS));
+        if (x + XS > sw) x = b[0] - XS - 3;
+        if (x < 0) x = Math.max(0, Math.min(b[0] + b[2] + 3, sw - XS));
+        return new int[] { x, y };
+    }
+
+    /** Esquina para cambiar el tamaño: fuera del elemento, en diagonal abajo a la derecha (se ajusta si no cabe en pantalla). */
+    public static int[] handle(int[] b, int sw, int sh) {
+        int x = Math.min(b[0] + b[2] + 3, Math.max(0, sw - HS)), y = Math.min(b[1] + b[3] + 3, Math.max(0, sh - HS));
+        return new int[] { x, y };
+    }
+
+    /** Color del número de FPS: verde si se llega al objetivo, amarillo si se está cerca y rojo si no. */
+    public static int fpsColor(int fps, int goal) {
+        return fps >= goal ? 0xFF7BFF9A : fps >= goal * 0.6f ? 0xFFFFD27A : 0xFFFF7B7B;
+    }
+
     static final int POTS_MAX = 6;
 
     static String roman(int n) {

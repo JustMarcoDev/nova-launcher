@@ -32,6 +32,8 @@ final class NovaHudPanel {
     /** Lo que se escribe en «Palabras clave» del chat (null = no se edita). */
     static String kwTyping;
     static String note = "";
+    /** Dónde empieza el contenido de la pestaña (lo usa el fondo para escribir la pista de «Elementos»). */
+    static int contentY;
     static long noteAt;
     static final int[] FPS_GOALS = { 30, 60, 90, 120, 144 };
 
@@ -59,7 +61,7 @@ final class NovaHudPanel {
         NovaSettings.load();
         int sw = h.sw(), sh = h.sh();
         int hh = sh < 250 ? 12 : 15, gap = 3;
-        int pw = Math.min(300, sw - 12), x = (sw - pw) / 2, pad = 8, cw = pw - 2 * pad;
+        int pw = Math.min(340, sw - 12), x = (sw - pw) / 2, pad = 8, cw = pw - 2 * pad;
         int rows = 11;
         int headH = 16, tabsH = hh + 2, footH = hh;
         int ph = pad + headH + tabsH + 2 + rows * (hh + gap) + footH + pad - gap + 2;
@@ -85,6 +87,7 @@ final class NovaHudPanel {
         }
         y += tabsH + 2;
         int ry = y;
+        contentY = y;
         switch (tab) {
             case T_EL: buildEls(h, cx, ry, cw, hh, gap); break;
             case T_GAME: buildGame(h, cx, ry, cw, hh, gap); break;
@@ -98,13 +101,24 @@ final class NovaHudPanel {
         btn(h, cx + 2 * (third + gap), fyy, cw - 2 * (third + gap), hh, tr("Listo"), NovaGfx.I_CHECK, NovaButton.PRIMARY, h::done);
     }
 
+    /** Nombre, icono y descripción corta de cada elemento del HUD, en el mismo orden que NovaHud.ALL. */
+    private static String[] elNames() { return new String[] { "FPS", "CPS", tr("Coords"), tr("Teclas"), tr("Estado"), tr("Armadura"), tr("Pociones"), tr("Reloj"), tr("Brújula"), tr("Sesión") }; }
+    private static String[] elDescs() {
+        return new String[] { tr("Fotogramas por segundo"), tr("Clics por segundo"), tr("Posición y dirección"), tr("WASD, espacio y clics"), tr("Freelook, sprint y agachado"),
+                tr("Durabilidad de tu armadura"), tr("Efectos activos y su tiempo"), tr("Hora real y hora del mundo"), tr("Rumbo con N, E, S, O"), tr("Tiempo que llevas jugando") };
+    }
+    private static final int[] EL_ICONS = { NovaGfx.I_GAUGE, NovaGfx.I_CURSOR, NovaGfx.I_PIN, NovaGfx.I_KEYS, NovaGfx.I_SWITCH, NovaGfx.I_SHIELD, NovaGfx.I_FLASK, NovaGfx.I_CLOCK, NovaGfx.I_COMPASS, NovaGfx.I_HOURGLASS };
+
+    /** Los elementos como tarjetas de dos en dos: icono, nombre, descripción corta e interruptor. */
     static void buildEls(Host h, int x, int y, int w, int hh, int gap) {
-        String[] names = { "FPS", "CPS", tr("Coords"), tr("Teclas"), tr("Estado"), tr("Armadura"), tr("Pociones"), tr("Reloj"), tr("Brújula"), tr("Sesión") };
-        int cw = (w - 2 * gap) / 3;
+        String[] names = elNames(), descs = elDescs();
+        int ch = hh >= 15 ? 28 : 23, cw = (w - gap) / 2, top = y + 12;
         for (int i = 0; i < NovaHud.ALL.length; i++) {
             final NovaHud.El e = NovaHud.ALL[i];
-            int cx = x + (i % 3) * (cw + gap), cy = y + (i / 3) * (hh + gap), bw = (i % 3 == 2) ? w - 2 * (cw + gap) : cw;
-            tog(h, cx, cy, bw, hh, names[i], e.on, () -> e.on = !e.on);
+            int cx = x + (i % 2) * (cw + gap), cy = top + (i / 2) * (ch + gap), bw = (i % 2 == 1) ? w - cw - gap : cw;
+            NovaButton b = new NovaButton(cx, cy, bw, ch, lit(names[i]), EL_ICONS[i], e.on ? NovaButton.SELECTED : NovaButton.NORMAL, bb -> { e.on = !e.on; h.rebuild(); });
+            b.card(descs[i], e.on);
+            h.put(b);
         }
     }
 
@@ -209,9 +223,15 @@ final class NovaHudPanel {
         NovaButton.panel(c, x, y, w, h, 7, 0xE8101024, NovaAcc.hc() ? 0xFFFFFFFF : ((NovaSettings.accent & 0xFFFFFF) | 0x88000000));
         c.fill(x + 6, y + 5, x + 8, y + 15, NovaSettings.accent);
         NovaX.text(c, mc, tr("Editar HUD"), x + 12, y + 6, 0xFFFFFFFF, true);
-        String hint = tr("Arrastra: mover · Esquina: tamaño · X: quitar");
-        int hw = NovaX.width(mc, hint);
-        if (hw < w - 110) NovaX.text(c, mc, hint, x + w - pad - hw, y + 6, 0xFF9A9AC0, false);
+        int on = 0;
+        for (NovaHud.El e : NovaHud.ALL) if (e.on) on++;
+        String cnt = tr("{0} de {1} activos", on, NovaHud.ALL.length);
+        NovaX.text(c, mc, cnt, x + w - pad - NovaX.width(mc, cnt), y + 6, 0xFF9A9AC0, false);
+        if (tab == T_EL) {   // pista de cómo se editan los elementos en pantalla (la X y la esquina salen alrededor de cada uno)
+            String hint = tr("Arrastra para mover · esquina: tamaño · X: quitar");
+            if (NovaX.width(mc, hint) > w - 2 * pad) hint = tr("Arrastra los elementos por la pantalla");
+            NovaX.text(c, mc, hint, x + pad, contentY + 1, 0xFF9A9AC0, false);
+        }
         if (tab == T_PROF) {
             String key = NovaHud.currentKey(mc), cur = NovaHud.ruleFor(key);
             int ly = y + h - pad - 15 - 2 - 12 - 12;
