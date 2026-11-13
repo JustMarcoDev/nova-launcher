@@ -3,6 +3,16 @@
 Todo lo que cambia en cada versión de Nova Launcher y del menú de Nova (el mod), de la más nueva a la más antigua. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**, y el flujo de publicación copia la entrada de cada versión a las notas de su release. Al sacar una versión nueva, añade su entrada `### x.y.z — Título` **al principio** de la lista.
 
 
+### 0.2.20-beta.1 · Editor del HUD
+
+**Mejorado**
+- Editor del HUD rediseñado: en «Elementos», cada elemento es ahora una tarjeta con su icono, un nombre, una descripción breve y un interruptor (FPS, CPS, Coords, Teclas, Estado, Armadura, Pociones, Reloj, Brújula y Sesión). El panel es algo más ancho y arriba muestra cuántos elementos hay activos.
+- En el HUD, el número de FPS cambia de color según tu objetivo de FPS (verde, amarillo o rojo) y la unidad («FPS», «CPS») se ve más apagada.
+
+**Arreglado**
+- En el editor del HUD ya no chocan los textos: el título y la pista salían dos veces y se pisaban con las pestañas. La pista ahora aparece solo en «Elementos».
+- La X para quitar un elemento y la esquina para cambiar su tamaño salen fuera del elemento (ya no tapan sus números) y no se pisan entre sí; el recuadro de cada elemento es redondeado.
+
 ### 0.2.19 · Limpieza y rendimiento
 
 **Mejorado**
