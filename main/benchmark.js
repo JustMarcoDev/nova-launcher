@@ -89,7 +89,6 @@ async function run(id) {
   const src = li().find(i => i.id === id), why = support(src); if (why) return { ok: false, why };
   let ins, mods = 0; try { ins = benchIns(src); mods = ins.ld === 'Fabric' ? copyMods(src.id, ins.dir) : (fs.rmSync(path.join(ins.dir, 'mods'), { recursive: true, force: true }), 0); prepWorld(ins.dir, ins.mc); } catch (e) { return { ok: false, why: String(e.message || e) }; }
   cur = { t0: Date.now(), got: false, src: src.id, bid: ins.id, mods };
-  send('bench:state', { phase: 'start', mc: ins.mc, id: src.id });
   cur.timer = setTimeout(() => { try { R.stopGame && R.stopGame(ins.id); } catch {} finish({ ok: false, id: src.id, why: 'Se agotó el tiempo de la prueba (8 min)' }); }, 8 * 60 * 1000);
   R.playGame({ id: ins.id, world: 'NovaBench', extraArgs: ['-Dnova.bench=true'], noRecover: true }).then(r => {
     if (!cur) return;

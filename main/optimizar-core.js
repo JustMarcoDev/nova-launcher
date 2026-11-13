@@ -51,4 +51,4 @@ function tweak(text) {
   return { text: lines.join(nl), changes };
 }
 
-module.exports = { MODS, modsFor, tweak, RULES };
+module.exports = { MODS, modsFor, tweak };

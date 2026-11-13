@@ -12,7 +12,7 @@ const { S, R } = require('./compartido');
 // De módulos anteriores (ya cargados):
 const { MAN, addInst, fsp, insFile, li, load, rd, rmAsync, root, running, send, wr } = R; // base
 const { get, post } = R; // red
-const { dl, hashOf, unzip, unzipSafe, zipItems } = R; // descargas
+const { dl, hashOf, unwrapDir, unzip, unzipSafe, zipItems } = R; // descargas
 // De módulos que se cargan después (funciones: se buscan al llamarlas):
 const installMrpackDir = (...a) => R.installMrpackDir(...a); // mods
 const loaderList = (...a) => R.loaderList(...a); // cargadores
@@ -197,7 +197,7 @@ async function importInstanceFile(file) {
   const tmp = path.join(root, 'tmp_import'); await rmAsync(tmp); await fsp.mkdir(tmp, { recursive: true });
   try {
     send('status', 'Importando…'); await unzipSafe(file, tmp);
-    let base = tmp; const es = fs.readdirSync(tmp); if (es.length === 1 && fs.statSync(path.join(tmp, es[0])).isDirectory()) base = path.join(tmp, es[0]);
+    const base = unwrapDir(tmp);
     if (fs.existsSync(path.join(base, 'modrinth.index.json'))) return await installMrpackDir(base);
     const mf = path.join(base, 'nova-instance.json'), m = rd(mf, null);
     if (!m || !/^[\w.+\- ]{1,40}$/.test(String(m.mc || ''))) throw new Error('Formato no reconocido: usa un .mrpack o un .zip exportado desde Nova Launcher');

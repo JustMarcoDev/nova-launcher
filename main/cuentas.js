@@ -3,7 +3,8 @@
 // Cuentas Microsoft y offline (sesiones cifradas)
 // (Parte del proceso principal; main.js carga todos los módulos. Mira «Estructura del proyecto» en el README.)
 // =====================================================================================
-const { Auth } = require('msmc');
+// msmc (sesión de Microsoft) se carga al usarla, no al arrancar: así el launcher abre antes
+const msAuth = () => require('msmc').Auth;
 const { ipcMain, safeStorage } = require('electron');
 const { R } = require('./compartido');
 // De módulos anteriores (ya cargados):
@@ -39,7 +40,7 @@ ipcMain.handle('acc:addOffline', (e, name) => {
 });
 ipcMain.handle('acc:login', async () => {
   try {
-    const x = await new Auth('select_account').launch('electron'), t = await x.getMinecraft(), st = accState(), name = t.profile.name, pid = t.profile.id;
+    const x = await new (msAuth())('select_account').launch('electron'), t = await x.getMinecraft(), st = accState(), name = t.profile.name, pid = t.profile.id;
     const ex = st.a.find(z => z.type === 'microsoft' && (z.pid === pid || z.name === name)); let id, a;
     if (ex) { id = ex.id; a = st.a.map(z => z.id === id ? { ...z, name, pid, token: x.save() } : z); } else { id = 'm' + Date.now().toString(36); a = [...st.a, { id, type: 'microsoft', name, pid, token: x.save() }]; }
     saveAcc(a, id); return accOut();

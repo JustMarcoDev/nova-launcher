@@ -6,10 +6,9 @@
 const { app, dialog, ipcMain } = require('electron');
 const fs = require('fs');
 const path = require('path');
-const APP = path.join(__dirname, '..'); // carpeta de la app (donde están assets/, preload.js…)
 const { S, R } = require('./compartido');
 // De módulos anteriores (ya cargados):
-const { LOWRAM, UPD, load, mv, rd, root, running, send, wr } = R; // base
+const { APP, LOWRAM, UPD, load, mv, rd, root, running, send, wr } = R; // base
 const { dl, hashFile, rmQ } = R; // descargas
 // De módulos que se cargan después (funciones: se buscan al llamarlas):
 const pickNewestTag = (...a) => R.pickNewestTag(...a); // actualizaciones
@@ -222,6 +221,14 @@ function novaBgGet(f) {
   })();
   BGDL.set(f, p); return p;
 }
+/** Copia un archivo de la app a la carpeta de datos (Java no lee dentro de app.asar) si no está o si cambió de tamaño. Devuelve false si falla. */
+function copyIfDiff(src, dst) {
+  try {
+    const a = fs.statSync(src), b = fs.existsSync(dst) ? fs.statSync(dst) : null;
+    if (!b || b.size !== a.size) { fs.mkdirSync(path.dirname(dst), { recursive: true }); fs.writeFileSync(dst, fs.readFileSync(src)); }
+    return true;
+  } catch { return false; }
+}
 function novaBg(file = 'nova-bg.nvb') {
   const bundled = path.join(APP, 'assets', file), dst = path.join(root, 'nova', file);
   if (!fs.existsSync(bundled)) {
@@ -229,10 +236,7 @@ function novaBg(file = 'nova-bg.nvb') {
     return NOVA_REMOTE_BG[file] ? dst : null;
   }
   const src = bundled;
-  try {
-    const a = fs.statSync(src), b = fs.existsSync(dst) ? fs.statSync(dst) : null;
-    if (!b || b.size !== a.size) { fs.mkdirSync(path.dirname(dst), { recursive: true }); fs.writeFileSync(dst, fs.readFileSync(src)); }
-  } catch { return null; }
+  if (!copyIfDiff(src, dst)) return null;
   try { const low = require('../nvb').lowPath(dst); if (!LOW720.has(dst) && (!fs.existsSync(low) || fs.statSync(low).mtimeMs < fs.statSync(dst).mtimeMs)) { LOW720.add(dst); require('../nvb').make720(dst).catch(() => {}).finally(() => LOW720.delete(dst)); } } catch {}
   return dst;
 }
@@ -293,10 +297,7 @@ function novaModJar(mc) {
   if (!fs.existsSync(src)) return null;
   // Java no lee dentro de app.asar: se copia a la carpeta de datos
   const dst = path.join(root, 'nova', 'nova-menu-' + mc + '.jar');
-  try {
-    const a = fs.statSync(src), b = fs.existsSync(dst) ? fs.statSync(dst) : null;
-    if (!b || b.size !== a.size) { fs.mkdirSync(path.dirname(dst), { recursive: true }); fs.writeFileSync(dst, fs.readFileSync(src)); }
-  } catch { return null; }
+  if (!copyIfDiff(src, dst)) return null;
   return dst;
 }
 
@@ -402,4 +403,4 @@ function novaAccSync(cfg) {
 }
 
 // Lo que usan otros módulos
-Object.assign(R, { novaOff: off, novaOffList, novaConfigLoad, novaAviso, novaAvisosReset, novaAccSync, NOVA_MC, NOVA_REMOTE_ID, fondosDir, fondosScan, fondosWatch, modManifest, novaBg, novaBgGet, novaDir, novaModResolve, novaNews, novaPickBg, novaServersWrite, novaAccountsWrite, novaSkin });
+Object.assign(R, { novaOff: off, novaOffList, novaAviso, novaAvisosReset, novaAccSync, NOVA_MC, NOVA_REMOTE_ID, fondosDir, fondosScan, fondosWatch, modManifest, novaBg, novaBgGet, novaDir, novaModResolve, novaNews, novaPickBg, novaServersWrite, novaAccountsWrite, novaSkin });

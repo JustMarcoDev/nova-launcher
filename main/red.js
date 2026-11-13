@@ -26,6 +26,8 @@ const { MAN } = R; // base
 // =====================================================================================
 let electronNet = null;
 try { electronNet = require('electron').net; } catch {}
+/** Error de una respuesta HTTP que no fue correcta (con el código en .http). */
+const httpErr = r => Object.assign(new Error('HTTP ' + r.status), { http: r.status });
 const UA = () => 'NovaLauncher/' + app.getVersion() + ' (github.com/JustMarcoDev/nova-launcher)';
 // Los fallos de red de Node dicen solo «fetch failed»: se completa con el servidor al que no se pudo llegar
 const rawFetch = globalThis.fetch;
@@ -68,7 +70,7 @@ const hashOk = (b, o) => { const w = String((o && (o.sha512 || o.sha1)) || '').t
 async function fetchBuf(u, h, how, timeout) {
   const o = { signal: AbortSignal.timeout(timeout), headers: { 'User-Agent': UA(), ...h } };
   const r = how === 'node' ? await fetch(u, o) : await electronNet.fetch(u, o);
-  if (!r.ok) throw Object.assign(new Error('HTTP ' + r.status), { http: r.status });
+  if (!r.ok) throw httpErr(r);
   return Buffer.from(await r.arrayBuffer());
 }
 const conv = (b, t) => t === 'json' ? JSON.parse(b.toString('utf8')) : t === 'text' ? b.toString('utf8') : t === 'arrayBuffer' ? b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) : b;
@@ -127,4 +129,4 @@ function leerFirmado(text, sig) {
   if (typeof text !== 'string' || !verificar(text, sig)) return null;
   try { return JSON.parse(text); } catch { return null; }
 }
-Object.assign(R, { fetchFirmado, leerFirmado, UA, get, getWithFallback, isOnline, mirrorsFor, rewriteWithMirror, mirrorNotice, post, run });
+Object.assign(R, { httpErr, fetchFirmado, leerFirmado, UA, get, isOnline, mirrorsFor, rewriteWithMirror, mirrorNotice, post, run });

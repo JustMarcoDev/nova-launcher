@@ -4,6 +4,12 @@ const { BrowserWindow, ipcMain, nativeImage } = require('electron');
 const fs = require('fs'), path = require('path'), { pathToFileURL } = require('url');
 
 const IMG = /\.(png|jpe?g|webp|bmp|gif)$/i, VID = /\.(mp4|m4v|mov|webm|ogv|mkv)$/i;
+/** Escribe un archivo entero de una vez: primero en .tmp y luego se renombra (si no se puede renombrar, se copia). */
+function writeAtomic(out, data) {
+  const t = out + '.tmp';
+  fs.writeFileSync(t, data);
+  try { fs.renameSync(t, out); } catch { fs.copyFileSync(t, out); try { fs.unlinkSync(t); } catch {} }
+}
 const isImage = f => IMG.test(f), isVideo = f => VID.test(f);
 
 // Código que se ejecuta dentro de la ventana oculta
@@ -73,9 +79,7 @@ async function convert(file, out, opts = {}) {
     let off = hdr.length;
     for (let i = 0; i < r.n; i++) { hdr.writeUInt32LE(off, 16 + 4 * i); off += fr[i].length; }
     hdr.writeUInt32LE(off, 16 + 4 * r.n);
-    const t = out + '.tmp';
-    fs.writeFileSync(t, Buffer.concat([hdr, ...fr]));
-    try { fs.renameSync(t, out); } catch (e) { fs.copyFileSync(t, out); try { fs.unlinkSync(t); } catch {} }
+    writeAtomic(out, Buffer.concat([hdr, ...fr]));
     if (o.w >= 1920 && !o.single) { try { await make720(out); } catch {} }   // versión ligera (720p) para pantallas pequeñas y el Modo bajo consumo
     return { n: r.n, w: o.w, h: o.h, fps: r.fps, bytes: off };
   } finally {
@@ -106,10 +110,8 @@ async function make720(file) {
   let off = hdr.length;
   for (let i = 0; i < n; i++) { hdr.writeUInt32LE(off, 16 + 4 * i); off += fr[i].length; }
   hdr.writeUInt32LE(off, 16 + 4 * n);
-  const t = out + '.tmp';
-  fs.writeFileSync(t, Buffer.concat([hdr, ...fr]));
-  try { fs.renameSync(t, out); } catch (e) { fs.copyFileSync(t, out); try { fs.unlinkSync(t); } catch {} }
+  writeAtomic(out, Buffer.concat([hdr, ...fr]));
   return true;
 }
 
-module.exports = { convert, make720, lowPath, isImage, isVideo };
+module.exports = { convert, make720, lowPath };

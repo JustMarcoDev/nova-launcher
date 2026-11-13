@@ -9,6 +9,7 @@ const os = require('os');
 const path = require('path');
 const { S, R } = require('./compartido');
 
+const APP = path.join(__dirname, '..');   // carpeta de la app (donde están assets/, preload.js…)
 const root = path.join(app.getPath('appData'), '.nova');
 const cfgFile = path.join(root, 'config.json'), insFile = path.join(root, 'instances.json');
 const DEF = { username: 'Jugador', ram: 4, javaPath: '', width: 1280, height: 720, fullscreen: false, jvmArgs: '', optimize: true, closeOnLaunch: false, cfKey: '', ms: null };
@@ -81,4 +82,4 @@ const UPD = { owner: 'JustMarcoDev', repo: 'nova-launcher' };
 
 
 // Lo que usan otros módulos
-Object.assign(R, { FIRST, LOWRAM, MAN, UPD, addInst, cfgFile, fsp, insFile, li, load, mv, mvSync, rd, rmAsync, root, running, send, single, wr });
+Object.assign(R, { APP, FIRST, LOWRAM, MAN, UPD, addInst, cfgFile, fsp, insFile, li, load, mv, mvSync, rd, rmAsync, root, running, send, single, wr });

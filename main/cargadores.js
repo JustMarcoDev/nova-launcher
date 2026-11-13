@@ -5,12 +5,11 @@
 // =====================================================================================
 const fs = require('fs');
 const path = require('path');
-const APP = path.join(__dirname, '..'); // carpeta de la app (donde están assets/, preload.js…)
 const { R } = require('./compartido');
 // De módulos anteriores (ya cargados):
 const { get, run } = R; // red
 const { logErr } = R; // errores
-const { rd, root, send, wr } = R; // base
+const { APP, rd, root, send, wr } = R; // base
 const { dl } = R; // descargas
 // De módulos que se cargan después (funciones: se buscan al llamarlas):
 const novaDir = (...a) => R.novaDir(...a); // mod-nova

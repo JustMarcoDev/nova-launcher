@@ -9,10 +9,9 @@ const { pathToFileURL } = require('url');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const APP = path.join(__dirname, '..'); // carpeta de la app (donde están assets/, preload.js…)
 const { S, R } = require('./compartido');
 // De módulos anteriores (ya cargados):
-const { cfgFile, li, load, root, wr } = R; // base
+const { APP, cfgFile, li, load, root, wr } = R; // base
 const { getIns, iDir, safeName } = R; // instancias
 const { isOnline } = R; // red
 const { accState } = R; // cuentas

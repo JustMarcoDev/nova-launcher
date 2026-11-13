@@ -131,4 +131,4 @@ function preview(man, versions) {
   return { name: man.n, mc: man.mc, ld: man.ld, lv: man.lv, ram: man.ram, mods: n.m, resourcepacks: n.r, shaders: n.s, total: man.f.length, size, missing, list };
 }
 
-module.exports = { MAX_ENC, MAX_RAW, MAX_FILES, TYPES, validate, encode, decode, fromLink, links, build, preview };
+module.exports = { MAX_ENC, MAX_RAW, MAX_FILES, validate, encode, decode, fromLink, links, build, preview };

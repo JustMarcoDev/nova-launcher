@@ -3,7 +3,8 @@
 // Skins: biblioteca, cambio de skin y capa, skin local en vivo para el mod
 // (Parte del proceso principal; main.js carga todos los módulos. Mira «Estructura del proyecto» en el README.)
 // =====================================================================================
-const { Auth } = require('msmc');
+// msmc (sesión de Microsoft) se carga al usarla, no al arrancar: así el launcher abre antes
+const msAuth = () => require('msmc').Auth;
 const { ipcMain, shell } = require('electron');
 const fs = require('fs');
 const path = require('path');
@@ -22,6 +23,13 @@ const skinsDir = () => { const d = path.join(novaDir(), 'skins'); try { fs.mkdir
 const skinsIdx = () => { const l = rd(path.join(skinsDir(), 'skins.json'), []); return Array.isArray(l) ? l.filter(x => x && /^s[\w]{3,20}$/.test(x.id)) : []; };
 const skinsPut = l => wr(path.join(skinsDir(), 'skins.json'), l);
 const isPng = b => Buffer.isBuffer(b) && b.length > 67 && b.length < 200000 && b.slice(1, 4).toString() === 'PNG';
+/** El PNG de una skin que llega de la interfaz (data:image/png;base64,…), comprobado: PNG válido de 64×64 (o 64×32). */
+const skinPng = o => {
+  const m = /^data:image\/png;base64,([A-Za-z0-9+/=]+)$/.exec(String(o && o.data || '')); if (!m) throw new Error('Elige un archivo .png');
+  const b = Buffer.from(m[1], 'base64'); if (!isPng(b)) throw new Error('Ese archivo no es una imagen PNG válida');
+  const [w, h] = pngWH(b); if (w !== 64 || (h !== 64 && h !== 32)) throw new Error('Una skin de Minecraft mide 64×64 píxeles (o 64×32 las antiguas)');
+  return b;
+};
 const pngWH = b => [b.readUInt32BE(16), b.readUInt32BE(20)];
 const dataUrl = b => 'data:image/png;base64,' + b.toString('base64');
 const skinFile = id => path.join(skinsDir(), id + '.png');
@@ -63,7 +71,7 @@ async function msBearer() {
   const st = accState(), act = st.act;
   if (act.type !== 'microsoft' || !act.token) throw new Error('Esta función es para cuentas de Microsoft');
   let x;
-  try { x = await new Auth('select_account').refresh(act.token); } catch { throw new Error('La sesión de Microsoft de «' + act.name + '» caducó. Vuelve a iniciarla desde la cuenta (barra superior).'); }
+  try { x = await new (msAuth())('select_account').refresh(act.token); } catch { throw new Error('La sesión de Microsoft de «' + act.name + '» caducó. Vuelve a iniciarla desde la cuenta (barra superior).'); }
   const mc = await x.getMinecraft();
   saveAcc(st.a.map(z => z.id === act.id ? { ...z, token: x.save() } : z), act.id);
   return mc.mcToken;
@@ -78,9 +86,7 @@ async function mojang(tok, method, url, opt = {}) {
 const imgUrl = async u => { u = String(u || '').replace(/^http:\/\//, 'https://'); if (!/^https:\/\/([\w-]+\.)?minecraft\.net\//.test(u)) return ''; try { const r = await fetch(u, { signal: AbortSignal.timeout(10000) }); const b = Buffer.from(await r.arrayBuffer()); return isPng(b) ? dataUrl(b) : ''; } catch { return ''; } };
 ipcMain.handle('skin:list', () => { skinSyncFromMod(); return skinList(); });
 ipcMain.handle('skin:save', (e, o) => {
-  const m = /^data:image\/png;base64,([A-Za-z0-9+/=]+)$/.exec(String(o && o.data || '')); if (!m) throw new Error('Elige un archivo .png');
-  const b = Buffer.from(m[1], 'base64'); if (!isPng(b)) throw new Error('Ese archivo no es una imagen PNG válida');
-  const [w, h] = pngWH(b); if (w !== 64 || (h !== 64 && h !== 32)) throw new Error('Una skin de Minecraft mide 64×64 píxeles (o 64×32 las antiguas)');
+  const b = skinPng(o);
   const l = skinsIdx(); if (l.length >= 60) throw new Error('Has guardado demasiadas skins: borra alguna');
   const id = 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
   fs.writeFileSync(skinFile(id), b);
@@ -102,9 +108,7 @@ ipcMain.handle('skin:rename', (e, o) => {
 // Cambiar el PNG de una skin guardada (mantiene su nombre y su lugar en la lista)
 ipcMain.handle('skin:replace', (e, o) => {
   if (!skinsIdx().some(x => x.id === o.id)) throw new Error('Skin no encontrada');
-  const m = /^data:image\/png;base64,([A-Za-z0-9+/=]+)$/.exec(String(o && o.data || '')); if (!m) throw new Error('Elige un archivo .png');
-  const b = Buffer.from(m[1], 'base64'); if (!isPng(b)) throw new Error('Ese archivo no es una imagen PNG válida');
-  const [w, h] = pngWH(b); if (w !== 64 || (h !== 64 && h !== 32)) throw new Error('Una skin de Minecraft mide 64×64 píxeles (o 64×32 las antiguas)');
+  const b = skinPng(o);
   fs.writeFileSync(skinFile(o.id), b);
   const act = accState().act; if (skinSelGet(act.id) === o.id) skinLocalWrite(act);
   return skinList();
@@ -149,4 +153,4 @@ async function novaSkinFor(act) {
 
 
 // Lo que usan otros módulos
-Object.assign(R, { novaSkinFor, accSkinFile, accSkinData, msBearer, skinsDir, skinsIdx, skinsPut, skinFile, isPng });
+Object.assign(R, { novaSkinFor, accSkinFile, accSkinData });

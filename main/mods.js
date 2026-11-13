@@ -97,15 +97,19 @@ async function installMrpackDir(tmp) {
 const modsDir = id => path.join(iDir(getIns(id).id), 'mods');
 const modFile = (id, f) => { f = path.basename(String(f)); if (!/\.jar(\.disabled)?$/i.test(f)) throw new Error('Archivo no válido'); return path.join(modsDir(id), f); };
 const hcache = new Map();
+/** SHA-1 de un archivo; se recuerda mientras no cambie su tamaño ni su fecha. */
+async function sha1Cached(p, st) {
+  const k = p + '|' + st.size + '|' + st.mtimeMs; let h = hcache.get(k);
+  if (!h) { h = hashOf(await fs.promises.readFile(p), 'sha1'); hcache.set(k, h); }
+  return h;
+}
 async function listMods(id) {
   const d = modsDir(id); let es = []; try { es = await fs.promises.readdir(d); } catch { return []; }
   const out = [];
   for (const f of es) {
     const m = /\.jar(\.disabled)?$/i.exec(f); if (!m) continue;
     const p = path.join(d, f); let st; try { st = await fs.promises.stat(p); } catch { continue; } if (!st.isFile()) continue;
-    const k = p + '|' + st.size + '|' + st.mtimeMs; let h = hcache.get(k);
-    if (!h) { h = hashOf(await fs.promises.readFile(p), 'sha1'); hcache.set(k, h); }
-    out.push({ file: f, enabled: !m[1], size: st.size, sha1: h, mt: st.mtimeMs });
+    out.push({ file: f, enabled: !m[1], size: st.size, sha1: await sha1Cached(p, st), mt: st.mtimeMs });
   }
   return out.sort((a, b) => a.file.localeCompare(b.file));
 }
@@ -135,9 +139,7 @@ ipcMain.handle('mods:projects', async (e, { id, dir }) => {
     let es = []; try { es = await fs.promises.readdir(d); } catch {}
     for (const f of es) {
       if (!/\.zip$/i.test(f)) continue; const p = path.join(d, f); let st; try { st = await fs.promises.stat(p); } catch { continue; } if (!st.isFile() || st.size > 400 * 1024 * 1024) continue;
-      const k = p + '|' + st.size + '|' + st.mtimeMs; let h = hcache.get(k);
-      if (!h) { h = hashOf(await fs.promises.readFile(p), 'sha1'); hcache.set(k, h); }
-      L.push({ file: f, sha1: h });
+      L.push({ file: f, sha1: await sha1Cached(p, st) });
     }
   }
   const need = L.map(m => m.sha1).filter(h => !pcache.has(h));

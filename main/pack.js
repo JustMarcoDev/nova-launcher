@@ -11,7 +11,7 @@ const { S, R } = require('./compartido');
 const C = require('./pack-core');
 // De módulos anteriores (ya cargados):
 const { addInst, fsp, li, rd, rmAsync, root, running, send, wr, insFile } = R; // base
-const { dl, hashOf, pool, prog, unzipSafe } = R; // descargas
+const { dl, hashOf, pool, prog, unwrapDir, unzipSafe } = R; // descargas
 const { logErr, withLog } = R; // errores
 const { get, post } = R; // red
 const { autoBackup, getIns, iDir } = R; // instancias
@@ -78,7 +78,7 @@ async function previewFile(file) {
   const tmp = path.join(root, 'tmp_pack_prev'); await rmAsync(tmp); await fsp.mkdir(tmp, { recursive: true });
   try {
     await unzipSafe(file, tmp);
-    let base = tmp; const es = fs.readdirSync(tmp); if (es.length === 1 && fs.statSync(path.join(tmp, es[0])).isDirectory()) base = path.join(tmp, es[0]);
+    const base = unwrapDir(tmp);
     const ix = rd(path.join(base, 'modrinth.index.json'), null);
     if (ix) {
       const d = ix.dependencies || {}, ld = d['fabric-loader'] ? 'Fabric' : d.neoforge ? 'NeoForge' : d.forge ? 'Forge' : d['quilt-loader'] ? 'Quilt' : 'Vanilla';

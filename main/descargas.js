@@ -48,7 +48,7 @@ async function fetchPart(u, part, o, depth = 0) {
   const hd = k => (r.headers && r.headers.get ? r.headers.get(k) : null);
   const again = async () => { try { r.body && r.body.cancel && await r.body.cancel(); } catch {} await rmQ(part); await rmQ(metaOf(part)); if (depth) throw new Error('No se pudo reanudar la descarga'); return fetchPart(u, part, o, depth + 1); };
   if (r.status === 416 && size) return again(); // el .part ya estaba completo o no vale: se empieza de cero
-  if (!r.ok) throw Object.assign(new Error('HTTP ' + r.status), { http: r.status });
+  if (!r.ok) throw R.httpErr(r);
   let base = 0;
   if (size && r.status === 206) {
     const cr = /^bytes (\d+)-/.exec(hd('content-range') || ''); if (cr && +cr[1] !== size) return again();
@@ -120,6 +120,8 @@ const unzipSafe = async (z, d) => {
     catch (e2) { throw Object.assign(new Error('No se pudo descomprimir: ' + (e1.message || e1)), { cause: e2 }); }
   }
 };
+/** Carpeta real de un zip ya descomprimido: si contiene una sola carpeta, esa; si no, la misma. */
+const unwrapDir = d => { const es = fs.readdirSync(d); return es.length === 1 && fs.statSync(path.join(d, es[0])).isDirectory() ? path.join(d, es[0]) : d; };
 const zipItems = async (zip, cwd, items) => {
   if (!items.length) throw new Error('No hay nada que comprimir'); fs.rmSync(zip, { force: true }); fs.mkdirSync(path.dirname(zip), { recursive: true });
   return win32 ? run('tar', ['-a', '-c', '-f', zip, '-C', cwd, ...items]) : run('zip', ['-qr', zip, ...items], { cwd });
@@ -132,4 +134,4 @@ ipcMain.handle('dq:limit', (e, mb) => { const v = Math.max(0, Math.min(100, +mb 
 
 
 // Lo que usan otros módulos
-Object.assign(R, { dl, hashFile, hashOf, pool, prog, rmQ, sleep, unzip, unzipSafe, win32, zipItems });
+Object.assign(R, { dl, hashFile, hashOf, pool, prog, rmQ, sleep, unwrapDir, unzip, unzipSafe, win32, zipItems });

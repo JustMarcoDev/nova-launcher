@@ -1569,5 +1569,6 @@ window.LANGS.en={name:"English (US)",d:{
 "Avance de Minecraft · Granja":"Minecraft advancement · Husbandry",
 "{1} de {2} avances de Minecraft":"{1} of {2} Minecraft advancements",
 "Solo cuentan los avances que consigas desde la beta 0.2.19-beta.4, en mundos de un jugador de instancias con el menú de Nova (Vanilla o Fabric, 1.20 o superior). Minecraft los guarda en el disco al autoguardar o al salir del mundo, así que el aviso puede tardar un poco. No cuentan para el platino.":"Only advancements earned since beta 0.2.19-beta.4 count, in single-player worlds of instances with the Nova menu (Vanilla or Fabric, 1.20 or newer). Minecraft saves them to disk on autosave or when you leave the world, so the notice may take a moment. They don't count towards the platinum.",
-"Esta copia está instalada para todos los usuarios y por eso Windows pide permisos de administrador; instala el launcher con «Solo para mí» y dejará de pedirlos.":"This copy is installed for all users, which is why Windows asks for administrator permission; install the launcher with “Just for me” and it will stop asking."
+"Esta copia está instalada para todos los usuarios y por eso Windows pide permisos de administrador; instala el launcher con «Solo para mí» y dejará de pedirlos.":"This copy is installed for all users, which is why Windows asks for administrator permission; install the launcher with “Just for me” and it will stop asking.",
+"Cargando la lista de versiones…":"Loading the version list…"
 }};

@@ -8,10 +8,9 @@ const crypto = require('crypto');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const APP = path.join(__dirname, '..'); // carpeta de la app (donde están assets/, preload.js…)
 const { S, R } = require('./compartido');
 // De módulos anteriores (ya cargados):
-const { FIRST, LOWRAM, cfgFile, fsp, load, rd, rmAsync, root, single, wr } = R; // base
+const { APP, FIRST, LOWRAM, cfgFile, fsp, load, rd, rmAsync, root, single, wr } = R; // base
 const { UA } = R; // red
 const { appIcon, ensureShortcut, fixPinnedIcons, taskbarIcon, trayInit } = R; // sistema
 const { accState, encryptOldTokens } = R; // cuentas

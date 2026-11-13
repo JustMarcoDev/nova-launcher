@@ -1569,5 +1569,6 @@ window.LANGS.de={name:"Deutsch",d:{
 "Avance de Minecraft · Granja":"Minecraft-Fortschritt · Landwirtschaft",
 "{1} de {2} avances de Minecraft":"{1} von {2} Minecraft-Fortschritten",
 "Solo cuentan los avances que consigas desde la beta 0.2.19-beta.4, en mundos de un jugador de instancias con el menú de Nova (Vanilla o Fabric, 1.20 o superior). Minecraft los guarda en el disco al autoguardar o al salir del mundo, así que el aviso puede tardar un poco. No cuentan para el platino.":"Es zählen nur Fortschritte seit der Beta 0.2.19-beta.4, in Einzelspielerwelten von Instanzen mit dem Nova-Menü (Vanilla oder Fabric, ab 1.20). Minecraft speichert sie beim Autospeichern oder beim Verlassen der Welt, die Meldung kann also etwas dauern. Sie zählen nicht für das Platin.",
-"Esta copia está instalada para todos los usuarios y por eso Windows pide permisos de administrador; instala el launcher con «Solo para mí» y dejará de pedirlos.":"Diese Kopie ist für alle Benutzer installiert, deshalb fragt Windows nach Administratorrechten; installiere den Launcher mit „Nur für mich“, dann wird nicht mehr gefragt."
+"Esta copia está instalada para todos los usuarios y por eso Windows pide permisos de administrador; instala el launcher con «Solo para mí» y dejará de pedirlos.":"Diese Kopie ist für alle Benutzer installiert, deshalb fragt Windows nach Administratorrechten; installiere den Launcher mit „Nur für mich“, dann wird nicht mehr gefragt.",
+"Cargando la lista de versiones…":"Versionsliste wird geladen…"
 }};

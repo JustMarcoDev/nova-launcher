@@ -1569,5 +1569,6 @@ window.LANGS.pt={name:"Português (Portugal)",d:{
 "Avance de Minecraft · Granja":"Avanço do Minecraft · Agricultura",
 "{1} de {2} avances de Minecraft":"{1} de {2} avanços do Minecraft",
 "Solo cuentan los avances que consigas desde la beta 0.2.19-beta.4, en mundos de un jugador de instancias con el menú de Nova (Vanilla o Fabric, 1.20 o superior). Minecraft los guarda en el disco al autoguardar o al salir del mundo, así que el aviso puede tardar un poco. No cuentan para el platino.":"Só contam os avanços conseguidos desde a beta 0.2.19-beta.4, em mundos de um jogador de instâncias com o menu da Nova (Vanilla ou Fabric, 1.20 ou superior). O Minecraft guarda-os no disco no guardar automático ou ao sair do mundo, por isso o aviso pode demorar um pouco. Não contam para a platina.",
-"Esta copia está instalada para todos los usuarios y por eso Windows pide permisos de administrador; instala el launcher con «Solo para mí» y dejará de pedirlos.":"Esta cópia está instalada para todos os utilizadores e por isso o Windows pede permissões de administrador; instala o launcher com «Só para mim» e deixará de as pedir."
+"Esta copia está instalada para todos los usuarios y por eso Windows pide permisos de administrador; instala el launcher con «Solo para mí» y dejará de pedirlos.":"Esta cópia está instalada para todos os utilizadores e por isso o Windows pede permissões de administrador; instala o launcher com «Só para mim» e deixará de as pedir.",
+"Cargando la lista de versiones…":"A carregar a lista de versões…"
 }};

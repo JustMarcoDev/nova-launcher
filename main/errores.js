@@ -71,11 +71,13 @@ function scrub(text, names = []) {
   return t;
 }
 const lastReport = { t: 0 };
+/** Dirección del servidor de presencia (Worker): variable NOVA_PRESENCE o «novaPresence» de package.json; vacía si no hay. */
+const presenceUrl = () => { try { return String(process.env.NOVA_PRESENCE || require('../package.json').novaPresence || '').replace(/\/+$/, ''); } catch { return ''; } };
 async function sendCrashReport(info) {
   if (R.novaOff && R.novaOff('reports')) return;
   try {
     const cfg = R.load(); if (cfg.errReports !== true) return false;
-    let url = ''; try { url = String(process.env.NOVA_PRESENCE || require('../package.json').novaPresence || '').replace(/\/+$/, ''); } catch {}
+    const url = presenceUrl();
     if (!/^https:\/\//.test(url) || Date.now() - lastReport.t < 20000) return false;
     lastReport.t = Date.now();
     const names = info.names || [];
@@ -96,7 +98,7 @@ async function sendUsage(ins) {
   try {
     if (R.novaOff && R.novaOff('usage')) return false;
     if (R.load().usage !== true || !ins) return false;
-    let url = ''; try { url = String(process.env.NOVA_PRESENCE || require('../package.json').novaPresence || '').replace(/\/+$/, ''); } catch {}
+    const url = presenceUrl();
     if (!/^https:\/\//.test(url)) return false;
     const body = { id: usageId(), launcher: app.getVersion(), mc: String(ins.mc || '').slice(0, 30), loader: ['Vanilla', 'Fabric', 'Forge', 'NeoForge'].includes(ins.ld) ? ins.ld : (ins.ld ? 'otro' : 'Vanilla') };
     const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 6000);

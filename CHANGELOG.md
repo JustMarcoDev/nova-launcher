@@ -3,6 +3,20 @@
 Todo lo que cambia en cada versión de Nova Launcher y del menú de Nova (el mod), de la más nueva a la más antigua. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**, y el flujo de publicación copia la entrada de cada versión a las notas de su release. Al sacar una versión nueva, añade su entrada `### x.y.z — Título` **al principio** de la lista.
 
 
+### 0.2.19 · Limpieza y rendimiento
+
+**Mejorado**
+- El launcher abre más rápido: las librerías de la cuenta de Microsoft y de Minecraft solo se cargan al iniciar sesión o jugar, y la pantalla de inicio ya no espera a la lista de versiones de Mojang (se carga a la vez que lo demás y aparece al terminar).
+- Limpieza general del código del launcher: revisado todo y unificados los trozos repetidos (ruta de la app, dirección del servidor de estadísticas, errores de descarga, carpeta raíz de los zip, hash de mods, validación de skins, guardado de fondos).
+- Estilos más ordenados: reglas repetidas de instancias, mods y ventanas fusionadas en una sola.
+
+**Quitado**
+- Código sin usar: un aviso interno que nadie escuchaba, funciones que solo se compartían sin necesidad entre módulos y un icono que no se usaba.
+
+**Arreglado**
+- Algunos textos usaban un color de tema sin definir y salían con el color heredado: ahora usan el color de texto del tema.
+- En Estadísticas, las tarjetas de la fila de abajo entran escalonadas como estaba pensado (había reglas que se pisaban).
+
 ### 0.2.19-beta.4 · Logros de Minecraft y acceso directo del escritorio
 
 **Añadido**

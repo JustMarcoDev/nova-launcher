@@ -3,8 +3,8 @@
 // Lanzar Minecraft: Java, versiones, ajustes de Java/GPU, cierre/errores y preparar antes de jugar
 // (Parte del proceso principal; main.js carga todos los módulos. Mira «Estructura del proyecto» en el README.)
 // =====================================================================================
-const { Auth } = require('msmc');
-const { Authenticator, Client } = require('minecraft-launcher-core');
+// msmc y minecraft-launcher-core pesan bastante: se cargan al jugar o al iniciar sesión, no al arrancar el launcher
+const msAuth = () => require('msmc').Auth, mclc = () => require('minecraft-launcher-core');
 const { EventEmitter } = require('events');
 const { app, ipcMain, shell } = require('electron');
 const fs = require('fs');
@@ -145,9 +145,9 @@ async function playGame(opts) {
     try { fs.rmSync(path.join(novaDir(), 'estado.json'), { force: true }); } catch {}
     let auth; const { act } = accState(cfg);
     if (act.type === 'microsoft') {
-      try { const x = await new Auth('select_account').refresh(act.token); auth = (await x.getMinecraft()).mclc(); const st = accState(); saveAcc(st.a.map(z => z.id === act.id ? { ...z, token: x.save() } : z), act.id); }
-      catch { if (await isOnline(true)) throw new Error('La sesión de Microsoft de «' + act.name + '» caducó. Vuelve a iniciarla desde la cuenta (barra superior).'); auth = Authenticator.getAuth(act.name); send('status', 'Sin conexión: se juega en modo offline como ' + act.name); }
-    } else auth = Authenticator.getAuth(act.name);
+      try { const x = await new (msAuth())('select_account').refresh(act.token); auth = (await x.getMinecraft()).mclc(); const st = accState(); saveAcc(st.a.map(z => z.id === act.id ? { ...z, token: x.save() } : z), act.id); }
+      catch { if (await isOnline(true)) throw new Error('La sesión de Microsoft de «' + act.name + '» caducó. Vuelve a iniciarla desde la cuenta (barra superior).'); auth = mclc().Authenticator.getAuth(act.name); send('status', 'Sin conexión: se juega en modo offline como ' + act.name); }
+    } else auth = mclc().Authenticator.getAuth(act.name);
     const ram = +ins.ram > 0 ? +ins.ram : cfg.ram, java = await javaFor(ins.mc, { javaPath: ins.javaPath || cfg.javaPath });
     const o = { authorization: auth, root, javaPath: java, version: { number: ins.mc, type: ins.type === 'release' ? 'release' : 'snapshot' },
       overrides: { gameDirectory: dir }, memory: { max: ram + 'G', min: '1G' },
@@ -177,7 +177,7 @@ async function playGame(opts) {
     if (server && server.host) o.quickPlay = { type: modernQP(ins.mc) ? 'multiplayer' : 'legacy', identifier: server.host + (server.port && +server.port !== 25565 ? ':' + server.port : '') };
     if (world && !server && modernQP(ins.mc)) o.quickPlay = { type: 'singleplayer', identifier: String(world) };
         try { syncServers(dir, (cfg.myServers || []).filter(z => z && z.host).map(z => ({ name: String(z.name || z.host), ip: String(z.host) + (z.port && +z.port !== 25565 ? ':' + z.port : '') }))); } catch {}
-    let proc = null; const l = new Client(), tail = [], lg = openLog(ins, java, ram), since = Date.now(); let t0 = 0, sk = '';
+    let proc = null; const l = new (mclc().Client)(), tail = [], lg = openLog(ins, java, ram), since = Date.now(); let t0 = 0, sk = '';
     send('log', '── ' + ins.name + ' · Minecraft ' + ins.mc + ' · ' + (ins.ld || 'Vanilla') + ' · ' + (act.name) + ' ──\n'); send('log', novaMsg); if (jm.note) send('log', jm.note); if (jm.compact) send('log', 'Java: objetos compactos.\n');
     l.on('progress', p => send('progress', p));
     // Marcadores del mod: solo valen los que llevan el código secreto de esta partida (main/marcas.js); un mensaje de chat no puede pedir nada
@@ -296,12 +296,12 @@ async function prepRun(r) {
   pr('start', { pct: 0 }); S.PREPLAST = mc;
   try {
     const java = await javaFor(mc, { javaPath: cfg.javaPath });
-    const o = { authorization: Authenticator.getAuth('Nova'), root, javaPath: java, version: { number: mc, type: r.type === 'release' ? 'release' : 'snapshot' },
+    const o = { authorization: mclc().Authenticator.getAuth('Nova'), root, javaPath: java, version: { number: mc, type: r.type === 'release' ? 'release' : 'snapshot' },
       overrides: { gameDirectory: path.join(root, 'instances', '.prep') }, memory: { max: '1G', min: '256M' } };
     await mirrorPrep(o, mc);
     if (ld === 'Fabric') o.version.custom = await fabric(mc, r.loaderVersion);
     if (ld === 'Forge' || ld === 'NeoForge') o.version.custom = await forge(ld, mc, java, r.loaderVersion);
-    const l = new Client();
+    const l = new (mclc().Client)();
     l.startMinecraft = () => { const f = new EventEmitter(); f.stdout = new EventEmitter(); f.stderr = new EventEmitter(); f.pid = 0; f.kill = () => {}; return f; };
     l.on('progress', p => { if (p && p.total) pr('progress', { pct: Math.min(99, Math.round(p.task / p.total * 100)) }); });
     const res = await l.launch(o);
