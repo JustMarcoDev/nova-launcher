@@ -61,13 +61,27 @@ final class NovaGfxCore {
     private static Font bold, reg;
 
     static final int I_USER = 0, I_GEAR = 1, I_CLOSE = 2, I_EARTH = 6, I_NOVA = 8, I_REALMS = 10, I_USERS = 11, I_CHECK = 12, I_PLUS = 13, I_HEAD = 14, I_EDIT = 15, I_SWAP = 16, I_TRASH = 17, I_FOLDER = 18, I_RESIZE = 19, I_SERVER = 20, I_PLAY = 21, I_BOLT = 22, I_MODS = 23,
-            I_GAUGE = 24, I_CURSOR = 25, I_PIN = 26, I_KEYS = 27, I_SWITCH = 28, I_SHIELD = 29, I_FLASK = 30, I_CLOCK = 31, I_COMPASS = 32, I_HOURGLASS = 33;
+            I_GAUGE = 24, I_CURSOR = 25, I_PIN = 26, I_KEYS = 27, I_SWITCH = 28, I_SHIELD = 29, I_FLASK = 30, I_CLOCK = 31, I_COMPASS = 32, I_HOURGLASS = 33,
+            I_DOWNLOAD = 34, I_UPDATE = 35, I_TROPHY = 36, I_STAR = 37, I_CAMERA = 38, I_BELL = 39;
 
     static void person(Graphics2D g, double cx, double top, double s) {
         g.fill(new Ellipse2D.Double(cx - 0.17 * s, top, 0.34 * s, 0.34 * s));
         Area body = new Area(new Ellipse2D.Double(cx - 0.36 * s, top + 0.40 * s, 0.72 * s, 0.9 * s));
         body.intersect(new Area(new Rectangle2D.Double(cx - s, top, 2 * s, 0.86 * s)));
         g.fill(body);
+    }
+
+    private static BasicStroke st(double w) { return new BasicStroke((float) w, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND); }
+    static final double W = 0.085;
+    /** Forma «dúo»: relleno suave del color más contorno, para que todos los iconos tengan el mismo peso y estilo. */
+    private static void duo(Graphics2D q, java.awt.Shape sh, int argb) {
+        java.awt.Paint keep = q.getPaint();
+        q.setColor(a(argb, 0.26f));
+        q.fill(sh);
+        q.setColor(col(argb));
+        q.setStroke(st(W));
+        q.draw(sh);
+        q.setPaint(keep);
     }
 
     /** Iconos vectoriales (nada de imágenes): se dibujan suaves a cualquier tamaño. */
@@ -78,19 +92,20 @@ final class NovaGfxCore {
         q.scale(n, n);
         q.setColor(col(argb));
         switch (idx) {
-            case I_USER: person(q, 0.5, 0.1, 0.8); break;
+            case I_USER: {
+                duo(q, new Ellipse2D.Double(0.35, 0.12, 0.30, 0.30), argb);
+                Path2D b = new Path2D.Double(); b.moveTo(0.17, 0.88); b.quadTo(0.17, 0.55, 0.5, 0.55); b.quadTo(0.83, 0.55, 0.83, 0.88); b.closePath();
+                duo(q, b, argb);
+                break;
+            }
             case I_USERS: {
-                person(q, 0.3, 0.2, 0.62);
-                q.setComposite(AlphaComposite.Clear);   // pequeño hueco para que se distingan las dos siluetas
-                q.setStroke(new BasicStroke(0.07f));
-                Area f = new Area(new Ellipse2D.Double(0.68 - 0.17 * 0.78, 0.08, 0.34 * 0.78, 0.34 * 0.78));
-                Area fb = new Area(new Ellipse2D.Double(0.68 - 0.36 * 0.78, 0.08 + 0.40 * 0.78, 0.72 * 0.78, 0.9 * 0.78));
-                fb.intersect(new Area(new Rectangle2D.Double(-1, 0, 3, 0.08 + 0.86 * 0.78)));
-                f.add(fb);
-                q.fill(f); q.draw(f);
-                q.setComposite(AlphaComposite.SrcOver);
-                q.setColor(col(argb));
-                person(q, 0.68, 0.08, 0.78);
+                duo(q, new Ellipse2D.Double(0.15, 0.20, 0.28, 0.28), argb);
+                Path2D b = new Path2D.Double(); b.moveTo(0.06, 0.88); b.quadTo(0.06, 0.58, 0.29, 0.58); b.quadTo(0.52, 0.58, 0.52, 0.88); b.closePath();
+                duo(q, b, argb);
+                q.setStroke(st(W));
+                q.draw(new Ellipse2D.Double(0.58, 0.14, 0.25, 0.25));
+                Path2D b2 = new Path2D.Double(); b2.moveTo(0.64, 0.52); b2.quadTo(0.94, 0.52, 0.94, 0.82);
+                q.draw(b2);
                 break;
             }
             case I_GEAR: {
@@ -101,20 +116,20 @@ final class NovaGfxCore {
                 break;
             }
             case I_CLOSE: {
-                q.setStroke(new BasicStroke(0.13f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                q.setStroke(new BasicStroke(0.115f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
                 q.draw(new Line2D.Double(0.27, 0.27, 0.73, 0.73));
                 q.draw(new Line2D.Double(0.73, 0.27, 0.27, 0.73));
                 break;
             }
             case I_CHECK: {
-                q.setStroke(new BasicStroke(0.14f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                q.setStroke(new BasicStroke(0.115f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
                 Path2D p = new Path2D.Double();
                 p.moveTo(0.22, 0.54); p.lineTo(0.43, 0.74); p.lineTo(0.78, 0.28);
                 q.draw(p);
                 break;
             }
             case I_PLUS: {
-                q.setStroke(new BasicStroke(0.14f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                q.setStroke(new BasicStroke(0.115f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
                 q.draw(new Line2D.Double(0.5, 0.2, 0.5, 0.8));
                 q.draw(new Line2D.Double(0.2, 0.5, 0.8, 0.5));
                 break;
@@ -131,7 +146,7 @@ final class NovaGfxCore {
                 break;
             }
             case I_NOVA: {   // agujero negro (tipo «Gargantúa»): sombra oscura, anillo grueso de luz y una fina banda de materia que lo cruza
-                q.setStroke(new BasicStroke(0.13f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                q.setStroke(new BasicStroke(0.115f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
                 q.draw(new Ellipse2D.Double(0.5 - 0.3, 0.5 - 0.3, 0.6, 0.6));                  // anillo de fotones
                 AffineTransform tilt = AffineTransform.getRotateInstance(-0.2, 0.5, 0.5);
                 q.fill(tilt.createTransformedShape(new Ellipse2D.Double(0.01, 0.5 - 0.045, 0.98, 0.09)));   // banda que atraviesa el agujero
@@ -178,21 +193,24 @@ final class NovaGfxCore {
                 break;
             }
             case I_TRASH: {
-                q.setStroke(new BasicStroke(0.085f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-                q.draw(new Line2D.Double(0.2, 0.27, 0.8, 0.27));
-                q.draw(new Line2D.Double(0.4, 0.17, 0.6, 0.17));
-                Path2D b2 = new Path2D.Double(); b2.moveTo(0.27, 0.37); b2.lineTo(0.32, 0.84); b2.lineTo(0.68, 0.84); b2.lineTo(0.73, 0.37); q.draw(b2);
+                Path2D b2 = new Path2D.Double(); b2.moveTo(0.26, 0.36); b2.lineTo(0.31, 0.85); b2.lineTo(0.69, 0.85); b2.lineTo(0.74, 0.36); b2.closePath();
+                duo(q, b2, argb);
+                q.setStroke(st(W));
+                q.draw(new Line2D.Double(0.16, 0.27, 0.84, 0.27));
+                Path2D hd = new Path2D.Double(); hd.moveTo(0.4, 0.27); hd.lineTo(0.4, 0.16); hd.lineTo(0.6, 0.16); hd.lineTo(0.6, 0.27); q.draw(hd);
+                q.draw(new Line2D.Double(0.43, 0.5, 0.44, 0.72)); q.draw(new Line2D.Double(0.57, 0.5, 0.56, 0.72));
                 break;
             }
             case I_FOLDER: {
                 Path2D f = new Path2D.Double();
-                f.moveTo(0.1, 0.24); f.lineTo(0.4, 0.24); f.lineTo(0.5, 0.36); f.lineTo(0.9, 0.36); f.lineTo(0.9, 0.8); f.lineTo(0.1, 0.8); f.closePath();
-                q.setStroke(new BasicStroke(0.085f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-                q.draw(f);
+                f.moveTo(0.1, 0.22); f.lineTo(0.4, 0.22); f.lineTo(0.5, 0.34); f.lineTo(0.9, 0.34); f.lineTo(0.9, 0.80); f.lineTo(0.1, 0.80); f.closePath();
+                duo(q, f, argb);
+                q.setStroke(st(W));
+                q.draw(new Line2D.Double(0.1, 0.46, 0.9, 0.46));
                 break;
             }
             case I_RESIZE: {   // flecha doble en diagonal (cambiar tamaño)
-                q.setStroke(new BasicStroke(0.09f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                q.setStroke(new BasicStroke(0.085f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
                 q.draw(new Line2D.Double(0.28, 0.28, 0.72, 0.72));
                 Path2D a1 = new Path2D.Double(); a1.moveTo(0.26, 0.5); a1.lineTo(0.26, 0.26); a1.lineTo(0.5, 0.26);
                 Path2D a2 = new Path2D.Double(); a2.moveTo(0.74, 0.5); a2.lineTo(0.74, 0.74); a2.lineTo(0.5, 0.74);
@@ -200,12 +218,11 @@ final class NovaGfxCore {
                 break;
             }
             case I_SERVER: {   // dos módulos de servidor apilados, cada uno con su luz y su ranura
-                q.setStroke(new BasicStroke(0.075f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-                q.draw(new RoundRectangle2D.Double(0.13, 0.13, 0.74, 0.31, 0.1, 0.1));
-                q.draw(new RoundRectangle2D.Double(0.13, 0.56, 0.74, 0.31, 0.1, 0.1));
+                duo(q, new RoundRectangle2D.Double(0.13, 0.13, 0.74, 0.31, 0.1, 0.1), argb);
+                duo(q, new RoundRectangle2D.Double(0.13, 0.56, 0.74, 0.31, 0.1, 0.1), argb);
                 q.fill(new Ellipse2D.Double(0.23, 0.245, 0.08, 0.08));
                 q.fill(new Ellipse2D.Double(0.23, 0.675, 0.08, 0.08));
-                q.setStroke(new BasicStroke(0.075f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                q.setStroke(st(W));
                 q.draw(new Line2D.Double(0.43, 0.285, 0.7, 0.285));
                 q.draw(new Line2D.Double(0.43, 0.715, 0.7, 0.715));
                 break;
@@ -214,15 +231,14 @@ final class NovaGfxCore {
                 Path2D t2 = new Path2D.Double();
                 t2.moveTo(0.3, 0.2); t2.lineTo(0.8, 0.5); t2.lineTo(0.3, 0.8); t2.closePath();
                 q.fill(t2);
-                q.setStroke(new BasicStroke(0.08f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                q.setStroke(new BasicStroke(0.085f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
                 q.draw(t2);
                 break;
             }
             case I_MODS: {   // tres bloques y uno que encaja: «mods»
-                q.setStroke(new BasicStroke(0.075f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-                q.draw(new RoundRectangle2D.Double(0.14, 0.14, 0.34, 0.34, 0.08, 0.08));
-                q.draw(new RoundRectangle2D.Double(0.14, 0.52, 0.34, 0.34, 0.08, 0.08));
-                q.draw(new RoundRectangle2D.Double(0.52, 0.52, 0.34, 0.34, 0.08, 0.08));
+                duo(q, new RoundRectangle2D.Double(0.14, 0.14, 0.34, 0.34, 0.08, 0.08), argb);
+                duo(q, new RoundRectangle2D.Double(0.14, 0.52, 0.34, 0.34, 0.08, 0.08), argb);
+                duo(q, new RoundRectangle2D.Double(0.52, 0.52, 0.34, 0.34, 0.08, 0.08), argb);
                 q.fill(new RoundRectangle2D.Double(0.56, 0.12, 0.30, 0.30, 0.08, 0.08));
                 break;
             }
@@ -259,17 +275,15 @@ final class NovaGfxCore {
                 break;
             }
             case I_KEYS: {   // teclas W A S D
-                q.setStroke(new BasicStroke(0.07f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-                q.draw(new RoundRectangle2D.Double(0.36, 0.14, 0.28, 0.28, 0.07, 0.07));
-                q.draw(new RoundRectangle2D.Double(0.07, 0.52, 0.27, 0.27, 0.07, 0.07));
-                q.draw(new RoundRectangle2D.Double(0.365, 0.52, 0.27, 0.27, 0.07, 0.07));
-                q.draw(new RoundRectangle2D.Double(0.66, 0.52, 0.27, 0.27, 0.07, 0.07));
+                duo(q, new RoundRectangle2D.Double(0.36, 0.14, 0.28, 0.28, 0.07, 0.07), argb);
+                duo(q, new RoundRectangle2D.Double(0.07, 0.52, 0.27, 0.27, 0.07, 0.07), argb);
+                duo(q, new RoundRectangle2D.Double(0.365, 0.52, 0.27, 0.27, 0.07, 0.07), argb);
+                duo(q, new RoundRectangle2D.Double(0.66, 0.52, 0.27, 0.27, 0.07, 0.07), argb);
                 break;
             }
             case I_SWITCH: {   // dos interruptores (estado: sprint, agachado…)
-                q.setStroke(new BasicStroke(0.07f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-                q.draw(new RoundRectangle2D.Double(0.1, 0.17, 0.8, 0.28, 0.28, 0.28));
-                q.draw(new RoundRectangle2D.Double(0.1, 0.55, 0.8, 0.28, 0.28, 0.28));
+                duo(q, new RoundRectangle2D.Double(0.1, 0.17, 0.8, 0.28, 0.28, 0.28), argb);
+                duo(q, new RoundRectangle2D.Double(0.1, 0.55, 0.8, 0.28, 0.28, 0.28), argb);
                 q.fill(new Ellipse2D.Double(0.6, 0.215, 0.19, 0.19));
                 q.fill(new Ellipse2D.Double(0.21, 0.595, 0.19, 0.19));
                 break;
@@ -277,8 +291,7 @@ final class NovaGfxCore {
             case I_SHIELD: {   // escudo (armadura)
                 Path2D sh = new Path2D.Double();
                 sh.moveTo(0.5, 0.09); sh.lineTo(0.84, 0.23); sh.lineTo(0.84, 0.50); sh.quadTo(0.84, 0.78, 0.5, 0.93); sh.quadTo(0.16, 0.78, 0.16, 0.50); sh.lineTo(0.16, 0.23); sh.closePath();
-                q.setStroke(new BasicStroke(0.08f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-                q.draw(sh);
+                duo(q, sh, argb);
                 Path2D half = new Path2D.Double();
                 half.moveTo(0.5, 0.09); half.lineTo(0.84, 0.23); half.lineTo(0.84, 0.50); half.quadTo(0.84, 0.78, 0.5, 0.93); half.closePath();
                 q.fill(half);
@@ -287,7 +300,7 @@ final class NovaGfxCore {
             case I_FLASK: {   // matraz (pociones)
                 Path2D fl = new Path2D.Double();
                 fl.moveTo(0.40, 0.10); fl.lineTo(0.60, 0.10); fl.moveTo(0.43, 0.10); fl.lineTo(0.43, 0.38); fl.lineTo(0.17, 0.82); fl.quadTo(0.13, 0.90, 0.22, 0.90); fl.lineTo(0.78, 0.90); fl.quadTo(0.87, 0.90, 0.83, 0.82); fl.lineTo(0.57, 0.38); fl.lineTo(0.57, 0.10);
-                q.setStroke(new BasicStroke(0.08f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                q.setStroke(new BasicStroke(0.085f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
                 q.draw(fl);
                 Path2D liq = new Path2D.Double();
                 liq.moveTo(0.29, 0.63); liq.lineTo(0.71, 0.63); liq.lineTo(0.80, 0.80); liq.lineTo(0.20, 0.80); liq.closePath();
@@ -295,32 +308,86 @@ final class NovaGfxCore {
                 break;
             }
             case I_CLOCK: {   // reloj
-                q.setStroke(new BasicStroke(0.085f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-                q.draw(new Ellipse2D.Double(0.13, 0.13, 0.74, 0.74));
+                duo(q, new Ellipse2D.Double(0.13, 0.13, 0.74, 0.74), argb);
+                q.setStroke(st(W));
                 q.draw(new Line2D.Double(0.5, 0.5, 0.5, 0.28));
                 q.draw(new Line2D.Double(0.5, 0.5, 0.67, 0.6));
                 break;
             }
             case I_COMPASS: {   // brújula
-                q.setStroke(new BasicStroke(0.08f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-                q.draw(new Ellipse2D.Double(0.12, 0.12, 0.76, 0.76));
-                Path2D nd = new Path2D.Double();
-                nd.moveTo(0.5, 0.22); nd.lineTo(0.62, 0.5); nd.lineTo(0.5, 0.78); nd.lineTo(0.38, 0.5); nd.closePath();
-                q.setStroke(new BasicStroke(0.05f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-                q.draw(nd);
+                duo(q, new Ellipse2D.Double(0.12, 0.12, 0.76, 0.76), argb);
                 Path2D up = new Path2D.Double();
-                up.moveTo(0.5, 0.22); up.lineTo(0.62, 0.5); up.lineTo(0.38, 0.5); up.closePath();
+                up.moveTo(0.5, 0.24); up.lineTo(0.63, 0.5); up.lineTo(0.37, 0.5); up.closePath();
                 q.fill(up);
+                Path2D dn = new Path2D.Double();
+                dn.moveTo(0.5, 0.76); dn.lineTo(0.63, 0.5); dn.lineTo(0.37, 0.5); dn.closePath();
+                q.setStroke(st(0.05)); q.draw(dn);
                 break;
             }
             case I_HOURGLASS: {   // reloj de arena (sesión)
                 Path2D hg = new Path2D.Double();
                 hg.moveTo(0.26, 0.12); hg.lineTo(0.74, 0.12); hg.lineTo(0.74, 0.26); hg.lineTo(0.54, 0.5); hg.lineTo(0.74, 0.74); hg.lineTo(0.74, 0.88); hg.lineTo(0.26, 0.88); hg.lineTo(0.26, 0.74); hg.lineTo(0.46, 0.5); hg.lineTo(0.26, 0.26); hg.closePath();
-                q.setStroke(new BasicStroke(0.08f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                q.setStroke(new BasicStroke(0.085f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
                 q.draw(hg);
                 Path2D sand = new Path2D.Double();
                 sand.moveTo(0.36, 0.80); sand.lineTo(0.64, 0.80); sand.lineTo(0.5, 0.62); sand.closePath();
                 q.fill(sand);
+                break;
+            }
+            case I_DOWNLOAD: {   // flecha hacia una bandeja
+                q.setStroke(st(W));
+                q.draw(new Line2D.Double(0.5, 0.14, 0.5, 0.62));
+                Path2D h = new Path2D.Double(); h.moveTo(0.3, 0.44); h.lineTo(0.5, 0.64); h.lineTo(0.7, 0.44); q.draw(h);
+                Path2D tray = new Path2D.Double(); tray.moveTo(0.16, 0.68); tray.lineTo(0.16, 0.84); tray.lineTo(0.84, 0.84); tray.lineTo(0.84, 0.68); q.draw(tray);
+                break;
+            }
+            case I_UPDATE: {   // flecha hacia arriba dentro de un círculo
+                duo(q, new Ellipse2D.Double(0.1, 0.1, 0.8, 0.8), argb);
+                q.setStroke(st(W));
+                q.draw(new Line2D.Double(0.5, 0.7, 0.5, 0.32));
+                Path2D h = new Path2D.Double(); h.moveTo(0.34, 0.47); h.lineTo(0.5, 0.31); h.lineTo(0.66, 0.47); q.draw(h);
+                break;
+            }
+            case I_TROPHY: {   // copa
+                Path2D cup = new Path2D.Double();
+                cup.moveTo(0.29, 0.13); cup.lineTo(0.71, 0.13); cup.lineTo(0.71, 0.36); cup.quadTo(0.71, 0.60, 0.5, 0.60); cup.quadTo(0.29, 0.60, 0.29, 0.36); cup.closePath();
+                duo(q, cup, argb);
+                q.setStroke(st(W));
+                Path2D l = new Path2D.Double(); l.moveTo(0.29, 0.22); l.lineTo(0.15, 0.22); l.quadTo(0.15, 0.44, 0.32, 0.46); q.draw(l);
+                Path2D r = new Path2D.Double(); r.moveTo(0.71, 0.22); r.lineTo(0.85, 0.22); r.quadTo(0.85, 0.44, 0.68, 0.46); q.draw(r);
+                q.draw(new Line2D.Double(0.5, 0.60, 0.5, 0.80));
+                q.draw(new Line2D.Double(0.33, 0.87, 0.67, 0.87));
+                break;
+            }
+            case I_STAR: {   // estrella llena
+                Path2D st5 = new Path2D.Double();
+                for (int i = 0; i < 10; i++) {
+                    double ang = -Math.PI / 2 + i * Math.PI / 5, rr = (i & 1) == 0 ? 0.40 : 0.17;
+                    double px = 0.5 + rr * Math.cos(ang), py = 0.54 + rr * Math.sin(ang);
+                    if (i == 0) st5.moveTo(px, py); else st5.lineTo(px, py);
+                }
+                st5.closePath();
+                q.fill(st5);
+                q.setStroke(st(0.06));
+                q.draw(st5);
+                break;
+            }
+            case I_CAMERA: {   // cámara de fotos
+                Path2D body = new Path2D.Double();
+                body.append(new RoundRectangle2D.Double(0.09, 0.28, 0.82, 0.56, 0.12, 0.12), false);
+                duo(q, body, argb);
+                q.setStroke(st(W));
+                Path2D bump = new Path2D.Double(); bump.moveTo(0.33, 0.28); bump.lineTo(0.40, 0.16); bump.lineTo(0.60, 0.16); bump.lineTo(0.67, 0.28); q.draw(bump);
+                q.draw(new Ellipse2D.Double(0.35, 0.40, 0.30, 0.30));
+                break;
+            }
+            case I_BELL: {   // campana
+                Path2D b = new Path2D.Double();
+                b.moveTo(0.20, 0.74); b.quadTo(0.30, 0.64, 0.30, 0.42); b.quadTo(0.30, 0.20, 0.5, 0.20); b.quadTo(0.70, 0.20, 0.70, 0.42); b.quadTo(0.70, 0.64, 0.80, 0.74); b.closePath();
+                duo(q, b, argb);
+                q.fill(new Ellipse2D.Double(0.42, 0.78, 0.16, 0.11));
+                q.setStroke(st(W));
+                q.draw(new Line2D.Double(0.5, 0.11, 0.5, 0.2));
                 break;
             }
             case I_HEAD: {
@@ -493,6 +560,49 @@ final class NovaGfxCore {
         g.setPaint(new GradientPaint(0, (float) by, col(shade(accent, 1.2f, 0xB0)), 0, (float) (by + bh), col(shade(accent, 0.8f, 0x40))));
         g.draw(new RoundRectangle2D.Double(bx + sw / 2, by + sw / 2, bw - sw, bh - sw, 2 * rr - sw, 2 * rr - sw));
         g.dispose();
+        return im;
+    }
+
+    /** Fondo de un aviso del juego: tarjeta oscura con degradado y borde del color del tipo de aviso, y a la izquierda una placa con el icono. Margen exterior de 6 px para la sombra. */
+    static BufferedImage toast(int w, int h, int tint, int icon, int s) {
+        int m = 6;
+        BufferedImage im = new BufferedImage((w + 2 * m) * s, (h + 2 * m) * s, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = g2(im);
+        double bx = m * s, by = m * s, bw = w * s, bh = h * s, rr = 6 * s;
+        for (int i = m * s - 1; i >= 1; i -= Math.max(1, s / 2)) {
+            float k = 1f - (float) i / (m * s);
+            g.setColor(new Color(0, 0, 0, Math.round(80 * k * k)));
+            g.fill(new RoundRectangle2D.Double(bx - i, by - i + 2 * s, bw + 2 * i, bh + 2 * i, 2 * rr + i, 2 * rr + i));
+        }
+        Shape box = new RoundRectangle2D.Double(bx, by, bw, bh, 2 * rr, 2 * rr);
+        g.setPaint(new GradientPaint(0, (float) by, col(shade(tint, 0.16f, 0xF4)), 0, (float) (by + bh), col(shade(tint, 0.05f, 0xF6))));
+        g.fill(box);
+        Shape old = g.getClip();
+        g.setClip(box);
+        g.setPaint(new GradientPaint((float) bx, 0, a(tint | 0xFF000000, 0.22f), (float) (bx + bw * 0.55), 0, a(tint | 0xFF000000, 0f)));   // luz del color del aviso por la izquierda
+        g.fill(new Rectangle2D.Double(bx, by, bw * 0.55, bh));
+        g.setPaint(new GradientPaint(0, (float) by, new Color(255, 255, 255, 24), 0, (float) (by + bh * 0.4), new Color(255, 255, 255, 0)));
+        g.fill(new Rectangle2D.Double(bx, by, bw, bh * 0.4));
+        g.setClip(old);
+        float sw = Math.max(1f, s * 0.7f);
+        g.setStroke(new BasicStroke(sw));
+        g.setPaint(new GradientPaint(0, (float) by, col(shade(tint, 1.15f, 0xC8)), 0, (float) (by + bh), col(shade(tint, 0.7f, 0x55))));
+        g.draw(new RoundRectangle2D.Double(bx + sw / 2, by + sw / 2, bw - sw, bh - sw, 2 * rr - sw, 2 * rr - sw));
+        double ts = Math.min(bh - 10 * s, 26 * s), tx = bx + 6 * s, ty = by + (bh - ts) / 2;
+        if (icon >= 0) {   // placa del icono
+            Shape tile = new RoundRectangle2D.Double(tx, ty, ts, ts, 10 * s, 10 * s);
+            g.setPaint(new GradientPaint(0, (float) ty, col(shade(tint, 0.60f, 0xFF)), 0, (float) (ty + ts), col(shade(tint, 0.30f, 0xFF))));
+            g.fill(tile);
+            g.setStroke(new BasicStroke(sw));
+            g.setPaint(col(shade(tint, 1.1f, 0xB0)));
+            g.draw(new RoundRectangle2D.Double(tx + sw / 2, ty + sw / 2, ts - sw, ts - sw, 10 * s - sw, 10 * s - sw));
+        }
+        g.dispose();
+        if (icon >= 0) {
+            Graphics2D g2 = g2(im);
+            icon(g2, icon, tx + ts * 0.2, ty + ts * 0.2, ts * 0.6, 0xFFFFFFFF);
+            g2.dispose();
+        }
         return im;
     }
 

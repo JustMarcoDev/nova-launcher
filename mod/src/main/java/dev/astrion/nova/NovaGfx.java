@@ -79,7 +79,8 @@ public final class NovaGfx {
     }
 
     public static final int I_USER = 0, I_GEAR = 1, I_CLOSE = 2, I_EARTH = 6, I_NOVA = 8, I_REALMS = 10, I_USERS = 11, I_CHECK = 12, I_PLUS = 13, I_HEAD = 14, I_EDIT = 15, I_SWAP = 16, I_TRASH = 17, I_FOLDER = 18, I_RESIZE = 19, I_SERVER = 20, I_PLAY = 21, I_BOLT = 22, I_MODS = 23,
-            I_GAUGE = 24, I_CURSOR = 25, I_PIN = 26, I_KEYS = 27, I_SWITCH = 28, I_SHIELD = 29, I_FLASK = 30, I_CLOCK = 31, I_COMPASS = 32, I_HOURGLASS = 33;
+            I_GAUGE = 24, I_CURSOR = 25, I_PIN = 26, I_KEYS = 27, I_SWITCH = 28, I_SHIELD = 29, I_FLASK = 30, I_CLOCK = 31, I_COMPASS = 32, I_HOURGLASS = 33,
+            I_DOWNLOAD = 34, I_UPDATE = 35, I_TROPHY = 36, I_STAR = 37, I_CAMERA = 38, I_BELL = 39;
 
     public static Tex button(MinecraftClient mc, int w, int h, String label, int icon, int style, boolean hot, boolean enabled) {
         int s = begin(mc);
@@ -116,6 +117,15 @@ public final class NovaGfx {
         Tex c = CACHE.get(key);
         if (c != null) return c;
         return upload(mc, key, NovaGfxCore.panel(w, h, s), s);
+    }
+
+    /** Fondo de un aviso del juego (tarjeta con placa de icono del color del tipo de aviso). */
+    public static Tex toast(MinecraftClient mc, int w, int h, int tint, int icon) {
+        int s = begin(mc);
+        String key = "t|" + w + "x" + h + "|" + tint + "|" + icon;
+        Tex c = CACHE.get(key);
+        if (c != null) return c;
+        return upload(mc, key, NovaGfxCore.toast(w, h, tint, icon, s), s);
     }
 
     public static Tex pill(MinecraftClient mc, String label, int rgb, int icon) {

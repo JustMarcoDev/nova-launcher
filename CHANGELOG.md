@@ -3,6 +3,14 @@
 Todo lo que cambia en cada versión de Nova Launcher y del menú de Nova (el mod), de la más nueva a la más antigua. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**, y el flujo de publicación copia la entrada de cada versión a las notas de su release. Al sacar una versión nueva, añade su entrada `### x.y.z — Título` **al principio** de la lista.
 
 
+### 0.2.20-beta.2 · Iconos y avisos del mod
+
+**Mejorado**
+- Todos los iconos del mod redibujados con un estilo único (contorno con relleno suave y el mismo grosor): usuario, amigos, papelera, carpeta, servidor, mods, escudo, reloj, brújula, interruptores y teclas.
+- Iconos nuevos: descarga, actualización, trofeo, estrella, cámara y campana.
+- Avisos del mod rediseñados: tarjeta con sombra, degradado y una placa con icono del color de cada tipo (descarga azul, actualización verde, copia de seguridad turquesa, logro dorado y platino celeste), con el texto más grande y una barra de tiempo fina.
+- El aviso de captura usa el mismo fondo nuevo, y los logros llevan un destello al entrar (el platino sigue brillando).
+
 ### 0.2.20-beta.1 · Editor del HUD
 
 **Mejorado**

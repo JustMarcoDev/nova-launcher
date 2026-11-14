@@ -57,7 +57,11 @@ public final class NovaShots {
         float a = NovaShotsCore.alpha(age);
         if (a <= 0f) return;
         x += NovaShotsCore.slide(age);
-        NovaButton.panel(c, x, y, w, h, 6, withAlpha(0xF010102A, a), withAlpha(0xFF4A3C8C, a));
+        boolean bg = false;
+        if (NovaGfx.ok) {
+            try { NovaGfx.toast(mc, w, h, NovaSettings.accent | 0xFF000000, -1).draw(c, x - 6, y - 6, a); bg = true; } catch (Throwable e) { NovaGfx.ok = false; }
+        }
+        if (!bg) NovaButton.panel(c, x, y, w, h, 6, withAlpha(0xF010102A, a), withAlpha(0xFF4A3C8C, a));
         // miniatura con marco
         int tw = 78, th = 44;
         BufferedImage im = NovaShotsCore.thumb();
