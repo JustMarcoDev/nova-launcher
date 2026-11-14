@@ -3,6 +3,11 @@
 Todo lo que cambia en cada versión de Nova Launcher y del menú de Nova (el mod), de la más nueva a la más antigua. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**, y el flujo de publicación copia la entrada de cada versión a las notas de su release. Al sacar una versión nueva, añade su entrada `### x.y.z — Título` **al principio** de la lista.
 
 
+### 0.2.20-beta.3 · Lista de versiones del botón Jugar
+
+**Arreglado**
+- Arreglado: en el desplegable del botón de lanzar, el selector «Versión» solo mostraba la versión actual y no dejaba cambiarla. Ahora se actualiza en cuanto llega la lista y vuelve a mostrar el listado filtrado por cargador y tipo de versión.
+
 ### 0.2.20-beta.2 · Iconos y avisos del mod
 
 **Mejorado**
