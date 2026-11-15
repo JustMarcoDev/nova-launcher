@@ -3,6 +3,12 @@
 Todo lo que cambia en cada versión de Nova Launcher y del menú de Nova (el mod), de la más nueva a la más antigua. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**, y el flujo de publicación copia la entrada de cada versión a las notas de su release. Al sacar una versión nueva, añade su entrada `### x.y.z — Título` **al principio** de la lista.
 
 
+### 0.2.20-beta.5 · Animaciones más rápidas
+
+**Mejorado**
+- Animaciones mucho más rápidas en todo el launcher: el efecto al pasar el ratón por encima (tarjetas, filas, botones, chips, barra lateral) responde casi al instante, y los cambios de pestaña, las entradas escalonadas y los desplegables duran aproximadamente la mitad.
+- Lanzar: al cambiar entre Nova, Fabric, Forge y NeoForge (y entre tipos de versión) una píldora se desliza hasta la opción elegida, el texto «Minecraft … con …» entra con una transición y el botón de jugar da un pequeño pulso.
+
 ### 0.2.20-beta.4 · Arranque más fiable y selector de versión
 
 **Mejorado**

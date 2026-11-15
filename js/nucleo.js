@@ -10,7 +10,15 @@ const LD={Vanilla:()=>true,Fabric:v=>LS.f?LS.f.has(v):(/^\d/.test(v)&&gte(v,"1.1
 const TN={all:"Todas",release:"Release",snapshot:"Snapshot",old_beta:"Beta",old_alpha:"Alpha"},PT={home:"Launchpad",vers:"Versiones",mods:"Mods",inst:"Instancias",con:"Consola",set:"Ajustes",soc:"Redes",srv:"Servidores",sk:"Skin",sta:"Estadísticas",mun:"Mundos",lgr:"Logros"};
 const ACC={"#2ee06f":"Verde","#4f8cff":"Azul","#8b5cff":"Violeta","#22d3ee":"Cian","#ff5fa8":"Rosa","#ff4d4d":"Rojo","#ff9f2e":"Naranja","#ffd93d":"Amarillo","#f2f4f8":"Blanco"};
 let V=DEMO,sel={mc:"1.21.1",ld:"Vanilla",type:"release"},tf="release",I=[],cfg={username:"Jugador",ram:4,javaPath:"",width:1280,height:720,fullscreen:false,jvmArgs:"",closeOnLaunch:false,autoBackup:true,backupKeep:8,cfKey:"",accent:"#2ee06f",theme:"oscuro",bh:"dorado",font:"Segoe UI",bold:false,contrast:false,rmotion:false,quality:"alta",gameMode:true,modCheck:true,conOpen:true,optimize:true,ramSet:false,radius:100,panelAlpha:60,glassBlur:12,density:"normal",navW:76,lsp:0,lh:145,tray:true,notify:true,channel:"estable",myServers:[],accounts:[],activeAccount:"",seenVersion:"",setupDone:false,autoInstall:true,shortcuts:true,hwaccel:true,listN:150,cb:"Ninguno",dys:false,navLabels:false,bigTargets:false,solid:false,wsp:0,discord:true,discordId:"",bhSize:100,bhSpeed:100,bhTilt:-6,stars:100,bhLens:true,bhBloom:true,bhOther:true,showNews:true,showInst:true,showStatus:true,newsN:4,fps:60,pauseBlur:true,dlLimit:0,lang:"auto",instSort:"last",prefetchOn:false,stHead:true,stSrv:true,stIp:false,stTime:true,stVer:true,stPos:"tl",stScale:100,stColor:""};
-const chips=(el,items,on,fn)=>{el.innerHTML=items.map(([k,n,d])=>`<button class="chip ${k===on?"on":""} ${d?"dis":""}" data-k="${k}">${n}</button>`).join("");el.querySelectorAll("button").forEach(b=>b.onclick=e=>{e.stopPropagation();fn(b.dataset.k)})};
+const chips=(el,items,on,fn)=>{const seg=el.classList.contains("seg"),o0=seg&&el.querySelector(".sgi"),p0=o0?[o0.dataset.x,o0.dataset.w]:null;
+el.innerHTML=(seg?'<i class="sgi"></i>':"")+items.map(([k,n,d])=>`<button class="chip ${k===on?"on":""} ${d?"dis":""}" data-k="${k}">${n}</button>`).join("");el.querySelectorAll("button").forEach(b=>b.onclick=e=>{e.stopPropagation();fn(b.dataset.k)});
+if(seg)sgi(el,p0)};
+/* Píldora deslizante de los controles segmentados: parte de donde estaba la anterior y se desliza hasta la opción elegida */
+function sgi(el,p0){const i=el.querySelector(".sgi"),b=el.querySelector(".chip.on");if(!i)return;if(!b){i.style.opacity=0;return}
+const x=b.offsetLeft,w=b.offsetWidth;if(!w){requestAnimationFrame(()=>sgi(el,p0));return}
+i.dataset.x=x;i.dataset.w=w;i.style.width=w+"px";
+if(p0&&p0[1]){i.style.transition="none";i.style.width=p0[1]+"px";i.style.transform=`translateX(${p0[0]}px)`;void i.offsetWidth;i.style.transition="";i.style.width=w+"px"}
+i.style.transform=`translateX(${x}px)`}
 // Navegación
 document.querySelectorAll("nav button").forEach(b=>{b.onclick=()=>b.dataset.act==="addacc"?openAddAcc():show(b.dataset.p);b.setAttribute("aria-label",b.title);b.insertAdjacentHTML("beforeend",`<span class="nlb">${b.title}</span>`)});
 // Las pestañas pesadas se cargan la primera vez que se abren (mientras tanto el botón y el título indican que está cargando)
@@ -27,7 +35,9 @@ async function pgRun(id,txt,fn){const pg=$(id);let e=pg.querySelector(":scope>.s
  try{await fn()}finally{const w=200-(performance.now()-t0);if(w>0)await new Promise(r=>setTimeout(r,w));if(pg.dataset.ldk===k)e.hidden=true}}
 // Selección de versión (sin crear instancias a mano)
 const save=()=>sv({last:sel});
-function head(){$("gs").textContent=`Minecraft ${sel.mc} con ${LDN(sel.ld)}`;const n=curAcc().name;$("hn").textContent=$("un").textContent=n;$("av").innerHTML=accAv(curAcc(),22);
+let gsT="";
+function head(){const gt=`Minecraft ${sel.mc} con ${LDN(sel.ld)}`,g=$("gs");g.textContent=gt;
+if(gsT&&gsT!==gt){g.classList.remove("gsw");const L=document.querySelector(".launch");if(L)L.classList.remove("lchg");void g.offsetWidth;g.classList.add("gsw");if(L){void L.offsetWidth;L.classList.add("lchg")}}gsT=gt;const n=curAcc().name;$("hn").textContent=$("un").textContent=n;$("av").innerHTML=accAv(curAcc(),22);
 $("k1").textContent=curAcc().type==="microsoft"?"Microsoft":"Offline";$("k5").textContent=fPl(I.reduce((t,i)=>t+(i.playMs||0),0));$("k2").textContent=cfg.ram+" GB";$("k3").textContent=cfg.javaPath?"Personalizado":"Automático";$("k4").textContent=VER;rp();qi()}
 function pick(mc,type,ld){sel.inst=null;sel.mc=mc;sel.type=type;if(ld)sel.ld=ld;if(!LD[sel.ld](mc))sel.ld="Vanilla";if(tf!=="all")tf=type;head();save()}
 $("cp").onclick=e=>{e.stopPropagation();const p=$("pop"),on=!p.classList.contains("on");if(on){const r=$("cp").getBoundingClientRect(),below=innerHeight-r.bottom,need=Math.min(440,p.scrollHeight+30);p.classList.toggle("up",below<need&&r.top>below)}p.classList.toggle("on",on)};
