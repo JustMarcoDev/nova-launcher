@@ -17,7 +17,7 @@ const { LOWRAM, MAN, cfgFile, li, load, rd, rmAsync, root, running, send, wr } =
 const { get, isOnline, run } = R; // red
 const { dl } = R; // descargas
 const { accOut, accState, saveAcc } = R; // cuentas
-const { NOVA_MC, NOVA_REMOTE_ID, fondosDir, fondosScan, fondosWatch, novaBg, novaBgGet, novaDir, novaModResolve, novaNews, novaPickBg, novaServersWrite, novaAccountsWrite } = R; // mod-nova
+const { NOVA_MC, NOVA_REMOTE_ID, fondosDir, fondosScan, fondosWatch, novaBg, novaBgGet, novaDir, novaModResolve, novaNews, novaTidy, novaPickBg, novaServersWrite, novaAccountsWrite } = R; // mod-nova
 const { novaSkinFor } = R; // skins
 const { fabric, fabricBundled, forge } = R; // cargadores
 const { modernQP, syncServers } = R; // servidores
@@ -125,12 +125,15 @@ ipcMain.handle('log:open', (e, f) => { const p = path.resolve(String(f || '')); 
 ipcMain.handle('logs:folder', () => { const d = path.join(root, 'logs'); fs.mkdirSync(d, { recursive: true }); return shell.openPath(d); });
 // «Modo streamer» del mod activo: Discord no enseña en qué servidor juegas
 function streamerOn() { try { const o = JSON.parse(fs.readFileSync(path.join(novaDir(), 'menu.json'), 'utf8')); return !!(o.stream && o.stream.on); } catch { return false; } }
+const STARTING = new Set();
 async function playGame(opts) {
   const { id, server, world, safe } = opts, extra = Array.isArray(opts.extraArgs) ? opts.extraArgs.filter(x => /^-Dnova\.[\w.]+=[\w.-]*$/.test(x)) : [];
   const cfg = load(), ins = li().find(i => i.id === id);
   try {
     if (!ins) throw new Error('Instancia no encontrada');
-    if (running.has(id)) throw new Error('Esta instancia ya está en ejecución');
+    if (running.has(id) || STARTING.has(id)) throw new Error('Esta instancia ya está en ejecución');
+    STARTING.add(id);   // entre el clic y el arranque pasan segundos (descargas): sin esto un doble clic lanzaba dos preparaciones a la vez sobre los mismos archivos
+    try { novaTidy(); } catch {}
     const dir = path.join(root, 'instances', id); fs.mkdirSync(dir, { recursive: true });
     if (S.PREPP) { send('status', 'Terminando la preparación…'); try { await S.PREPP; } catch {} }
     // Primer arranque de una instancia (sin options.txt): ajustes de vídeo según la gráfica y la RAM, o según la última prueba de rendimiento. Solo esta vez.
@@ -212,6 +215,13 @@ async function playGame(opts) {
         setTimeout(() => { playGame({ id, server, world, safe, extraArgs: opts.extraArgs, gcRetry: true }).catch(() => {}); }, 700);
         return;
       }
+      // Si con el menú de Nova se cierra con error en los primeros 45 s, se guarda el informe y se vuelve a abrir Minecraft sin el menú (modo seguro) para que no te quedes sin jugar
+      if (!!code && tail.length > 0 && t0 && nova && !noNova && Date.now() - t0 < 45000 && !(opts && opts.novaRetry)) {
+        try { reportCrash(ins, code, tail, lg.f, since - 5000); } catch {}
+        send('status', 'El menú de Nova falló al arrancar: se abre Minecraft sin él'); notify('Nova', 'El menú de Nova no pudo arrancar; se abre Minecraft normal. El fallo se ha guardado en el informe.');
+        setTimeout(() => { playGame({ id, server, world, safe: true, extraArgs: opts.extraArgs, gcRetry: opts.gcRetry, novaRetry: true }).catch(() => {}); }, 700);
+        return;
+      }
       const crashed = !!code && tail.length > 0;
       send('status', crashed ? 'Minecraft se cerró con un error' : 'Minecraft cerrado');
       if (running.size === 0 || crashed) { if (S.win.isMinimized()) S.win.restore(); S.win.show(); S.win.focus(); }
@@ -219,7 +229,14 @@ async function playGame(opts) {
     });
     discordSet({ details: 'Preparando Minecraft ' + ins.mc, state: (ins.ld || 'Vanilla') + ' · Nova Launcher', startTimestamp: Date.now() });
     send('status', 'Descargando archivos del juego…');
-    if (!(proc = await l.launch(o))) throw new Error('No se pudo iniciar Minecraft');
+    // Un corte de red o un archivo a medio descargar al preparar el juego no debe ser un error: se reintenta una vez (MCLC vuelve a comprobar y a bajar lo que falte)
+    try { proc = await l.launch(o); }
+    catch (e1) {
+      if (!/ETIMEDOUT|ECONNRESET|ECONNREFUSED|ENOTFOUND|EAI_AGAIN|EPIPE|socket hang up|timeout|checksum|hash|sha1|EBUSY|EPERM|EMFILE|aborted/i.test(String(e1 && (e1.code || e1.message || e1)))) throw e1;
+      send('status', 'Reintentando la descarga…'); send('log', 'Reintentando tras un fallo al preparar el juego (' + String(e1 && (e1.code || e1.message) || e1).slice(0, 80) + ').\n');
+      await new Promise(r => setTimeout(r, 1500)); proc = await l.launch(o);
+    }
+    if (!proc) throw new Error('No se pudo iniciar Minecraft');
     running.add(id); t0 = Date.now(); applyPrio(proc);
     try { // overlay del modo streamer: qué se juega, con qué lanzador y desde cuándo
       const st = R.accState ? R.accState() : null, my = Array.isArray(cfg.myServers) ? cfg.myServers : [];
@@ -231,6 +248,7 @@ async function playGame(opts) {
     send('running', 1); discordSet({ details: server && server.name && !streamerOn() ? 'En ' + server.name + ' · ' + ins.mc : 'Jugando a Minecraft ' + ins.mc, state: (ins.ld || 'Vanilla') + ' · Nova Launcher', startTimestamp: Date.now() }); send('status', 'Minecraft en ejecución'); if (cfg.closeOnLaunch) S.win.hide(); else if (cfg.gameMode !== false && cfg.conOpen === false) gameHide();
     return { ok: true };
   } catch (err) { send('status', 'Error: ' + err.message); send('progress', null); return { ok: false }; }
+  finally { STARTING.delete(id); }
 }
 ipcMain.handle('play', (e, a) => playGame(a));
 // Prioridad del juego (punto 17): con «Por encima de lo normal» Java sube un escalón y el launcher baja uno mientras se juega. Nunca Alta ni Tiempo real; si falla, se ignora sin avisar.

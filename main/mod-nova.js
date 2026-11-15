@@ -225,9 +225,30 @@ function novaBgGet(f) {
 function copyIfDiff(src, dst) {
   try {
     const a = fs.statSync(src), b = fs.existsSync(dst) ? fs.statSync(dst) : null;
-    if (!b || b.size !== a.size) { fs.mkdirSync(path.dirname(dst), { recursive: true }); fs.writeFileSync(dst, fs.readFileSync(src)); }
+    if (!b || b.size !== a.size) {
+      // Se escribe en un archivo temporal y se renombra: si el launcher se cierra a medias o hay otra preparación en marcha, Java nunca ve un jar cortado
+      fs.mkdirSync(path.dirname(dst), { recursive: true });
+      const tmp = dst + '.' + process.pid + '.tmp';
+      try { fs.writeFileSync(tmp, fs.readFileSync(src)); fs.renameSync(tmp, dst); } catch (e) { try { fs.rmSync(tmp, { force: true }); } catch {} throw e; }
+    }
     return true;
   } catch { return false; }
+}
+/** Limpieza ligera antes de jugar: restos de descargas cortadas (*.dl, *.tmp de más de una hora), jars del menú de versiones antiguas que ya no usa nadie y la carpeta de preparación. */
+function novaTidy() {
+  const d = novaDir(), now = Date.now();
+  try {
+    const keep = new Set(Object.values(rd(path.join(d, 'mod-updates.json'), {})).map(x => x && x.file).filter(Boolean));
+    for (const f of fs.readdirSync(d)) {
+      const full = path.join(d, f);
+      try {
+        const st = fs.statSync(full); if (!st.isFile()) continue;
+        if (/\.(dl|tmp)$/.test(f) && now - st.mtimeMs > 3600e3) fs.rmSync(full, { force: true });
+        else if (/^nova-menu-[\w.]+-\d[\w.-]*\.jar$/.test(f) && !keep.has(full)) fs.rmSync(full, { force: true });
+      } catch {}
+    }
+  } catch {}
+  try { const pd = path.join(root, 'instances', '.prep'); if (fs.existsSync(pd) && now - fs.statSync(pd).mtimeMs > 6 * 3600e3) fs.rmSync(pd, { recursive: true, force: true }); } catch {}
 }
 function novaBg(file = 'nova-bg.nvb') {
   const bundled = path.join(APP, 'assets', file), dst = path.join(root, 'nova', file);
@@ -403,4 +424,4 @@ function novaAccSync(cfg) {
 }
 
 // Lo que usan otros módulos
-Object.assign(R, { novaOff: off, novaOffList, novaAviso, novaAvisosReset, novaAccSync, NOVA_MC, NOVA_REMOTE_ID, fondosDir, fondosScan, fondosWatch, modManifest, novaBg, novaBgGet, novaDir, novaModResolve, novaNews, novaPickBg, novaServersWrite, novaAccountsWrite, novaSkin });
+Object.assign(R, { novaTidy, novaOff: off, novaOffList, novaAviso, novaAvisosReset, novaAccSync, NOVA_MC, NOVA_REMOTE_ID, fondosDir, fondosScan, fondosWatch, modManifest, novaBg, novaBgGet, novaDir, novaModResolve, novaNews, novaPickBg, novaServersWrite, novaAccountsWrite, novaSkin });

@@ -37,7 +37,7 @@ if(e.altKey&&/^[1-9]$/.test(e.key)){e.preventDefault();show(P[+e.key-1])}
 if(e.ctrlKey&&e.key==="Enter"){e.preventDefault();const g=$("go");g&&!g.disabled&&g.click()}});document.addEventListener("click",e=>{if(!e.target.closest(".pop"))$("pop").classList.remove("on")});
 $("pop").onclick=e=>e.stopPropagation();
 $("pcr").onclick=()=>{$("pop").classList.remove("on");openCreate({mc:sel.mc,ld:sel.ld,type:sel.type})};
-function rp(){chips($("ld"),Object.keys(LD).map(k=>[k,LDN(k),!LD[k](sel.mc)]),sel.ld,k=>{sel.ld=k;head();save()});
+function rp(){const ph=$("phs");if(ph)ph.textContent=sel.mc+" · "+LDN(sel.ld);chips($("ld"),Object.keys(LD).map(k=>[k,LDN(k),!LD[k](sel.mc)]),sel.ld,k=>{sel.ld=k;head();save()});
 chips($("tf"),Object.entries(TN),tf,k=>{tf=k;rp()});
 const key=tf+"|"+sel.ld+"|"+sel.mc+"|"+V.length+"|"+(LS.f?1:0)+(LS.g?1:0)+(LS.n?1:0);if(key===rpK)return;rpK=key;
 let list=V.filter(v=>(tf==="all"||v.type===tf)&&LD[sel.ld](v.id));if(!list.find(v=>v.id===sel.mc))list.unshift({id:sel.mc,type:sel.type});

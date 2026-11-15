@@ -3,6 +3,14 @@
 Todo lo que cambia en cada versión de Nova Launcher y del menú de Nova (el mod), de la más nueva a la más antigua. La misma lista aparece dentro de la app, en **Ajustes → Acerca de**, y el flujo de publicación copia la entrada de cada versión a las notas de su release. Al sacar una versión nueva, añade su entrada `### x.y.z — Título` **al principio** de la lista.
 
 
+### 0.2.20-beta.4 · Arranque más fiable y selector de versión
+
+**Mejorado**
+- Más fiabilidad al lanzar en Nova (vanilla): un doble clic en «Lanzar» ya no arranca dos preparaciones a la vez; los jars del menú de Nova y las librerías de Fabric se copian de forma atómica (nunca quedan a medias); y si falla la red o un archivo al preparar el juego, se reintenta una vez solo.
+- Si el menú de Nova falla en los primeros 45 s, se guarda el informe y se abre Minecraft normal (modo seguro) en vez de quedarse en error.
+- Limpieza automática antes de jugar: restos de descargas cortadas (.dl/.tmp), jars del menú de versiones antiguas y la carpeta temporal de preparación.
+- Selector de versión del botón Lanzar rediseñado: cabecera con lo elegido, cargador y tipo de versión como controles segmentados (ya no se parten en dos líneas), lista de versiones más clara y botones de acción nuevos.
+
 ### 0.2.20-beta.3 · Lista de versiones del botón Jugar
 
 **Arreglado**

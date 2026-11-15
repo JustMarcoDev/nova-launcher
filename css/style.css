@@ -1006,7 +1006,7 @@ main {
   position: absolute;
   top: calc(100% + 10px);
   left: 50%;
-  width: 380px;
+  width: 400px;
   z-index: 20;
   border: 1px solid var(--l);
   padding: 16px;
@@ -1021,7 +1021,7 @@ main {
   box-shadow: 0 24px 70px #000d,0 0 44px color-mix(in srgb,var(--ac) 14%,transparent);
   max-height: min(72vh,440px);
   overflow: auto;
-  margin-left: -190px;
+  margin-left: -200px;
   transform: translateY(-10px) scale(.96);
 }
 
@@ -4203,9 +4203,6 @@ html[data-cb=Grises] {
 .md .hd > .x { display: none; }
 .md .hd { padding-right: 34px; }
 
-/* Botón «Crear instancia con esto» del desplegable de Lanzar */
-.pop #pcr { display: flex; align-items: center; justify-content: center; box-sizing: border-box; width: 100%; margin-top: 12px; padding: 10px 16px; background: color-mix(in srgb,var(--ac) 14%,var(--p2)); border-color: color-mix(in srgb,var(--ac) 40%,var(--l)); }
-.pop #pcr:hover { background: color-mix(in srgb,var(--ac) 24%,var(--p2)); }
 
 /* Tarjeta «Tus instancias» */
 #qi { display: grid; gap: 6px; }
@@ -4371,4 +4368,25 @@ html.fm #cv { display: none; }
 @media (prefers-reduced-motion: reduce) { .lgtoast, .lgb i { transition: none; } }
 
 /* «Pegar enlace de modpack» del desplegable: ocupa el ancho sin salirse (caja con relleno incluido) */
-.pop #ppk { display: flex; align-items: center; justify-content: center; box-sizing: border-box; width: 100%; margin-top: 8px; padding: 10px 16px; }
+
+/* Selector de versión del botón Lanzar: cabecera con lo elegido, controles segmentados y botones de acción */
+.pop { padding: 0; max-height: min(78vh,520px); }
+.pop > label, .pop > .chips, .pop > .vsel { margin-left: 18px; margin-right: 18px; }
+.pop .ph { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 18px; background: linear-gradient(color-mix(in srgb,var(--ac) 12%,transparent),transparent); border-bottom: 1px solid color-mix(in srgb,var(--ac) 18%,var(--l)); }
+.pop .pht { font-weight: 800; font-size: 15px; letter-spacing: .2px; color: #fff; }
+.pop .phs { font-size: 12px; font-weight: 700; padding: 4px 11px; border-radius: 99px; color: var(--ac); background: color-mix(in srgb,var(--ac) 14%,transparent); border: 1px solid color-mix(in srgb,var(--ac) 32%,transparent); white-space: nowrap; }
+.pop label { display: block; margin-top: 16px; margin-bottom: 7px; font-size: 10.5px; font-weight: 800; letter-spacing: 1.3px; text-transform: uppercase; color: var(--m); }
+.pop .seg { display: flex; flex-wrap: nowrap; gap: 3px; padding: 3px; border-radius: calc(12px*var(--rs,1)); background: color-mix(in srgb,#000 38%,var(--p2)); border: 1px solid var(--l); }
+.pop .seg .chip { flex: 1 1 0; min-width: 0; text-align: center; padding: 8px 4px; font-size: 12.5px; border: 1px solid transparent; background: transparent; border-radius: calc(9px*var(--rs,1)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pop .seg .chip:hover { background: color-mix(in srgb,#fff 7%,transparent); }
+.pop .seg .chip.on { background: var(--ac); color: #04140a; box-shadow: 0 2px 14px color-mix(in srgb,var(--ac) 45%,transparent); }
+.pop .seg .chip.dis { opacity: .35; }
+.pop .vsel { position: relative; }
+.pop .vsel select { width: 100%; box-sizing: border-box; padding: 11px 38px 11px 14px; font-size: 14px; font-weight: 700; color: #fff; border-radius: calc(12px*var(--rs,1)); border: 1px solid color-mix(in srgb,var(--ac) 35%,var(--l)); background-color: color-mix(in srgb,#000 30%,var(--p2)); cursor: pointer; }
+.pop .vsel select:hover, .pop .vsel select:focus { border-color: var(--ac); outline: none; box-shadow: 0 0 0 3px color-mix(in srgb,var(--ac) 18%,transparent); }
+.pop .pa { display: grid; gap: 8px; padding: 18px; }
+.pop #pcr, .pop #ppk { display: flex; align-items: center; justify-content: center; box-sizing: border-box; width: 100%; margin: 0; padding: 11px 16px; font-weight: 700; border-radius: calc(12px*var(--rs,1)); }
+.pop #pcr { background: var(--ac); border-color: var(--ac); color: #04140a; }
+.pop #pcr:hover { filter: brightness(1.08); }
+.pop #ppk { background: transparent; border: 1px dashed color-mix(in srgb,var(--ac) 35%,var(--l)); color: var(--m); }
+.pop #ppk:hover { color: #fff; border-color: var(--ac); }

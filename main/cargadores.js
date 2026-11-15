@@ -64,9 +64,9 @@ function fabricBundled(mc) {
       const src = path.join(APP, 'assets', 'fabric', 'libraries', rel), dst = path.join(root, 'libraries', rel);
       if (!fs.existsSync(src)) return null;
       const ok = fs.existsSync(dst) && fs.statSync(dst).size === fs.statSync(src).size;
-      if (!ok) { fs.mkdirSync(path.dirname(dst), { recursive: true }); fs.writeFileSync(dst, fs.readFileSync(src)); }
+      if (!ok) { fs.mkdirSync(path.dirname(dst), { recursive: true }); const tmp = dst + '.' + process.pid + '.tmp'; fs.writeFileSync(tmp, fs.readFileSync(src)); fs.renameSync(tmp, dst); }
     }
-    if (!fs.existsSync(vf)) { fs.mkdirSync(path.dirname(vf), { recursive: true }); fs.writeFileSync(vf, JSON.stringify(prof)); }
+    if (!fs.existsSync(vf)) { fs.mkdirSync(path.dirname(vf), { recursive: true }); fs.writeFileSync(vf + '.tmp', JSON.stringify(prof)); fs.renameSync(vf + '.tmp', vf); }
     return id;
   } catch { return null; }
 }
